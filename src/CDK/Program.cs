@@ -15,7 +15,7 @@ namespace Cloudfront
       {
         Env = new Amazon.CDK.Environment()
         {
-          Region = "us-east-1",
+          Region = "us-east-2",
           Account = "***REMOVED***"
         }
       });
