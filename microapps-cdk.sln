@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7D1180F8-1C5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CDK", "src\CDK\CDK.csproj", "{8D4C588A-49A9-4B34-BCB4-7C45C6B1F2A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PwrDrvr.MicroApps.DataLib", "src\PwrDrvr.MicroApps.DataLib\PwrDrvr.MicroApps.DataLib.csproj", "{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +34,21 @@ Global
 		{8D4C588A-49A9-4B34-BCB4-7C45C6B1F2A0}.Release|x64.Build.0 = Release|Any CPU
 		{8D4C588A-49A9-4B34-BCB4-7C45C6B1F2A0}.Release|x86.ActiveCfg = Release|Any CPU
 		{8D4C588A-49A9-4B34-BCB4-7C45C6B1F2A0}.Release|x86.Build.0 = Release|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Debug|x64.Build.0 = Debug|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Debug|x86.Build.0 = Debug|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Release|x64.ActiveCfg = Release|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Release|x64.Build.0 = Release|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Release|x86.ActiveCfg = Release|Any CPU
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8D4C588A-49A9-4B34-BCB4-7C45C6B1F2A0} = {7D1180F8-1C5C-4214-A5B8-064620BF3F46}
+		{1A087C40-6E8B-44C5-A184-A3C8B6A3E610} = {7D1180F8-1C5C-4214-A5B8-064620BF3F46}
 	EndGlobalSection
 EndGlobal

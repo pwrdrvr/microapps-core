@@ -7,9 +7,17 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 
-namespace Cloudfront {
+namespace CDK {
   public class CloudfrontStack : Stack {
     internal CloudfrontStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props) {
+      //
+      // S3 Bucket for Logging - Usable by many stacks
+      //
+
+      var bucketLogs = new Bucket(this, "logsBucket", new BucketProps() {
+        BucketName = "pwrdrvr-logs",
+      });
+
       //
       // CloudFront Distro
       //
@@ -33,6 +41,9 @@ namespace Cloudfront {
         },
         EnableIpv6 = true,
         PriceClass = PriceClass.PRICE_CLASS_100,
+        EnableLogging = true,
+        LogBucket = bucketLogs,
+        LogFilePrefix = "/com.pwrdrvr.apps/cloudfront-raw"
       });
 
       // Create S3 Origin Identity
