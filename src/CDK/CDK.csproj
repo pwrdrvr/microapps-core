@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <!-- Roll forward to future major versions of the netcoreapp as needed -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- CDK Construct Library dependencies -->
+    <PackageReference Include="Amazon.CDK" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.CertificateManager" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.CloudFront" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.CloudFront.Origins" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.Route53" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.Route53.Targets" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.S3" Version="1.78.0" />
+
+    <!-- jsii Roslyn analyzers (un-comment to obtain compile-time checks for missing required props
+    <PackageReference Include="Amazon.Jsii.Analyzers" Version="*" PrivateAssets="all" />
+    -->
+  </ItemGroup>
+
+</Project>
