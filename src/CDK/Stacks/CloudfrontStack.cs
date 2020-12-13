@@ -6,10 +6,6 @@ using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
-using Amazon.JSII.JsonModel.Spec;
-using System.Net.Cache;
-using System;
-using System.Linq.Expressions;
 
 namespace Cloudfront
 {
@@ -65,20 +61,17 @@ namespace Cloudfront
       var policyStatement = new PolicyStatement(new PolicyStatementProps()
       {
         Effect = Effect.ALLOW,
-        Actions = new[] { "s3:*" },
+        Actions = new[] { "s3:GetObject" },
         Principals = new[] { new CanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
         Resources = new[] {
           string.Format("{0}/*", bucket.BucketArn)
         }
       });
-      //bucket.AddToResourcePolicy(policyStatement);
 
-
-      // testBucket.addToResourcePolicy(policyStatement);
 
       if (bucket.Policy == null)
       {
-        new BucketPolicy(this, "Policy", new BucketPolicyProps()
+        new BucketPolicy(this, "CFPolicy", new BucketPolicyProps()
         {
           Bucket = bucket
         }).Document.AddStatements(policyStatement);
@@ -98,24 +91,17 @@ namespace Cloudfront
         });
       // var statics3 = new S3Origin(new Bucket(this, "pwrdrvr-microapps", new BucketProps() {
 
-      // }) {
-      // })
-
       //
       // Add Behaviors
       //
-      cfdistro.AddBehavior("*.*", statics3, new AddBehaviorOptions()
+      var s3Behavior = new AddBehaviorOptions()
       {
         CachePolicy = CachePolicy.CACHING_OPTIMIZED,
         AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        OriginRequestPolicy = new OriginRequestPolicy(this, "staticPolicy", new OriginRequestPolicyProps()
-        {
-          CookieBehavior = OriginRequestCookieBehavior.All(),
-          HeaderBehavior = OriginRequestHeaderBehavior.All(),
-          QueryStringBehavior = OriginRequestQueryStringBehavior.All(),
-        }),
-      });
+        OriginRequestPolicy = OriginRequestPolicy.CORS_S3_ORIGIN,
+      };
+      cfdistro.AddBehavior("*.*", statics3, s3Behavior);
 
       //
       // Route53 - Point apps.pwrdrvr.com at this distro
