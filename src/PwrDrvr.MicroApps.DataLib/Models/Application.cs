@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using Amazon.DynamoDBv2.DataModel;
-using PwrDrvr.MicroApps;
-using PwrDrvr.MicroApps.DataLib;
 
-namespace PwrDrvr.MicroApps.Models {
+namespace PwrDrvr.MicroApps.DataLib.Models {
   [DynamoDBTable("MicroApps")]
   public class Application {
     private enum SaveBy {
@@ -21,12 +18,12 @@ namespace PwrDrvr.MicroApps.Models {
     public async void SaveAsync() {
       // TODO: Validate that all the fields needed are present
 
-      // Save under all Applications key
-      this._keyBy = SaveBy.Applications;
-      await Manager.Context.SaveAsync(this);
-
       // Save under specific AppName key
       this._keyBy = SaveBy.AppName;
+      await Manager.Context.SaveAsync(this);
+
+      // Save under all Applications key
+      this._keyBy = SaveBy.Applications;
       await Manager.Context.SaveAsync(this);
     }
 
