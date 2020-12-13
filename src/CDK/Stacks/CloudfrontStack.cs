@@ -43,7 +43,7 @@ namespace CDK {
         PriceClass = PriceClass.PRICE_CLASS_100,
         EnableLogging = true,
         LogBucket = bucketLogs,
-        LogFilePrefix = "/com.pwrdrvr.apps/cloudfront-raw"
+        LogFilePrefix = "com.pwrdrvr.apps/cloudfront-raw/"
       });
 
       // Create S3 Origin Identity
