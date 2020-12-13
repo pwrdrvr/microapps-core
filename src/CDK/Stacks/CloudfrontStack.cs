@@ -7,33 +7,26 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 
-namespace Cloudfront
-{
-  public class CloudfrontStack : Stack
-  {
-    internal CloudfrontStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
-    {
+namespace Cloudfront {
+  public class CloudfrontStack : Stack {
+    internal CloudfrontStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props) {
       //
       // CloudFront Distro
       //
-      var cfdistro = new Distribution(this, "cloudfront", new DistributionProps()
-      {
+      var cfdistro = new Distribution(this, "cloudfront", new DistributionProps() {
         DomainNames = new[] { "apps.pwrdrvr.com" },
         Certificate = Certificate.FromCertificateArn(this, "splat.pwrdrvr.com", "arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09"),
         HttpVersion = HttpVersion.HTTP2,
-        DefaultBehavior = new BehaviorOptions()
-        {
+        DefaultBehavior = new BehaviorOptions() {
           ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           AllowedMethods = AllowedMethods.ALLOW_ALL,
           CachePolicy = CachePolicy.CACHING_DISABLED,
-          OriginRequestPolicy = new OriginRequestPolicy(this, "apiPolicy", new OriginRequestPolicyProps()
-          {
+          OriginRequestPolicy = new OriginRequestPolicy(this, "apiPolicy", new OriginRequestPolicyProps() {
             CookieBehavior = OriginRequestCookieBehavior.All(),
             HeaderBehavior = OriginRequestHeaderBehavior.All(),
             QueryStringBehavior = OriginRequestQueryStringBehavior.All(),
           }),
-          Origin = new HttpOrigin("apps-origin.pwrdrvr.com", new HttpOriginProps()
-          {
+          Origin = new HttpOrigin("apps-origin.pwrdrvr.com", new HttpOriginProps() {
             ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
             OriginSslProtocols = new[] { OriginSslPolicy.TLS_V1_2 },
           }),
@@ -44,8 +37,7 @@ namespace Cloudfront
 
       // Create S3 Origin Identity
       var bucket = Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps");
-      var OAI = new OriginAccessIdentity(this, "staticAccessIdentity", new OriginAccessIdentityProps()
-      {
+      var OAI = new OriginAccessIdentity(this, "staticAccessIdentity", new OriginAccessIdentityProps() {
         Comment = "cloudfront-access"
       });
 
@@ -58,8 +50,7 @@ namespace Cloudfront
       // policyStatement.AddResources(string.Format("{0}/*", bucket.BucketArn));
       // policyStatement.AddCanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId);
 
-      var policyStatement = new PolicyStatement(new PolicyStatementProps()
-      {
+      var policyStatement = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
         Actions = new[] { "s3:GetObject" },
         Principals = new[] { new CanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
@@ -69,15 +60,11 @@ namespace Cloudfront
       });
 
 
-      if (bucket.Policy == null)
-      {
-        new BucketPolicy(this, "CFPolicy", new BucketPolicyProps()
-        {
+      if (bucket.Policy == null) {
+        new BucketPolicy(this, "CFPolicy", new BucketPolicyProps() {
           Bucket = bucket
         }).Document.AddStatements(policyStatement);
-      }
-      else
-      {
+      } else {
         bucket.Policy.Document.AddStatements(policyStatement);
       }
 
@@ -85,8 +72,7 @@ namespace Cloudfront
       // Add Origins
       //
       var statics3 = new S3Origin(bucket,
-        new S3OriginProps()
-        {
+        new S3OriginProps() {
           OriginAccessIdentity = OAI
         });
       // var statics3 = new S3Origin(new Bucket(this, "pwrdrvr-microapps", new BucketProps() {
@@ -94,8 +80,7 @@ namespace Cloudfront
       //
       // Add Behaviors
       //
-      var s3Behavior = new AddBehaviorOptions()
-      {
+      var s3Behavior = new AddBehaviorOptions() {
         CachePolicy = CachePolicy.CACHING_OPTIMIZED,
         AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -107,12 +92,10 @@ namespace Cloudfront
       // Route53 - Point apps.pwrdrvr.com at this distro
       //
 
-      var hzonePwrDrvrCom = HostedZone.FromLookup(this, "hzonePwrDrvrCom", new HostedZoneProviderProps()
-      {
+      var hzonePwrDrvrCom = HostedZone.FromLookup(this, "hzonePwrDrvrCom", new HostedZoneProviderProps() {
         DomainName = "pwrdrvr.com",
       });
-      var rrAppsPwrDrvrCom = new RecordSet(this, "appspwrdrvrcom", new RecordSetProps()
-      {
+      var rrAppsPwrDrvrCom = new RecordSet(this, "appspwrdrvrcom", new RecordSetProps() {
         RecordName = "apps.pwrdrvr.com",
         RecordType = RecordType.A,
         Target = new RecordTarget(null, new CloudFrontTarget(cfdistro)),
