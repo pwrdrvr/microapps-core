@@ -2,12 +2,14 @@ using Amazon.CDK;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.CloudFront.Origins;
+using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 using Amazon.JSII.JsonModel.Spec;
 using System.Net.Cache;
 using System;
+using System.Linq.Expressions;
 
 namespace Cloudfront
 {
@@ -44,10 +46,60 @@ namespace Cloudfront
         PriceClass = PriceClass.PRICE_CLASS_100,
       });
 
+      // Create S3 Origin Identity
+      var bucket = Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps");
+      var OAI = new OriginAccessIdentity(this, "staticAccessIdentity", new OriginAccessIdentityProps()
+      {
+        Comment = "cloudfront-access"
+      });
+
+      // // Explicitly add Bucket Policy 
+      // var policyStatement = new PolicyStatement();
+      // policyStatement.AddActions("s3:GetBucket*");
+      // policyStatement.AddActions("s3:GetObject*");
+      // policyStatement.AddActions("s3:List*");
+      // // policyStatement.AddActions(bucket.BucketArn);
+      // policyStatement.AddResources(string.Format("{0}/*", bucket.BucketArn));
+      // policyStatement.AddCanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId);
+
+      var policyStatement = new PolicyStatement(new PolicyStatementProps()
+      {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "s3:*" },
+        Principals = new[] { new CanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
+        Resources = new[] {
+          string.Format("{0}/*", bucket.BucketArn)
+        }
+      });
+      //bucket.AddToResourcePolicy(policyStatement);
+
+
+      // testBucket.addToResourcePolicy(policyStatement);
+
+      if (bucket.Policy == null)
+      {
+        new BucketPolicy(this, "Policy", new BucketPolicyProps()
+        {
+          Bucket = bucket
+        }).Document.AddStatements(policyStatement);
+      }
+      else
+      {
+        bucket.Policy.Document.AddStatements(policyStatement);
+      }
+
       //
       // Add Origins
       //
-      var statics3 = new S3Origin(Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps"));
+      var statics3 = new S3Origin(bucket,
+        new S3OriginProps()
+        {
+          OriginAccessIdentity = OAI
+        });
+      // var statics3 = new S3Origin(new Bucket(this, "pwrdrvr-microapps", new BucketProps() {
+
+      // }) {
+      // })
 
       //
       // Add Behaviors
@@ -69,10 +121,12 @@ namespace Cloudfront
       // Route53 - Point apps.pwrdrvr.com at this distro
       //
 
-      var hzonePwrDrvrCom = HostedZone.FromLookup(this, "hzonePwrDrvrCom", new HostedZoneProviderProps(){
+      var hzonePwrDrvrCom = HostedZone.FromLookup(this, "hzonePwrDrvrCom", new HostedZoneProviderProps()
+      {
         DomainName = "pwrdrvr.com",
       });
-      var rrAppsPwrDrvrCom = new RecordSet(this, "appspwrdrvrcom", new RecordSetProps() {
+      var rrAppsPwrDrvrCom = new RecordSet(this, "appspwrdrvrcom", new RecordSetProps()
+      {
         RecordName = "apps.pwrdrvr.com",
         RecordType = RecordType.A,
         Target = new RecordTarget(null, new CloudFrontTarget(cfdistro)),

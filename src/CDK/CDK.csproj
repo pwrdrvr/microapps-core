@@ -13,6 +13,7 @@
     <PackageReference Include="Amazon.CDK.AWS.CertificateManager" Version="1.78.0" />
     <PackageReference Include="Amazon.CDK.AWS.CloudFront" Version="1.78.0" />
     <PackageReference Include="Amazon.CDK.AWS.CloudFront.Origins" Version="1.78.0" />
+    <PackageReference Include="Amazon.CDK.AWS.IAM" Version="1.78.0" />
     <PackageReference Include="Amazon.CDK.AWS.Route53" Version="1.78.0" />
     <PackageReference Include="Amazon.CDK.AWS.Route53.Targets" Version="1.78.0" />
     <PackageReference Include="Amazon.CDK.AWS.S3" Version="1.78.0" />
