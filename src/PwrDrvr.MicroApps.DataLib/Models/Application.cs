@@ -36,7 +36,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
           case SaveBy.Applications:
             return "applications";
           case SaveBy.AppName:
-            return string.Format("appName#{0}", this.Name).ToLower();
+            return string.Format("appName#{0}", this.AppName).ToLower();
           default:
             throw new NotImplementedException("Missing SaveBy handler");
         }
@@ -51,7 +51,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       get {
         switch (this._keyBy) {
           case SaveBy.Applications:
-            return string.Format("appName#{0}", this.Name).ToLower();
+            return string.Format("appName#{0}", this.AppName).ToLower();
           case SaveBy.AppName:
             return "application";
           default:
@@ -63,14 +63,14 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       }
     }
 
-    private string _name;
+    private string _appName;
     [DynamoDBProperty]
-    public string Name {
+    public string AppName {
       get {
-        return _name;
+        return _appName;
       }
       set {
-        _name = value.ToLower();
+        _appName = value.ToLower();
       }
     }
 

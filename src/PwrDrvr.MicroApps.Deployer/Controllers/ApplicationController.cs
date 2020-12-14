@@ -10,7 +10,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
     [HttpPost("{appName}")]
     async public Task Post(string appName) {
       await Manager.CreateApp(new DataLib.Models.Application() {
-        Name = appName,
+        AppName = appName,
         DisplayName = appName
       });
     }

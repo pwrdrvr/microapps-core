@@ -10,7 +10,7 @@ namespace PwrDrvr.MicroApps.DataLib.Application.Test {
     public void AppConstruction() {
       // Arrange
       var app = new Models.Application();
-      app.Name = "apptest1";
+      app.AppName = "apptest1";
 
       // Act
 
