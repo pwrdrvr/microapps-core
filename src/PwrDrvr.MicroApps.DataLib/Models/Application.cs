@@ -22,11 +22,17 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
 
       // Save under specific AppName key
       this._keyBy = SaveBy.AppName;
-      await Manager.Context.SaveAsync(this);
+      var taskByName = Manager.Context.SaveAsync(this);
 
       // Save under all Applications key
       this._keyBy = SaveBy.Applications;
-      await Manager.Context.SaveAsync(this);
+      var taskByApplications = Manager.Context.SaveAsync(this);
+
+      await Task.WhenAll(taskByName, taskByApplications);
+
+      // Await the tasks so they can throw / complete
+      await taskByName;
+      await taskByApplications;
     }
 
     [DynamoDBHashKey] // Partition key
