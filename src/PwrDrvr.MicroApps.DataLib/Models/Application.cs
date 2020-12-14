@@ -17,7 +17,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       _keyBy = SaveBy.AppName;
     }
 
-    public async void SaveAsync() {
+    public async Task SaveAsync() {
       // TODO: Validate that all the fields needed are present
 
       // Save under specific AppName key

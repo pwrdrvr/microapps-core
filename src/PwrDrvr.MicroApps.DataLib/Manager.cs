@@ -29,7 +29,7 @@ namespace PwrDrvr.MicroApps.DataLib {
     static public async Task CreateApp(Application app) {
       // Try to create the record, fail if it exists
       // TODO: Confirm record is new
-      await _context.SaveAsync(app);
+      await app.SaveAsync();
     }
 
     static public async Task CreateVersion(Models.Version version) {

@@ -10,9 +10,12 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/cloudfront/src/Cloudfront/bin/Debug/netcoreapp3.1/Cloudfront.dll",
+            "program": "${workspaceFolder}/src/PwrDrvr.MicroApps.Deployer/bin/Debug/net5.0/PwrDrvr.MicroApps.Deployer.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/cloudfront/src/Cloudfront",
+            "env": {
+                "AWS_PROFILE": "pwrdrvr"
+            },
+            "cwd": "${workspaceFolder}/",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false

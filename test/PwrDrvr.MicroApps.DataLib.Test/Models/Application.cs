@@ -2,11 +2,12 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 using PwrDrvr.MicroApps.DataLib;
+using System.Runtime.CompilerServices;
 
 namespace PwrDrvr.MicroApps.DataLib.Application.Test {
   public class ApplicationTest {
     [Fact]
-    public void Test1() {
+    public void AppConstruction() {
       // Arrange
       var app = new Models.Application();
       app.Name = "apptest1";
@@ -14,7 +15,7 @@ namespace PwrDrvr.MicroApps.DataLib.Application.Test {
       // Act
 
       // Assert
-      Assert.Equal("appName#apptest1", app.PK);
+      Assert.Equal("appname#apptest1", app.PK);
       Assert.Equal("application", app.SK);
     }
   }
