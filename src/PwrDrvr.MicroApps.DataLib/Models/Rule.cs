@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using Amazon.DynamoDBv2.DataModel;
-using PwrDrvr.MicroApps.DataLib;
 
 namespace PwrDrvr.MicroApps.DataLib.Models {
   [DynamoDBTable("MicroApps")]

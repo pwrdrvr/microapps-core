@@ -1,15 +1,14 @@
 using System;
-using System.Collections;
+using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
-using PwrDrvr.MicroApps;
-using PwrDrvr.MicroApps.DataLib;
+using System.Collections.Generic;
+using Amazon.DynamoDBv2.DocumentModel;
 
 namespace PwrDrvr.MicroApps.DataLib.Models {
   [DynamoDBTable("MicroApps")]
   public class Version {
     private enum SaveBy {
       AppName,
-      Applications
     }
 
     private SaveBy _keyBy;
@@ -18,16 +17,26 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       _keyBy = SaveBy.AppName;
     }
 
-    public async void SaveAsync() {
+    public async Task SaveAsync() {
       // TODO: Validate that all the fields needed are present
-
-      // Save under all Applications key
-      this._keyBy = SaveBy.Applications;
-      await Manager.Context.SaveAsync(this);
 
       // Save under specific AppName key
       this._keyBy = SaveBy.AppName;
       await Manager.Context.SaveAsync(this);
+    }
+
+    static public async Task<List<Version>> GetVersionsAsync(string appName) {
+      var key = new Version() {
+        AppName = appName,
+        _keyBy = SaveBy.AppName,
+      };
+
+      // Get all record that have the PK and start with the SK prefix
+      var results = Manager.Context.QueryAsync<Version>(key.PK,
+      QueryOperator.BeginsWith, new string[] {
+        key.SK
+      });
+      return await results.GetRemainingAsync();
     }
 
     [DynamoDBHashKey] // Partition key
@@ -35,7 +44,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       get {
         switch (this._keyBy) {
           case SaveBy.AppName:
-            return "appName#" + this.AppName;
+            return string.Format("appName#{0}", this.AppName).ToLower();
           default:
             throw new NotImplementedException("Missing SaveBy handler");
         }
@@ -50,7 +59,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       get {
         switch (this._keyBy) {
           case SaveBy.AppName:
-            return string.Format("version#{0}", this.SemVer);
+            return string.Format("version#{0}", this.SemVer).ToLower();
           default:
             throw new NotImplementedException("Missing SaveBy handler");
         }
@@ -60,9 +69,15 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       }
     }
 
+    private string _appName;
     [DynamoDBProperty]
     public string AppName {
-      get; set;
+      get {
+        return _appName;
+      }
+      set {
+        _appName = value.ToLower();
+      }
     }
 
     [DynamoDBProperty]

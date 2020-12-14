@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
 
 namespace PwrDrvr.MicroApps.DataLib.Models {
@@ -34,7 +36,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
           case SaveBy.Applications:
             return "applications";
           case SaveBy.AppName:
-            return string.Format("appName#{0}", this.Name);
+            return string.Format("appName#{0}", this.Name).ToLower();
           default:
             throw new NotImplementedException("Missing SaveBy handler");
         }
@@ -49,7 +51,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       get {
         switch (this._keyBy) {
           case SaveBy.Applications:
-            return string.Format("appName#", this.Name);
+            return string.Format("appName#{0}", this.Name).ToLower();
           case SaveBy.AppName:
             return "application";
           default:
@@ -61,8 +63,19 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
       }
     }
 
+    private string _name;
     [DynamoDBProperty]
     public string Name {
+      get {
+        return _name;
+      }
+      set {
+        _name = value.ToLower();
+      }
+    }
+
+    [DynamoDBProperty]
+    public string DisplayName {
       get; set;
     }
   }

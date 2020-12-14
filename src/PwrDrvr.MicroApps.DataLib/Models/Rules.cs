@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
+using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
-using PwrDrvr.MicroApps.DataLib;
+using System.Collections.Generic;
+using Amazon.DynamoDBv2.DocumentModel;
 
 namespace PwrDrvr.MicroApps.DataLib.Models {
   [DynamoDBTable("MicroApps")]
@@ -10,17 +10,26 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
     public Rules() {
     }
 
-    public async void SaveAsync() {
+    public async Task SaveAsync() {
       // TODO: Validate that all the fields needed are present
 
       // Save under specific AppName key
       await Manager.Context.SaveAsync(this);
     }
 
+    static public async Task<Rules> GetRulesAsync(string appName) {
+      var key = new Rules() {
+        AppName = appName,
+      };
+
+      var results = await Manager.Context.LoadAsync<Rules>(key.PK, key.SK);
+      return results;
+    }
+
     [DynamoDBHashKey] // Partition key
     public string PK {
       get {
-        return "appName#" + this.AppName;
+        return string.Format("appName#{0}", this.AppName).ToLower();
       }
       set {
         // Don't need to save this, it's a derived value
