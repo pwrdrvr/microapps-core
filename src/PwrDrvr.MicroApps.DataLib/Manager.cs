@@ -34,6 +34,7 @@ namespace PwrDrvr.MicroApps.DataLib {
 
     static public async Task CreateVersion(Models.Version version) {
       // TODO: Try to create the version, fail if it exists or app does not exist
+      //       Use `ConditionExpression like attribute_not_exists(foo) AND attribute_not_exists(bar)`
       await _context.SaveAsync(version);
     }
 
