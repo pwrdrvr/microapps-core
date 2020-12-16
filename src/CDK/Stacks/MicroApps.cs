@@ -1,11 +1,12 @@
 using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Lambda;
+using Amazon.CDK.AWS.Route53;
+using Amazon.CDK.AWS.Route53.Targets;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.APIGatewayv2;
 using Amazon.CDK.AWS.APIGatewayv2.Integrations;
 using Amazon.CDK.AWS.CertificateManager;
-using CDK;
 
 namespace CDK {
   public interface IMicroAppsStackProps : IStackProps {
@@ -65,11 +66,21 @@ namespace CDK {
         },
         ApiName = "microapps-apis",
       });
-      // var tssubsvcintegration = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
-      //   Handler = tssubsvchandler
-      // });
 
-      // TODO: Update Default Behavior in CloudFront to point here
+
+      //
+      // Create the api.pwrdrvr.com name
+      //
+      var zone = HostedZone.FromHostedZoneAttributes(this, "zone", new HostedZoneAttributes {
+        ZoneName = "pwrdrvr.com",
+        HostedZoneId = "ZHYNI9F572BBD"
+      });
+
+      var arecord = new ARecord(this, "ARecord", new ARecordProps {
+        Zone = zone,
+        RecordName = "apps-apis",
+        Target = RecordTarget.FromAlias(new ApiGatewayv2Domain(dn))
+      });
 
 
       //
@@ -81,6 +92,14 @@ namespace CDK {
         Code = DockerImageCode.FromEcr(props.ReposProps.RepoDeployer),
         FunctionName = "microapps-deployer",
         Timeout = Duration.Seconds(30),
+      });
+      var intDeployer = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
+        Handler = deployerFunc,
+      });
+      httpApi.AddRoutes(new AddRoutesOptions {
+        Path = "/deployer/{proxy+}",
+        Methods = new[] { HttpMethod.ANY },
+        Integration = intDeployer,
       });
       // Give the Deployer access to DynamoDB table
       table.GrantReadWriteData(deployerFunc);

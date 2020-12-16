@@ -15,7 +15,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
   }
 
   [ApiController]
-  [Route("[controller]")]
+  [Route("deployer/[controller]")]
   public class VersionController : ControllerBase {
     // POST version/{appName}/{semVer}
     [HttpPost("{appName}/{semVer}")]

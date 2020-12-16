@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
   [ApiController]
   [Route("[controller]")]
+  [Route("deployer/[controller]")]
   public class ApplicationController : ControllerBase {
     // POST application/{appName}
     [HttpPost("{appName}")]

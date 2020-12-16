@@ -38,3 +38,18 @@ aws-lambda-update-deployer: ## Update the lambda function to use latest image
 
 cdk-restore: ## Restore env needed to run CDK
 	@nvm use
+
+
+#
+# Lambda Commands
+#
+
+# Deploy an App
+
+create-app: ## Deploy a test app
+	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/application/release \
+		-d ''
+
+deploy-version: ## Deploy a test version
+	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/version/release/1.0.0/ \
+		-d '{ "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none" }'
