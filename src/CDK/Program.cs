@@ -1,8 +1,4 @@
 ﻿using Amazon.CDK;
-using Amazon.CDK.RegionInfo;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CDK {
   sealed class Program {
@@ -17,11 +13,18 @@ namespace CDK {
           Account = "239161478713"
         }
       });
-      new MicroApps(app, "MicroApps", new StackProps() {
+      var repos = new Repos(app, "Repos", new StackProps() {
         Env = new Amazon.CDK.Environment() {
           Region = "us-east-2",
           Account = "239161478713"
         }
+      });
+      new MicroApps(app, "MicroApps", new MicroAppsStackProps() {
+        Env = new Amazon.CDK.Environment() {
+          Region = "us-east-2",
+          Account = "239161478713"
+        },
+        ReposProps = repos,
       });
       app.Synth();
     }
