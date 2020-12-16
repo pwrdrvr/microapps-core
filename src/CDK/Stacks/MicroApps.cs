@@ -5,10 +5,23 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.APIGatewayv2;
 using Amazon.CDK.AWS.APIGatewayv2.Integrations;
 using Amazon.CDK.AWS.CertificateManager;
+using CDK;
 
 namespace CDK {
+  public interface IMicroAppsStackProps : IStackProps {
+    IReposProps ReposProps { get; set; }
+  }
+
+  public class MicroAppsStackProps : StackProps, IMicroAppsStackProps {
+    public MicroAppsStackProps()
+      : base() {
+    }
+
+    public IReposProps ReposProps { get; set; }
+  }
+
   public class MicroApps : Stack {
-    internal MicroApps(Construct scope, string id, IStackProps props = null) : base(scope, id, props) {
+    internal MicroApps(Construct scope, string id, IMicroAppsStackProps props = null) : base(scope, id, props) {
       //
       // DynamoDB Table
       //
@@ -64,19 +77,19 @@ namespace CDK {
       //
 
       // Create Deployer Lambda Function
-      var deployerImage = DockerImageCode.FromImageAsset("./", new AssetImageCodeProps() {
-        // Exclude = new[] { "node_modules", "**/node_modules" },
-        File = "DockerfileDeployer",
-        RepositoryName = "microapps-deployer",
-      });
-      var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
-        Code = deployerImage,
-        FunctionName = "micro-apps-deployer-func",
-        Timeout = Duration.Seconds(30),
-      });
+      // var deployerImage = DockerImageCode.FromImageAsset("./", new AssetImageCodeProps() {
+      //   // Exclude = new[] { "node_modules", "**/node_modules" },
+      //   File = "DockerfileDeployer",
+      //   RepositoryName = "microapps-deployer",
+      // });
+      // var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
+      //   Code = deployerImage,
+      //   FunctionName = "micro-apps-deployer-func",
+      //   Timeout = Duration.Seconds(30),
+      // });
       // Give the Deployer access to DynamoDB table
-      table.GrantReadWriteData(deployerFunc);
-      table.Grant(deployerFunc, "dynamodb:DescribeTable");
+      // table.GrantReadWriteData(deployerFunc);
+      // table.Grant(deployerFunc, "dynamodb:DescribeTable");
 
 
       //
