@@ -63,7 +63,7 @@ namespace CDK {
         DefaultDomainMapping = new DefaultDomainMappingOptions {
           DomainName = dn,
         },
-        ApiName = "micro-apps-apis",
+        ApiName = "microapps-apis",
       });
       // var tssubsvcintegration = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
       //   Handler = tssubsvchandler
@@ -77,19 +77,14 @@ namespace CDK {
       //
 
       // Create Deployer Lambda Function
-      // var deployerImage = DockerImageCode.FromImageAsset("./", new AssetImageCodeProps() {
-      //   // Exclude = new[] { "node_modules", "**/node_modules" },
-      //   File = "DockerfileDeployer",
-      //   RepositoryName = "microapps-deployer",
-      // });
-      // var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
-      //   Code = deployerImage,
-      //   FunctionName = "micro-apps-deployer-func",
-      //   Timeout = Duration.Seconds(30),
-      // });
+      var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
+        Code = DockerImageCode.FromEcr(props.ReposProps.RepoDeployer),
+        FunctionName = "microapps-deployer",
+        Timeout = Duration.Seconds(30),
+      });
       // Give the Deployer access to DynamoDB table
-      // table.GrantReadWriteData(deployerFunc);
-      // table.Grant(deployerFunc, "dynamodb:DescribeTable");
+      table.GrantReadWriteData(deployerFunc);
+      table.Grant(deployerFunc, "dynamodb:DescribeTable");
 
 
       //
