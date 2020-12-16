@@ -32,7 +32,8 @@ namespace PwrDrvr.MicroApps.Deployer {
     /// <param name="builder"></param>
     protected override void Init(IWebHostBuilder builder) {
       builder
-          .UseStartup<Startup>();
+          .UseStartup<Startup>()
+          .UseLambdaServer();
     }
 
     /// <summary>
