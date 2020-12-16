@@ -1,0 +1,12 @@
+**/obj
+**/bin
+.vscode/
+Dockerfile*
+docker-compose.yml
+.dockerignore
+.git
+.gitignore
+**/node_modules
+cdk/
+cdk.out/
+ts-cdk/
