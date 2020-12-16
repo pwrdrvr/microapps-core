@@ -42,7 +42,6 @@ namespace PwrDrvr.MicroApps.DataLib {
       // Get all versions and rules for an app
       // Note: versions are moved out of this key as they become inactive
       // There should be less than, say, 100 versions per app
-
       return await Models.Version.GetVersionsAsync(appName);
     }
 

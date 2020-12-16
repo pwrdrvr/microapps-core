@@ -64,9 +64,9 @@ namespace CDK {
       //
 
       // Create Deployer Lambda Function
-      var deployerImage = DockerImageCode.FromImageAsset("./src/PwrDrvr.MicroApps.Deployer", new AssetImageCodeProps() {
+      var deployerImage = DockerImageCode.FromImageAsset("./", new AssetImageCodeProps() {
         // Exclude = new[] { "node_modules", "**/node_modules" },
-        File = "Dockerfile",
+        File = "DockerfileDeployer",
         RepositoryName = "microapps-deployer",
       });
       var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
