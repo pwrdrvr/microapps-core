@@ -34,7 +34,7 @@ namespace CDK {
             HeaderBehavior = OriginRequestHeaderBehavior.All(),
             QueryStringBehavior = OriginRequestQueryStringBehavior.All(),
           }),
-          Origin = new HttpOrigin("apps-origin.pwrdrvr.com", new HttpOriginProps() {
+          Origin = new HttpOrigin("apps-apis.pwrdrvr.com", new HttpOriginProps() {
             ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
             OriginSslProtocols = new[] { OriginSslPolicy.TLS_V1_2 },
           }),
@@ -61,6 +61,8 @@ namespace CDK {
       // policyStatement.AddResources(string.Format("{0}/*", bucket.BucketArn));
       // policyStatement.AddCanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId);
 
+
+      // Allow CloudFront to read from the static assets bucket
       var policyStatement = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
         Actions = new[] { "s3:GetObject" },

@@ -1,5 +1,10 @@
 using Amazon.CDK;
 using Amazon.CDK.AWS.DynamoDB;
+using Amazon.CDK.AWS.Lambda;
+using Amazon.CDK.AWS.S3;
+using Amazon.CDK.AWS.APIGatewayv2;
+using Amazon.CDK.AWS.APIGatewayv2.Integrations;
+using Amazon.CDK.AWS.CertificateManager;
 
 namespace CDK {
   public class MicroApps : Stack {
@@ -22,12 +27,35 @@ namespace CDK {
 
 
       //
+      // Import S3 Buckets
+      //
+      var bucket = Bucket.FromBucketName(this, "bucket", "pwrdrvr-apps");
+      var bucketStaging = Bucket.FromBucketName(this, "bucketStaging", "pwrdrvr-apps-staging");
+
+
+      //
       // APIGateway for apps-apis.pwrdrvr.com
       //
 
-      // TODO: Create APIGateway for apps-apis.pwrdrvr.com
+      // Create Custom Domain for apps-apis.pwrdrvr.com
+      var certArn = "arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c";
+      var dn = new DomainName(this, "micro-apps-http-api-dn", new DomainNameProps {
+        DomainName = "apps-apis.pwrdrvr.com",
+        Certificate = Certificate.FromCertificateArn(this, "cert", certArn)
+      });
 
-      // TODO: Create Custom Domain for apps-apis.pwrdrvr.com
+      // Create APIGateway for apps-apis.pwrdrvr.com
+      var httpApi = new HttpApi(this, "micro-apps-http-api", new HttpApiProps {
+        // DefaultIntegration = subsvcintegration,
+        DefaultDomainMapping = new DefaultDomainMappingOptions {
+          DomainName = dn,
+          //MappingKey = "foo"
+        },
+        // ApiName = "api.pwrdrvr.com",
+      });
+      // var tssubsvcintegration = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
+      //   Handler = tssubsvchandler
+      // });
 
       // TODO: Update Default Behavior in CloudFront to point here
 
@@ -36,9 +64,18 @@ namespace CDK {
       // Deployer Lambda Function
       //
 
-      // TODO: Create Deployer Lambda Function
-
-      // TODO: Give the Deployer access to DynamoDB table
+      // Create Deployer Lambda Function
+      var deployerImage = DockerImageCode.FromImageAsset("../PwrDrvr.MicroApps.Deployer", new AssetImageCodeProps() {
+        // Exclude = new[] { "node_modules", "**/node_modules" },
+        File = "Dockerfile",
+        RepositoryName = "microapps-deployer",
+      });
+      // Give the Deployer access to DynamoDB table
+      var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
+        Code = deployerImage,
+        FunctionName = "micro-apps-deployer-func",
+        Timeout = Duration.Seconds(30),
+      });
 
 
       //
