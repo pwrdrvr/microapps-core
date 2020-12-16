@@ -51,11 +51,14 @@ namespace CDK {
       // APIGateway for apps-apis.pwrdrvr.com
       //
 
-      // Create Custom Domain for apps-apis.pwrdrvr.com
+      // Import certificate
       var certArn = "arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c";
+      var cert = Certificate.FromCertificateArn(this, "cert", certArn);
+
+      // Create Custom Domain for apps-apis.pwrdrvr.com
       var dn = new DomainName(this, "micro-apps-http-api-dn", new DomainNameProps {
         DomainName = "apps-apis.pwrdrvr.com",
-        Certificate = Certificate.FromCertificateArn(this, "cert", certArn)
+        Certificate = cert,
       });
 
       // Create APIGateway for apps-apis.pwrdrvr.com
@@ -65,6 +68,16 @@ namespace CDK {
           DomainName = dn,
         },
         ApiName = "microapps-apis",
+      });
+
+      // Gotta have apps.pwrdrvr.com too
+      var dnComPwrDrvrApps = new DomainName(this, "micro-apps-http-dn", new DomainNameProps {
+        DomainName = "apps.pwrdrvr.com",
+        Certificate = cert,
+      });
+      var mapComPwrDrvrApps = new HttpApiMapping(this, "http-mapping", new HttpApiMappingProps() {
+        Api = httpApi,
+        DomainName = dnComPwrDrvrApps,
       });
 
 
