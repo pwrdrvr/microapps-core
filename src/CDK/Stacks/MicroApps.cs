@@ -109,7 +109,6 @@ namespace CDK {
       table.GrantReadWriteData(deployerFunc);
       table.Grant(deployerFunc, "dynamodb:DescribeTable");
 
-
       // Allow the Lambda to read from the staging bucket
       var policyStatement = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
@@ -138,7 +137,23 @@ namespace CDK {
       // Router Lambda Function
       //
 
-      // TODO: Create Router Lambda Function
+      // Create Router Lambda Function
+      var routerFunc = new DockerImageFunction(this, "router-func", new DockerImageFunctionProps() {
+        Code = DockerImageCode.FromEcr(props.ReposProps.RepoRouter),
+        FunctionName = "microapps-router",
+        Timeout = Duration.Seconds(30),
+      });
+      // var intDeployer = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
+      //   Handler = routerFunc,
+      // });
+      // httpApi.AddRoutes(new AddRoutesOptions {
+      //   Path = "/deployer/{proxy+}",
+      //   Methods = new[] { HttpMethod.ANY },
+      //   Integration = intDeployer,
+      // });
+      // Give the Router access to DynamoDB table
+      table.GrantReadData(routerFunc);
+      table.Grant(routerFunc, "dynamodb:DescribeTable");
 
       // TODO: Add Last Route for /*/{proxy+}
       // Note: That might not work, may need a Behavior in CloudFront
