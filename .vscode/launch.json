@@ -5,12 +5,28 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Launch Deployer",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/PwrDrvr.MicroApps.Deployer/bin/Debug/net5.0/PwrDrvr.MicroApps.Deployer.dll",
+            "args": [],
+            "env": {
+                "AWS_PROFILE": "pwrdrvr"
+            },
+            "cwd": "${workspaceFolder}/",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Launch Router",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/PwrDrvr.MicroApps.Router/bin/Debug/net5.0/PwrDrvr.MicroApps.Router.dll",
             "args": [],
             "env": {
                 "AWS_PROFILE": "pwrdrvr"

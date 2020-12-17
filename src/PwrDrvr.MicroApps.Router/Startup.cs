@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace PwrDrvr.MicroApps.Deployer {
+namespace PwrDrvr.MicroApps.Router {
   public class Startup {
     public Startup(IConfiguration configuration) {
       Configuration = configuration;
