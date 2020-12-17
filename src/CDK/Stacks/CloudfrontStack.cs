@@ -21,23 +21,21 @@ namespace CDK {
       //
       // CloudFront Distro
       //
+      var apiGwyOrigin = new HttpOrigin("apps-apis.pwrdrvr.com", new HttpOriginProps() {
+        ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
+        OriginSslProtocols = new[] { OriginSslPolicy.TLS_V1_2 },
+      });
       var cfdistro = new Distribution(this, "cloudfront", new DistributionProps() {
         DomainNames = new[] { "apps.pwrdrvr.com" },
         Certificate = Certificate.FromCertificateArn(this, "splat.pwrdrvr.com", "arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09"),
         HttpVersion = HttpVersion.HTTP2,
         DefaultBehavior = new BehaviorOptions() {
-          ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           AllowedMethods = AllowedMethods.ALLOW_ALL,
           CachePolicy = CachePolicy.CACHING_DISABLED,
-          OriginRequestPolicy = new OriginRequestPolicy(this, "apiPolicy", new OriginRequestPolicyProps() {
-            CookieBehavior = OriginRequestCookieBehavior.All(),
-            HeaderBehavior = OriginRequestHeaderBehavior.All(),
-            QueryStringBehavior = OriginRequestQueryStringBehavior.All(),
-          }),
-          Origin = new HttpOrigin("apps-apis.pwrdrvr.com", new HttpOriginProps() {
-            ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
-            OriginSslProtocols = new[] { OriginSslPolicy.TLS_V1_2 },
-          }),
+          Compress = true,
+          OriginRequestPolicy = OriginRequestPolicy.ALL_VIEWER,
+          Origin = apiGwyOrigin,
+          ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
         EnableIpv6 = true,
         PriceClass = PriceClass.PRICE_CLASS_100,
@@ -93,12 +91,32 @@ namespace CDK {
       //
       // Add Behaviors
       //
-      var s3Behavior = new AddBehaviorOptions() {
-        CachePolicy = CachePolicy.CACHING_OPTIMIZED,
-        AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      var apiGwyBehavior = new AddBehaviorOptions() {
+        AllowedMethods = AllowedMethods.ALLOW_ALL,
+        CachePolicy = CachePolicy.CACHING_DISABLED,
+        Compress = true,
+        OriginRequestPolicy = OriginRequestPolicy.ALL_VIEWER,
         ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        OriginRequestPolicy = OriginRequestPolicy.CORS_S3_ORIGIN,
       };
+      var s3Behavior = new AddBehaviorOptions() {
+        AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        CachePolicy = CachePolicy.CACHING_OPTIMIZED,
+        Compress = true,
+        OriginRequestPolicy = OriginRequestPolicy.CORS_S3_ORIGIN,
+        ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      };
+
+      //
+      // Setup Routes
+      // Pull to the API first, then pull to S3 if it contains /static/
+      // Pull anything with a '.' in it to S3
+      // Let everything else fall through to the API Gateway
+      // Note: PathPattern matching is very simple; we have to 
+      // replace '.' in SemVer with '_' as a result otherwise API
+      // requests like /appName/1.0.0/caclulate would get pulled to S3.
+      //
+      cfdistro.AddBehavior("/*/*/api/*", apiGwyOrigin, apiGwyBehavior);
+      cfdistro.AddBehavior("/*/*/static/*", statics3, s3Behavior);
       cfdistro.AddBehavior("*.*", statics3, s3Behavior);
 
       //
