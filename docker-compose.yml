@@ -3,7 +3,18 @@ services:
   deployer:
     build:
       context: .
-      dockerfile: src/PwrDrvr.MicroApps.Deployer/Dockerfile
+      dockerfile: DockerfileDeployer
+    environment:
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+    ports:
+      - 9000:8080
+
+  router:
+    build:
+      context: .
+      dockerfile: DockerfileRouter
     environment:
       - AWS_REGION
       - AWS_ACCESS_KEY_ID
