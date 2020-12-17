@@ -13,12 +13,12 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
     }
 
     [DynamoDBProperty]
-    public string AttributeName {
+    public string? AttributeName {
       get; set;
     }
 
     [DynamoDBProperty]
-    public string AttributeValue {
+    public string? AttributeValue {
       get; set;
     }
   }

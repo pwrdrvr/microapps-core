@@ -1,12 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using PwrDrvr.MicroApps.DataLib.Models;
 
 namespace PwrDrvr.MicroApps.DataLib {
+  public interface IVersionsAndRules {
+    List<Models.Version> Versions { get; set; }
+    Rules Rules { get; set; }
+  }
+
+  public class VersionsAndRules : IVersionsAndRules {
+    public List<Models.Version> Versions { get; set; }
+    public Rules Rules { get; set; }
+  }
+
   public class Manager {
     private static readonly AmazonDynamoDBClient _client = new AmazonDynamoDBClient();
     private static readonly DynamoDBContext _context = new DynamoDBContext(_client);
@@ -45,7 +53,7 @@ namespace PwrDrvr.MicroApps.DataLib {
       return await Models.Version.GetVersionsAsync(appName);
     }
 
-    static public async Task<Tuple<List<Models.Version>, Rules>> GetVersionsAndRules(string appName) {
+    static public async Task<IVersionsAndRules> GetVersionsAndRules(string appName) {
       // Get all versions and rules for an app
       // Note: versions are moved out of this key as they become inactive
       // There should be less than, say, 100 versions per app
@@ -55,9 +63,10 @@ namespace PwrDrvr.MicroApps.DataLib {
 
       await Task.WhenAll(versionTask, rulesTask);
 
-      return new Tuple<List<Models.Version>, Rules>(
-        await versionTask, await rulesTask
-      );
+      return new VersionsAndRules() {
+        Versions = await versionTask,
+        Rules = await rulesTask
+      };
     }
 
     static public async Task UpdateRules(Rules rules) {
