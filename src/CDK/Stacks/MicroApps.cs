@@ -57,7 +57,7 @@ namespace CDK {
 
       // Create Custom Domain for apps-apis.pwrdrvr.com
       var dn = new DomainName(this, "micro-apps-http-api-dn", new DomainNameProps {
-        DomainName = "apps-apis.pwrdrvr.com",
+        DomainName = "apps.pwrdrvr.com",
         Certificate = cert,
       });
 
@@ -68,16 +68,6 @@ namespace CDK {
           DomainName = dn,
         },
         ApiName = "microapps-apis",
-      });
-
-      // Gotta have apps.pwrdrvr.com too
-      var dnComPwrDrvrApps = new DomainName(this, "micro-apps-http-dn", new DomainNameProps {
-        DomainName = "apps.pwrdrvr.com",
-        Certificate = cert,
-      });
-      var mapComPwrDrvrApps = new HttpApiMapping(this, "http-mapping", new HttpApiMappingProps() {
-        Api = httpApi,
-        DomainName = dnComPwrDrvrApps,
       });
 
 
