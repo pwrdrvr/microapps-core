@@ -11,8 +11,8 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
       public string appName { get; set; }
     }
 
-    // POST /deployer/application/{appName}
-    [HttpPost("{appName}")]
+    // POST /deployer/application
+    [HttpPost()]
     async public Task Post([FromBody] ApplicationBody appBody) {
       await Manager.CreateApp(new DataLib.Models.Application() {
         AppName = appBody.appName,
