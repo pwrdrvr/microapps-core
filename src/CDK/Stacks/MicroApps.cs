@@ -3,6 +3,7 @@ using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
+using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.APIGatewayv2;
 using Amazon.CDK.AWS.APIGatewayv2.Integrations;
@@ -108,6 +109,30 @@ namespace CDK {
       table.GrantReadWriteData(deployerFunc);
       table.Grant(deployerFunc, "dynamodb:DescribeTable");
 
+
+      // Allow the Lambda to read from the staging bucket
+      var policyStatement = new PolicyStatement(new PolicyStatementProps() {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "s3:GetObject", "s3:ListBucket" },
+        // Principals = new[] { deployerFunc.GrantPrincipal },
+        Resources = new[] {
+          string.Format("{0}/*", bucketStaging.BucketArn),
+          bucketStaging.BucketArn
+        }
+      });
+      deployerFunc.AddToRolePolicy(policyStatement);
+
+      // Allow the Lambda to write to the target bucket
+      var policyStatement2 = new PolicyStatement(new PolicyStatementProps() {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "s3:GetObject", "s3:PutObject", "s3:ListBucket" },
+        // Principals = new[] { deployerFunc.GrantPrincipal },
+        Resources = new[] {
+          string.Format("{0}/*", bucket.BucketArn),
+          bucket.BucketArn
+        }
+      });
+      deployerFunc.AddToRolePolicy(policyStatement2);
 
       //
       // Router Lambda Function

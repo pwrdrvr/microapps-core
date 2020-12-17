@@ -7,9 +7,12 @@ using System;
 using Amazon.Runtime;
 using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
   public class VersionBody {
+    public string appName { get; set; }
+    public string semVer { get; set; }
     public string s3SourceURI { get; set; }
     public string lambdaARN { get; set; }
   }
@@ -17,34 +20,24 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
   [ApiController]
   [Route("deployer/[controller]")]
   public class VersionController : ControllerBase {
-    // POST version/{appName}/{semVer}
-    [HttpPost("{appName}/{semVer}")]
-    async public Task Post(string appName, string semVer, [FromBody] VersionBody versionBody) {
+    // POST /deployer/version/
+    [HttpPost]
+    async public Task Post([FromBody] VersionBody versionBody) {
       try {
-        Console.WriteLine("Got Body: ${0}", versionBody);
+        Console.WriteLine("Got Body: {0}", JsonSerializer.Serialize(versionBody));
 
         const string destinationBucket = "pwrdrvr-apps";
-        string destinationPrefix = string.Format("{0}/{1}", appName, semVer);
+        string destinationPrefix = string.Format("{0}/{1}", versionBody.appName, versionBody.semVer);
 
         // Create the version record
         await Manager.CreateVersion(new DataLib.Models.Version() {
-          AppName = appName,
-          SemVer = semVer,
+          AppName = versionBody.appName,
+          SemVer = versionBody.semVer,
           Type = "lambda",
           Status = "pending",
         });
 
-        // S3DirectoryInfo source = new S3DirectoryInfo(s3Client, bucketName, "sourceFolder");
-        //  string bucketName2 = "destination butcket";
-        //     S3DirectoryInfo destination = new S3DirectoryInfo(s3Client, bucketName2);
-        //   source.CopyTo(destination);
-        // // or
-        // source.MoveTo(destination);
-
-        // TODO: Create the folder on the target bucket
         var s3Client = new AmazonS3Client();
-        // var xferUtil = new TransferUtility(s3Client);
-        // xferUtil.UploadDirectoryAsync("/tmp/foo", "",
 
         // Parse the S3 Source URI
         var uri = new System.Uri(versionBody.s3SourceURI);
@@ -58,15 +51,13 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           Prefix = sourcePrefix,
         });
 
+        // Loop through all S3 source assets and copy to the destination
         await foreach (var obj in paginator.S3Objects) {
           var sourceKeyRootless = obj.Key.Remove(0, sourcePrefix.Length);
-          Console.WriteLine("object: ${0}", obj.Key);
+          // Console.WriteLine("object: ${0}", obj.Key);
           await s3Client.CopyObjectAsync(sourceBucket, obj.Key,
           destinationBucket, string.Format("{0}/{1}", destinationPrefix, sourceKeyRootless));
         }
-
-
-        // TODO: Copy the S3 assets from the source bucket
 
         // TODO: Confirm the Lambda Function exists
 
@@ -77,18 +68,8 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
 
       } catch (Exception ex) {
         Response.StatusCode = 500;
+        Console.WriteLine("Caught unexpected exception: {0}", ex.Message);
       }
-    }
-
-    // GET version/{appName}
-    [HttpGet("{appName}")]
-    async public Task<string> Get(string appName) {
-      return "Not Implemented";
-    }
-
-    // DELETE /version/{appName}
-    [HttpDelete("{appName}")]
-    public void Delete(string appName) {
     }
   }
 }

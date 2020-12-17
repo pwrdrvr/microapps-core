@@ -7,24 +7,17 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
   [Route("[controller]")]
   [Route("deployer/[controller]")]
   public class ApplicationController : ControllerBase {
-    // POST application/{appName}
+    public class ApplicationBody {
+      public string appName { get; set; }
+    }
+
+    // POST /deployer/application/{appName}
     [HttpPost("{appName}")]
-    async public Task Post(string appName) {
+    async public Task Post([FromBody] ApplicationBody appBody) {
       await Manager.CreateApp(new DataLib.Models.Application() {
-        AppName = appName,
-        DisplayName = appName
+        AppName = appBody.appName,
+        DisplayName = appBody.appName,
       });
-    }
-
-    // GET application/{appName}
-    [HttpGet("{appName}")]
-    async public Task<string> Get(string appName) {
-      return "Not Implemented";
-    }
-
-    // DELETE api/application/{appName}
-    [HttpDelete("{appName}")]
-    public void Delete(string appName) {
     }
   }
 }
