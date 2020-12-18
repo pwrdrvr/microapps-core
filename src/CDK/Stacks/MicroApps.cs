@@ -48,43 +48,7 @@ namespace CDK {
       var bucketStaging = Bucket.FromBucketName(this, "bucketStaging", "pwrdrvr-apps-staging");
 
 
-      //
-      // APIGateway for apps-apis.pwrdrvr.com
-      //
 
-      // Import certificate
-      var certArn = "arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c";
-      var cert = Certificate.FromCertificateArn(this, "cert", certArn);
-
-      // Create Custom Domain for apps-apis.pwrdrvr.com
-      var dn = new DomainName(this, "micro-apps-http-api-dn", new DomainNameProps {
-        DomainName = "apps.pwrdrvr.com",
-        Certificate = cert,
-      });
-
-      // Create APIGateway for apps-apis.pwrdrvr.com
-      var httpApi = new HttpApi(this, "micro-apps-http-api", new HttpApiProps {
-        // DefaultIntegration = subsvcintegration,
-        DefaultDomainMapping = new DefaultDomainMappingOptions {
-          DomainName = dn,
-        },
-        ApiName = "microapps-apis",
-      });
-
-
-      //
-      // Create the api.pwrdrvr.com name
-      //
-      var zone = HostedZone.FromHostedZoneAttributes(this, "zone", new HostedZoneAttributes {
-        ZoneName = "pwrdrvr.com",
-        HostedZoneId = "ZHYNI9F572BBD"
-      });
-
-      var arecord = new ARecord(this, "ARecord", new ARecordProps {
-        Zone = zone,
-        RecordName = "apps-apis",
-        Target = RecordTarget.FromAlias(new ApiGatewayv2Domain(dn))
-      });
 
 
       //
@@ -96,14 +60,6 @@ namespace CDK {
         Code = DockerImageCode.FromEcr(props.ReposProps.RepoDeployer),
         FunctionName = "microapps-deployer",
         Timeout = Duration.Seconds(30),
-      });
-      var intDeployer = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
-        Handler = deployerFunc,
-      });
-      httpApi.AddRoutes(new AddRoutesOptions {
-        Path = "/deployer/{proxy+}",
-        Methods = new[] { HttpMethod.ANY },
-        Integration = intDeployer,
       });
       // Give the Deployer access to DynamoDB table
       table.GrantReadWriteData(deployerFunc);
@@ -161,6 +117,82 @@ namespace CDK {
       //       to origin Lambda Router function.
 
       // TODO: Give the Router access to DynamoDB table
+
+
+      //
+      // APIGateway for apps-apis.pwrdrvr.com
+      //
+
+      // Import certificate
+      var certArn = "arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c";
+      var cert = Certificate.FromCertificateArn(this, "cert", certArn);
+
+      // Create Custom Domains for API Gateway
+      var dnApps = new DomainName(this, "micro-apps-http-api-dn", new DomainNameProps {
+        DomainName = "apps.pwrdrvr.com",
+        Certificate = cert,
+      });
+      var dnAppsApis = new DomainName(this, "micro-apps-http-apps-api-dn", new DomainNameProps {
+        DomainName = "appsapis.pwrdrvr.com",
+        Certificate = cert,
+      });
+
+      // Create an integration for the Router
+      // Do this here since it's the default route
+      var intRouter = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
+        Handler = routerFunc,
+      });
+
+      // Create APIGateway for apps-apis.pwrdrvr.com
+      var httpApiDomainMapping = new DefaultDomainMappingOptions {
+        DomainName = dnApps,
+      };
+      var httpApi = new HttpApi(this, "micro-apps-http-api", new HttpApiProps {
+        DefaultDomainMapping = httpApiDomainMapping,
+        DefaultIntegration = intRouter,
+        ApiName = "microapps-apis",
+      });
+
+
+      //
+      // Add a route to the Deployer function
+      //
+      var intDeployer = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
+        Handler = deployerFunc,
+      });
+      httpApi.AddRoutes(new AddRoutesOptions {
+        Path = "/deployer/{proxy+}",
+        Methods = new[] { HttpMethod.ANY },
+        Integration = intDeployer,
+      });
+
+
+      //
+      // Let API Gateway accept request at apps-apis.pwrdrvr.com
+      // That is the origin URI that CloudFront uses for this gateway.
+      // The gateway will refuse the traffic if it doesn't have the
+      // domain name registered.
+      //
+      var mappingAppsApis = new HttpApiMapping(this, "apps-apis-mapping", new HttpApiMappingProps() {
+        Api = httpApi,
+        DomainName = dnAppsApis,
+      });
+      mappingAppsApis.Node.AddDependency(dnAppsApis);
+
+
+      //
+      // Create the apps-apis.pwrdrvr.com name
+      //
+      var zone = HostedZone.FromHostedZoneAttributes(this, "zone", new HostedZoneAttributes {
+        ZoneName = "pwrdrvr.com",
+        HostedZoneId = "ZHYNI9F572BBD"
+      });
+
+      var arecord = new ARecord(this, "ARecord", new ARecordProps {
+        Zone = zone,
+        RecordName = "appsapis",
+        Target = RecordTarget.FromAlias(new ApiGatewayv2Domain(dnAppsApis))
+      });
     }
   }
 }
