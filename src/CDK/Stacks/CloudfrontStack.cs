@@ -21,7 +21,7 @@ namespace CDK {
       //
       // CloudFront Distro
       //
-      var apiGwyOrigin = new HttpOrigin("apps-apis.pwrdrvr.com", new HttpOriginProps() {
+      var apiGwyOrigin = new HttpOrigin("appsapis.pwrdrvr.com", new HttpOriginProps() {
         ProtocolPolicy = OriginProtocolPolicy.HTTPS_ONLY,
         OriginSslProtocols = new[] { OriginSslPolicy.TLS_V1_2 },
       });
