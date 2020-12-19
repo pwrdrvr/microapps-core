@@ -58,14 +58,21 @@ cdk-restore: ## Restore env needed to run CDK
 
 # Deploy an App
 
-create-app: ## Deploy a test app
+curl-create-app: ## Deploy a test app
 	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/application/ \
 		-d '{ "appName": "release" }'
 
-deploy-version: ## Deploy a test version
+curl-create-app-local: ## Deploy a test app
+	curl -v -H "Content-Type: application/json" https://localhost:5001/deployer/application/ \
+		-d '{ "appName": "release" }'
+
+curl-deploy-version: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/version/ \
 		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none" }'
 
-deploy-version-local: ## Deploy a test version
+curl-deploy-version-local: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://localhost:5001/deployer/version/ \
 		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none" }'
+
+curl-release-route: ## Test /release/ app route
+	curl -v https://apps.pwrdrvr.com/release/

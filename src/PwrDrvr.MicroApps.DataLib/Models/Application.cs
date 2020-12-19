@@ -84,5 +84,8 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
     public string DisplayName {
       get; set;
     }
+
+    // TODO: Add Status
+    // created, registered (integration), disabled
   }
 }
