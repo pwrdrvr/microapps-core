@@ -2,11 +2,7 @@ using PwrDrvr.MicroApps.DataLib;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Amazon.S3;
-using Amazon.S3.Transfer;
 using System;
-using Amazon.Runtime;
-using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
