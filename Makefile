@@ -7,6 +7,8 @@ DEPLOYER_ECR_REPO ?= microapps-deployer
 DEPLOYER_ECR_TAG ?= ${DEPLOYER_ECR_REPO}:latest
 ROUTER_ECR_REPO ?= microapps-router
 ROUTER_ECR_TAG ?= ${ROUTER_ECR_REPO}:latest
+RELEASE_ECR_REPO ?= microapps-release
+RELEASE_ECR_TAG ?= ${RELEASE_ECR_REPO}:latest
 
 help:
 	@echo "Commands:"
@@ -43,6 +45,15 @@ aws-lambda-update-router: ## Update the lambda function to use latest image
 	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO} \
 		--image-uri ${ECR_HOST}/${ROUTER_ECR_TAG} --publish
 
+aws-ecr-publish-release: ## publish updated ECR docker image
+	@docker build -f DockerfileRelease -t ${RELEASE_ECR_TAG}  .
+	@docker tag ${RELEASE_ECR_TAG} ${ECR_HOST}/${RELEASE_ECR_TAG}
+	@docker push ${ECR_HOST}/${RELEASE_ECR_TAG}
+
+aws-lambda-update-release: ## Update the lambda function to use latest image
+	@aws lambda update-function-code --function-name ${RELEASE_ECR_REPO} \
+		--image-uri ${ECR_HOST}/${RELEASE_ECR_TAG} --publish
+
 
 #
 # CDK Commands
@@ -68,11 +79,11 @@ curl-create-app-local: ## Deploy a test app
 
 curl-deploy-version: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/version/ \
-		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none", "defaultFile": "foo.html" }'
+		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0", "defaultFile": "foo.html" }'
 
 curl-deploy-version-local: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://localhost:5001/deployer/version/ \
-		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none", "defaultFile": "foo.html" }'
+		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0", "defaultFile": "foo.html" }'
 
 curl-release-route: ## Test /release/ app route
 	curl -v https://apps.pwrdrvr.com/release/
@@ -81,4 +92,4 @@ curl-release-route-version: ## Test /release/1.0.0/ app route
 	curl -v https://apps.pwrdrvr.com/release/1.0.0/
 
 curl-release-route-version-method: ## Test /release/1.0.0/method app route
-	curl -v https://apps.pwrdrvr.com/release/1.0.0/method
+	curl -v https://apps.pwrdrvr.com/release/1.0.0/values

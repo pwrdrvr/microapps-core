@@ -26,6 +26,13 @@ namespace CDK {
         },
         ReposProps = repos,
       });
+      new ReleaseApp(app, "ReleaseApp", new ReleaseAppStackProps() {
+        Env = new Amazon.CDK.Environment() {
+          Region = "us-east-2",
+          Account = "***REMOVED***"
+        },
+        ReposProps = repos,
+      });
       app.Synth();
     }
   }

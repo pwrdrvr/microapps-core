@@ -1,10 +1,13 @@
 using PwrDrvr.MicroApps.DataLib;
+using PwrDrvr.MicroApps.Deployer.Lambda;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Amazon.S3;
+using Amazon.Lambda;
 using System;
 using System.Text.Json;
-using Microsoft.AspNetCore.Builder;
+using Amazon.ApiGatewayV2;
+using Amazon.ApiGatewayV2.Model;
 
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
   public class VersionBody {
@@ -39,7 +42,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         var s3Client = new AmazonS3Client();
 
         // Parse the S3 Source URI
-        var uri = new System.Uri(versionBody.s3SourceURI);
+        var uri = new Uri(versionBody.s3SourceURI);
 
         var sourceBucket = uri.Host;
         var sourcePrefix = uri.AbsolutePath.Length >= 1 ? uri.AbsolutePath.Substring(1) : null;
@@ -59,12 +62,34 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         }
 
         // TODO: Confirm the Lambda Function exists
+        // var lambdaClient = new AmazonLambdaClient();
+        // lambdaClient.CreateAliasAsync(new CreateAliasRequest() {
+        //   FunctionName = "",
+        //   FunctionVersion = "1",
+        //   Name = string.Format("v{0}", versionBody.semVer.Replace('.', '_')),
+        // });
+        // var aliasResponse = await lambdaClient.GetAliasAsync(new GetAliasRequest() {
+        //   FunctionName = "",
+        //   Name = "",
+        // });
 
-        // TODO: Confirm the Lambda will allow API Gateway to execute
-        // TODO: Reject the request if API Gateway can't execute
+        // Add Integration pointing to Lambda Function Alias
+        var apigwy = new AmazonApiGatewayV2Client();
+        var apiId = await GatewayInfo.GetAPIID(apigwy);
+        var integration = await apigwy.CreateIntegrationAsync(new Amazon.ApiGatewayV2.Model.CreateIntegrationRequest() {
+          ApiId = apiId,
+          IntegrationType = IntegrationType.AWS_PROXY,
+          IntegrationMethod = "POST",
+          PayloadFormatVersion = "2.0",
+          IntegrationUri = versionBody.lambdaARN,
+        });
 
-        // TODO: Add the route to API Gateway
-
+        // Add the route to API Gateway for appName/version/{proxy+}
+        var routeRouter = await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+          ApiId = apiId,
+          Target = string.Format("integrations/{0}", integration.IntegrationId),
+          RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
+        });
       } catch (Exception ex) {
         Response.StatusCode = 500;
         Console.WriteLine("Caught unexpected exception: {0}", ex.Message);
