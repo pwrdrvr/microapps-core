@@ -109,15 +109,12 @@ namespace CDK {
       //
       // Setup Routes
       // Pull to the API first, then pull to S3 if it contains /static/
-      // Pull anything with a '.' in it to S3
+      // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
       // Let everything else fall through to the API Gateway
-      // Note: PathPattern matching is very simple; we have to 
-      // replace '.' in SemVer with '_' as a result otherwise API
-      // requests like /appName/1.0.0/caclulate would get pulled to S3.
       //
       cfdistro.AddBehavior("/*/*/api/*", apiGwyOrigin, apiGwyBehavior);
       cfdistro.AddBehavior("/*/*/static/*", statics3, s3Behavior);
-      cfdistro.AddBehavior("*.*", statics3, s3Behavior);
+      cfdistro.AddBehavior("/*/*/*.*", statics3, s3Behavior);
 
       //
       // Route53 - Point apps.pwrdrvr.com at this distro
