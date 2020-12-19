@@ -105,6 +105,12 @@ namespace CDK {
         OriginRequestPolicy = OriginRequestPolicy.CORS_S3_ORIGIN,
         ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       };
+      var apiGwyVersionRootBehavior = new AddBehaviorOptions() {
+        AllowedMethods = AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        CachePolicy = CachePolicy.CACHING_OPTIMIZED,
+        Compress = true,
+        ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      };
 
       //
       // Setup Routes
@@ -115,6 +121,7 @@ namespace CDK {
       cfdistro.AddBehavior("/*/*/api/*", apiGwyOrigin, apiGwyBehavior);
       cfdistro.AddBehavior("/*/*/static/*", statics3, s3Behavior);
       cfdistro.AddBehavior("/*/*/*.*", statics3, s3Behavior);
+      cfdistro.AddBehavior("/*/*/", apiGwyOrigin, apiGwyVersionRootBehavior);
 
       //
       // Route53 - Point apps.pwrdrvr.com at this distro
