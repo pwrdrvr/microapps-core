@@ -66,7 +66,7 @@ namespace CDK {
       table.Grant(deployerFunc, "dynamodb:DescribeTable");
 
       // Allow the Lambda to read from the staging bucket
-      var policyStatement = new PolicyStatement(new PolicyStatementProps() {
+      var policyReadListStaging = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
         Actions = new[] { "s3:GetObject", "s3:ListBucket" },
         // Principals = new[] { deployerFunc.GrantPrincipal },
@@ -75,10 +75,10 @@ namespace CDK {
           bucketStaging.BucketArn
         }
       });
-      deployerFunc.AddToRolePolicy(policyStatement);
+      deployerFunc.AddToRolePolicy(policyReadListStaging);
 
       // Allow the Lambda to write to the target bucket
-      var policyStatement2 = new PolicyStatement(new PolicyStatementProps() {
+      var policyReadWriteListTarget = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
         Actions = new[] { "s3:GetObject", "s3:PutObject", "s3:ListBucket" },
         // Principals = new[] { deployerFunc.GrantPrincipal },
@@ -87,7 +87,7 @@ namespace CDK {
           bucket.BucketArn
         }
       });
-      deployerFunc.AddToRolePolicy(policyStatement2);
+      deployerFunc.AddToRolePolicy(policyReadWriteListTarget);
 
       //
       // Router Lambda Function
@@ -99,14 +99,14 @@ namespace CDK {
         FunctionName = "microapps-router",
         Timeout = Duration.Seconds(30),
       });
-      // var intDeployer = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
-      //   Handler = routerFunc,
-      // });
-      // httpApi.AddRoutes(new AddRoutesOptions {
-      //   Path = "/deployer/{proxy+}",
-      //   Methods = new[] { HttpMethod.ANY },
-      //   Integration = intDeployer,
-      // });
+      var policyReadTarget = new PolicyStatement(new PolicyStatementProps() {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "s3:GetObject" },
+        Resources = new[] {
+          string.Format("{0}/*", bucket.BucketArn)
+        }
+      });
+      routerFunc.AddToRolePolicy(policyReadTarget);
       // Give the Router access to DynamoDB table
       table.GrantReadData(routerFunc);
       table.Grant(routerFunc, "dynamodb:DescribeTable");
@@ -116,7 +116,6 @@ namespace CDK {
       //       or a Lambda @ Edge function that detecgts these and routes
       //       to origin Lambda Router function.
 
-      // TODO: Give the Router access to DynamoDB table
 
 
       //
