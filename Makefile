@@ -76,3 +76,9 @@ curl-deploy-version-local: ## Deploy a test version
 
 curl-release-route: ## Test /release/ app route
 	curl -v https://apps.pwrdrvr.com/release/
+
+curl-release-route-version: ## Test /release/1.0.0/ app route
+	curl -v https://apps.pwrdrvr.com/release/1.0.0/
+
+curl-release-route-version-method: ## Test /release/1.0.0/method app route
+	curl -v https://apps.pwrdrvr.com/release/1.0.0/method
