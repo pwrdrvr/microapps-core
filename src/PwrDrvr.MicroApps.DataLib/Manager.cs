@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
@@ -44,6 +45,11 @@ namespace PwrDrvr.MicroApps.DataLib {
       // TODO: Try to create the version, fail if it exists or app does not exist
       //       Use `ConditionExpression like attribute_not_exists(foo) AND attribute_not_exists(bar)`
       await _context.SaveAsync(version);
+    }
+
+    static public async Task<Models.Version> GetAppVersion(string appName, string version) {
+      // Get single version of an app
+      return await Models.Version.GetVersionAsync(appName, version);
     }
 
     static public async Task<List<Models.Version>> GetAppVersions(string appName) {

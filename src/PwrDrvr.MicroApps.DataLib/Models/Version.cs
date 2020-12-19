@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
 using System.Collections.Generic;
 using Amazon.DynamoDBv2.DocumentModel;
+using System.Linq;
+using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
 
 namespace PwrDrvr.MicroApps.DataLib.Models {
   [DynamoDBTable("MicroApps")]
@@ -37,6 +39,27 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
         key.SK
       });
       return await results.GetRemainingAsync();
+    }
+
+    static public async Task<Version> GetVersionAsync(string appName, string version) {
+      var key = new Version() {
+        AppName = appName,
+        SemVer = version,
+        _keyBy = SaveBy.AppName,
+      };
+
+      // Get the record that have the PK and start with the SK prefix
+      var results = Manager.Context.QueryAsync<Version>(key.PK,
+      QueryOperator.BeginsWith, new string[] {
+        key.SK
+      });
+
+      var records = await results.GetRemainingAsync();
+      if (records.Count == 0) {
+        return null;
+      } else {
+        return records.First();
+      }
     }
 
     [DynamoDBHashKey] // Partition key
@@ -92,6 +115,14 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
 
     [DynamoDBProperty]
     public string Status {
+      get; set;
+    }
+
+    // File to be served on /appName/1.0.0/ request
+    // This gets proxied from S3 and marked as cachable/immutable if found/
+    // If not found, marked as no-store, must-revalidate
+    [DynamoDBProperty]
+    public string DefaultFile {
       get; set;
     }
   }
