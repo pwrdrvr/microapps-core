@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Amazon.S3;
 using System;
 using System.Text.Json;
+using Microsoft.AspNetCore.Builder;
 
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
   public class VersionBody {
@@ -11,6 +12,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
     public string semVer { get; set; }
     public string s3SourceURI { get; set; }
     public string lambdaARN { get; set; }
+    public string defaultFile { get; set; }
   }
 
   [ApiController]
@@ -31,6 +33,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           SemVer = versionBody.semVer,
           Type = "lambda",
           Status = "pending",
+          DefaultFile = versionBody.defaultFile,
         });
 
         var s3Client = new AmazonS3Client();

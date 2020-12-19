@@ -68,11 +68,11 @@ curl-create-app-local: ## Deploy a test app
 
 curl-deploy-version: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/version/ \
-		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none" }'
+		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none", "defaultFile": "foo.html" }'
 
 curl-deploy-version-local: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://localhost:5001/deployer/version/ \
-		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none" }'
+		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "none", "defaultFile": "foo.html" }'
 
 curl-release-route: ## Test /release/ app route
 	curl -v https://apps.pwrdrvr.com/release/
