@@ -93,7 +93,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           StatementId = "apigwy",
           Action = "lambda:InvokeFunction",
           FunctionName = versionBody.lambdaARN,
-          SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/1.0.0/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName)
+          SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/{4}/api/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName, versionBody.semVer)
         });
 
         // Add Integration pointing to Lambda Function Alias
@@ -109,7 +109,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         var routeRouter = await apigwy.CreateRouteAsync(new CreateRouteRequest() {
           ApiId = api.ApiId,
           Target = string.Format("integrations/{0}", integration.IntegrationId),
-          RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
+          RouteKey = string.Format("ANY /{0}/{1}/api/{{proxy+}}", versionBody.appName, versionBody.semVer),
         });
       } catch (Exception ex) {
         Response.StatusCode = 500;

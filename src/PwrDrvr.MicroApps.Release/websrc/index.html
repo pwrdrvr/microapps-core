@@ -6,7 +6,7 @@
   <body>
     And what a lovely one it is! - apps.pwrdrvr.com - release/1.0.0
 
-    <textarea name='Status'> </textarea>
+    <textarea id='status' name='Status'> </textarea>
     <input type='button' onclick='UpdateStatus()' value='Status Update'>
 
     <script>
@@ -16,10 +16,10 @@
         request.onreadystatechange=function() {
           if (request.readyState == 4 && request.status == 200) {
             console.log("Response Received");
-            txtStatus.value = "response";
+            txtStatus.value = request.responseText;
           }
         }
-        request.open("GET", "values", true);
+        request.open("GET", "api/values", true);
         request.send();
       }
       </script>
