@@ -19,6 +19,10 @@ namespace CDK {
     internal ReleaseApp(Construct scope, string id, IReleaseAppStackProps props = null) : base(scope, id, props) {
       var table = Table.FromTableName(this, "table", "MicroApps");
 
+      // Add a tag indicating this app can be managed by the
+      // MicroApp Deployer Lambda function
+      Tags.SetTag("microapp-managed", "true");
+
       //
       // Release Lambda Function
       //

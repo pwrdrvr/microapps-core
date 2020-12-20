@@ -8,6 +8,7 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.APIGatewayv2;
 using Amazon.CDK.AWS.APIGatewayv2.Integrations;
 using Amazon.CDK.AWS.CertificateManager;
+using System.Collections.Generic;
 
 namespace CDK {
   public interface IMicroAppsStackProps : IStackProps {
@@ -215,6 +216,22 @@ namespace CDK {
         }
       });
       deployerFunc.AddToRolePolicy(policyAPIManage);
+      // Grant full control over lambdas that indicate they are microapps
+      var policyAPIManageLambdas = new PolicyStatement(new PolicyStatementProps() {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "lambda:*" },
+        Resources = new[] {
+          string.Format("arn:aws:lambda:{0}:{1}:*", this.Region, this.Account),
+        },
+        Conditions = new Dictionary<string, object>() {
+          {
+            "StringEquals", new Dictionary<string, string>() {
+              { "aws:ResourceTag/microapp-managed", "true" },
+            }
+          }
+        }
+      });
+      deployerFunc.AddToRolePolicy(policyAPIManageLambdas);
     }
   }
 }
