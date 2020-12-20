@@ -113,15 +113,19 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         });
 
         // Add Integration pointing to Lambda Function Alias
-        CreateIntegrationResponse integration = null;
-        if (string.IsNullOrEmpty(record.IntegrationID)) {
-           integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
+        var integrationId = "";
+        if (!string.IsNullOrEmpty(record.IntegrationID)) {
+          integrationId = record.IntegrationID;
+        } else {
+           var integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
             ApiId = api.ApiId,
             IntegrationType = IntegrationType.AWS_PROXY,
             IntegrationMethod = "POST",
             PayloadFormatVersion = "2.0",
             IntegrationUri = versionBody.lambdaARN,
           });
+
+          integrationId = integration.IntegrationId;
 
           // Save the created IntegrationID
           record.IntegrationID = integration.IntegrationId;
@@ -132,7 +136,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         // Add the route to API Gateway for appName/version/{proxy+}
         var routeRouter = await apigwy.CreateRouteAsync(new CreateRouteRequest() {
           ApiId = api.ApiId,
-          Target = string.Format("integrations/{0}", integration.IntegrationId),
+          Target = string.Format("integrations/{0}", integrationId),
           RouteKey = string.Format("ANY /{0}/{1}/api/{{proxy+}}", versionBody.appName, versionBody.semVer),
         });
 
