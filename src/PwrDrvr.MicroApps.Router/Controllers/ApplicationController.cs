@@ -11,6 +11,7 @@ namespace PwrDrvr.MicroApps.Router.Controllers {
   public class ApplicationController : ControllerBase {
     // GET /{appName}
     [HttpGet("{appName}")]
+    [HttpGet("{appName}/")]
     async public Task Get(string appName) {
       var versionsAndRules = await Manager.GetVersionsAndRules(appName);
 
@@ -40,6 +41,7 @@ namespace PwrDrvr.MicroApps.Router.Controllers {
 
     // GET /[appName]/[version]
     [HttpGet("{appName}/{version}")]
+    [HttpGet("{appName}/{version}/")]
     async public Task Get(string appName, string version) {
       // Check if caller already has this immutable file cached
       if (Request.Headers.ContainsKey("If-None-Match")) {
@@ -83,6 +85,7 @@ namespace PwrDrvr.MicroApps.Router.Controllers {
       Response.Headers.Add("ETag", version);
 
       // Stream back the bytes from S3
+      Response.ContentType = "text/html";
       await obj.ResponseStream.CopyToAsync(Response.Body);
     }
   }

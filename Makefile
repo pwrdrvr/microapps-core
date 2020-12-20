@@ -79,11 +79,11 @@ curl-create-app-local: ## Deploy a test app
 
 curl-deploy-version: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://apps.pwrdrvr.com/deployer/version/ \
-		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0", "defaultFile": "foo.html" }'
+		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0", "defaultFile": "index.html" }'
 
 curl-deploy-version-local: ## Deploy a test version
 	curl -v -H "Content-Type: application/json" https://localhost:5001/deployer/version/ \
-		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0", "defaultFile": "foo.html" }'
+		-d '{ "appName": "release", "semVer": "1.0.0", "s3SourceURI": "s3://pwrdrvr-apps-staging/release/1.0.0/", "lambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0", "defaultFile": "index.html" }'
 
 curl-release-route: ## Test /release/ app route
 	curl -v https://apps.pwrdrvr.com/release/
