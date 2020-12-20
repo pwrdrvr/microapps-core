@@ -118,6 +118,7 @@ namespace CDK {
       // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
       // Let everything else fall through to the API Gateway
       //
+      cfdistro.AddBehavior("/deployer/*", apiGwyOrigin, apiGwyBehavior);
       cfdistro.AddBehavior("/*/*/api/*", apiGwyOrigin, apiGwyBehavior);
       cfdistro.AddBehavior("/*/*/static/*", statics3, s3Behavior);
       cfdistro.AddBehavior("/*/*/*.*", statics3, s3Behavior);
