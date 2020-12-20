@@ -7,9 +7,9 @@
     And what a lovely one it is! - apps.pwrdrvr.com - release/1.0.0
 
     <textarea name='Status'> </textarea>
-    <input type='button' onclick='UpdateStatus' value='Status Update'>
+    <input type='button' onclick='UpdateStatus()' value='Status Update'>
 
-    <srcipt>
+    <script>
       function UpdateStatus() {
         var txtStatus = document.getElementById("status");
         var request = new XMLHttpRequest();
