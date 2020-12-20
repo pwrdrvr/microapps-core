@@ -31,14 +31,26 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         const string destinationBucket = "pwrdrvr-apps";
         string destinationPrefix = string.Format("{0}/{1}", versionBody.appName, versionBody.semVer);
 
+        // Check if the version exists
+        var record = await Manager.GetAppVersion(versionBody.appName, versionBody.semVer);
+        if (record != null && record.Status == "routed") {
+          Response.StatusCode = 409;
+          Console.WriteLine("App/Version already exists: {0}/{1}", versionBody.appName, versionBody.semVer);
+          return;
+        }
+
         // Create the version record
-        await Manager.CreateVersion(new DataLib.Models.Version() {
-          AppName = versionBody.appName,
-          SemVer = versionBody.semVer,
-          Type = "lambda",
-          Status = "pending",
-          DefaultFile = versionBody.defaultFile,
-        });
+        if (record == null) {
+          record = new DataLib.Models.Version() {
+            AppName = versionBody.appName,
+            SemVer = versionBody.semVer,
+            Type = "lambda",
+            Status = "pending",
+            DefaultFile = versionBody.defaultFile,
+          };
+          // Save record with pending status
+          await Manager.CreateVersion(record);
+        }
 
         var s3Client = new AmazonS3Client();
 
@@ -61,6 +73,10 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           await s3Client.CopyObjectAsync(sourceBucket, obj.Key,
           destinationBucket, string.Format("{0}/{1}", destinationPrefix, sourceKeyRootless));
         }
+
+        // Update status to assets-copied
+        record.Status = "assets-copied";
+        await Manager.CreateVersion(record);
 
         // TODO: Confirm the Lambda Function exists
         var lambdaClient = new AmazonLambdaClient();
@@ -97,13 +113,21 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         });
 
         // Add Integration pointing to Lambda Function Alias
-        var integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
-          ApiId = api.ApiId,
-          IntegrationType = IntegrationType.AWS_PROXY,
-          IntegrationMethod = "POST",
-          PayloadFormatVersion = "2.0",
-          IntegrationUri = versionBody.lambdaARN,
-        });
+        CreateIntegrationResponse integration = null;
+        if (string.IsNullOrEmpty(record.IntegrationID)) {
+           integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
+            ApiId = api.ApiId,
+            IntegrationType = IntegrationType.AWS_PROXY,
+            IntegrationMethod = "POST",
+            PayloadFormatVersion = "2.0",
+            IntegrationUri = versionBody.lambdaARN,
+          });
+
+          // Save the created IntegrationID
+          record.IntegrationID = integration.IntegrationId;
+          record.Status = "integrated";
+          await Manager.CreateVersion(record);
+        }
 
         // Add the route to API Gateway for appName/version/{proxy+}
         var routeRouter = await apigwy.CreateRouteAsync(new CreateRouteRequest() {
@@ -111,6 +135,10 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           Target = string.Format("integrations/{0}", integration.IntegrationId),
           RouteKey = string.Format("ANY /{0}/{1}/api/{{proxy+}}", versionBody.appName, versionBody.semVer),
         });
+
+        // Update the status - Final status
+        record.Status = "routed";
+        await Manager.CreateVersion(record);
       } catch (Exception ex) {
         Response.StatusCode = 500;
         Console.WriteLine("Caught unexpected exception: {0}", ex.Message);
