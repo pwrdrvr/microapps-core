@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.Lambda;
+using Amazon.Lambda.Model;
 using System;
 using System.Text.Json;
 using Amazon.ApiGatewayV2;
@@ -62,7 +63,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         }
 
         // TODO: Confirm the Lambda Function exists
-        // var lambdaClient = new AmazonLambdaClient();
+        var lambdaClient = new AmazonLambdaClient();
         // lambdaClient.CreateAliasAsync(new CreateAliasRequest() {
         //   FunctionName = "",
         //   FunctionVersion = "1",
@@ -73,11 +74,31 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         //   Name = "",
         // });
 
-        // Add Integration pointing to Lambda Function Alias
+        // Get the API Gateway
         var apigwy = new AmazonApiGatewayV2Client();
-        var apiId = await GatewayInfo.GetAPIID(apigwy);
+        var api = await GatewayInfo.GetAPI(apigwy);
+
+        // Get the account ID
+        var lambdaArnParts = lambdaARN.Split(':');
+        var accountId = lambdaArnParts[4];
+        var region = lambdaArnParts[3];
+
+        // Ensure that the Lambda function allows API Gateway to invoke
+        await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
+          FunctionName = versionBody.lambdaARN,
+          StatementId = "apigwy",
+        });
+        await lambdaClient.AddPermissionAsync(new AddPermissionRequest() {
+          Principal = "apigateway.amazonaws.com",
+          StatementId = "apigwy",
+          Action = "lambda:InvokeFunction",
+          FunctionName = versionBody.lambdaARN,
+          SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/1.0.0/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName)
+        });
+
+        // Add Integration pointing to Lambda Function Alias
         var integration = await apigwy.CreateIntegrationAsync(new Amazon.ApiGatewayV2.Model.CreateIntegrationRequest() {
-          ApiId = apiId,
+          ApiId = api.ApiId,
           IntegrationType = IntegrationType.AWS_PROXY,
           IntegrationMethod = "POST",
           PayloadFormatVersion = "2.0",
@@ -86,7 +107,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
 
         // Add the route to API Gateway for appName/version/{proxy+}
         var routeRouter = await apigwy.CreateRouteAsync(new CreateRouteRequest() {
-          ApiId = apiId,
+          ApiId = api.ApiId,
           Target = string.Format("integrations/{0}", integration.IntegrationId),
           RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
         });
