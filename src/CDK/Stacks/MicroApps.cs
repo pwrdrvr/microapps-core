@@ -48,9 +48,6 @@ namespace CDK {
       var bucketStaging = Bucket.FromBucketName(this, "bucketStaging", "pwrdrvr-apps-staging");
 
 
-
-
-
       //
       // Deployer Lambda Function
       //
@@ -89,6 +86,7 @@ namespace CDK {
       });
       deployerFunc.AddToRolePolicy(policyReadWriteListTarget);
 
+
       //
       // Router Lambda Function
       //
@@ -119,7 +117,7 @@ namespace CDK {
 
 
       //
-      // APIGateway for apps-apis.pwrdrvr.com
+      // APIGateway for appsapis.pwrdrvr.com
       //
 
       // Import certificate
@@ -180,7 +178,7 @@ namespace CDK {
 
 
       //
-      // Create the apps-apis.pwrdrvr.com name
+      // Create the appsapis.pwrdrvr.com name
       //
       var zone = HostedZone.FromHostedZoneAttributes(this, "zone", new HostedZoneAttributes {
         ZoneName = "pwrdrvr.com",
@@ -192,6 +190,31 @@ namespace CDK {
         RecordName = "appsapis",
         Target = RecordTarget.FromAlias(new ApiGatewayv2Domain(dnAppsApis))
       });
+
+
+      //
+      // Give Deployer permissions to create routes and integrations
+      // on the API Gateway API.
+      //
+
+      // Grant the ability to List all APIs (we have to find it)
+      var policyAPIList = new PolicyStatement(new PolicyStatementProps() {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "apigateway:GET" },
+        Resources = new[] {
+          string.Format("arn:aws:apigateway:{0}::/apis", this.Region),
+        }
+      });
+      deployerFunc.AddToRolePolicy(policyAPIList);
+      // Grant full control over the API we created
+      var policyAPIManage = new PolicyStatement(new PolicyStatementProps() {
+        Effect = Effect.ALLOW,
+        Actions = new[] { "apigateway:*" },
+        Resources = new[] {
+          string.Format("arn:aws:apigateway:{0}:{1}:{2}/*", this.Region, this.Account, httpApi.HttpApiId),
+        }
+      });
+      deployerFunc.AddToRolePolicy(policyAPIManage);
     }
   }
 }
