@@ -79,7 +79,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         var api = await GatewayInfo.GetAPI(apigwy);
 
         // Get the account ID
-        var lambdaArnParts = lambdaARN.Split(':');
+        var lambdaArnParts = versionBody.lambdaARN.Split(':');
         var accountId = lambdaArnParts[4];
         var region = lambdaArnParts[3];
 
