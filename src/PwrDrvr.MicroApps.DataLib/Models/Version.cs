@@ -125,5 +125,10 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
     public string DefaultFile {
       get; set;
     }
+
+    [DynamoDBProperty]
+    public string IntegrationID {
+      get; set;
+    }
   }
 }
