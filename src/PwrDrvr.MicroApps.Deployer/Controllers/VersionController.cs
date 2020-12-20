@@ -97,7 +97,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         });
 
         // Add Integration pointing to Lambda Function Alias
-        var integration = await apigwy.CreateIntegrationAsync(new Amazon.ApiGatewayV2.Model.CreateIntegrationRequest() {
+        var integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
           ApiId = api.ApiId,
           IntegrationType = IntegrationType.AWS_PROXY,
           IntegrationMethod = "POST",

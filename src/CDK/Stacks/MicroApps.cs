@@ -213,6 +213,8 @@ namespace CDK {
         Actions = new[] { "apigateway:*" },
         Resources = new[] {
           string.Format("arn:aws:apigateway:{0}:{1}:{2}/*", this.Region, this.Account, httpApi.HttpApiId),
+          string.Format("arn:aws:apigateway:{0}::/apis/{1}/integrations", this.Region, httpApi.HttpApiId),
+          string.Format("arn:aws:apigateway:{0}::/apis/{1}/routes", this.Region, httpApi.HttpApiId),
         }
       });
       deployerFunc.AddToRolePolicy(policyAPIManage);
@@ -221,11 +223,12 @@ namespace CDK {
         Effect = Effect.ALLOW,
         Actions = new[] { "lambda:*" },
         Resources = new[] {
-          string.Format("arn:aws:lambda:{0}:{1}:*", this.Region, this.Account),
+          string.Format("arn:aws:lambda:{0}:{1}:function:*", this.Region, this.Account),
+          string.Format("arn:aws:lambda:{0}:{1}:function:*:*", this.Region, this.Account),
         },
         Conditions = new Dictionary<string, object>() {
           {
-            "StringEquals", new Dictionary<string, string>() {
+            "StringEqualsIfExists", new Dictionary<string, string>() {
               { "aws:ResourceTag/microapp-managed", "true" },
             }
           }
