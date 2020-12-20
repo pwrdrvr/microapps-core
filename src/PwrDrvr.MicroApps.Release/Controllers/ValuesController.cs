@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PwrDrvr.MicroApps.Release.Controllers {
-  [Route("[controller]")]
-  [Route("{release}/{version}/[controller]")]
+  [Route("api/[controller]")]
+  [Route("{release}/{version}/api/[controller]")]
   public class ValuesController : ControllerBase {
     // GET values
     [HttpGet]
