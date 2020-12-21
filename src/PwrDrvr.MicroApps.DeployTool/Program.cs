@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace PwrDrvr.MicroApps.DeployTool {
@@ -19,11 +18,11 @@ namespace PwrDrvr.MicroApps.DeployTool {
       // TODO: Upload Files to S3 Staging AppName/Version Prefix
       await S3Uploader.Upload(config);
 
-      // TODO: Call Deployer to Create Version if Not Exists 
+      // Call Deployer to Create Version if Not Exists
+      await DeployerClient.CreateApp(config);
 
-      // TODO: Call Deployer to Deploy AppName/Version
-
-
+      // Call Deployer to Deploy AppName/Version
+      await DeployerClient.DeployVersion(config);
     }
   }
 }
