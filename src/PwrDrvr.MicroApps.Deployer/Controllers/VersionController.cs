@@ -52,31 +52,34 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           await Manager.CreateVersion(record);
         }
 
-        var s3Client = new AmazonS3Client();
+        // Only copy the files if not copied yet
+        if (record.Status == "pending") {
+          var s3Client = new AmazonS3Client();
 
-        // Parse the S3 Source URI
-        var uri = new Uri(versionBody.s3SourceURI);
+          // Parse the S3 Source URI
+          var uri = new Uri(versionBody.s3SourceURI);
 
-        var sourceBucket = uri.Host;
-        var sourcePrefix = uri.AbsolutePath.Length >= 1 ? uri.AbsolutePath.Substring(1) : null;
+          var sourceBucket = uri.Host;
+          var sourcePrefix = uri.AbsolutePath.Length >= 1 ? uri.AbsolutePath.Substring(1) : null;
 
-        // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
-        var paginator = s3Client.Paginators.ListObjectsV2(new Amazon.S3.Model.ListObjectsV2Request() {
-          BucketName = uri.Host,
-          Prefix = sourcePrefix,
-        });
+          // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
+          var paginator = s3Client.Paginators.ListObjectsV2(new Amazon.S3.Model.ListObjectsV2Request() {
+            BucketName = uri.Host,
+            Prefix = sourcePrefix,
+          });
 
-        // Loop through all S3 source assets and copy to the destination
-        await foreach (var obj in paginator.S3Objects) {
-          var sourceKeyRootless = obj.Key.Remove(0, sourcePrefix.Length);
-          // Console.WriteLine("object: ${0}", obj.Key);
-          await s3Client.CopyObjectAsync(sourceBucket, obj.Key,
-          destinationBucket, string.Format("{0}/{1}", destinationPrefix, sourceKeyRootless));
+          // Loop through all S3 source assets and copy to the destination
+          await foreach (var obj in paginator.S3Objects) {
+            var sourceKeyRootless = obj.Key.Remove(0, sourcePrefix.Length);
+            // Console.WriteLine("object: ${0}", obj.Key);
+            await s3Client.CopyObjectAsync(sourceBucket, obj.Key,
+            destinationBucket, string.Format("{0}/{1}", destinationPrefix, sourceKeyRootless));
+          }
+
+          // Update status to assets-copied
+          record.Status = "assets-copied";
+          await Manager.CreateVersion(record);
         }
-
-        // Update status to assets-copied
-        record.Status = "assets-copied";
-        await Manager.CreateVersion(record);
 
         // TODO: Confirm the Lambda Function exists
         var lambdaClient = new AmazonLambdaClient();
@@ -94,43 +97,49 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         var apigwy = new AmazonApiGatewayV2Client();
         var api = await GatewayInfo.GetAPI(apigwy);
 
-        // Get the account ID
-        var lambdaArnParts = versionBody.lambdaARN.Split(':');
-        var accountId = lambdaArnParts[4];
-        var region = lambdaArnParts[3];
+        if (record.Status == "assets-copied") {
+          // Get the account ID
+          var lambdaArnParts = versionBody.lambdaARN.Split(':');
+          var accountId = lambdaArnParts[4];
+          var region = lambdaArnParts[3];
 
-        // Ensure that the Lambda function allows API Gateway to invoke
-        await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
-          FunctionName = versionBody.lambdaARN,
-          StatementId = "apigwy",
-        });
-        await lambdaClient.AddPermissionAsync(new AddPermissionRequest() {
-          Principal = "apigateway.amazonaws.com",
-          StatementId = "apigwy",
-          Action = "lambda:InvokeFunction",
-          FunctionName = versionBody.lambdaARN,
-          SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/{4}/api/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName, versionBody.semVer)
-        });
+          // Ensure that the Lambda function allows API Gateway to invoke
+          await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
+            FunctionName = versionBody.lambdaARN,
+            StatementId = "apigwy",
+          });
+          await lambdaClient.AddPermissionAsync(new AddPermissionRequest() {
+            Principal = "apigateway.amazonaws.com",
+            StatementId = "apigwy",
+            Action = "lambda:InvokeFunction",
+            FunctionName = versionBody.lambdaARN,
+            SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/{4}/api/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName, versionBody.semVer)
+          });
+          record.Status = "permissioned";
+          await Manager.CreateVersion(record);
+        }
 
         // Add Integration pointing to Lambda Function Alias
         var integrationId = "";
-        if (!string.IsNullOrEmpty(record.IntegrationID)) {
-          integrationId = record.IntegrationID;
-        } else {
-           var integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
-            ApiId = api.ApiId,
-            IntegrationType = IntegrationType.AWS_PROXY,
-            IntegrationMethod = "POST",
-            PayloadFormatVersion = "2.0",
-            IntegrationUri = versionBody.lambdaARN,
-          });
+        if (record.Status == "permissioned") {
+          if (!string.IsNullOrEmpty(record.IntegrationID)) {
+            integrationId = record.IntegrationID;
+          } else {
+            var integration = await apigwy.CreateIntegrationAsync(new CreateIntegrationRequest() {
+              ApiId = api.ApiId,
+              IntegrationType = IntegrationType.AWS_PROXY,
+              IntegrationMethod = "POST",
+              PayloadFormatVersion = "2.0",
+              IntegrationUri = versionBody.lambdaARN,
+            });
 
-          integrationId = integration.IntegrationId;
+            integrationId = integration.IntegrationId;
 
-          // Save the created IntegrationID
-          record.IntegrationID = integration.IntegrationId;
-          record.Status = "integrated";
-          await Manager.CreateVersion(record);
+            // Save the created IntegrationID
+            record.IntegrationID = integration.IntegrationId;
+            record.Status = "integrated";
+            await Manager.CreateVersion(record);
+          }
         }
 
         // Add the route to API Gateway for appName/version/{proxy+}
