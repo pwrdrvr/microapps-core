@@ -18,8 +18,8 @@ namespace PwrDrvr.MicroApps.DeployTool {
 
       // Make a local root dir for the upload
       string tempUploadPath = Path.Combine(_tempDir, destinationPrefix);
-      if (Directory.Exists(tempUploadPath)) {
-        Directory.Delete(tempUploadPath, true);
+      if (Directory.Exists(_tempDir)) {
+        Directory.Delete(_tempDir, true);
       }
       var tempUploadDir = Directory.CreateDirectory(tempUploadPath);
 
@@ -33,7 +33,7 @@ namespace PwrDrvr.MicroApps.DeployTool {
       await s3TU.UploadDirectoryAsync(diUploadRoot.FullName, _s3Bucket, "*.*", SearchOption.AllDirectories);
 
       // Delete the directory now that it's uploaded
-      Directory.Delete(tempUploadPath, true);
+      Directory.Delete(_tempDir, true);
     }
 
     // Really cheesy recursive function from:
