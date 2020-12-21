@@ -17,16 +17,23 @@ namespace PwrDrvr.MicroApps.DeployTool {
       var s3TU = new TransferUtility(s3Client);
 
       // Make a local root dir for the upload
-      var destDir = Directory.CreateDirectory(Path.Combine(_tempDir, destinationPrefix));
+      string tempUploadPath = Path.Combine(_tempDir, destinationPrefix);
+      if (Directory.Exists(tempUploadPath)) {
+        Directory.Delete(tempUploadPath, true);
+      }
+      var tempUploadDir = Directory.CreateDirectory(tempUploadPath);
 
       // Copy the files in the source dir to the root dir
       // Note: It would be faster to move the files, then move them back
-      DirectoryCopy(config.StaticAssetsPath, destDir.FullName, true);
+      DirectoryCopy(config.StaticAssetsPath, tempUploadDir.FullName, true);
 
       var diUploadRoot = new DirectoryInfo(_tempDir);
 
       // Do the upload
       await s3TU.UploadDirectoryAsync(diUploadRoot.FullName, _s3Bucket, "*.*", SearchOption.AllDirectories);
+
+      // Delete the directory now that it's uploaded
+      Directory.Delete(tempUploadPath, true);
     }
 
     // Really cheesy recursive function from:
