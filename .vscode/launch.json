@@ -21,6 +21,22 @@
             "stopAtEntry": false
         },
         {
+            "name": "Launch DeployTool",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/PwrDrvr.MicroApps.DeployTool/bin/Debug/net5.0/PwrDrvr.MicroApps.DeployTool.dll",
+            "args": [],
+            "env": {
+                "AWS_PROFILE": "pwrdrvr"
+            },
+            "cwd": "${workspaceFolder}/src/PwrDrvr.MicroApps.DeployTool/",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Launch Release",
             "type": "coreclr",
             "request": "launch",
