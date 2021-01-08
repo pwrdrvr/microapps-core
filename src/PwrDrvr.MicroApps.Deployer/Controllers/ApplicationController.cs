@@ -23,6 +23,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         DisplayName = appBody.appName,
       });
 
+#if false
       // Get reference to Router function
       var lambda = new Amazon.Lambda.AmazonLambdaClient();
       var function = await lambda.GetFunctionAsync("microapps-router");
@@ -49,6 +50,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         Target = string.Format("integrations/{0}", intRouterId),
         RouteKey = string.Format("ANY /{0}", appBody.appName),
       });
+#endif
 
       // TODO: Update DynamoDB status to indicate integration has been
       // created

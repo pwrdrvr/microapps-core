@@ -113,7 +113,7 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
             StatementId = "apigwy",
             Action = "lambda:InvokeFunction",
             FunctionName = versionBody.lambdaARN,
-            SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/{4}/api/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName, versionBody.semVer)
+            SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/*/api/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName)
           });
           record.Status = "permissioned";
           await Manager.CreateVersion(record);

@@ -4,12 +4,19 @@
     <title>MicroApps - Release Control</title>
   </head>
   <body>
-    And what a lovely one it is! - apps.pwrdrvr.com - release/1.0.0
+    And what a lovely one it is! - apps.pwrdrvr.com - release/1.0.3 - Daniielle
 
     <textarea id='status' name='Status'> </textarea>
     <input type='button' onclick='UpdateStatus()' value='Status Update'>
 
     <script>
+      // Copy the title up
+      try {
+        window.parent.document.title = window.document.title;
+      } catch {
+        // Don't care if this fails
+      }
+
       function UpdateStatus() {
         var txtStatus = document.getElementById("status");
         var request = new XMLHttpRequest();
