@@ -72,3 +72,15 @@ https://apps.pwrdrvr.com/release/
 ## Run Specific Version of App
 
 https://apps.pwrdrvr.com/release/1.0.3/
+
+# Deployer Service
+
+Copies static assets from staging to deployed directory, creates record of application / version in DynamoDB Table.
+
+## Build and Deploy Update
+
+```
+make aws-ecr-login
+make aws-ecr-publish-deployer
+make aws-lambda-update-deployer
+```

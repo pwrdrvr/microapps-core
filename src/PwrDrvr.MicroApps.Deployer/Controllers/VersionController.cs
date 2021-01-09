@@ -22,6 +22,27 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
   [ApiController]
   [Route("deployer/[controller]")]
   public class VersionController : ControllerBase {
+    // GET /deployer/version/{appName}/{semVer}
+    [HttpGet("{appName}/{version}")]
+    async public Task Get(string appName, string version) {
+      try {
+        // Check if the version exists
+        var record = await Manager.GetAppVersion(appName, version);
+        if (record != null && record.Status != "pending") {
+          Response.StatusCode = 200;
+          Console.WriteLine("App/Version already exists: {0}/{1}", appName, version);
+          return;
+        } else {
+          Response.StatusCode = 404;
+          Console.WriteLine("App/Version does not exist: {0}/{1}", appName, version);
+          return;
+        }
+      } catch (Exception ex) {
+        Response.StatusCode = 500;
+        Console.WriteLine("Caught unexpected exception: {0}", ex.Message);
+      }
+    }
+
     // POST /deployer/version/
     [HttpPost]
     async public Task Post([FromBody] VersionBody versionBody) {

@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace PwrDrvr.MicroApps.DeployTool {
   class Program {
-    async static Task Main(string[] args) {
+    async static Task<int> Main(string[] args) {
       // Load deploy.json file
       var config = DeployConfig.Load();
       if (config == null) {
         Console.WriteLine("Could not find deploy.json");
-        return;
+        return 1;
       }
 
       // Check that Static Assets Folder exists
@@ -17,8 +17,12 @@ namespace PwrDrvr.MicroApps.DeployTool {
         throw new DirectoryNotFoundException(config.StaticAssetsPath);
       }
 
-      // TODO: Confirm the Version Does Not Exist
-      // Make a call to Deployer service?
+      // Confirm the Version Does Not Exist in Published State
+      var exists = await DeployerClient.CheckVersionExists(config);
+      if (exists) {
+        Console.WriteLine("App/Version already exists: {0}/{1}", config.AppName, config.SemVer);
+        return 1;
+      }
 
       // Upload Files to S3 Staging AppName/Version Prefix
       await S3Uploader.Upload(config);
@@ -28,6 +32,8 @@ namespace PwrDrvr.MicroApps.DeployTool {
 
       // Call Deployer to Deploy AppName/Version
       await DeployerClient.DeployVersion(config);
+
+      return 0;
     }
   }
 }
