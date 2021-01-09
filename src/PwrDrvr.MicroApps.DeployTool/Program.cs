@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace PwrDrvr.MicroApps.DeployTool {
@@ -6,6 +7,10 @@ namespace PwrDrvr.MicroApps.DeployTool {
     async static Task Main(string[] args) {
       // Load deploy.json file
       var config = DeployConfig.Load();
+      if (config == null) {
+        Console.WriteLine("Could not find deploy.json");
+        return;
+      }
 
       // Check that Static Assets Folder exists
       if (!Directory.Exists(config.StaticAssetsPath)) {
@@ -15,7 +20,7 @@ namespace PwrDrvr.MicroApps.DeployTool {
       // TODO: Confirm the Version Does Not Exist
       // Make a call to Deployer service?
 
-      // TODO: Upload Files to S3 Staging AppName/Version Prefix
+      // Upload Files to S3 Staging AppName/Version Prefix
       await S3Uploader.Upload(config);
 
       // Call Deployer to Create Version if Not Exists

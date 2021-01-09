@@ -1,5 +1,3 @@
-using System;
-using System.Data.Common;
 using System.IO;
 using System.Threading.Tasks;
 using Amazon.S3;
