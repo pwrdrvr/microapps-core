@@ -31,6 +31,16 @@ namespace PwrDrvr.MicroApps.DeployTool {
       }
     }
 
+    internal async static Task<bool> CheckVersionExists(DeployConfig config) {
+      var url = string.Format("https://apps.pwrdrvr.com/deployer/version/{0}/{1}/", config.AppName, config.SemVer);
+      var response = await _client.GetAsync(url);
+      if (response.StatusCode == HttpStatusCode.OK) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     internal async static Task DeployVersion(DeployConfig config) {
       var url = "https://apps.pwrdrvr.com/deployer/version/";
       var verRequest = new DeployVersionRequest() {
