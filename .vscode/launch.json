@@ -100,5 +100,20 @@
             "internalConsoleOptions": "neverOpen",
             "autoAttachChildProcesses": true
           },
+          {
+            "name": "Debug apigwy-proxy w/ts-node",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/src/apigateway-lre-proxy/",
+            "skipFiles": [
+              "${workspaceFolder}/src/apigateway-lre-proxy/<node_internals>/**"
+            ],
+            "runtimeVersion": "15.3.0",
+            "env": {
+                "HOST_AND_PORT": "localhost:9000"
+            },
+            "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
+            "args": ["${workspaceFolder}/src/apigateway-lre-proxy//src/index.ts"]
+          }
     ]
 }

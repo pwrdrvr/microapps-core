@@ -1,8 +1,8 @@
 import * as template from '../payloads/apigwy2-stub.json';
 import * as _ from 'lodash';
-import { IncomingHttpHeaders } from 'http';
+import express from 'express';
 
-interface payloadType {
+interface PayloadType {
   version: string;
   routeKey: string;
   rawPath: string;
@@ -34,7 +34,7 @@ interface payloadType {
     domainName: string;
     domainPrefix: string;
     http: {
-      method: 'POST' | 'GET' | 'PUT' | 'HEAD';
+      method: string; // 'POST' | 'GET' | 'PUT' | 'HEAD';
       path: string;
       protocol: 'HTTP/1.1';
       sourceIp: string;
@@ -53,9 +53,12 @@ interface payloadType {
 }
 
 export default class Payload {
-  private data: payloadType = _.cloneDeep(template) as payloadType;
+  private data: PayloadType = _.cloneDeep(template) as PayloadType;
 
   constructor() {
+    // Lodash seems to put this copy in default
+    delete (this.data as any).default;
+
     this.data.cookies = [];
     this.data.headers = {};
 
@@ -72,12 +75,12 @@ export default class Payload {
     this.data.requestContext.http.path = value;
   }
 
-  public set headers(headers: IncomingHttpHeaders) {
-    const newHeaders = {} as { [key: string]: string };
-    for (const [key, value] of Object.entries(headers)) {
-      newHeaders[key] = value as string;
-    }
-  }
+  // public set headers(headers: IncomingHttpHeaders) {
+  //   const newHeaders = {} as { [key: string]: string };
+  //   for (const [key, value] of Object.entries(headers)) {
+  //     newHeaders[key] = value as string;
+  //   }
+  // }
 
   public set cookies(cookies: any) {
     this.data.cookies = [];
@@ -88,14 +91,47 @@ export default class Payload {
   }
 
   public set queryString(value: string) {
-    this.data.rawQueryString = value;
+    if (value !== undefined && value !== null) {
+      this.data.rawQueryString = value;
+    } else {
+      this.data.rawQueryString = '';
+    }
   }
 
   public set body(value: string) {
     this.data.body = value;
   }
 
-  public get request(): payloadType {
+  public static fromExpress(req: express.Request): PayloadType {
+    const payload = new Payload();
+
+    payload.path = req.path;
+
+    // Copy headers into payload
+    payload.data.headers = _.cloneDeep(req.headers) as { [key: string]: string };
+    if (payload.data.headers['content-length'] !== undefined) {
+      delete payload.data.headers['content-length'];
+    }
+
+    // Copy cookies into payload
+    payload.cookies = _.cloneDeep(req.cookies);
+
+    // Set the query string
+    // @ts-expect-error
+    payload.queryString = req._parsedUrl.query;
+
+    // Copy in the method
+    payload.data.requestContext.http.method = req.method;
+
+    // Copy in the body
+    if (req.body !== undefined) {
+      payload.data.body = JSON.stringify(req.body);
+    }
+
+    return payload.data;
+  }
+
+  public get request(): PayloadType {
     return this.data;
   }
 }

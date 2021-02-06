@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express from 'express';
 import http from 'http';
 import https from 'https';
 import Proxy from './routes/proxy';
@@ -16,12 +16,16 @@ const app = express();
 // Trust the X-Forwarded-Proto header coming from the ELB
 app.enable('trust proxy');
 
+// parse application/json
+// app.use(bodyParser.json());
+app.use(express.json());
+
 // Setup app routes
 app.get('/healthcheck', (_req, res: express.Response) => {
   // console.debug('/healthcheck - Got request');
   res.status(200).send('OK\n');
 });
-app.all('/*', Proxy.ProxyRequest);
+app.post('/*', Proxy.ProxyRequest);
 
 // Time to listen
 const port = 3000;
