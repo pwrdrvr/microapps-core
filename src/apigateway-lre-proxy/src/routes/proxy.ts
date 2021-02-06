@@ -3,25 +3,11 @@ import request from 'request-promise-native';
 import Payload from '../payloads/payload';
 
 export default class Proxy {
-  private static HOST_AND_PORT = process.env.HOST_AND_PORT;
+  private static HOST_AND_PORT = process.env.HOST_AND_PORT || 'localhost:9000';
 
   private static async ProxyInternal(req: express.Request, res: express.Response): Promise<void> {
     // Create the API Gateway2 HTTP Request payload
-    const payload = new Payload();
-    payload.path = req.path;
-
-    // Copy headers into payload
-    payload.headers = req.headers;
-
-    // Copy cookies into payload
-    payload.cookies = req.cookies;
-
-    // Set the query string
-    // @ts-expect-error
-    payload.queryString = req._parsedUrl.query;
-
-    // Copy the body in
-    payload.body = req.body;
+    const payload = Payload.fromExpress(req);
 
     try {
       const proxyReq = request(
@@ -35,24 +21,29 @@ export default class Proxy {
           },
           // resolveWithFullResponse: true,
           method: 'POST',
+          body: JSON.stringify(payload),
         },
       );
       // Copy the incoming request to the upstream request
       // Then scrub headers on the response
       // Finally copy the upstream response back to the incoming response
-      req
-        .pipe(proxyReq)
-        .on('response', (_remoteRes) => {
-          // NOTE: You can add/remove/modify headers here
-          // TODO: Set the headers
-          // TODO: Set the cookies
-          // TODO: Extract the body and return it
-        })
-        .pipe(res);
+      // req
+      //   .pipe(proxyReq)
+      //   .on('response', (_remoteRes) => {
+      //     // NOTE: You can add/remove/modify headers here
+      //     // TODO: Set the headers
+      //     // TODO: Set the cookies
+      //     // TODO: Extract the body and return it
+      //   })
+      //   .pipe(res);
 
       // Wait for the whole thing to finish
       // This also causes exceptions to be catchable below
-      await proxyReq;
+      const remoteRes = await proxyReq;
+
+      // TODO: This is wrong... we have to explode the Lambda response
+      // into a regular API Gateway HTTP response
+      res.pipe(remoteRes);
     } catch (e) {
       console.error(`Caught Exception: ${JSON.stringify(e)}`);
       if (!res.headersSent) {
