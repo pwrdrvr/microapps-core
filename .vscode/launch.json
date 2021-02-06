@@ -73,6 +73,32 @@
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
-        }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Proxy Mocha",
+            "env": {
+              "HOST_AND_PORT": "localhost:8000",
+            },
+            "runtimeVersion": "15.3.0",
+            "runtimeExecutable": "node",
+            "program": "${workspaceFolder}/src/apigateway-lre-proxy/node_modules/.bin/ts-mocha",
+            "args": [
+                "--recursive",
+                "--timeout",
+                "360000",
+                "--colors",
+                "--full-trace",
+                "-p",
+                "tsconfig.json",
+                "src/tests/**/*.spec.ts",
+                "--exit"
+            ],
+            "cwd": "${workspaceFolder}/src/apigateway-lre-proxy/",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "autoAttachChildProcesses": true
+          },
     ]
 }
