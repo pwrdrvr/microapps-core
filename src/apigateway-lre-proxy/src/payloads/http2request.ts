@@ -1,8 +1,13 @@
-import * as template from '../payloads/apigwy2-stub.json';
+import * as template from './http2request-base.json';
 import * as _ from 'lodash';
 import express from 'express';
 
-interface PayloadType {
+//
+// API Gateway payloads are defined here:
+// https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html
+//
+
+interface Http2RequestType {
   version: string;
   routeKey: string;
   rawPath: string;
@@ -44,7 +49,7 @@ interface PayloadType {
     routeKey: string;
     stage: string;
     time: string;
-    timeEpoch: Number;
+    timeEpoch: number;
   };
   body: string;
   pathParameters: { [key: string]: string };
@@ -52,8 +57,8 @@ interface PayloadType {
   stageVariables: { [key: string]: string };
 }
 
-export default class Payload {
-  private data: PayloadType = _.cloneDeep(template) as PayloadType;
+export default class Http2Request {
+  private data: Http2RequestType = _.cloneDeep(template) as Http2RequestType;
 
   constructor() {
     // Lodash seems to put this copy in default
@@ -102,8 +107,8 @@ export default class Payload {
     this.data.body = value;
   }
 
-  public static fromExpress(req: express.Request): PayloadType {
-    const payload = new Payload();
+  public static fromExpress(req: express.Request): Http2RequestType {
+    const payload = new Http2Request();
 
     payload.path = req.path;
 
@@ -131,7 +136,7 @@ export default class Payload {
     return payload.data;
   }
 
-  public get request(): PayloadType {
+  public get request(): Http2RequestType {
     return this.data;
   }
 }
