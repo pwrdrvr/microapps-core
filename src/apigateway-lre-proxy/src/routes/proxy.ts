@@ -1,13 +1,14 @@
 import express from 'express';
 import request from 'request-promise-native';
-import Payload from '../payloads/payload';
+import Http2Request from '../payloads/http2request';
+import Http2Response from '../payloads/http2response';
 
 export default class Proxy {
   private static HOST_AND_PORT = process.env.HOST_AND_PORT || 'localhost:9000';
 
   private static async ProxyInternal(req: express.Request, res: express.Response): Promise<void> {
     // Create the API Gateway2 HTTP Request payload
-    const payload = Payload.fromExpress(req);
+    const payload = Http2Request.fromExpress(req);
 
     try {
       const proxyReq = request(
@@ -21,7 +22,9 @@ export default class Proxy {
           },
           // resolveWithFullResponse: true,
           method: 'POST',
-          body: JSON.stringify(payload),
+          json: true,
+          //body: JSON.stringify(payload),
+          body: payload,
         },
       );
       // Copy the incoming request to the upstream request
@@ -41,9 +44,7 @@ export default class Proxy {
       // This also causes exceptions to be catchable below
       const remoteRes = await proxyReq;
 
-      // TODO: This is wrong... we have to explode the Lambda response
-      // into a regular API Gateway HTTP response
-      res.pipe(remoteRes);
+      Http2Response.relayResponse(remoteRes, res);
     } catch (e) {
       console.error(`Caught Exception: ${JSON.stringify(e)}`);
       if (!res.headersSent) {
