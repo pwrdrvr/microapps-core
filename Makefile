@@ -93,3 +93,8 @@ curl-release-route-version: ## Test /release/1.0.0/ app route
 
 curl-release-route-version-method: ## Test /release/1.0.0/method app route
 	curl -v https://apps.pwrdrvr.com/release/1.0.0/values
+
+
+# Build and tag the Lambda Runtime Env Proxy
+lre-proxy-build: ## publish updated ECR docker image
+	@docker build -f DockerfileGatewayProxy -t lre-proxy .
