@@ -4,7 +4,7 @@ import Http2Request from '../payloads/http2request';
 import Http2Response from '../payloads/http2response';
 
 export default class Proxy {
-  private static HOST_AND_PORT = process.env.HOST_AND_PORT || 'localhost:9000';
+  public static HOST_AND_PORT = process.env.HOST_AND_PORT || 'localhost:9000';
 
   private static async ProxyInternal(req: express.Request, res: express.Response): Promise<void> {
     // Create the API Gateway2 HTTP Request payload

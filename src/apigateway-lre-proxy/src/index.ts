@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import https from 'https';
 import Proxy from './routes/proxy';
+import morgan from 'morgan';
 
 // Enable HTTP keep-alive (reuse of connections to services instead of 1 request / connection)
 const keepAliveOptions = {
@@ -20,6 +21,8 @@ app.enable('trust proxy');
 // app.use(bodyParser.json());
 app.use(express.json());
 
+app.use(morgan('combined'));
+
 // Setup app routes
 app.get('/healthcheck', (_req, res: express.Response) => {
   // console.debug('/healthcheck - Got request');
@@ -30,7 +33,7 @@ app.post('/*', Proxy.ProxyRequest);
 // Time to listen
 const port = 3000;
 const server = app.listen(port, () => {
-  console.info(`Listening on port: ${port}`);
+  console.info(`Listening on port: ${port}, proxying to: ${Proxy.HOST_AND_PORT}`);
 });
 
 server.headersTimeout = 120 * 1000;
