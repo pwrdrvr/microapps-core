@@ -28,7 +28,7 @@ app.get('/healthcheck', (_req, res: express.Response) => {
   // console.debug('/healthcheck - Got request');
   res.status(200).send('OK\n');
 });
-app.post('/*', Proxy.ProxyRequest);
+app.all('/*', Proxy.ProxyRequest);
 
 // Time to listen
 const port = 3000;
