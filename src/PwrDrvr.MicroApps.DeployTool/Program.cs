@@ -20,18 +20,20 @@ namespace PwrDrvr.MicroApps.DeployTool {
       // Confirm the Version Does Not Exist in Published State
       var exists = await DeployerClient.CheckVersionExists(config);
       if (exists) {
-        Console.WriteLine("App/Version already exists: {0}/{1}", config.AppName, config.SemVer);
-        return 1;
+        Console.WriteLine("Warning: App/Version already exists: {0}/{1}", config.AppName, config.SemVer);
+        //return 1;
       }
 
       // Upload Files to S3 Staging AppName/Version Prefix
       await S3Uploader.Upload(config);
 
-      // Call Deployer to Create Version if Not Exists
+      // Call Deployer to Create App if Not Exists
       await DeployerClient.CreateApp(config);
 
       // Call Deployer to Deploy AppName/Version
       await DeployerClient.DeployVersion(config);
+
+      Console.WriteLine("Published: {0}/{1}", config.AppName, config.SemVer);
 
       return 0;
     }
