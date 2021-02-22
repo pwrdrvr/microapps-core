@@ -37,6 +37,19 @@
             "stopAtEntry": false
         },
         {
+            "name": "DeployTool Nextjs-Demo",
+            "type": "coreclr",
+            "request": "launch",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/src/PwrDrvr.MicroApps.DeployTool/bin/Debug/net5.0/PwrDrvr.MicroApps.DeployTool.dll",
+            "args": [],
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "/Users/huntharo/pwrdrvr/serverless-nextjs-demo",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Launch Release",
             "type": "coreclr",
             "request": "launch",
@@ -113,7 +126,7 @@
                 "HOST_AND_PORT": "localhost:9000"
             },
             "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-            "args": ["${workspaceFolder}/src/apigateway-lre-proxy//src/index.ts"]
+            "args": ["${workspaceFolder}/src/apigateway-lre-proxy/src/index.ts"]
           }
     ]
 }

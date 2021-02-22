@@ -125,10 +125,14 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           var region = lambdaArnParts[3];
 
           // Ensure that the Lambda function allows API Gateway to invoke
-          await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
-            FunctionName = versionBody.lambdaARN,
-            StatementId = "apigwy",
-          });
+          try {
+            await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
+              FunctionName = versionBody.lambdaARN,
+              StatementId = "apigwy",
+            });
+          } catch {
+            // Don't care if this remove throws
+          }
           await lambdaClient.AddPermissionAsync(new AddPermissionRequest() {
             Principal = "apigateway.amazonaws.com",
             StatementId = "apigwy",
