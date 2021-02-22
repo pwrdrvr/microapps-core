@@ -1,7 +1,7 @@
 FROM public.ecr.aws/lambda/dotnet:5.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
 WORKDIR /src
 COPY ./src/ ./src/
 COPY microapps-cdk.sln ./
