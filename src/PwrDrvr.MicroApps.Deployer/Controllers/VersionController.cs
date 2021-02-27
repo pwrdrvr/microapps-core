@@ -183,36 +183,39 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           }
         }
 
-        // Add the routes to API Gateway for appName/version/{proxy+}
-        try {
-          await apigwy.CreateRouteAsync(new CreateRouteRequest() {
-            ApiId = api.ApiId,
-            Target = string.Format("integrations/{0}", integrationId),
-            RouteKey = string.Format("ANY /{0}/{1}", versionBody.appName, versionBody.semVer),
-          });
-        } catch {
-          // Don't care
-        }
-        try {
-          await apigwy.CreateRouteAsync(new CreateRouteRequest() {
-            ApiId = api.ApiId,
-            Target = string.Format("integrations/{0}", integrationId),
-            RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
-          });
-        } catch {
-          // Don't care
-        }
+        if (record.Status == "integrated") {
+          // Add the routes to API Gateway for appName/version/{proxy+}
+          try {
+            await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+              ApiId = api.ApiId,
+              Target = string.Format("integrations/{0}", integrationId),
+              RouteKey = string.Format("ANY /{0}/{1}", versionBody.appName, versionBody.semVer),
+            });
+          } catch {
+            // Don't care
+          }
+          try {
+            await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+              ApiId = api.ApiId,
+              Target = string.Format("integrations/{0}", integrationId),
+              RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
+            });
+          } catch {
+            // Don't care
+          }
 
-        // Update the status - Final status
-        record.Status = "routed";
-        await Manager.CreateVersion(record);
+          // Update the status - Final status
+          record.Status = "routed";
+          await Manager.CreateVersion(record);
+        }
 
         // Check if there are any release rules
         // If no rules record, create one pointing to this version by default
         var rules = await Manager.GetRules(versionBody.appName);
         if (rules == null) {
-          rules = new DataLib.Models.Rules();
-          rules.AppName = versionBody.appName;
+          rules = new Rules() {
+            AppName = versionBody.appName,
+          };
           rules.RuleSet.Add("default", new Rule() {
             SemVer = versionBody.semVer,
           });
