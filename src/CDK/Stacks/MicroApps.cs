@@ -102,7 +102,9 @@ namespace CDK {
           new CanonicalUserPrincipal(props.CFStackExports.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId),
           new AccountRootPrincipal(),
           new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account)),
-          deployerFunc.GrantPrincipal
+          deployerFunc.GrantPrincipal,
+          new ArnPrincipal(string.Format("arn:aws:sts::{0}:assumed-role/{1}/{2}", props.Env.Account,
+            deployerFunc.Role.RoleName, deployerFunc.FunctionName))
           },
         Resources = new[] {
           string.Format("{0}/*",bucketApps.BucketArn),
