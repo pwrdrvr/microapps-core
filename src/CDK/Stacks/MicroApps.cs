@@ -92,9 +92,15 @@ namespace CDK {
             "Null", new Dictionary<string, string>() {
               { "aws:PrincipalTag/microapp-name", "true" },
             }
+          },
+          {
+            "StringNotLike", new Dictionary<string, string[]>() {
+              { "aws:userid", new [] { "AROATPLZCRY427AZLMDOB:*",  props.Env.Account } }
+            }
           }
         }
       });
+
       var policyCloudFrontAccess = new PolicyStatement(new PolicyStatementProps() {
         Sid = "cloudfront-oai-access",
         Effect = Effect.ALLOW,
