@@ -10,6 +10,7 @@ using Amazon.CDK.AWS.Route53.Targets;
 namespace CDK {
   public interface ICloudfrontStackExports {
     OriginAccessIdentity CloudFrontOAI { get; set; }
+    IBucket BucketApps { get; set; }
   }
 
   public class CloudfrontStack : Stack, ICloudfrontStackExports {
@@ -49,7 +50,7 @@ namespace CDK {
       });
 
       // Create S3 Origin Identity
-      var bucketApps = Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps");
+      this.BucketApps = Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps");
       this.CloudFrontOAI = new OriginAccessIdentity(this, "staticAccessIdentity", new OriginAccessIdentityProps() {
         Comment = "cloudfront-access"
       });
@@ -64,29 +65,10 @@ namespace CDK {
       // policyStatement.AddCanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId);
 
 
-      // Allow CloudFront to read from the static assets bucket
-      var policyStatement = new PolicyStatement(new PolicyStatementProps() {
-        Effect = Effect.ALLOW,
-        Actions = new[] { "s3:GetObject" },
-        Principals = new[] { new CanonicalUserPrincipal(this.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
-        Resources = new[] {
-          string.Format("{0}/*", bucketApps.BucketArn)
-        }
-      });
-
-
-      if (bucketApps.Policy == null) {
-        new BucketPolicy(this, "CFPolicy", new BucketPolicyProps() {
-          Bucket = bucketApps
-        }).Document.AddStatements(policyStatement);
-      } else {
-        bucketApps.Policy.Document.AddStatements(policyStatement);
-      }
-
       //
       // Add Origins
       //
-      var statics3 = new S3Origin(bucketApps,
+      var statics3 = new S3Origin(this.BucketApps,
         new S3OriginProps() {
           OriginAccessIdentity = this.CloudFrontOAI
         });
@@ -144,5 +126,7 @@ namespace CDK {
     }
 
     public OriginAccessIdentity CloudFrontOAI { get; set; }
+    public IBucket BucketApps { get; set; }
+
   }
 }

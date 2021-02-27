@@ -47,7 +47,7 @@ namespace CDK {
       //
       // Import S3 Buckets
       //
-      var bucketApps = Bucket.FromBucketName(this, "bucket", "pwrdrvr-apps");
+      var bucketApps = props.CFStackExports.BucketApps;
       var bucketStaging = Bucket.FromBucketName(this, "bucketStaging", "pwrdrvr-apps-staging");
 
       // Deny apps from reading:
@@ -95,14 +95,24 @@ namespace CDK {
           }
         }
       });
-
+      var policyCloudFrontAccess = new PolicyStatement(new PolicyStatementProps() {
+        Sid = "cloudfront-oai-access",
+        Effect = Effect.ALLOW,
+        Actions = new[] { "s3:GetObject" },
+        Principals = new[] { new CanonicalUserPrincipal(props.CFStackExports.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
+        Resources = new[] {
+          string.Format("{0}/*", bucketApps.BucketArn)
+        }
+      });
       if (bucketApps.Policy == null) {
-        var bpolicy = new BucketPolicy(this, "CFPolicy", new BucketPolicyProps() {
+        var document = new BucketPolicy(this, "CFPolicy", new BucketPolicyProps() {
           Bucket = bucketApps
-        });
-        bpolicy.Document.AddStatements(policyDenyPrefixOutsideTag);
-        bpolicy.Document.AddStatements(policyDenyMissingTag);
+        }).Document;
+        document.AddStatements(policyCloudFrontAccess);
+        document.AddStatements(policyDenyPrefixOutsideTag);
+        document.AddStatements(policyDenyMissingTag);
       } else {
+        bucketApps.Policy.Document.AddStatements(policyCloudFrontAccess);
         bucketApps.Policy.Document.AddStatements(policyDenyPrefixOutsideTag);
         bucketApps.Policy.Document.AddStatements(policyDenyMissingTag);
       }
