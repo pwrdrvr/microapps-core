@@ -1,7 +1,0 @@
-{
-  "AppName": "Release",
-  "SemVer": "1.0.4",
-  "DefaultFile": "index.html",
-  "StaticAssetsPath": "./websrc/",
-  "LambdaARN": "arn:aws:lambda:us-east-2:***REMOVED***:function:microapps-release:v1_0_0"
-}
