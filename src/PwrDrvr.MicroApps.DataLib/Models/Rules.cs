@@ -6,6 +6,7 @@ namespace PwrDrvr.MicroApps.DataLib.Models {
   [DynamoDBTable("MicroApps")]
   public class Rules {
     public Rules() {
+      this.RuleSet = new Dictionary<string, Rule>();
     }
 
     public async Task SaveAsync() {

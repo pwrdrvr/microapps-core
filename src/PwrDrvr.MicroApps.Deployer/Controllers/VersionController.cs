@@ -9,6 +9,7 @@ using System;
 using System.Text.Json;
 using Amazon.ApiGatewayV2;
 using Amazon.ApiGatewayV2.Model;
+using PwrDrvr.MicroApps.DataLib.Models;
 
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
   public class VersionBody {
@@ -128,17 +129,32 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           try {
             await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
               FunctionName = versionBody.lambdaARN,
-              StatementId = "apigwy",
+              StatementId = "microapps-version-root",
+            });
+          } catch {
+            // Don't care if this remove throws
+          }
+          try {
+            await lambdaClient.RemovePermissionAsync(new RemovePermissionRequest() {
+              FunctionName = versionBody.lambdaARN,
+              StatementId = "microapps-version",
             });
           } catch {
             // Don't care if this remove throws
           }
           await lambdaClient.AddPermissionAsync(new AddPermissionRequest() {
             Principal = "apigateway.amazonaws.com",
-            StatementId = "apigwy",
+            StatementId = "microapps-version-root",
             Action = "lambda:InvokeFunction",
             FunctionName = versionBody.lambdaARN,
-            SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/*/api/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName)
+            SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/{4}", region, accountId, api.ApiId, versionBody.appName, versionBody.semVer)
+          });
+          await lambdaClient.AddPermissionAsync(new AddPermissionRequest() {
+            Principal = "apigateway.amazonaws.com",
+            StatementId = "microapps-version",
+            Action = "lambda:InvokeFunction",
+            FunctionName = versionBody.lambdaARN,
+            SourceArn = string.Format("arn:aws:execute-api:{0}:{1}:{2}/*/*/{3}/{4}/{{proxy+}}", region, accountId, api.ApiId, versionBody.appName, versionBody.semVer)
           });
           record.Status = "permissioned";
           await Manager.CreateVersion(record);
@@ -167,16 +183,32 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           }
         }
 
-        // Add the route to API Gateway for appName/version/{proxy+}
-        var routeRouter = await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+        // Add the routes to API Gateway for appName/version/{proxy+}
+        await apigwy.CreateRouteAsync(new CreateRouteRequest() {
           ApiId = api.ApiId,
           Target = string.Format("integrations/{0}", integrationId),
-          RouteKey = string.Format("ANY /{0}/{1}/api/{{proxy+}}", versionBody.appName, versionBody.semVer),
+          RouteKey = string.Format("ANY /{0}/{1}", versionBody.appName, versionBody.semVer),
+        });
+        await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+          ApiId = api.ApiId,
+          Target = string.Format("integrations/{0}", integrationId),
+          RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
         });
 
         // Update the status - Final status
         record.Status = "routed";
         await Manager.CreateVersion(record);
+
+        // Check if there are any release rules
+        // If no rules record, create one pointing to this version by default
+        var rules = await Manager.GetRules(versionBody.appName);
+        if (rules == null) {
+          rules = new DataLib.Models.Rules();
+          rules.AppName = versionBody.appName;
+          rules.RuleSet.Add("default", new Rule() {
+            SemVer = versionBody.semVer,
+          });
+        }
       } catch (Exception ex) {
         Response.StatusCode = 500;
         Console.WriteLine("Caught unexpected exception: {0}", ex.Message);
