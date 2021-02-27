@@ -50,6 +50,25 @@ namespace CDK {
       var bucketApps = props.CFStackExports.BucketApps;
       var bucketStaging = Bucket.FromBucketName(this, "bucketStaging", "pwrdrvr-apps-staging");
 
+
+      //
+      // Deployer Lambda Function
+      //
+
+      // Create Deployer Lambda Function
+      var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
+        Code = DockerImageCode.FromEcr(props.ReposExports.RepoDeployer),
+        FunctionName = "microapps-deployer",
+        Timeout = Duration.Seconds(30),
+      });
+      // Give the Deployer access to DynamoDB table
+      table.GrantReadWriteData(deployerFunc);
+      table.Grant(deployerFunc, "dynamodb:DescribeTable");
+
+
+      //
+      // Update S3 permissions
+      //
       // Deny apps from reading:
       // - If they are missing the microapp-name tag
       // - Anything outside of the folder that matches their microapp-name tag
@@ -60,7 +79,8 @@ namespace CDK {
         NotPrincipals = new IPrincipal[] {
           new CanonicalUserPrincipal(props.CFStackExports.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId),
           new AccountRootPrincipal(),
-          new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account))
+          new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account)),
+          deployerFunc.GrantPrincipal
           },
         NotResources = new[] {
           string.Format("{0}/${{aws:PrincipalTag/microapp-name}}/*",bucketApps.BucketArn),
@@ -81,7 +101,8 @@ namespace CDK {
         NotPrincipals = new IPrincipal[] {
           new CanonicalUserPrincipal(props.CFStackExports.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId),
           new AccountRootPrincipal(),
-          new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account))
+          new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account)),
+          deployerFunc.GrantPrincipal
           },
         Resources = new[] {
           string.Format("{0}/*",bucketApps.BucketArn),
@@ -100,7 +121,6 @@ namespace CDK {
           }
         }
       });
-
       var policyCloudFrontAccess = new PolicyStatement(new PolicyStatementProps() {
         Sid = "cloudfront-oai-access",
         Effect = Effect.ALLOW,
@@ -122,21 +142,6 @@ namespace CDK {
         bucketApps.Policy.Document.AddStatements(policyDenyPrefixOutsideTag);
         bucketApps.Policy.Document.AddStatements(policyDenyMissingTag);
       }
-
-
-      //
-      // Deployer Lambda Function
-      //
-
-      // Create Deployer Lambda Function
-      var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
-        Code = DockerImageCode.FromEcr(props.ReposExports.RepoDeployer),
-        FunctionName = "microapps-deployer",
-        Timeout = Duration.Seconds(30),
-      });
-      // Give the Deployer access to DynamoDB table
-      table.GrantReadWriteData(deployerFunc);
-      table.Grant(deployerFunc, "dynamodb:DescribeTable");
 
       // Allow the Lambda to read from the staging bucket
       var policyReadListStaging = new PolicyStatement(new PolicyStatementProps() {
