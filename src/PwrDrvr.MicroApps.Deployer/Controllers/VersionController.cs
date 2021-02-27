@@ -184,16 +184,24 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
         }
 
         // Add the routes to API Gateway for appName/version/{proxy+}
-        await apigwy.CreateRouteAsync(new CreateRouteRequest() {
-          ApiId = api.ApiId,
-          Target = string.Format("integrations/{0}", integrationId),
-          RouteKey = string.Format("ANY /{0}/{1}", versionBody.appName, versionBody.semVer),
-        });
-        await apigwy.CreateRouteAsync(new CreateRouteRequest() {
-          ApiId = api.ApiId,
-          Target = string.Format("integrations/{0}", integrationId),
-          RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
-        });
+        try {
+          await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+            ApiId = api.ApiId,
+            Target = string.Format("integrations/{0}", integrationId),
+            RouteKey = string.Format("ANY /{0}/{1}", versionBody.appName, versionBody.semVer),
+          });
+        } catch {
+          // Don't care
+        }
+        try {
+          await apigwy.CreateRouteAsync(new CreateRouteRequest() {
+            ApiId = api.ApiId,
+            Target = string.Format("integrations/{0}", integrationId),
+            RouteKey = string.Format("ANY /{0}/{1}/{{proxy+}}", versionBody.appName, versionBody.semVer),
+          });
+        } catch {
+          // Don't care
+        }
 
         // Update the status - Final status
         record.Status = "routed";
@@ -208,10 +216,11 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
           rules.RuleSet.Add("default", new Rule() {
             SemVer = versionBody.semVer,
           });
+          await Manager.UpdateRules(rules);
         }
       } catch (Exception ex) {
         Response.StatusCode = 500;
-        Console.WriteLine("Caught unexpected exception: {0}", ex.Message);
+        Console.WriteLine("Caught unexpected exception: {0}/{1}\n{2}", ex.GetType().Name.ToString(), ex.Message, ex.StackTrace);
       }
     }
   }
