@@ -8,7 +8,11 @@ using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 
 namespace CDK {
-  public class CloudfrontStack : Stack {
+  public interface ICloudfrontStackExports {
+    OriginAccessIdentity CloudFrontOAI { get; set; }
+  }
+
+  public class CloudfrontStack : Stack, ICloudfrontStackExports {
     internal CloudfrontStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props) {
       //
       // S3 Bucket for Logging - Usable by many stacks
@@ -45,8 +49,8 @@ namespace CDK {
       });
 
       // Create S3 Origin Identity
-      var bucket = Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps");
-      var OAI = new OriginAccessIdentity(this, "staticAccessIdentity", new OriginAccessIdentityProps() {
+      var bucketApps = Bucket.FromBucketName(this, "staticbucket", "pwrdrvr-apps");
+      this.CloudFrontOAI = new OriginAccessIdentity(this, "staticAccessIdentity", new OriginAccessIdentityProps() {
         Comment = "cloudfront-access"
       });
 
@@ -64,27 +68,27 @@ namespace CDK {
       var policyStatement = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
         Actions = new[] { "s3:GetObject" },
-        Principals = new[] { new CanonicalUserPrincipal(OAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
+        Principals = new[] { new CanonicalUserPrincipal(this.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId) },
         Resources = new[] {
-          string.Format("{0}/*", bucket.BucketArn)
+          string.Format("{0}/*", bucketApps.BucketArn)
         }
       });
 
 
-      if (bucket.Policy == null) {
+      if (bucketApps.Policy == null) {
         new BucketPolicy(this, "CFPolicy", new BucketPolicyProps() {
-          Bucket = bucket
+          Bucket = bucketApps
         }).Document.AddStatements(policyStatement);
       } else {
-        bucket.Policy.Document.AddStatements(policyStatement);
+        bucketApps.Policy.Document.AddStatements(policyStatement);
       }
 
       //
       // Add Origins
       //
-      var statics3 = new S3Origin(bucket,
+      var statics3 = new S3Origin(bucketApps,
         new S3OriginProps() {
-          OriginAccessIdentity = OAI
+          OriginAccessIdentity = this.CloudFrontOAI
         });
       // var statics3 = new S3Origin(new Bucket(this, "pwrdrvr-microapps", new BucketProps() {
 
@@ -138,5 +142,7 @@ namespace CDK {
         Zone = hzonePwrDrvrCom,
       });
     }
+
+    public OriginAccessIdentity CloudFrontOAI { get; set; }
   }
 }

@@ -7,7 +7,7 @@ namespace CDK {
 
       // The CloudFront stack has to be created in us-east-2 because
       // the S3 bucket is there.
-      new CloudfrontStack(app, "CloudfrontStack", new StackProps() {
+      var cfStack = new CloudfrontStack(app, "CloudfrontStack", new StackProps() {
         Env = new Amazon.CDK.Environment() {
           Region = "us-east-2",
           Account = "***REMOVED***"
@@ -24,14 +24,15 @@ namespace CDK {
           Region = "us-east-2",
           Account = "***REMOVED***"
         },
-        ReposProps = repos,
+        ReposExports = repos,
+        CFStackExports = cfStack,
       });
       new ReleaseApp(app, "ReleaseApp", new ReleaseAppStackProps() {
         Env = new Amazon.CDK.Environment() {
           Region = "us-east-2",
           Account = "***REMOVED***"
         },
-        ReposProps = repos,
+        ReposExports = repos,
       });
       app.Synth();
     }

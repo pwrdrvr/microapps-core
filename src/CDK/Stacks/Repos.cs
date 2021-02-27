@@ -2,13 +2,13 @@ using Amazon.CDK;
 using Amazon.CDK.AWS.ECR;
 
 namespace CDK {
-  public interface IReposProps {
+  public interface IReposExports {
     IRepository RepoDeployer { get; set; }
     IRepository RepoRouter { get; set; }
     IRepository RepoReleaseApp { get; set; }
   }
 
-  public class Repos : Stack, IReposProps {
+  public class Repos : Stack, IReposExports {
     public IRepository RepoDeployer { get; set; }
     public IRepository RepoRouter { get; set; }
     public IRepository RepoReleaseApp { get; set; }

@@ -12,7 +12,8 @@ using System.Collections.Generic;
 
 namespace CDK {
   public interface IMicroAppsStackProps : IStackProps {
-    IReposProps ReposProps { get; set; }
+    IReposExports ReposExports { get; set; }
+    ICloudfrontStackExports CFStackExports { get; set; }
   }
 
   public class MicroAppsStackProps : StackProps, IMicroAppsStackProps {
@@ -20,7 +21,8 @@ namespace CDK {
       : base() {
     }
 
-    public IReposProps ReposProps { get; set; }
+    public IReposExports ReposExports { get; set; }
+    public ICloudfrontStackExports CFStackExports { get; set; }
   }
 
   public class MicroApps : Stack {
@@ -45,8 +47,65 @@ namespace CDK {
       //
       // Import S3 Buckets
       //
-      var bucket = Bucket.FromBucketName(this, "bucket", "pwrdrvr-apps");
+      var bucketApps = Bucket.FromBucketName(this, "bucket", "pwrdrvr-apps");
       var bucketStaging = Bucket.FromBucketName(this, "bucketStaging", "pwrdrvr-apps-staging");
+
+      // Deny apps from reading:
+      // - If they are missing the microapp-name tag
+      // - Anything outside of the folder that matches their microapp-name tag
+      var policyDenyPrefixOutsideTag = new PolicyStatement(new PolicyStatementProps() {
+        Sid = "deny-prefix-outside-microapp-name-tag",
+        Effect = Effect.DENY,
+        Actions = new[] { "s3:*" },
+        NotPrincipals = new IPrincipal[] {
+          new CanonicalUserPrincipal(props.CFStackExports.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId),
+          new AccountRootPrincipal(),
+          new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account))
+          },
+        NotResources = new[] {
+          string.Format("{0}/${{aws:PrincipalTag/microapp-name}}/*",bucketApps.BucketArn),
+          bucketApps.BucketArn,
+        },
+        Conditions = new Dictionary<string, object>() {
+          {
+            "Null", new Dictionary<string, string>() {
+              { "aws:PrincipalTag/microapp-name", "false" },
+            }
+          }
+        }
+      });
+      var policyDenyMissingTag = new PolicyStatement(new PolicyStatementProps() {
+        Sid = "deny-missing-microapp-name-tag",
+        Effect = Effect.DENY,
+        Actions = new[] { "s3:*" },
+        NotPrincipals = new IPrincipal[] {
+          new CanonicalUserPrincipal(props.CFStackExports.CloudFrontOAI.CloudFrontOriginAccessIdentityS3CanonicalUserId),
+          new AccountRootPrincipal(),
+          new ArnPrincipal(string.Format("arn:aws:iam::{0}:role/AdminAccess", props.Env.Account))
+          },
+        Resources = new[] {
+          string.Format("{0}/*",bucketApps.BucketArn),
+          bucketApps.BucketArn,
+        },
+        Conditions = new Dictionary<string, object>() {
+          {
+            "Null", new Dictionary<string, string>() {
+              { "aws:PrincipalTag/microapp-name", "true" },
+            }
+          }
+        }
+      });
+
+      if (bucketApps.Policy == null) {
+        var bpolicy = new BucketPolicy(this, "CFPolicy", new BucketPolicyProps() {
+          Bucket = bucketApps
+        });
+        bpolicy.Document.AddStatements(policyDenyPrefixOutsideTag);
+        bpolicy.Document.AddStatements(policyDenyMissingTag);
+      } else {
+        bucketApps.Policy.Document.AddStatements(policyDenyPrefixOutsideTag);
+        bucketApps.Policy.Document.AddStatements(policyDenyMissingTag);
+      }
 
 
       //
@@ -55,7 +114,7 @@ namespace CDK {
 
       // Create Deployer Lambda Function
       var deployerFunc = new DockerImageFunction(this, "deployer-func", new DockerImageFunctionProps() {
-        Code = DockerImageCode.FromEcr(props.ReposProps.RepoDeployer),
+        Code = DockerImageCode.FromEcr(props.ReposExports.RepoDeployer),
         FunctionName = "microapps-deployer",
         Timeout = Duration.Seconds(30),
       });
@@ -81,8 +140,8 @@ namespace CDK {
         Actions = new[] { "s3:GetObject", "s3:PutObject", "s3:ListBucket" },
         // Principals = new[] { deployerFunc.GrantPrincipal },
         Resources = new[] {
-          string.Format("{0}/*", bucket.BucketArn),
-          bucket.BucketArn
+          string.Format("{0}/*", bucketApps.BucketArn),
+          bucketApps.BucketArn
         }
       });
       deployerFunc.AddToRolePolicy(policyReadWriteListTarget);
@@ -94,7 +153,7 @@ namespace CDK {
 
       // Create Router Lambda Function
       var routerFunc = new DockerImageFunction(this, "router-func", new DockerImageFunctionProps() {
-        Code = DockerImageCode.FromEcr(props.ReposProps.RepoRouter),
+        Code = DockerImageCode.FromEcr(props.ReposExports.RepoRouter),
         FunctionName = "microapps-router",
         Timeout = Duration.Seconds(30),
       });
@@ -102,7 +161,7 @@ namespace CDK {
         Effect = Effect.ALLOW,
         Actions = new[] { "s3:GetObject" },
         Resources = new[] {
-          string.Format("{0}/*", bucket.BucketArn)
+          string.Format("{0}/*", bucketApps.BucketArn)
         }
       });
       routerFunc.AddToRolePolicy(policyReadTarget);

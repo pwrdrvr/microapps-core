@@ -4,7 +4,7 @@ using Amazon.CDK.AWS.Lambda;
 
 namespace CDK {
   public interface IReleaseAppStackProps : IStackProps {
-    IReposProps ReposProps { get; set; }
+    IReposExports ReposExports { get; set; }
   }
 
   public class ReleaseAppStackProps : StackProps, IReleaseAppStackProps {
@@ -12,7 +12,7 @@ namespace CDK {
       : base() {
     }
 
-    public IReposProps ReposProps { get; set; }
+    public IReposExports ReposExports { get; set; }
   }
 
   public class ReleaseApp : Stack {
@@ -29,7 +29,7 @@ namespace CDK {
 
       // Create Release Lambda Function
       var releaseFunc = new DockerImageFunction(this, "release-func", new DockerImageFunctionProps() {
-        Code = DockerImageCode.FromEcr(props.ReposProps.RepoReleaseApp),
+        Code = DockerImageCode.FromEcr(props.ReposExports.RepoReleaseApp),
         FunctionName = "microapps-release",
         Timeout = Duration.Seconds(30),
       });
