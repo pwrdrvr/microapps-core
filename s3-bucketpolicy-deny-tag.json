@@ -61,6 +61,12 @@
           "Condition": {
               "Null": {
                   "aws:PrincipalTag/microapp-name": "true"
+              },
+              "StringNotLike": {
+                "aws:userid": [
+                    "AROATPLZCRY427AZLMDOB:*",
+                    "***REMOVED***"
+                ]
               }
           }
       }
