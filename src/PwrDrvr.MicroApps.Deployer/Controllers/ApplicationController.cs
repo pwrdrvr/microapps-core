@@ -14,10 +14,25 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
       public string appName { get; set; }
     }
 
+    public class ApplicationResponse {
+      public string AppName { get; set; }
+      public string DisplayName { get; set; }
+    }
+
     // GET /deployer/application
     [HttpGet()]
-    async public Task<List<DataLib.Models.Application>> Get() {
-      return await Manager.GetAllApps();
+    async public Task<List<ApplicationResponse>> Get() {
+      var apps = await Manager.GetAllApps();
+
+      var appsResponse = new List<ApplicationResponse>();
+      foreach (var app in apps) {
+        appsResponse.Add(new ApplicationResponse() {
+          AppName = app.AppName,
+          DisplayName = app.DisplayName
+        });
+      }
+
+      return appsResponse;
     }
 
     // POST /deployer/application
