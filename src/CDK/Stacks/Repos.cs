@@ -5,13 +5,11 @@ namespace CDK {
   public interface IReposExports {
     IRepository RepoDeployer { get; set; }
     IRepository RepoRouter { get; set; }
-    IRepository RepoReleaseApp { get; set; }
   }
 
   public class Repos : Stack, IReposExports {
     public IRepository RepoDeployer { get; set; }
     public IRepository RepoRouter { get; set; }
-    public IRepository RepoReleaseApp { get; set; }
 
     public Repos(Construct parent, string id, IStackProps props) : base(parent, id, props) {
       //
@@ -25,9 +23,6 @@ namespace CDK {
       });
       RepoRouter = new Repository(this, "repoRouter", new RepositoryProps {
         RepositoryName = "microapps-router",
-      });
-      RepoReleaseApp = new Repository(this, "repoRelease", new RepositoryProps {
-        RepositoryName = "microapps-release",
       });
     }
   }
