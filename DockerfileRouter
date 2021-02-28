@@ -4,7 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
 WORKDIR /src
 COPY ./src/ ./src/
-COPY microapps-cdk.sln ./
+COPY microapps-core.sln ./
 RUN dotnet build src/PwrDrvr.MicroApps.Router/PwrDrvr.MicroApps.Router.csproj \
   --configuration Release \ 
   --output /app/build
