@@ -12,6 +12,7 @@
     <PackageReference Include="AWSSDK.ApiGatewayV2" Version="3.5.2.36" />
     <PackageReference Include="AWSSDK.Lambda" Version="3.5.6.3" />
     <PackageReference Include="AWSSDK.S3" Version="3.5.6.4" />
+    <PackageReference Include="NSwag.AspNetCore" Version="13.10.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PwrDrvr.MicroApps.DataLib\PwrDrvr.MicroApps.DataLib.csproj" />

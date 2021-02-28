@@ -1,0 +1,19 @@
+{
+  "name": "microapps-cdk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm run install",
+    "install": "dotnet restore",
+    "build:all": "dotnet build --configuration release",
+    "start:deployer": "cross-env ASPNETCORE_URLS=http://*:5000 ASPNETCORE_ENVIRONMENT=Development dotnet watch --project src/PwrDrvr.MicroApps.Deployer/ run --no-launch-profile",
+    "generate-client:deployer": "start-server-and-test generate-client:deployer:serve http-get://localhost:5000/swagger/v1/swagger.json generate-client:deployer:generate",
+    "generate-client:deployer:serve": "cross-env ASPNETCORE_URLS=http://*:5000 ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/PwrDrvr.MicroApps.Deployer --no-launch-profile",
+    "generate-client:deployer:generate": "dotnet run --project src/PwrDrvr.MicroApps.APIClientGenerator http://localhost:5000/swagger/v1/swagger.json src/PwrDrvr.MicroApps.Deployer/ClientExports/DeployerClient.ts TypeScript"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "start-server-and-test": "^1.12.0"
+  }
+}

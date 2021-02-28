@@ -84,3 +84,16 @@ make aws-ecr-login
 make aws-ecr-publish-deployer
 make aws-lambda-update-deployer
 ```
+
+# Generating Swagger Clients
+
+https://blog.logrocket.com/generate-typescript-csharp-clients-nswag-api/
+
+- Install All Node and DotNet Dependencies
+  - `npm i`
+- Start the Deployer Svc in Watch Mode
+  - `npm run start:deployer`
+- Explore the Swagger Spec
+  - `http://localhost:5000/swagger`
+- Export the Swagger TypeScript Client
+  - `npm run generate-client:deployer`

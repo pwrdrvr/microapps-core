@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace PwrDrvr.MicroApps.Deployer.Controllers {
   [ApiController]
-  [Route("[controller]")]
+  // To also expose without `deployer` prefix, uncomment next line (you can have many)
+  //[Route("[controller]")]
   [Route("deployer/[controller]")]
   public class ApplicationController : ControllerBase {
     public class ApplicationBody {
