@@ -94,6 +94,14 @@ curl-release-route-version: ## Test /release/1.0.0/ app route
 curl-release-route-version-method: ## Test /release/1.0.0/method app route
 	curl -v https://apps.pwrdrvr.com/release/1.0.0/values
 
+#
+# API Gateway HTTP2 Payloads for Local Docker LRE Testing
+#
+
+curl-local-lambda-router: ## Send test request to local app
+	@curl -v -XPOST -H "Content-Type: application/json" \
+		http://localhost:9000/2015-03-31/functions/function/invocations \
+		--data-binary "@test/json/apigwy2-http-router.json"
 
 # Build and tag the Lambda Runtime Env Proxy
 lre-proxy-build: ## publish updated ECR docker image
