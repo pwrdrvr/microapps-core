@@ -60,6 +60,7 @@ namespace CDK {
         Code = DockerImageCode.FromEcr(props.ReposExports.RepoDeployer),
         FunctionName = "microapps-deployer",
         Timeout = Duration.Seconds(30),
+        MemorySize = 1024
       });
       // Give the Deployer access to DynamoDB table
       table.GrantReadWriteData(deployerFunc);
@@ -179,6 +180,7 @@ namespace CDK {
         Code = DockerImageCode.FromEcr(props.ReposExports.RepoRouter),
         FunctionName = "microapps-router",
         Timeout = Duration.Seconds(30),
+        MemorySize = 1024
       });
       var policyReadTarget = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
