@@ -17,7 +17,7 @@ export class ApplicationClient {
         this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "http://localhost:5000";
     }
 
-    get(): Promise<Application[]> {
+    get(): Promise<ApplicationResponse[]> {
         let url_ = this.baseUrl + "/deployer/Application";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -33,13 +33,13 @@ export class ApplicationClient {
         });
     }
 
-    protected processGet(response: Response): Promise<Application[]> {
+    protected processGet(response: Response): Promise<ApplicationResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : <Application[]>JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = _responseText === "" ? null : <ApplicationResponse[]>JSON.parse(_responseText, this.jsonParseReviver);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -47,7 +47,7 @@ export class ApplicationClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Application[]>(<any>null);
+        return Promise.resolve<ApplicationResponse[]>(<any>null);
     }
 
     post(appBody: ApplicationBody): Promise<void> {
@@ -166,9 +166,7 @@ export class VersionClient {
     }
 }
 
-export interface Application {
-    pk?: string | undefined;
-    sk?: string | undefined;
+export interface ApplicationResponse {
     appName?: string | undefined;
     displayName?: string | undefined;
 }
