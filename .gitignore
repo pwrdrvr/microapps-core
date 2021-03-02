@@ -1,6 +1,8 @@
 # TypeScript output
 dist/
 
+.vsdbg/
+
 # CDK asset staging directory
 .cdk.staging
 cdk.out

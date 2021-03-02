@@ -1,0 +1,86 @@
+{
+  "compilerOptions": {
+                                                                         
+
+                       
+                                                                                  
+    "target": "es2018"                                                                                                                                          ,
+    "module": "commonjs"                                                                                                                   ,
+                                                                                                            
+    "allowJs": false                                             ,
+                                                                               
+                                                                                                                        
+                                                                                         
+                                                                                                              
+                                                                                        
+                                                                                               
+    "outDir": "./dist/"                                                  ,
+    "rootDir": "./src/"                                                                                                              ,
+                                                                              
+                                                                                                             
+                                                                                   
+                                                                        
+                                                                                     
+                                                                                                                                                            
+                                                                                                                               
+
+                                      
+    "strict": true                                               ,
+                                                                                                                           
+                                                                              
+                                                                                             
+                                                                                                                   
+                                                                                                                 
+                                                                                                                 
+                                                                                                                    
+
+                           
+                                                                                   
+                                                                                       
+                                                                                                                    
+                                                                                                            
+                                                                                                  
+
+                                   
+                                                                                                                                           
+                                                                                                        
+                                                                                                                                           
+                                                                                                                                                   
+                                                                                                     
+    "typeRoots": ["./src/@types"],
+                                                                                                         
+                                                                                                                                                                 
+    "esModuleInterop": true                                                                                                                                                               ,
+                                                                                             
+                                                                                             
+
+                            
+                                                                                                                                                   
+                                                                                                                                               
+                                                                                                                          
+                                                                                                                                                                           
+
+                              
+                                                                                                    
+                                                                                                                           
+
+                          
+    "skipLibCheck": true                                               ,
+    "forceConsistentCasingInFileNames": true                                                                 
+  },
+  "references": [
+    {
+      "path": "./src/common/microapps-datalib/"
+    },
+    {
+      "path": "./src/microapps-router/"
+    }
+  ],
+  "files": [],
+  "include": [],
+  "exclude": [
+    "**/node_modules/*",
+    "./src/apigateway-lre-proxy/*"
+  ]
+}
+
