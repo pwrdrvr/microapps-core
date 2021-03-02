@@ -1,19 +1,42 @@
 {
-  "name": "microapps-core",
+  "name": "@pwrdrvr/microapps-core",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pwrdrvr/microapps-core.git"
+  },
+  "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
+  "workspaces": [
+    "./src/common/*"
+  ],
   "private": true,
   "scripts": {
-    "postinstall": "npm run install",
-    "install": "dotnet restore",
+    "install:dotnet": "dotnet restore",
+    "build": "tsc --build tsconfig.json",
+    "test": "ts-mocha --retries 2 -p tsconfig.json --ignore ./src/**/node_modules/**/*.spec.ts --ignore ./src/apigateway-lre-proxy/**/*.spec.ts './src/**/*.spec.ts'",
+    "lint": "eslint ./ --ext .ts --ext .tsx",
+    "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
     "build:all": "dotnet build --configuration release",
     "start:deployer": "cross-env ASPNETCORE_URLS=http://*:5000 ASPNETCORE_ENVIRONMENT=Development dotnet watch --project src/PwrDrvr.MicroApps.Deployer/ run --no-launch-profile",
     "generate-client:deployer": "start-server-and-test generate-client:deployer:serve http-get://localhost:5000/swagger/v1/swagger.json generate-client:deployer:generate",
     "generate-client:deployer:serve": "cross-env ASPNETCORE_URLS=http://*:5000 ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/PwrDrvr.MicroApps.Deployer --no-launch-profile",
     "generate-client:deployer:generate": "dotnet run --project src/PwrDrvr.MicroApps.APIClientGenerator http://localhost:5000/swagger/v1/swagger.json src/PwrDrvr.MicroApps.Deployer/ClientExports/DeployerClient.ts TypeScript"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^14.14.10",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
+    "chai": "^4.3.0",
     "cross-env": "^7.0.3",
-    "start-server-and-test": "^1.12.0"
+    "eslint": "^7.15.0",
+    "eslint-config-prettier": "^7.0.0",
+    "eslint-plugin-prettier": "^3.2.0",
+    "mocha": "^8.3.0",
+    "prettier": "^2.2.1",
+    "start-server-and-test": "^1.12.0",
+    "strip-json-comments-cli": "^1.0.1",
+    "ts-mocha": "^8.0.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.2"
   }
 }
