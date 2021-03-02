@@ -51,7 +51,7 @@ interface Http2RequestType {
     time: string;
     timeEpoch: number;
   };
-  body: string;
+  body?: string;
   pathParameters: { [key: string]: string };
   isBase64Encoded: boolean;
   stageVariables: { [key: string]: string };
@@ -129,8 +129,10 @@ export default class Http2Request {
     payload.data.requestContext.http.method = req.method;
 
     // Copy in the body
-    if (req.body !== undefined) {
+    if (req.body !== undefined && typeof req.body === typeof Object) {
       payload.data.body = JSON.stringify(req.body);
+    } else {
+      delete payload.data.body;
     }
 
     return payload.data;

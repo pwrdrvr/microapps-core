@@ -8,7 +8,7 @@ import express from 'express';
 
 interface Http2ResponseType {
   cookies: string[];
-  isBase64Encoded: boolean;
+  isBase64Encoded?: boolean;
   statusCode: number;
   headers: { [key: string]: string };
   body?: string;
@@ -33,7 +33,7 @@ export default class Http2Response {
     if (nestedResponse.headers !== undefined) {
       for (const [key, value] of Object.entries(nestedResponse.headers)) {
         // Don't write content-length, let express do that
-        if (key === 'content-length') {
+        if (key.toLowerCase() === 'content-length') {
           continue;
         }
         res.setHeader(key, value);

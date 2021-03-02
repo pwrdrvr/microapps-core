@@ -1,5 +1,5 @@
 import express from 'express';
-import request from 'request-promise-native';
+import fetch from 'node-fetch';
 import Http2Request from '../payloads/http2request';
 import Http2Response from '../payloads/http2response';
 
@@ -11,49 +11,32 @@ export default class Proxy {
     const payload = Http2Request.fromExpress(req);
 
     try {
-      const proxyReq = request(
+      const upstreamRes = await fetch(
         `http://${Proxy.HOST_AND_PORT}/2015-03-31/functions/function/invocations`,
         {
-          followRedirect: false,
-          // Prevent 404 from throwing
-          simple: false,
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          // resolveWithFullResponse: true,
-          method: 'POST',
-          json: true,
-          //body: JSON.stringify(payload),
-          body: payload,
+          body: JSON.stringify(payload),
         },
       );
-      // Copy the incoming request to the upstream request
-      // Then scrub headers on the response
-      // Finally copy the upstream response back to the incoming response
-      // req
-      //   .pipe(proxyReq)
-      //   .on('response', (_remoteRes) => {
-      //     // NOTE: You can add/remove/modify headers here
-      //     // TODO: Set the headers
-      //     // TODO: Set the cookies
-      //     // TODO: Extract the body and return it
-      //   })
-      //   .pipe(res);
+      const upstreamResBody = await upstreamRes.json();
 
-      // Wait for the whole thing to finish
-      // This also causes exceptions to be catchable below
-      const remoteRes = await proxyReq;
+      console.info(`Proxy: got a remote response ${upstreamRes.status} for ${req.url}`);
 
-      Http2Response.relayResponse(remoteRes, res);
+      Http2Response.relayResponse(upstreamResBody, res);
     } catch (e) {
-      console.error(`Caught Exception: ${JSON.stringify(e)}`);
-      if (!res.headersSent) {
-        res.status(500).send('Failed');
-      } else {
-        res.socket?.destroy();
+      try {
+        console.log(`Caught Exception: ${JSON.stringify(e)}`);
+        if (!res.headersSent) {
+          res.status(500).send('Failed');
+        } else {
+          res.socket?.destroy();
+        }
+      } catch (e2) {
+        console.log(`Caught 2nd Exception: ${JSON.stringify(e2)}`);
       }
-
-      req.destroy();
     }
   }
 
