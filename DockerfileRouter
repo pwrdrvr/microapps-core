@@ -20,4 +20,4 @@ RUN dotnet publish src/PwrDrvr.MicroApps.Router/PwrDrvr.MicroApps.Router.csproj 
 FROM base AS final
 WORKDIR /var/task
 COPY --from=publish /app/publish .
-CMD ["PwrDrvr.MicroApps.Router::PwrDrvr.MicroApps.Router.LambdaEntryPoint::FunctionHandlerAsync"]
+CMD ["PwrDrvr.MicroApps.Router::PwrDrvr.MicroApps.Router.Function::Handler"]
