@@ -1,7 +1,7 @@
 **/obj
 **/bin
 .vscode/
-docker-compose.yml
+docker-compose.*
 .dockerignore
 Dockerfile*
 .git
@@ -10,3 +10,4 @@ Dockerfile*
 cdk/
 cdk.out/
 ts-cdk/
+**/dist/

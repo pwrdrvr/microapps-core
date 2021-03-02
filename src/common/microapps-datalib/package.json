@@ -1,0 +1,23 @@
+{
+  "name": "@pwrdrvr/microapps-datalib",
+  "version": "1.0.0",
+  "description": "Data library for the microapps framework",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pwrdrvr/microapps-core.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pwrdrvr/microapps-core/issues"
+  },
+  "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.7.0",
+    "tslib": "^2.1.0"
+  }
+}
