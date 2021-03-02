@@ -60,7 +60,7 @@ namespace PwrDrvr.MicroApps.Router {
         // /someapp will split into length 2 with ["", "someapp"] as results
         var parts = request.RawPath.Split('/');
 
-        // Pass any parts after the appName/Version to the route handler
+        // TODO: Pass any parts after the appName/Version to the route handler
         string additionalParts;
         if (parts.Length >= 4 && parts[3] != string.Empty) {
           additionalParts = string.Join('/', parts.Skip(3));
@@ -70,6 +70,10 @@ namespace PwrDrvr.MicroApps.Router {
           // This is an application name only
           await this.Get(request, response, parts[1]);
         } else if (parts.Length == 2) {
+          // TODO: Remove this route as it cannot actually get hit for two reasons:
+          // 1) API Gateway has no route to send these requests to Router (I think?)
+          // 2) If we write the file name in the versionless frame the request will
+          //    go directly to S3, bypassing API Gateway and Router
           await this.Get(request, response, parts[1], parts[2]);
         } else {
           throw new Exception("Unmatched route");
@@ -118,7 +122,7 @@ namespace PwrDrvr.MicroApps.Router {
       // Prepare the iframe contents
       // var semVerUnderscores = defaultVersion.Replace('.', '_');
       string appVersionPath;
-      if (defaultVersionInfo.DefaultFile == string.Empty) {
+      if (string.IsNullOrWhiteSpace(defaultVersionInfo.DefaultFile)) {
         // KLUDGE: We're going to take a missing default file to mean that the
         // app type is Next.js (or similar) and that it wants no trailing slash after the version
         // TODO: Move this to an attribute of the version
@@ -142,6 +146,7 @@ namespace PwrDrvr.MicroApps.Router {
       response.Body = frameHTML;
     }
 
+    [Obsolete("/appname/version/ requests should not reach Router")]
     async private Task Get(APIGatewayHttpApiV2ProxyRequest request,
         APIGatewayHttpApiV2ProxyResponse response, string appName, string version) {
       // Check if caller already has this immutable file cached
