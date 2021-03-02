@@ -4,7 +4,7 @@
 output="/tmp/assume-role-output.json"
 
 # Next.js Demo App Role
-aws sts assume-role --role-arn "arn:aws:iam::***REMOVED***:role/AppNextJsDemoSvcs-svcServiceRoleCA147F4A-1G3MZZLL14EW0" --role-session-name secrets-cdk-session > $output
+aws sts assume-role --role-arn "arn:aws:iam::***REMOVED***:role/AppNextJsDemoSvcs-svcServiceRoleCA147F4A-12THDEHGFCSX9" --role-session-name secrets-cdk-session > $output
 AccessKeyId=$(cat $output | jq -r '.Credentials''.AccessKeyId')
 SecretAccessKey=$(cat $output | jq -r '.Credentials''.SecretAccessKey')
 SessionToken=$(cat $output | jq -r '.Credentials''.SessionToken')
