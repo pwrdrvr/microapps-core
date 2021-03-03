@@ -101,7 +101,7 @@ curl-release-route-version-method: ## Test /release/1.0.0/method app route
 curl-local-lambda-router: ## Send test request to local app
 	@curl -v -XPOST -H "Content-Type: application/json" \
 		http://localhost:9000/2015-03-31/functions/function/invocations \
-		--data-binary "@test/json/apigwy2-http-router.json"
+		--data-binary "@test/json/router-release-app.json"
 
 # Build and tag the Lambda Runtime Env Proxy
 lre-proxy-build: ## publish updated ECR docker image
