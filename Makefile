@@ -41,6 +41,11 @@ aws-ecr-publish-router: ## publish updated ECR docker image
 	@docker tag ${ROUTER_ECR_TAG} ${ECR_HOST}/${ROUTER_ECR_TAG}
 	@docker push ${ECR_HOST}/${ROUTER_ECR_TAG}
 
+aws-ecr-publish-router-ts: ## publish updated ECR docker image
+	@docker build -f DockerfileRouterTS -t ${ROUTER_ECR_TAG}  .
+	@docker tag ${ROUTER_ECR_TAG} ${ECR_HOST}/${ROUTER_ECR_TAG}
+	@docker push ${ECR_HOST}/${ROUTER_ECR_TAG}
+
 aws-lambda-update-router: ## Update the lambda function to use latest image
 	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO} \
 		--image-uri ${ECR_HOST}/${ROUTER_ECR_TAG} --publish

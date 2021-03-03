@@ -8,7 +8,7 @@ const manager = new Manager();
 
 function loadAppFrame(): string {
   const stat = fs.statSync(`${__dirname}/appFrame.html`);
-  if (stat.isFile) {
+  if (stat.isFile()) {
     return fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
   } else {
     // We are likely in the dist directory
