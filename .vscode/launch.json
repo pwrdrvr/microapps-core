@@ -148,6 +148,39 @@
         "args": [
             "${workspaceFolder}/src/apigateway-lre-proxy/src/index.ts"
         ]
-    }
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Debug TS Router Mocha",
+        "env": {
+            "AWS_ACCESS_KEY_ID": "accessKeyId",
+            "AWS_SECRET_ACCESS_KEY": "secretAccessKey",
+            "AWS_REGION": "mock" 
+        },
+        "runtimeVersion": "15.3.0",
+        "runtimeExecutable": "node",
+        "program": "${workspaceFolder}/node_modules/.bin/ts-mocha",
+        "args": [
+            "--recursive",
+            "--timeout",
+            "360000",
+            "--colors",
+            "--full-trace",
+            "-p",
+            "tsconfig.json",
+            "--ignore",
+            "./src/**/node_modules/**/*.spec.ts",
+            "--ignore",
+            "./src/apigateway-lre-proxy/**/*.spec.ts",
+            "--retries",
+            "2",
+            "./src/**/*.spec.ts"
+        ],
+        "cwd": "${workspaceFolder}/",
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "autoAttachChildProcesses": true
+    },
 ]
 }
