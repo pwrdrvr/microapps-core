@@ -7,13 +7,17 @@ const localTesting = process.env.DEBUG ? true : false;
 const manager = new Manager();
 
 function loadAppFrame(): string {
-  const stat = fs.statSync(`${__dirname}/appFrame.html`);
-  if (stat.isFile()) {
-    return fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
-  } else {
-    // We are likely in the dist directory
-    return fs.readFileSync(`${__dirname}/../appFrame.html`, 'utf-8');
+  try {
+    const stat = fs.statSync(`${__dirname}/appFrame.html`);
+    if (stat.isFile()) {
+      return fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
+    }
+  } catch {
+    // Don't care - we get here if stat throws because the file does not exist
   }
+
+  // We are likely in the dist directory
+  return fs.readFileSync(`${__dirname}/../appFrame.html`, 'utf-8');
 }
 
 const appFrame = loadAppFrame();
