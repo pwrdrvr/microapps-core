@@ -119,7 +119,7 @@ export default class Version implements IVersionRecord {
     return this._semVer;
   }
   public set SemVer(value: string) {
-    this._semVer;
+    this._semVer = value;
   }
 
   private _type;
