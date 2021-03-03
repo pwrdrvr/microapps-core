@@ -1,4 +1,5 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { plainToClass } from 'class-transformer';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Manager from '../index';
 
@@ -17,7 +18,8 @@ interface IApplicationRecord {
 export default class Application implements IApplicationRecord {
   private _keyBy: SaveBy;
 
-  constructor() {
+  public constructor(init?: Partial<IApplicationRecord>) {
+    Object.assign(this, init);
     this._keyBy = SaveBy.AppName;
   }
 
@@ -52,6 +54,19 @@ export default class Application implements IApplicationRecord {
     // Await the tasks so they can throw / complete
     await taskByName;
     await taskByApplications;
+  }
+
+  public static async LoadAsync(
+    dbClient: dynamodb.DynamoDB,
+    appName: string,
+  ): Promise<Application> {
+    const { Item } = await dbClient.getItem({
+      TableName: Manager.TableName,
+      Key: marshall({ PK: `appName#${appName}`.toLowerCase(), SK: 'application' }),
+    });
+    const uItem = unmarshall(Item);
+    const record = plainToClass<Application, unknown>(Application, uItem);
+    return record;
   }
 
   public get PK(): string {

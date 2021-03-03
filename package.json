@@ -15,7 +15,7 @@
     "build": "tsc --build tsconfig.json",
     "test:trash": "start-server-and-test test:dynamodb http-get://localhost:8000/ test:mocha",
     "test:dynamodb": "local-dynamodb",
-    "test": "AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --retries 2 -p tsconfig.json --ignore ./src/**/node_modules/**/*.spec.ts --ignore ./src/apigateway-lre-proxy/**/*.spec.ts './src/**/*.spec.ts'",
+    "test": "AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --require ./src/fixtures.ts --retries 2 -p tsconfig.json --ignore ./src/**/node_modules/**/*.spec.ts --ignore ./src/apigateway-lre-proxy/**/*.spec.ts './src/**/*.spec.ts'",
     "test:dumpdb": "AWS_REGION=mock AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey  aws dynamodb scan --endpoint-url http://localhost:8000 --region local --table-name MicroApps",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
@@ -43,6 +43,7 @@
     "typescript": "^4.1.2"
   },
   "dependencies": {
-    "@aws-sdk/util-dynamodb": "^3.7.0"
+    "@aws-sdk/util-dynamodb": "^3.7.0",
+    "class-transformer": "^0.4.0"
   }
 }
