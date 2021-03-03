@@ -1,5 +1,10 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+
+import Application from './models/application';
+import Version from './models/version';
+import Rules from './models/rules';
+
+export { Application, Version, Rules };
 
 export default class Manager {
   private _client: dynamodb.DynamoDB;
