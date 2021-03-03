@@ -175,6 +175,8 @@
             "./src/apigateway-lre-proxy/**/*.spec.ts",
             "--retries",
             "2",
+            "--require",
+            "./src/fixtures.ts",
             "./src/**/*.spec.ts"
         ],
         "cwd": "${workspaceFolder}/",

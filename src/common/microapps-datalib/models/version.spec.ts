@@ -1,11 +1,9 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import Manager from '../index';
-import { promisify } from 'util';
 import { dynamoClient } from '../../../fixtures';
 import Version, { IVersionRecord } from './version';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-const asyncSleep = promisify(setTimeout);
 
 describe('version records', () => {
   it('saving a version should create one record', async () => {
