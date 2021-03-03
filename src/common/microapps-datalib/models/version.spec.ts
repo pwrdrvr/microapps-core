@@ -32,33 +32,70 @@ describe('version records', () => {
     expect(uItem.IntegrationID).equal('abcd');
   });
 
-  // it('load function should load records', async () => {
-  //   let application = new Application();
-  //   application.AppName = 'App1';
-  //   application.DisplayName = 'Application One';
-  //   await application.SaveAsync(dynamoClient);
+  it('load 1 version should load 1 version', async () => {
+    let version = new Version();
+    version.AppName = 'Dog';
+    version.SemVer = '1.2.3-Beta5';
+    version.Status = 'status';
+    version.Type = 'type';
+    version.DefaultFile = 'index.html';
+    version.IntegrationID = 'abcd';
 
-  //   application = new Application();
-  //   application.AppName = 'App2';
-  //   application.DisplayName = 'Application Two';
-  //   await application.SaveAsync(dynamoClient);
+    await version.SaveAsync(dynamoClient);
 
-  //   {
-  //     const record = await Application.LoadAsync(dynamoClient, 'App1');
+    version = new Version();
+    version.AppName = 'Dog';
+    version.SemVer = '1.2.3-Beta6';
+    version.Status = 'status';
+    version.Type = 'type';
+    version.DefaultFile = 'index.html';
+    version.IntegrationID = 'abcd';
 
-  //     expect(record.PK).equal('appname#app1');
-  //     expect(record.SK).equal('application');
-  //     expect(record.AppName).equal('app1');
-  //     expect(record.DisplayName).equal('Application One');
-  //   }
+    await version.SaveAsync(dynamoClient);
 
-  //   {
-  //     const record = await Application.LoadAsync(dynamoClient, 'App2');
+    const version1 = await Version.LoadVersionAsync(dynamoClient, 'Dog', '1.2.3-Beta5');
 
-  //     expect(record.PK).equal('appname#app2');
-  //     expect(record.SK).equal('application');
-  //     expect(record.AppName).equal('app2');
-  //     expect(record.DisplayName).equal('Application Two');
-  //   }
-  // });
+    expect(version1.AppName).to.equal('dog');
+    expect(version1.SK).to.equal('version#1.2.3-beta5');
+    expect(version1.SemVer).to.equal('1.2.3-Beta5');
+
+    const version2 = await Version.LoadVersionAsync(dynamoClient, 'Dog', '1.2.3-Beta6');
+
+    expect(version2.AppName).to.equal('dog');
+    expect(version2.SK).to.equal('version#1.2.3-beta6');
+    expect(version2.SemVer).to.equal('1.2.3-Beta6');
+  });
+
+  it('load all app versions should load all versions for 1 app', async () => {
+    let version = new Version();
+    version.AppName = 'Frog';
+    version.SemVer = '2.2.3-Beta5';
+    version.Status = 'status';
+    version.Type = 'type';
+    version.DefaultFile = 'index.html';
+    version.IntegrationID = 'abcd';
+
+    await version.SaveAsync(dynamoClient);
+
+    version = new Version();
+    version.AppName = 'Frog';
+    version.SemVer = '2.2.3-Beta6';
+    version.Status = 'status';
+    version.Type = 'type';
+    version.DefaultFile = 'index.html';
+    version.IntegrationID = 'abcd';
+
+    await version.SaveAsync(dynamoClient);
+
+    const versions = await Version.LoadVersionsAsync(dynamoClient, 'Frog');
+
+    expect(versions.length).to.equal(2);
+
+    expect(versions[0].AppName).to.equal('frog');
+    expect(versions[0].SK).to.equal('version#2.2.3-beta5');
+    expect(versions[0].SemVer).to.equal('2.2.3-Beta5');
+    expect(versions[1].AppName).to.equal('frog');
+    expect(versions[1].SK).to.equal('version#2.2.3-beta6');
+    expect(versions[1].SemVer).to.equal('2.2.3-Beta6');
+  });
 });
