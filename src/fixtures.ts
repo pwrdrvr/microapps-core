@@ -8,6 +8,7 @@ const asyncSleep = promisify(setTimeout);
 
 export let dynamoClient: dynamodb.DynamoDB;
 let dynamodbProcess: ChildProcess;
+let manager: Manager;
 
 export async function mochaGlobalSetup(): Promise<void> {
   //
@@ -30,6 +31,9 @@ export async function mochaGlobalSetup(): Promise<void> {
 
   // Do something
   dynamoClient = new dynamodb.DynamoDB({ endpoint: 'http://localhost:8000/' });
+
+  // Init the manager so it saves a handle to the fake DB
+  manager = new Manager(dynamoClient);
 
   // Create the table
   const dynamoCreateTableOutput = await dynamoClient.createTable({
