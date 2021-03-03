@@ -2,6 +2,8 @@ import Manager from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
 import fs from 'fs';
 
+const localTesting = process.env.DEBUG ? true : false;
+
 const manager = new Manager();
 
 const appFrame = fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
@@ -104,4 +106,15 @@ async function Get(
 
   response.statusCode = 200;
   response.body = frameHTML;
+}
+
+// Run the function locally for testing
+if (localTesting) {
+  const payload = JSON.parse(fs.readFileSync('../../test/json/router-release-app.json', 'utf-8'));
+  Promise.all([
+    handler(
+      payload as lambda.APIGatewayProxyEventV2,
+      { awsRequestId: 'local-testing' } as lambda.Context,
+    ),
+  ]);
 }
