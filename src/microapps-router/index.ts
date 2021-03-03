@@ -6,7 +6,17 @@ const localTesting = process.env.DEBUG ? true : false;
 
 const manager = new Manager();
 
-const appFrame = fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
+function loadAppFrame(): string {
+  const stat = fs.statSync(`${__dirname}/appFrame.html`);
+  if (stat.isFile) {
+    return fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
+  } else {
+    // We are likely in the dist directory
+    return fs.readFileSync(`${__dirname}/../appFrame.html`, 'utf-8');
+  }
+}
+
+const appFrame = loadAppFrame();
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
