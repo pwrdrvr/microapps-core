@@ -2,7 +2,7 @@
   "name": "@pwrdrvr/microapps-datalib",
   "version": "1.0.0",
   "description": "Data library for the microapps framework",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,6 +22,9 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.15",
-    "@types/mocha": "^8.2.1"
+    "@types/mocha": "^8.2.1",
+    "@types/node-fetch": "^2.5.8",
+    "dynamodb-local": "^0.0.31",
+    "node-fetch": "^2.6.1"
   }
 }

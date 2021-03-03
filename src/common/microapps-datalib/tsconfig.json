@@ -2,10 +2,14 @@
   "extends": "../../../tsconfig.packages.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "dist"
+    "outDir": "dist",
   },
   "references": [
     {
     }
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "dist/*"
   ]
 }
