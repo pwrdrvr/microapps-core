@@ -1,7 +1,10 @@
 import Manager from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
+import fs from 'fs';
 
 const manager = new Manager();
+
+const appFrame = fs.readFileSync('./appFrame.html', 'utf-8');
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
@@ -46,6 +49,10 @@ async function Get(
 ) {
   const versionsAndRules = await manager.GetVersionsAndRules(appName);
 
+  if (response.headers === undefined) {
+    throw new Error('do not call me with undefined headers');
+  }
+
   //
   // TODO: Get the incoming attributes of user
   // For logged in users, these can be: department, product type,
@@ -76,7 +83,7 @@ async function Get(
   // Prepare the iframe contents
   // var semVerUnderscores = defaultVersion.Replace('.', '_');
   let appVersionPath: string;
-  if (defaultVersionInfo.DefaultFile === undefined || defaultVersionInfo.DefaultFile === '') {
+  if (defaultVersionInfo?.DefaultFile === undefined || defaultVersionInfo?.DefaultFile === '') {
     // KLUDGE: We're going to take a missing default file to mean that the
     // app type is Next.js (or similar) and that it wants no trailing slash after the version
     // TODO: Move this to an attribute of the version
@@ -90,7 +97,7 @@ async function Get(
   //
   // Create the versionless host page
   //
-  const frameHTML = this.FrameTemplate.Replace('{iframeSrc}', appVersionPath);
+  const frameHTML = appFrame.replace('{iframeSrc}', appVersionPath);
 
   response.headers['Cache-Control'] = 'no-store; private';
   response.headers['Content-Type'] = 'text/html; charset=UTF-8';

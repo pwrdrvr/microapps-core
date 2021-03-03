@@ -11,12 +11,8 @@
     "importHelpers": true,
     "composite": true,
     "target": "es2018",
-    "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": [
-      "./src/@types",
-      "./node_modules/@types"
-    ],
+    "typeRoots": ["./src/@types", "./node_modules/@types"]
   }
 }

@@ -21,7 +21,8 @@ export interface IVersionRecord {
 export default class Version implements IVersionRecord {
   private _keyBy: SaveBy;
 
-  constructor() {
+  public constructor(init?: Partial<IVersionRecord>) {
+    Object.assign(this, init);
     this._keyBy = SaveBy.AppName;
   }
 
