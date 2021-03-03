@@ -1,9 +1,7 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { dynamoClient } from '../../fixtures';
 import Manager, { Application, Version, Rules } from './index';
-import { executionAsyncId } from 'async_hooks';
 
 describe('database manager', () => {
   it('should get versions and rules when asked', async () => {

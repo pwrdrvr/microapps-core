@@ -12,20 +12,20 @@ export interface IVersionsAndRules {
 }
 
 export default class Manager {
-  private _client: dynamodb.DynamoDB;
+  private static _client?: dynamodb.DynamoDB;
 
   private static readonly _tableName = 'MicroApps';
 
-  constructor(client?: dynamodb.DynamoDB) {
-    if (client === undefined) {
-      this._client = new dynamodb.DynamoDB({});
+  public constructor(client?: dynamodb.DynamoDB) {
+    if (client === undefined && Manager._client === undefined) {
+      Manager._client = new dynamodb.DynamoDB({});
     } else {
-      this._client = client;
+      Manager._client = client;
     }
   }
 
   public get DBClient(): dynamodb.DynamoDB {
-    return this._client;
+    return Manager._client;
   }
 
   public static get TableName(): string {
@@ -37,8 +37,8 @@ export default class Manager {
     // Note: versions are moved out of this key as they become inactive
     // There should be less than, say, 100 versions per app
 
-    const versionTask = Version.LoadVersionsAsync(this._client, appName);
-    const rulesTask = Rules.LoadAsync(this._client, appName);
+    const versionTask = Version.LoadVersionsAsync(Manager._client, appName);
+    const rulesTask = Rules.LoadAsync(Manager._client, appName);
 
     await Promise.all([versionTask, rulesTask]);
 

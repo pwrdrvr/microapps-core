@@ -4,7 +4,7 @@ import fs from 'fs';
 
 const manager = new Manager();
 
-const appFrame = fs.readFileSync('./appFrame.html', 'utf-8');
+const appFrame = fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
