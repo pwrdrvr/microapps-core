@@ -1,78 +1,11 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import * as dynamodb from '@aws-sdk/client-dynamodb';
-import * as dynamodbLocal from 'dynamodb-local';
 import Manager from '../index';
-import { promisify } from 'util';
-import fetch from 'node-fetch';
+import { dynamoClient } from '../../../fixtures';
 import Application from './application';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-const asyncSleep = promisify(setTimeout);
 
-describe.skip('application records', () => {
-  let dynamodbProcess;
-  let dynamoClient: dynamodb.DynamoDB;
-
-  //
-  // Create a DynamoDB for testing
-  //
-  before('setup DynamoDB', async function () {
-    this.timeout(10000);
-    dynamodbProcess = await dynamodbLocal.launch(8000, '', ['-sharedDb']);
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      try {
-        const response = await fetch('http://localhost:8000/');
-        if (response.status === 400) {
-          // Break out when Dynamodb accepts but returns an error
-          break;
-        }
-      } catch (error) {
-        await asyncSleep(500);
-      }
-    }
-
-    //
-    // Tear down the DynamoDB after tests
-    //
-    after('teardown dynamodb', async function () {
-      dynamodbProcess.kill('SIGTERM');
-    });
-
-    // Do something
-    dynamoClient = new dynamodb.DynamoDB({ endpoint: 'http://localhost:8000/' });
-
-    // Create the table
-    const dynamoCreateTableOutput = await dynamoClient.createTable({
-      TableName: Manager.TableName,
-      AttributeDefinitions: [
-        {
-          AttributeName: 'PK',
-          AttributeType: 'S',
-        },
-        {
-          AttributeName: 'SK',
-          AttributeType: 'S',
-        },
-      ],
-      KeySchema: [
-        {
-          AttributeName: 'PK',
-          KeyType: 'HASH',
-        },
-        {
-          AttributeName: 'SK',
-          KeyType: 'RANGE',
-        },
-      ],
-      ProvisionedThroughput: {
-        ReadCapacityUnits: 1,
-        WriteCapacityUnits: 1,
-      },
-    });
-  });
-
+describe('application records', () => {
   it('saving an application should create two records', async () => {
     const application = new Application();
     application.AppName = 'Cat';
