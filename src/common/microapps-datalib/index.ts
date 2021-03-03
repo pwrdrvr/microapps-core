@@ -18,7 +18,3 @@ export default class Manager {
     return Manager._tableName;
   }
 }
-
-export function borkBork(): boolean {
-  return false;
-}
