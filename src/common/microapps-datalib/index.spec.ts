@@ -2,17 +2,23 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import * as dynamodbLocal from 'dynamodb-local';
-import { borkBork } from './index';
+import Manager, { borkBork } from './index';
 import { promisify } from 'util';
 import fetch from 'node-fetch';
+import Application from './models/application';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 const asyncSleep = promisify(setTimeout);
 
 describe("let's test something", () => {
   let dynamodbProcess;
+  let dynamoClient: dynamodb.DynamoDB;
 
+  //
+  // Create a DynamoDB for testing
+  //
   before('setup DynamoDB', async function () {
     this.timeout(10000);
-    dynamodbProcess = await dynamodbLocal.launch(8000);
+    dynamodbProcess = await dynamodbLocal.launch(8000, '', ['-sharedDb']);
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -27,17 +33,19 @@ describe("let's test something", () => {
       }
     }
 
+    //
+    // Tear down the DynamoDB after tests
+    //
     after('teardown dynamodb', async function () {
       dynamodbProcess.kill('SIGTERM');
     });
 
     // Do something
-    const dynamoClient = new dynamodb.DynamoDBClient({ endpoint: 'http://localhost:8000/' });
-    this.dynamoClient = dynamoClient;
+    dynamoClient = new dynamodb.DynamoDB({ endpoint: 'http://localhost:8000/' });
 
     // Create the table
-    const dynamoCreateTable = new dynamodb.CreateTableCommand({
-      TableName: 'MicroApps',
+    const dynamoCreateTableOutput = await dynamoClient.createTable({
+      TableName: Manager.TableName,
       AttributeDefinitions: [
         {
           AttributeName: 'PK',
@@ -63,12 +71,43 @@ describe("let's test something", () => {
         WriteCapacityUnits: 1,
       },
     });
-    await dynamoClient.send(dynamoCreateTable);
   });
 
   it('calling borkBork should always return false', () => {
     // Call the borkBork function
     const result = borkBork();
     expect(result).equal(false);
+  });
+
+  it('saving an application should create two records', async () => {
+    const application = new Application();
+    application.AppName = 'Cat';
+    application.DisplayName = 'Dog';
+
+    await application.SaveAsync(dynamoClient);
+
+    // .query({
+    //   TableName: DataManager._tableName,
+    //   KeyConditionExpression: 'PK = :pkval and SK = :skval',
+    //   ExpressionAttributeValues: {
+    //     ':pkval': pk,
+    //     ':skval': 'subscription',
+    //   },
+    //   ProjectionExpression: 'PK,SK,DriverEmail,DriverUuid,FirstName,PaidThroughDate',
+    // })
+
+    // TODO: Get the records out of the DB
+    // 'PK,SK,AppName,DisplayName'
+    const { Item } = await dynamoClient.getItem({
+      TableName: Manager.TableName,
+      Key: marshall({ PK: 'appname#cat', SK: 'application' }),
+      // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+    });
+    const uItem = unmarshall(Item);
+
+    expect(uItem.PK).equal('appname#cat');
+    expect(uItem.SK).equal('application');
+    expect(uItem.AppName).equal('cat');
+    expect(uItem.DisplayName).equal('Dog');
   });
 });
