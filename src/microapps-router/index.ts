@@ -1,5 +1,7 @@
-import { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
+import Manager from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
+
+const manager = new Manager();
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
@@ -42,7 +44,7 @@ async function Get(
   response: lambda.APIGatewayProxyStructuredResultV2,
   appName: string,
 ) {
-  const versionsAndRules = await Manager.GetVersionsAndRules(appName);
+  const versionsAndRules = await manager.GetVersionsAndRules(appName);
 
   //
   // TODO: Get the incoming attributes of user
@@ -67,8 +69,8 @@ async function Get(
   }
 
   // TODO: Yeah, this is lame - We should save these in a dictionary keyed by SemVer
-  var defaultVersionInfo = versionsAndRules.Versions.Find(
-    (version) => version.SemVer == defaultVersion,
+  const defaultVersionInfo = versionsAndRules.Versions.find(
+    (item) => item.SemVer === defaultVersion,
   );
 
   // Prepare the iframe contents

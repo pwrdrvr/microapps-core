@@ -6,13 +6,22 @@ import Rules from './models/rules';
 
 export { Application, Version, Rules };
 
+export interface IVersionsAndRules {
+  Versions: Version[];
+  Rules: Rules;
+}
+
 export default class Manager {
   private _client: dynamodb.DynamoDB;
 
   private static readonly _tableName = 'MicroApps';
 
-  constructor(client: dynamodb.DynamoDB) {
-    this._client = client;
+  constructor(client?: dynamodb.DynamoDB) {
+    if (client === undefined) {
+      this._client = new dynamodb.DynamoDB({});
+    } else {
+      this._client = client;
+    }
   }
 
   public get DBClient(): dynamodb.DynamoDB {
@@ -21,5 +30,21 @@ export default class Manager {
 
   public static get TableName(): string {
     return Manager._tableName;
+  }
+
+  public async GetVersionsAndRules(appName: string): Promise<IVersionsAndRules> {
+    // Get all versions and rules for an app
+    // Note: versions are moved out of this key as they become inactive
+    // There should be less than, say, 100 versions per app
+
+    const versionTask = Version.LoadVersionsAsync(this._client, appName);
+    const rulesTask = Rules.LoadAsync(this._client, appName);
+
+    await Promise.all([versionTask, rulesTask]);
+
+    return {
+      Versions: await versionTask,
+      Rules: await rulesTask,
+    };
   }
 }
