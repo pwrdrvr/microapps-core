@@ -17,7 +17,6 @@ describe('application records', () => {
       const { Item } = await dynamoClient.getItem({
         TableName: Manager.TableName,
         Key: marshall({ PK: 'appname#cat', SK: 'application' }),
-        // ProjectionExpression: 'PK,SK,AppName,DisplayName',
       });
       const uItem = unmarshall(Item);
       expect(uItem.PK).equal('appname#cat');
