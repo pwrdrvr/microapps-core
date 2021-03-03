@@ -113,7 +113,7 @@ async function Get(
   //
   // Create the versionless host page
   //
-  const frameHTML = appFrame.replace('{iframeSrc}', appVersionPath);
+  const frameHTML = appFrame.replace('{{iframeSrc}}', appVersionPath);
 
   response.headers['Cache-Control'] = 'no-store; private';
   response.headers['Content-Type'] = 'text/html; charset=UTF-8';
