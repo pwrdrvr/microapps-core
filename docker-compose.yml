@@ -21,3 +21,15 @@ services:
       - AWS_SECRET_ACCESS_KEY
     ports:
       - 9000:8080
+
+  routerts:
+    build:
+      context: .
+      dockerfile: DockerfileRouterTS
+    environment:
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SECURITY_TOKEN
+    ports:
+      - 9000:8080
