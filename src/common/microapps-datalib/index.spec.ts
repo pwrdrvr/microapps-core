@@ -9,7 +9,7 @@ import Application from './models/application';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 const asyncSleep = promisify(setTimeout);
 
-describe("let's test something", () => {
+describe.skip('database manager', () => {
   let dynamodbProcess;
   let dynamoClient: dynamodb.DynamoDB;
 
@@ -79,35 +79,51 @@ describe("let's test something", () => {
     expect(result).equal(false);
   });
 
-  it('saving an application should create two records', async () => {
-    const application = new Application();
-    application.AppName = 'Cat';
-    application.DisplayName = 'Dog';
+  describe('application table', async () => {
+    it('saving an application should create two records', async () => {
+      const application = new Application();
+      application.AppName = 'Cat';
+      application.DisplayName = 'Dog';
 
-    await application.SaveAsync(dynamoClient);
+      await application.SaveAsync(dynamoClient);
 
-    // .query({
-    //   TableName: DataManager._tableName,
-    //   KeyConditionExpression: 'PK = :pkval and SK = :skval',
-    //   ExpressionAttributeValues: {
-    //     ':pkval': pk,
-    //     ':skval': 'subscription',
-    //   },
-    //   ProjectionExpression: 'PK,SK,DriverEmail,DriverUuid,FirstName,PaidThroughDate',
-    // })
+      // .query({
+      //   TableName: DataManager._tableName,
+      //   KeyConditionExpression: 'PK = :pkval and SK = :skval',
+      //   ExpressionAttributeValues: {
+      //     ':pkval': pk,
+      //     ':skval': 'subscription',
+      //   },
+      //   ProjectionExpression: 'PK,SK,DriverEmail,DriverUuid,FirstName,PaidThroughDate',
+      // })
 
-    // TODO: Get the records out of the DB
-    // 'PK,SK,AppName,DisplayName'
-    const { Item } = await dynamoClient.getItem({
-      TableName: Manager.TableName,
-      Key: marshall({ PK: 'appname#cat', SK: 'application' }),
-      // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+      // TODO: Get the records out of the DB
+      // 'PK,SK,AppName,DisplayName'
+      {
+        const { Item } = await dynamoClient.getItem({
+          TableName: Manager.TableName,
+          Key: marshall({ PK: 'appname#cat', SK: 'application' }),
+          // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+        });
+        const uItem = unmarshall(Item);
+        expect(uItem.PK).equal('appname#cat');
+        expect(uItem.SK).equal('application');
+        expect(uItem.AppName).equal('cat');
+        expect(uItem.DisplayName).equal('Dog');
+      }
+
+      {
+        const { Item } = await dynamoClient.getItem({
+          TableName: Manager.TableName,
+          Key: marshall({ PK: 'applications', SK: 'appname#cat' }),
+          // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+        });
+        const uItem = unmarshall(Item);
+        expect(uItem.PK).equal('applications');
+        expect(uItem.SK).equal('appname#cat');
+        expect(uItem.AppName).equal('cat');
+        expect(uItem.DisplayName).equal('Dog');
+      }
     });
-    const uItem = unmarshall(Item);
-
-    expect(uItem.PK).equal('appname#cat');
-    expect(uItem.SK).equal('application');
-    expect(uItem.AppName).equal('cat');
-    expect(uItem.DisplayName).equal('Dog');
   });
 });
