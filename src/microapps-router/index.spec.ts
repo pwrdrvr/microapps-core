@@ -41,7 +41,7 @@ describe('router', () => {
     expect(response).not.equal(undefined);
     expect(response).to.have.property('body');
     expect(response.body.length).greaterThan(80);
-    expect(response.body).contains('3.2.1-beta0');
+    expect(response.body).contains('<iframe src="/bat/3.2.1-beta0"');
     expect(response.body).contains('<iframe');
   });
 });
