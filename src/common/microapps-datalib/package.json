@@ -1,14 +1,16 @@
 {
   "name": "@pwrdrvr/microapps-datalib",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "Data library for the microapps framework",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/pwrdrvr"
+  },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pwrdrvr/microapps-core.git"
+    "url": "git://github.com/pwrdrvr/microapps-core.git"
   },
   "author": "",
   "license": "ISC",
