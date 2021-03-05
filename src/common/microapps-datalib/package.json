@@ -1,6 +1,6 @@
 {
   "name": "@pwrdrvr/microapps-datalib",
-  "version": "0.9.1",
+  "version": "0.9.3",
   "description": "Data library for the microapps framework",
   "main": "dist/index.js",
   "scripts": {
@@ -20,6 +20,7 @@
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.7.0",
+    "class-transformer": "^0.4.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
