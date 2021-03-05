@@ -163,7 +163,8 @@
       "env": {
         "AWS_ACCESS_KEY_ID": "accessKeyId",
         "AWS_SECRET_ACCESS_KEY": "secretAccessKey",
-        "AWS_REGION": "mock"
+        "AWS_REGION": "mock",
+        "TEST": "true"
       },
       "runtimeVersion": "15.3.0",
       "runtimeExecutable": "node",

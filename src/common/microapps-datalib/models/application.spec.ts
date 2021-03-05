@@ -11,10 +11,10 @@ describe('application records', () => {
     application.AppName = 'Cat';
     application.DisplayName = 'Dog';
 
-    await application.SaveAsync(dynamoClient);
+    await application.SaveAsync(dynamoClient.client);
 
     {
-      const { Item } = await dynamoClient.getItem({
+      const { Item } = await dynamoClient.client.getItem({
         TableName: Manager.TableName,
         Key: marshall({ PK: 'appname#cat', SK: 'application' }),
       });
@@ -26,7 +26,7 @@ describe('application records', () => {
     }
 
     {
-      const { Item } = await dynamoClient.getItem({
+      const { Item } = await dynamoClient.client.getItem({
         TableName: Manager.TableName,
         Key: marshall({ PK: 'applications', SK: 'appname#cat' }),
         // ProjectionExpression: 'PK,SK,AppName,DisplayName',
@@ -43,15 +43,15 @@ describe('application records', () => {
     let application = new Application();
     application.AppName = 'App1';
     application.DisplayName = 'Application One';
-    await application.SaveAsync(dynamoClient);
+    await application.SaveAsync(dynamoClient.client);
 
     application = new Application();
     application.AppName = 'App2';
     application.DisplayName = 'Application Two';
-    await application.SaveAsync(dynamoClient);
+    await application.SaveAsync(dynamoClient.client);
 
     {
-      const record = await Application.LoadAsync(dynamoClient, 'App1');
+      const record = await Application.LoadAsync(dynamoClient.client, 'App1');
 
       expect(record.PK).equal('appname#app1');
       expect(record.SK).equal('application');
@@ -60,7 +60,7 @@ describe('application records', () => {
     }
 
     {
-      const record = await Application.LoadAsync(dynamoClient, 'App2');
+      const record = await Application.LoadAsync(dynamoClient.client, 'App2');
 
       expect(record.PK).equal('appname#app2');
       expect(record.SK).equal('application');
