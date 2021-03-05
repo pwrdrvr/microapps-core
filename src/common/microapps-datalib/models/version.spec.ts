@@ -15,9 +15,9 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient);
+    await version.SaveAsync(dynamoClient.client);
 
-    const { Item } = await dynamoClient.getItem({
+    const { Item } = await dynamoClient.client.getItem({
       TableName: Manager.TableName,
       Key: marshall({ PK: 'appname#cat', SK: 'version#1.2.3-beta4' }),
     });
@@ -41,7 +41,7 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient);
+    await version.SaveAsync(dynamoClient.client);
 
     version = new Version();
     version.AppName = 'Dog';
@@ -51,15 +51,15 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient);
+    await version.SaveAsync(dynamoClient.client);
 
-    const version1 = await Version.LoadVersionAsync(dynamoClient, 'Dog', '1.2.3-Beta5');
+    const version1 = await Version.LoadVersionAsync(dynamoClient.client, 'Dog', '1.2.3-Beta5');
 
     expect(version1.AppName).to.equal('dog');
     expect(version1.SK).to.equal('version#1.2.3-beta5');
     expect(version1.SemVer).to.equal('1.2.3-Beta5');
 
-    const version2 = await Version.LoadVersionAsync(dynamoClient, 'Dog', '1.2.3-Beta6');
+    const version2 = await Version.LoadVersionAsync(dynamoClient.client, 'Dog', '1.2.3-Beta6');
 
     expect(version2.AppName).to.equal('dog');
     expect(version2.SK).to.equal('version#1.2.3-beta6');
@@ -75,7 +75,7 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient);
+    await version.SaveAsync(dynamoClient.client);
 
     version = new Version();
     version.AppName = 'Frog';
@@ -85,9 +85,9 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient);
+    await version.SaveAsync(dynamoClient.client);
 
-    const versions = await Version.LoadVersionsAsync(dynamoClient, 'Frog');
+    const versions = await Version.LoadVersionsAsync(dynamoClient.client, 'Frog');
 
     expect(versions.length).to.equal(2);
 

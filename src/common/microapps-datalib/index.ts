@@ -16,17 +16,15 @@ export default class Manager {
 
   private static readonly _tableName = 'MicroApps';
 
-  public constructor(client?: dynamodb.DynamoDB) {
-    if (client === undefined && Manager._client === undefined) {
-      Manager._client = new dynamodb.DynamoDB({});
-    } else {
-      Manager._client = client;
+  public constructor(dynamoDB: dynamodb.DynamoDB) {
+    if (Manager._client === undefined) {
+      Manager._client = dynamoDB;
     }
   }
 
-  public get DBClient(): dynamodb.DynamoDB {
-    return Manager._client;
-  }
+  // public get DBClient(): dynamodb.DynamoDB {
+  //   return Manager._client;
+  // }
 
   public static get TableName(): string {
     return Manager._tableName;

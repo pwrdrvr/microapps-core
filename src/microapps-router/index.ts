@@ -1,10 +1,14 @@
+import * as dynamodb from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
 import fs from 'fs';
 
 const localTesting = process.env.DEBUG ? true : false;
 
-const manager = new Manager();
+const dynamoClient = process.env.TEST
+  ? new dynamodb.DynamoDB({ endpoint: 'http://localhost:8000' })
+  : new dynamodb.DynamoDB({});
+const manager = new Manager(dynamoClient);
 
 function loadAppFrame(): string {
   try {
@@ -49,6 +53,7 @@ export async function handler(
       throw new Error('Unmatched route');
     }
   } catch (error) {
+    console.log(error);
     response.statusCode = 599;
     response.headers = {};
     response.headers['Content-Type'] = 'text/plain';

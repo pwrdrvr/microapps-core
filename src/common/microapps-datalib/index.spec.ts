@@ -1,17 +1,21 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient } from '../../fixtures';
 import Manager, { Application, Version, Rules } from './index';
+import { dynamoClient } from '../../fixtures';
+
+let manager: Manager;
 
 describe('database manager', () => {
-  it('should get versions and rules when asked', async () => {
-    const manager = new Manager(dynamoClient);
+  before(() => {
+    manager = new Manager(dynamoClient.client);
+  });
 
+  it('should get versions and rules when asked', async () => {
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(manager.DBClient);
+    await app.SaveAsync(dynamoClient.client);
 
     const version = new Version({
       AppName: 'Bat',
@@ -21,14 +25,14 @@ describe('database manager', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(manager.DBClient);
+    await version.SaveAsync(dynamoClient.client);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta0', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(manager.DBClient);
+    await rules.SaveAsync(dynamoClient.client);
 
     const versAndRules = await manager.GetVersionsAndRules('bat');
 
