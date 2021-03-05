@@ -68,4 +68,34 @@ describe('application records', () => {
       expect(record.DisplayName).equal('Application Two');
     }
   });
+
+  it('LoadAllAppsAsync should return all applications', async () => {
+    let application = new Application();
+    application.AppName = 'Bpp1';
+    application.DisplayName = 'Bpplication One';
+    await application.SaveAsync(dynamoClient.client);
+
+    application = new Application();
+    application.AppName = 'Bpp2';
+    application.DisplayName = 'Bpplication Two';
+    await application.SaveAsync(dynamoClient.client);
+
+    const applications = await Application.LoadAllAppsAsync(dynamoClient.client);
+    expect(applications).to.exist;
+    const appOne = applications.find((value) => {
+      return value.AppName === 'bpp1';
+    });
+    expect(appOne).to.exist;
+    expect(appOne).to.have.property('AppName');
+    expect(appOne.AppName).to.equal('bpp1');
+    expect(appOne.DisplayName).to.equal('Bpplication One');
+
+    const appTwo = applications.find((value) => {
+      return value.AppName === 'bpp2';
+    });
+    expect(appTwo).to.exist;
+    expect(appTwo).to.have.property('AppName');
+    expect(appTwo.AppName).to.equal('bpp2');
+    expect(appTwo.DisplayName).to.equal('Bpplication Two');
+  });
 });

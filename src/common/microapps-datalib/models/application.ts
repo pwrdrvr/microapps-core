@@ -69,6 +69,25 @@ export default class Application implements IApplicationRecord {
     return record;
   }
 
+  public static async LoadAllAppsAsync(dbClient: dynamodb.DynamoDB): Promise<Application[]> {
+    const { Items } = await dbClient.query({
+      TableName: Manager.TableName,
+      KeyConditionExpression: 'PK = :pkval',
+      ExpressionAttributeValues: marshall({
+        ':pkval': 'applications',
+      }),
+    });
+
+    const records = [] as Application[];
+    for (const item of Items) {
+      const uItem = unmarshall(item);
+      const record = plainToClass<Application, unknown>(Application, uItem);
+      records.push(record);
+    }
+
+    return records;
+  }
+
   public get PK(): string {
     switch (this._keyBy) {
       case SaveBy.Applications:
