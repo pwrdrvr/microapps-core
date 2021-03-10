@@ -15,5 +15,6 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["./src/@types", "./node_modules/@types"]
-  }
+  },
+  "exclude": ["**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts"]
 }
