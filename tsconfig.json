@@ -18,6 +18,9 @@
     },
     {
       "path": "./src/microapps-router/"
+    },
+    {
+      "path": "./src/microapps-publish/"
     }
   ],
   "exclude": ["**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts"]
