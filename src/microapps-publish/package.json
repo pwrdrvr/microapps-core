@@ -1,8 +1,11 @@
 {
   "name": "@pwrdrvr/microapps-publish",
-  "version": "0.9.0",
+  "version": "0.9.3",
   "description": "Publish tool for deploying apps and updates",
   "main": "dist/index.js",
+  "bin": {
+    "microapps-publish": "dist/index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
