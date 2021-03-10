@@ -1,6 +1,6 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';
-import * as lambda from 'aws-lambda';
+import type * as lambda from 'aws-lambda';
 import fs from 'fs';
 
 const localTesting = process.env.DEBUG ? true : false;
