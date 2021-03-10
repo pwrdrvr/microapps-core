@@ -1,13 +1,16 @@
-#!/usr/bin/env npx ts-node -T --project ./bin/tsconfig.json
+#!/usr/bin/env node
 
-import * as Program from 'commander';
+import commander from 'commander';
 import * as util from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
-Program.version('1.0.0')
+const program = new commander.Command();
+
+program
+  .version('0.9.3')
   .option('-n, --newversion <version>', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
   .parse(process.argv);
@@ -95,9 +98,15 @@ function escapeRegExp(value: string): string {
 }
 
 async function UpdateVersion(): Promise<void> {
-  const options = Program.opts();
+  const options = program.opts();
   const version = options.newversion as string;
   const leaveFiles = options.leave as boolean;
+
+  if (version === undefined) {
+    console.log('--newversion <version> is a required parameter');
+    process.exit(1);
+  }
+
   const versionAndAlias = createVersions(version);
   const versionOnly = { version: versionAndAlias.version };
 
