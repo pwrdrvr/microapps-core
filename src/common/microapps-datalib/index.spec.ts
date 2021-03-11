@@ -15,7 +15,7 @@ describe('database manager', () => {
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(dynamoClient.client);
+    await app.SaveAsync(dynamoClient.ddbDocClient);
 
     const version = new Version({
       AppName: 'Bat',
@@ -25,14 +25,14 @@ describe('database manager', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(dynamoClient.client);
+    await version.SaveAsync(dynamoClient.ddbDocClient);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta0', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(dynamoClient.client);
+    await rules.SaveAsync(dynamoClient.ddbDocClient);
 
     const versAndRules = await manager.GetVersionsAndRules('bat');
 

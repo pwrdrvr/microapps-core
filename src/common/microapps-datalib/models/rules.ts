@@ -1,6 +1,5 @@
-import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Manager from '../index';
 
 export interface IRule {
@@ -37,19 +36,19 @@ export default class Rules implements IRulesRecord {
     };
   }
 
-  public async SaveAsync(dbClient: dynamodb.DynamoDB): Promise<void> {
+  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
     // Save under specific AppName key
-    const taskByName = dbClient.putItem({
+    const taskByName = ddbDocClient.put({
       TableName: Manager.TableName,
-      Item: marshall(this.DbStruct),
+      Item: this.DbStruct,
     });
 
     // Save under all Applications key
-    const taskByApplications = dbClient.putItem({
+    const taskByApplications = ddbDocClient.put({
       TableName: Manager.TableName,
-      Item: marshall(this.DbStruct),
+      Item: this.DbStruct,
     });
 
     await Promise.all([taskByName, taskByApplications]);
@@ -59,13 +58,12 @@ export default class Rules implements IRulesRecord {
     await taskByApplications;
   }
 
-  public static async LoadAsync(dbClient: dynamodb.DynamoDB, appName: string): Promise<Rules> {
-    const { Item } = await dbClient.getItem({
+  public static async LoadAsync(ddbDocClient: DynamoDBDocument, appName: string): Promise<Rules> {
+    const { Item } = await ddbDocClient.get({
       TableName: Manager.TableName,
-      Key: marshall({ PK: `appName#${appName}`.toLowerCase(), SK: 'rules' }),
+      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'rules' },
     });
-    const uItem = unmarshall(Item);
-    const record = plainToClass<Rules, unknown>(Rules, uItem);
+    const record = plainToClass<Rules, unknown>(Rules, Item);
     return record;
   }
 

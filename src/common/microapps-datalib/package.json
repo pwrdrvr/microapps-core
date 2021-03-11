@@ -19,8 +19,8 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.7.0",
-    "@aws-sdk/util-dynamodb": "^3.7.0",
+    "@aws-sdk/client-dynamodb": "^3.8.0",
+    "@aws-sdk/lib-dynamodb": "^3.8.0",
     "class-transformer": "^0.4.0",
     "tslib": "^2.1.0"
   },

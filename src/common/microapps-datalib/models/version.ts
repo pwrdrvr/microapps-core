@@ -1,4 +1,4 @@
-import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { plainToClass } from 'class-transformer';
 import Manager from '../index';
@@ -39,33 +39,32 @@ export default class Version implements IVersionRecord {
     };
   }
 
-  public async SaveAsync(dbClient: dynamodb.DynamoDB): Promise<void> {
+  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
-    await dbClient.putItem({
+    await ddbDocClient.put({
       TableName: Manager.TableName,
-      Item: marshall(this.DbStruct),
+      Item: this.DbStruct,
     });
   }
 
   public static async LoadVersionsAsync(
-    dbClient: dynamodb.DynamoDB,
+    ddbDocClient: DynamoDBDocument,
     appName: string,
   ): Promise<Version[]> {
-    const { Items } = await dbClient.query({
+    const { Items } = await ddbDocClient.query({
       TableName: Manager.TableName,
       KeyConditionExpression: 'PK = :pkval and begins_with(SK, :skval)',
-      ExpressionAttributeValues: marshall({
+      ExpressionAttributeValues: {
         ':pkval': `appName#${appName}`.toLowerCase(),
         ':skval': 'version',
-      }),
+      },
     });
     const records = [] as Version[];
     for (const item of Items) {
-      const uItem = unmarshall(item);
-      const record = plainToClass<Version, unknown>(Version, uItem);
+      const record = plainToClass<Version, unknown>(Version, item);
       records.push(record);
     }
 
@@ -73,19 +72,18 @@ export default class Version implements IVersionRecord {
   }
 
   public static async LoadVersionAsync(
-    dbClient: dynamodb.DynamoDB,
+    ddbDocClient: DynamoDBDocument,
     appName: string,
     semVer: string,
   ): Promise<Version> {
-    const { Item } = await dbClient.getItem({
+    const { Item } = await ddbDocClient.get({
       TableName: Manager.TableName,
-      Key: marshall({
+      Key: {
         PK: `appName#${appName}`.toLowerCase(),
         SK: `version#${semVer}`.toLowerCase(),
-      }),
+      },
     });
-    const uItem = unmarshall(Item);
-    const record = plainToClass<Version, unknown>(Version, uItem);
+    const record = plainToClass<Version, unknown>(Version, Item);
     return record;
   }
 
