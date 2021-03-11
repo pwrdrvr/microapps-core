@@ -1,13 +1,13 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import Manager, { Application, Version, Rules } from '../common/microapps-datalib/index';
+import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib/src';
 import { handler } from './index';
 import * as lambda from 'aws-lambda';
-import { dynamoClient } from '../fixtures';
+import { dynamoClient } from '../../fixtures';
 
 describe('router', () => {
   it('should serve appframe with version and default file substitued', async () => {
-    const manager = new Manager(dynamoClient.ddbDocClient);
+    const manager = new Manager(dynamoClient.client);
 
     const app = new Application({
       AppName: 'Bat',
@@ -47,7 +47,7 @@ describe('router', () => {
   });
 
   it('should serve appframe with no default file', async () => {
-    const manager = new Manager(dynamoClient.ddbDocClient);
+    const manager = new Manager(dynamoClient.client);
 
     const app = new Application({
       AppName: 'Bat',
@@ -87,7 +87,7 @@ describe('router', () => {
   });
 
   it('should serve appframe with sub-route', async () => {
-    const manager = new Manager(dynamoClient.ddbDocClient);
+    const manager = new Manager(dynamoClient.client);
 
     const app = new Application({
       AppName: 'Bat',
@@ -127,7 +127,7 @@ describe('router', () => {
   });
 
   it('should serve appframe with sub-route', async () => {
-    const manager = new Manager(dynamoClient.ddbDocClient);
+    const manager = new Manager(dynamoClient.client);
 
     const app = new Application({
       AppName: 'Bat',
@@ -167,7 +167,7 @@ describe('router', () => {
   });
 
   it('should return 404 for /favicon.ico', async () => {
-    const manager = new Manager(dynamoClient.ddbDocClient);
+    const manager = new Manager(dynamoClient.client);
 
     const app = new Application({
       AppName: 'Bat',

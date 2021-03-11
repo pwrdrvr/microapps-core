@@ -2,7 +2,7 @@ import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import * as dynamodbLocal from 'dynamodb-local';
 import { promisify } from 'util';
-import Manager from './common/microapps-datalib/index';
+import Manager from '@pwrdrvr/microapps-datalib';
 import fetch from 'node-fetch';
 import { ChildProcess } from 'child_process';
 const asyncSleep = promisify(setTimeout);

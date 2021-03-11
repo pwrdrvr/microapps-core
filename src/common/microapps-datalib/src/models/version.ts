@@ -1,7 +1,6 @@
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { plainToClass } from 'class-transformer';
-import Manager from '../index';
+import Manager from '../../src/index';
 
 enum SaveBy {
   AppName,
