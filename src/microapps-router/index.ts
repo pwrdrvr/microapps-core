@@ -1,5 +1,5 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import Manager from '@pwrdrvr/microapps-datalib';
+import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import fs from 'fs';
 import { LambdaLog, LogMessage } from 'lambda-log';
@@ -92,7 +92,24 @@ async function RouteApp(
   additionalParts: string,
   log: LambdaLog,
 ) {
-  const versionsAndRules = await manager.GetVersionsAndRules(appName);
+  let versionsAndRules: IVersionsAndRules;
+
+  try {
+    versionsAndRules = await manager.GetVersionsAndRules(appName);
+  } catch {
+    // 2021-03-10 - NOTE: This isn't clean - DocumentClient.get throws if the item is not found
+    // It's not easily detectable either.  When the lib is updated we can improve this
+    // Assume this means "succeeded but not found for now"
+    log.info(`GetVersionsAndRules threw for ${appName}, assuming not found - returning 404`, {
+      appName,
+      statusCode: 404,
+    });
+    response.statusCode = 404;
+    response.headers['Cache-Control'] = 'no-store; private';
+    response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
+    response.body = `Router - Could not find app: ${request.rawPath}, ${appName}`;
+    return;
+  }
 
   if (response.headers === undefined) {
     throw new Error('do not call me with undefined headers');
