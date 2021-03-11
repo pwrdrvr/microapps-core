@@ -6,10 +6,5 @@
     "moduleResolution": "node",
     "resolveJsonModule": true
   },
-  "references": [
-    {
-      "path": "../common/microapps-datalib/"
-    }
-  ],
   "exclude": ["**/*.spec.ts", "dist/*"]
 }
