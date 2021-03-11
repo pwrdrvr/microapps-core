@@ -62,7 +62,7 @@ export async function handler(
     const parts = event.rawPath.split('/');
 
     // TODO: Pass any parts after the appName/Version to the route handler
-    let additionalParts: string;
+    let additionalParts = '';
     if (parts.length >= 3 && parts[2] !== '') {
       additionalParts = parts.slice(2).join('/');
     }
@@ -134,13 +134,13 @@ async function RouteApp(
   if (
     defaultVersionInfo?.DefaultFile === undefined ||
     defaultVersionInfo?.DefaultFile === '' ||
-    additionalParts !== undefined
+    additionalParts !== ''
   ) {
     // KLUDGE: We're going to take a missing default file to mean that the
     // app type is Next.js (or similar) and that it wants no trailing slash after the version
     // TODO: Move this to an attribute of the version
     appVersionPath = `/${appName}/${defaultVersion}`;
-    if (additionalParts) {
+    if (additionalParts !== '') {
       appVersionPath += `/${additionalParts}`;
     }
   } else {
