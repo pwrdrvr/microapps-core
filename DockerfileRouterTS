@@ -2,15 +2,15 @@ FROM node:15-slim as base
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y jq
+
 COPY tsconfig.*json .npmrc* .eslint* .prettier* package*.json ./
 COPY ./src/microapps-router/package*.json .npmrc* ./src/microapps-router/
 COPY ./src/common/microapps-datalib/package*.json .npmrc* ./src/common/microapps-datalib/
 
-RUN apt-get update && apt-get install -y jq
 RUN mv tsconfig.json tsconfig.orig.json \
   && npx strip-json-comments-cli ./tsconfig.orig.json \
   | jq 'del(.references[] | select(.path != "./src/microapps-router/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json
-
 
 FROM base AS prodimages
 # Remove the build packages

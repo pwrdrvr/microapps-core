@@ -12,3 +12,4 @@ cdk/
 cdk.out/
 ts-cdk/
 **/dist/
+**/*.tsbuildinfo

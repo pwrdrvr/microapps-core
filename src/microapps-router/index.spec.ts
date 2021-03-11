@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import { handler } from './index';
 import * as lambda from 'aws-lambda';
-import { dynamoClient } from '../../fixtures';
+import { dynamoClient } from '../fixtures';
 
 describe('router', () => {
   it('should serve appframe with version and default file substitued', async () => {
