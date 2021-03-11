@@ -2,6 +2,7 @@ import * as dynamodb from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import fs from 'fs';
+import { LambdaLog, LogMessage } from 'lambda-log';
 
 const localTesting = process.env.DEBUG ? true : false;
 
@@ -28,7 +29,7 @@ const appFrame = loadAppFrame();
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
-  _context: lambda.Context,
+  context: lambda.Context,
 ): Promise<lambda.APIGatewayProxyStructuredResultV2> {
   const response = {
     statusCode: 200,
@@ -36,24 +37,45 @@ export async function handler(
     isBase64Encoded: false,
   } as lambda.APIGatewayProxyStructuredResultV2;
 
+  // Change the logger on each request
+  const log = new LambdaLog({
+    dev: localTesting,
+    //debug: localTesting,
+    meta: {
+      source: 'microapps-router',
+      awsRequestId: context.awsRequestId,
+      rawPath: event.rawPath,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dynamicMeta: (_message: LogMessage) => {
+      return {
+        timestamp: new Date().toISOString(),
+      };
+    },
+  });
+
   try {
     // /someapp will split into length 2 with ["", "someapp"] as results
+    // /someapp/somepath will split into length 3 with ["", "someapp", "somepath"] as results
+    // /someapp/somepath/ will split into length 3 with ["", "someapp", "somepath", ""] as results
+    // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
     const parts = event.rawPath.split('/');
 
     // TODO: Pass any parts after the appName/Version to the route handler
     let additionalParts: string;
-    if (parts.length >= 4 && parts[3] !== '') {
-      additionalParts = parts.slice(3).join('/');
+    if (parts.length >= 3 && parts[2] !== '') {
+      additionalParts = parts.slice(2).join('/');
     }
 
-    if (parts.length == 2 || (parts.length == 3 && parts[2] === '')) {
-      // This is an application name only
-      await Get(event, response, parts[1]);
+    if (parts.length >= 2) {
+      // Got at least an application name, try to route it
+      await RouteApp(event, response, parts[1], additionalParts, log);
     } else {
       throw new Error('Unmatched route');
     }
   } catch (error) {
-    console.log(error);
+    log.error('unexpected exception - returning 599', { statusCode: 599 });
+    log.error(error);
     response.statusCode = 599;
     response.headers = {};
     response.headers['Content-Type'] = 'text/plain';
@@ -63,10 +85,12 @@ export async function handler(
   return response;
 }
 
-async function Get(
+async function RouteApp(
   request: lambda.APIGatewayProxyEventV2,
   response: lambda.APIGatewayProxyStructuredResultV2,
   appName: string,
+  additionalParts: string,
+  log: LambdaLog,
 ) {
   const versionsAndRules = await manager.GetVersionsAndRules(appName);
 
@@ -89,6 +113,9 @@ async function Get(
   const defaultVersion = versionsAndRules.Rules?.RuleSet['default']?.SemVer;
 
   if (defaultVersion == null) {
+    log.error(`could not find app ${appName}, for path ${request.rawPath} - returning 404`, {
+      statusCode: 404,
+    });
     response.statusCode = 404;
     response.headers['Cache-Control'] = 'no-store; private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
@@ -104,11 +131,18 @@ async function Get(
   // Prepare the iframe contents
   // var semVerUnderscores = defaultVersion.Replace('.', '_');
   let appVersionPath: string;
-  if (defaultVersionInfo?.DefaultFile === undefined || defaultVersionInfo?.DefaultFile === '') {
+  if (
+    defaultVersionInfo?.DefaultFile === undefined ||
+    defaultVersionInfo?.DefaultFile === '' ||
+    additionalParts !== undefined
+  ) {
     // KLUDGE: We're going to take a missing default file to mean that the
     // app type is Next.js (or similar) and that it wants no trailing slash after the version
     // TODO: Move this to an attribute of the version
     appVersionPath = `/${appName}/${defaultVersion}`;
+    if (additionalParts) {
+      appVersionPath += `/${additionalParts}`;
+    }
   } else {
     // Linking to the file directly means this will be peeled off by the S3 route
     // That means we won't have to proxy this from S3
@@ -125,6 +159,11 @@ async function Get(
 
   response.statusCode = 200;
   response.body = frameHTML;
+
+  log.info(`found app ${appName}, for path ${request.rawPath} - returning 200`, {
+    statusCode: 200,
+    routedPath: appVersionPath,
+  });
 }
 
 // Run the function locally for testing
