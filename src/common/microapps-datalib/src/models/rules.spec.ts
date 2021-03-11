@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient } from '../../../fixtures';
+import { dynamoClient } from '../../../../fixtures';
 import Rules from './rules';
 
 describe('application records', () => {

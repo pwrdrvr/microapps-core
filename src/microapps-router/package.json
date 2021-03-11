@@ -2,7 +2,7 @@
   "name": "@pwrdrvr/microapps-router",
   "version": "1.0.0",
   "description": "Router for the microapps framework",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

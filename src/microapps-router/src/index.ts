@@ -1,5 +1,5 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
+import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib/src/index';
 import type * as lambda from 'aws-lambda';
 import fs from 'fs';
 import { LambdaLog, LogMessage } from 'lambda-log';
@@ -94,6 +94,10 @@ async function RouteApp(
 ) {
   let versionsAndRules: IVersionsAndRules;
 
+  if (response.headers === undefined) {
+    throw new Error('do not call me with undefined headers');
+  }
+
   try {
     versionsAndRules = await manager.GetVersionsAndRules(appName);
   } catch {
@@ -109,10 +113,6 @@ async function RouteApp(
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
     response.body = `Router - Could not find app: ${request.rawPath}, ${appName}`;
     return;
-  }
-
-  if (response.headers === undefined) {
-    throw new Error('do not call me with undefined headers');
   }
 
   //

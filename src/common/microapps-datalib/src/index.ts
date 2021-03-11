@@ -13,7 +13,7 @@ export interface IVersionsAndRules {
 }
 
 export default class Manager {
-  private static _client?: dynamodb.DynamoDB;
+  private static _client: dynamodb.DynamoDB;
   private static _ddbDocClient: DynamoDBDocument;
 
   private static readonly _tableName = 'MicroApps';

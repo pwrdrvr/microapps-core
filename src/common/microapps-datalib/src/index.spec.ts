@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from './index';
-import { dynamoClient } from '../../fixtures';
+import { dynamoClient } from '../../../fixtures';
 
 let manager: Manager;
 

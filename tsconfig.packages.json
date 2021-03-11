@@ -3,6 +3,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
+    "skipLibCheck": true,
 
     "declaration": true,
     "declarationMap": true,
@@ -16,5 +17,5 @@
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["./src/@types", "./node_modules/@types"]
   },
-  "exclude": ["**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts"]
+  "exclude": ["node_modules/*", "**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts"]
 }

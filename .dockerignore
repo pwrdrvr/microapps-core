@@ -7,6 +7,7 @@ Dockerfile*
 .git
 .gitignore
 **/node_modules
+node_modules
 cdk/
 cdk.out/
 ts-cdk/
