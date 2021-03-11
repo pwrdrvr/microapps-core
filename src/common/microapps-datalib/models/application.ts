@@ -1,6 +1,5 @@
-import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import Manager from '../index';
 
 enum SaveBy {
@@ -32,21 +31,21 @@ export default class Application implements IApplicationRecord {
     };
   }
 
-  public async SaveAsync(dbClient: dynamodb.DynamoDB): Promise<void> {
+  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
-    const taskByName = dbClient.putItem({
+    const taskByName = ddbDocClient.put({
       TableName: Manager.TableName,
-      Item: marshall(this.DbStruct),
+      Item: this.DbStruct,
     });
 
     // Save under all Applications key
     this._keyBy = SaveBy.Applications;
-    const taskByApplications = dbClient.putItem({
+    const taskByApplications = ddbDocClient.put({
       TableName: Manager.TableName,
-      Item: marshall(this.DbStruct),
+      Item: this.DbStruct,
     });
 
     await Promise.all([taskByName, taskByApplications]);
@@ -57,31 +56,29 @@ export default class Application implements IApplicationRecord {
   }
 
   public static async LoadAsync(
-    dbClient: dynamodb.DynamoDB,
+    ddbDocClient: DynamoDBDocument,
     appName: string,
   ): Promise<Application> {
-    const { Item } = await dbClient.getItem({
+    const { Item } = await ddbDocClient.get({
       TableName: Manager.TableName,
-      Key: marshall({ PK: `appName#${appName}`.toLowerCase(), SK: 'application' }),
+      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'application' },
     });
-    const uItem = unmarshall(Item);
-    const record = plainToClass<Application, unknown>(Application, uItem);
+    const record = plainToClass<Application, unknown>(Application, Item);
     return record;
   }
 
-  public static async LoadAllAppsAsync(dbClient: dynamodb.DynamoDB): Promise<Application[]> {
-    const { Items } = await dbClient.query({
+  public static async LoadAllAppsAsync(ddbDocClient: DynamoDBDocument): Promise<Application[]> {
+    const { Items } = await ddbDocClient.query({
       TableName: Manager.TableName,
       KeyConditionExpression: 'PK = :pkval',
-      ExpressionAttributeValues: marshall({
+      ExpressionAttributeValues: {
         ':pkval': 'applications',
-      }),
+      },
     });
 
     const records = [] as Application[];
     for (const item of Items) {
-      const uItem = unmarshall(item);
-      const record = plainToClass<Application, unknown>(Application, uItem);
+      const record = plainToClass<Application, unknown>(Application, item);
       records.push(record);
     }
 

@@ -1,4 +1,5 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import * as dynamodbLocal from 'dynamodb-local';
 import { promisify } from 'util';
 import Manager from './common/microapps-datalib/index';
@@ -6,7 +7,7 @@ import fetch from 'node-fetch';
 import { ChildProcess } from 'child_process';
 const asyncSleep = promisify(setTimeout);
 
-export const dynamoClient: { client?: dynamodb.DynamoDB } = {};
+export const dynamoClient: { client?: dynamodb.DynamoDB; ddbDocClient?: DynamoDBDocument } = {};
 let dynamodbProcess: ChildProcess;
 
 export async function mochaGlobalSetup(): Promise<void> {
@@ -30,6 +31,7 @@ export async function mochaGlobalSetup(): Promise<void> {
     }
 
     dynamoClient.client = new dynamodb.DynamoDB({ endpoint: 'http://localhost:8000/' });
+    dynamoClient.ddbDocClient = DynamoDBDocument.from(dynamoClient.client);
 
     // Create the table
     await dynamoClient.client.createTable({
