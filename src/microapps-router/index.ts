@@ -1,5 +1,5 @@
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib/src/index';
+import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import fs from 'fs';
 import { LambdaLog, LogMessage } from 'lambda-log';

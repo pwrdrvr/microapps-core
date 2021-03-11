@@ -1,6 +1,6 @@
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import Manager from '../../src/index';
+import Manager from '../index';
 
 export interface IRule {
   SemVer: string;

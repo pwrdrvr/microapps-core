@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.packages.json",
   "compilerOptions": {
-    "rootDir": "src",
+    "rootDir": "./src",
     "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true

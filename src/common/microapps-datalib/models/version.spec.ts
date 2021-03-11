@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import Manager from '../../src/index';
-import { dynamoClient } from '../../../../fixtures';
+import Manager from '../index';
+import { dynamoClient } from '../../../fixtures';
 import Version from './version';
 
 describe('version records', () => {
