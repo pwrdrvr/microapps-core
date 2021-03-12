@@ -77,9 +77,11 @@ export default class Application implements IApplicationRecord {
     });
 
     const records = [] as Application[];
-    for (const item of Items) {
-      const record = plainToClass<Application, unknown>(Application, item);
-      records.push(record);
+    if (Items !== undefined) {
+      for (const item of Items) {
+        const record = plainToClass<Application, unknown>(Application, item);
+        records.push(record);
+      }
     }
 
     return records;
@@ -107,17 +109,17 @@ export default class Application implements IApplicationRecord {
     }
   }
 
-  private _appName: string;
+  private _appName: string | undefined;
   public get AppName(): string {
-    return this._appName;
+    return this._appName as string;
   }
   public set AppName(value: string) {
     this._appName = value.toLowerCase();
   }
 
-  private _displayName;
+  private _displayName: string | undefined;
   public get DisplayName(): string {
-    return this._displayName;
+    return this._displayName as string;
   }
   public set DisplayName(value: string) {
     this._displayName = value;

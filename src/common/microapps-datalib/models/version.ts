@@ -62,9 +62,11 @@ export default class Version implements IVersionRecord {
       },
     });
     const records = [] as Version[];
-    for (const item of Items) {
-      const record = plainToClass<Version, unknown>(Version, item);
-      records.push(record);
+    if (Items !== undefined) {
+      for (const item of Items) {
+        const record = plainToClass<Version, unknown>(Version, item);
+        records.push(record);
+      }
     }
 
     return records;
@@ -104,49 +106,49 @@ export default class Version implements IVersionRecord {
     }
   }
 
-  private _appName: string;
+  private _appName: string | undefined;
   public get AppName(): string {
-    return this._appName;
+    return this._appName as string;
   }
   public set AppName(value: string) {
     this._appName = value.toLowerCase();
   }
 
-  private _semVer: string;
+  private _semVer: string | undefined;
   public get SemVer(): string {
-    return this._semVer;
+    return this._semVer as string;
   }
   public set SemVer(value: string) {
     this._semVer = value;
   }
 
-  private _type;
+  private _type: string | undefined;
   public get Type(): string {
-    return this._type;
+    return this._type as string;
   }
   public set Type(value: string) {
     this._type = value;
   }
 
-  private _status;
+  private _status: string | undefined;
   public get Status(): string {
-    return this._status;
+    return this._status as string;
   }
   public set Status(value: string) {
     this._status = value;
   }
 
-  private _defaultFile;
+  private _defaultFile: string | undefined;
   public get DefaultFile(): string {
-    return this._defaultFile;
+    return this._defaultFile as string;
   }
   public set DefaultFile(value: string) {
     this._defaultFile = value;
   }
 
-  private _integrationID;
+  private _integrationID: string | undefined;
   public get IntegrationID(): string {
-    return this._integrationID;
+    return this._integrationID as string;
   }
   public set IntegrationID(value: string) {
     this._integrationID = value;

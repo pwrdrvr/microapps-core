@@ -52,7 +52,7 @@ aws-lambda-update-router: ## Update the lambda function to use latest image
 
 aws-lambda-update-routerz: ## Update the lambda function using a .zip file
 	@rm -f microapps-router.zip
-	@sh -c 'cd distb/microapps-router/ && zip ../../microapps-router.zip index.min.js'
+	@sh -c 'cd distb/microapps-router/ && zip ../../microapps-router.zip * -x index.max.js'
 	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO}z \
 		--zip-file fileb://./microapps-router.zip
 

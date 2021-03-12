@@ -22,7 +22,7 @@ export default class Rules implements IRulesRecord {
   public constructor(init?: Partial<IRulesRecord>) {
     Object.assign(this, init);
     if (init === undefined) {
-      this.RuleSet = {};
+      this._ruleSet = {};
     }
   }
 
@@ -75,25 +75,25 @@ export default class Rules implements IRulesRecord {
     return 'rules';
   }
 
-  private _appName: string;
+  private _appName: string | undefined;
   public get AppName(): string {
-    return this._appName;
+    return this._appName as string;
   }
   public set AppName(value: string) {
     this._appName = value.toLowerCase();
   }
 
-  private _ruleSet: RuleSet;
+  private _ruleSet: RuleSet | undefined;
   public get RuleSet(): RuleSet {
-    return this._ruleSet;
+    return this._ruleSet as RuleSet;
   }
   public set RuleSet(value: RuleSet) {
     this._ruleSet = value;
   }
 
-  private _version;
+  private _version: number | undefined;
   public get Version(): number {
-    return this._version;
+    return this._version as number;
   }
   public set Version(value: number) {
     this._version = value;
