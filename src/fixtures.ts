@@ -3,6 +3,7 @@ import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import * as dynamodbLocal from 'dynamodb-local';
 import { promisify } from 'util';
 import Manager from '@pwrdrvr/microapps-datalib';
+import { TABLE_NAME } from '@pwrdrvr/microapps-datalib/config';
 import fetch from 'node-fetch';
 import { ChildProcess } from 'child_process';
 const asyncSleep = promisify(setTimeout);
@@ -35,7 +36,7 @@ export async function mochaGlobalSetup(): Promise<void> {
 
     // Create the table
     await dynamoClient.client.createTable({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       AttributeDefinitions: [
         {
           AttributeName: 'PK',

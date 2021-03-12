@@ -1,4 +1,4 @@
-import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
 import Application from './models/application';
@@ -13,27 +13,21 @@ export interface IVersionsAndRules {
 }
 
 export default class Manager {
-  private static _client: dynamodb.DynamoDB;
+  private static _client: DynamoDB;
   private static _ddbDocClient: DynamoDBDocument;
 
-  private static readonly _tableName = 'MicroApps';
-
-  public constructor(dynamoDB: dynamodb.DynamoDB) {
+  public constructor(dynamoDB: DynamoDB) {
     if (Manager._client === undefined) {
       Manager._client = dynamoDB;
       Manager._ddbDocClient = DynamoDBDocument.from(Manager._client);
     }
   }
 
-  public get DBClient(): dynamodb.DynamoDB {
+  public get DBClient(): DynamoDB {
     return Manager._client;
   }
   public get DBDocClient(): DynamoDBDocument {
     return Manager._ddbDocClient;
-  }
-
-  public static get TableName(): string {
-    return Manager._tableName;
   }
 
   public async GetVersionsAndRules(appName: string): Promise<IVersionsAndRules> {

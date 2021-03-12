@@ -1,6 +1,6 @@
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import Manager from '../index';
+import { TABLE_NAME } from '../config';
 
 enum SaveBy {
   AppName,
@@ -44,7 +44,7 @@ export default class Version implements IVersionRecord {
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
     await ddbDocClient.put({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       Item: this.DbStruct,
     });
   }
@@ -54,7 +54,7 @@ export default class Version implements IVersionRecord {
     appName: string,
   ): Promise<Version[]> {
     const { Items } = await ddbDocClient.query({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       KeyConditionExpression: 'PK = :pkval and begins_with(SK, :skval)',
       ExpressionAttributeValues: {
         ':pkval': `appName#${appName}`.toLowerCase(),
@@ -76,7 +76,7 @@ export default class Version implements IVersionRecord {
     semVer: string,
   ): Promise<Version> {
     const { Item } = await ddbDocClient.get({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       Key: {
         PK: `appName#${appName}`.toLowerCase(),
         SK: `version#${semVer}`.toLowerCase(),

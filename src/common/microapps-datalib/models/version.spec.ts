@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import Manager from '../index';
 import { dynamoClient } from '../../../fixtures';
 import Version from './version';
+import { TABLE_NAME } from '../config';
 
 describe('version records', () => {
   it('saving a version should create one record', async () => {
@@ -17,7 +18,7 @@ describe('version records', () => {
     await version.SaveAsync(dynamoClient.ddbDocClient);
 
     const { Item } = await dynamoClient.ddbDocClient.get({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       Key: { PK: 'appname#cat', SK: 'version#1.2.3-beta4' },
     });
     expect(Item.PK).equal('appname#cat');

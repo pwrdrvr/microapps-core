@@ -1,6 +1,6 @@
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import Manager from '../index';
+import { TABLE_NAME } from '../config';
 
 export interface IRule {
   SemVer: string;
@@ -41,13 +41,13 @@ export default class Rules implements IRulesRecord {
 
     // Save under specific AppName key
     const taskByName = ddbDocClient.put({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       Item: this.DbStruct,
     });
 
     // Save under all Applications key
     const taskByApplications = ddbDocClient.put({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       Item: this.DbStruct,
     });
 
@@ -60,7 +60,7 @@ export default class Rules implements IRulesRecord {
 
   public static async LoadAsync(ddbDocClient: DynamoDBDocument, appName: string): Promise<Rules> {
     const { Item } = await ddbDocClient.get({
-      TableName: Manager.TableName,
+      TableName: TABLE_NAME,
       Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'rules' },
     });
     const record = plainToClass<Rules, unknown>(Rules, Item);
