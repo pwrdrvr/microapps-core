@@ -100,14 +100,15 @@ async function RouteApp(
 
   try {
     versionsAndRules = await manager.GetVersionsAndRules(appName);
-  } catch {
+  } catch (error) {
     // 2021-03-10 - NOTE: This isn't clean - DocumentClient.get throws if the item is not found
     // It's not easily detectable either.  When the lib is updated we can improve this
     // Assume this means "succeeded but not found for now"
-    log.info(`GetVersionsAndRules threw for ${appName}, assuming not found - returning 404`, {
+    log.info(`GetVersionsAndRules threw for '${appName}', assuming not found - returning 404`, {
       appName,
       statusCode: 404,
     });
+    log.info(error);
     response.statusCode = 404;
     response.headers['Cache-Control'] = 'no-store; private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';

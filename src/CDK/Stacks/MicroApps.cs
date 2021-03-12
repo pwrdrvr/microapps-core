@@ -187,7 +187,7 @@ namespace CDK {
       var routerzFunc = new Function(this, "routerz-func", new FunctionProps() {
         Code = Code.FromInline("function handler() { return 'cat'; }; exports.handler=handler;"),
         Runtime = Runtime.NODEJS_12_X,
-        Handler = "index.min.handler",
+        Handler = "index.handler",
         FunctionName = "microapps-routerz",
         Timeout = Duration.Seconds(30),
         MemorySize = 512,

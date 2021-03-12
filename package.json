@@ -7,13 +7,14 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "workspaces": [
-    "./src/common/*"
+    "./src/common/*",
+    "./src/microapps-router/"
   ],
   "private": true,
   "scripts": {
     "install:dotnet": "dotnet restore",
     "build": "tsc --build tsconfig.json",
-    "build:router": "rollup --config rollup.router.js",
+    "build:router": "rollup --config rollup.router.js && cp src/microapps-router/appFrame.html distb/microapps-router/",
     "test:trash": "start-server-and-test test:dynamodb http-get://localhost:8000/ test:mocha",
     "test:dynamodb": "local-dynamodb",
     "test": "TEST=true AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --require ./src/fixtures.ts --retries 2 -p tsconfig.json --ignore ./src/**/node_modules/**/*.spec.ts --ignore ./src/apigateway-lre-proxy/**/*.spec.ts './src/**/*.spec.ts'",
