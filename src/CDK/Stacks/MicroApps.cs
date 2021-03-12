@@ -238,7 +238,7 @@ namespace CDK {
       // Create an integration for the Router
       // Do this here since it's the default route
       var intRouter = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
-        Handler = routerFunc,
+        Handler = routerzFunc,
       });
 
       // Create APIGateway for apps-apis.pwrdrvr.com
