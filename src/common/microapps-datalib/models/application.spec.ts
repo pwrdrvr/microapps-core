@@ -1,8 +1,8 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import Manager from '../index';
 import { dynamoClient } from '../../../fixtures';
 import Application from './application';
+import { TABLE_NAME } from '../config';
 
 describe('application records', () => {
   it('saving an application should create two records', async () => {
@@ -14,7 +14,7 @@ describe('application records', () => {
 
     {
       const { Item } = await dynamoClient.ddbDocClient.get({
-        TableName: Manager.TableName,
+        TableName: TABLE_NAME,
         Key: { PK: 'appname#cat', SK: 'application' },
       });
       expect(Item.PK).equal('appname#cat');
@@ -25,7 +25,7 @@ describe('application records', () => {
 
     {
       const { Item } = await dynamoClient.ddbDocClient.get({
-        TableName: Manager.TableName,
+        TableName: TABLE_NAME,
         Key: { PK: 'applications', SK: 'appname#cat' },
         // ProjectionExpression: 'PK,SK,AppName,DisplayName',
       });
