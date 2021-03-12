@@ -50,6 +50,12 @@ aws-lambda-update-router: ## Update the lambda function to use latest image
 	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO} \
 		--image-uri ${ECR_HOST}/${ROUTER_ECR_TAG} --publish
 
+aws-lambda-update-routerz: ## Update the lambda function using a .zip file
+	@rm -f microapps-router.zip
+	@sh -c 'cd distb/microapps-router/ && zip ../../microapps-router.zip index.min.js'
+	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO}z \
+		--zip-file fileb://./microapps-router.zip
+
 aws-ecr-publish-release: ## publish updated ECR docker image
 	@docker build -f DockerfileRelease -t ${RELEASE_ECR_TAG}  .
 	@docker tag ${RELEASE_ECR_TAG} ${ECR_HOST}/${RELEASE_ECR_TAG}
