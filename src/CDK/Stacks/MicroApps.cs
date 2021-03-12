@@ -60,7 +60,8 @@ namespace CDK {
         Code = DockerImageCode.FromEcr(props.ReposExports.RepoDeployer),
         FunctionName = "microapps-deployer",
         Timeout = Duration.Seconds(30),
-        MemorySize = 1024
+        MemorySize = 1024,
+        LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_MONTH
       });
       // Give the Deployer access to DynamoDB table
       table.GrantReadWriteData(deployerFunc);
@@ -175,12 +176,22 @@ namespace CDK {
       // Router Lambda Function
       //
 
-      // Create Router Lambda Function
+      // Create Router Lambda Function - Docker Image Version (aka "slow")
       var routerFunc = new DockerImageFunction(this, "router-func", new DockerImageFunctionProps() {
         Code = DockerImageCode.FromEcr(props.ReposExports.RepoRouter),
         FunctionName = "microapps-router",
         Timeout = Duration.Seconds(30),
-        MemorySize = 512
+        MemorySize = 512,
+        LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_MONTH
+      });
+      var routerzFunc = new Function(this, "routerz-func", new FunctionProps() {
+        Code = Code.FromInline("function handler() { return 'cat'; }; exports.handler=handler;"),
+        Runtime = Runtime.NODEJS_12_X,
+        Handler = "index.min.handler",
+        FunctionName = "microapps-routerz",
+        Timeout = Duration.Seconds(30),
+        MemorySize = 512,
+        LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_MONTH
       });
       var policyReadTarget = new PolicyStatement(new PolicyStatementProps() {
         Effect = Effect.ALLOW,
@@ -193,6 +204,11 @@ namespace CDK {
       // Give the Router access to DynamoDB table
       table.GrantReadData(routerFunc);
       table.Grant(routerFunc, "dynamodb:DescribeTable");
+      // Repeat for zip file function
+      routerzFunc.AddToRolePolicy(policyReadTarget);
+      // Give the Router access to DynamoDB table
+      table.GrantReadData(routerzFunc);
+      table.Grant(routerzFunc, "dynamodb:DescribeTable");
 
       // TODO: Add Last Route for /*/{proxy+}
       // Note: That might not work, may need a Behavior in CloudFront
