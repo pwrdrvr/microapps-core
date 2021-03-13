@@ -180,8 +180,8 @@ namespace CDK {
       var routerFunc = new DockerImageFunction(this, "router-func", new DockerImageFunctionProps() {
         Code = DockerImageCode.FromEcr(props.ReposExports.RepoRouter),
         FunctionName = "microapps-router",
-        Timeout = Duration.Seconds(30),
-        MemorySize = 512,
+        Timeout = Duration.Seconds(3),
+        MemorySize = 1024,
         LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_MONTH
       });
       var routerzFunc = new Function(this, "routerz-func", new FunctionProps() {
@@ -189,8 +189,8 @@ namespace CDK {
         Runtime = Runtime.NODEJS_12_X,
         Handler = "index.handler",
         FunctionName = "microapps-routerz",
-        Timeout = Duration.Seconds(30),
-        MemorySize = 512,
+        Timeout = Duration.Seconds(3),
+        MemorySize = 1024,
         LogRetention = Amazon.CDK.AWS.Logs.RetentionDays.ONE_MONTH
       });
       var policyReadTarget = new PolicyStatement(new PolicyStatementProps() {
@@ -238,7 +238,7 @@ namespace CDK {
       // Create an integration for the Router
       // Do this here since it's the default route
       var intRouter = new LambdaProxyIntegration(new LambdaProxyIntegrationProps {
-        Handler = routerzFunc,
+        Handler = routerFunc,
       });
 
       // Create APIGateway for apps-apis.pwrdrvr.com
