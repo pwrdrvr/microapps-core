@@ -14,3 +14,4 @@ ts-cdk/
 **/dist/
 **/distb/
 **/*.tsbuildinfo
+*.zip

@@ -1,3 +1,5 @@
+*.zip
+
 # TypeScript output
 dist/
 distb/
