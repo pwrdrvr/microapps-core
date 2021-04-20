@@ -99,7 +99,7 @@ async function RouteApp(
   }
 
   try {
-    versionsAndRules = await manager.GetVersionsAndRules(appName);
+    versionsAndRules = await Manager.GetVersionsAndRules(appName);
   } catch (error) {
     // 2021-03-10 - NOTE: This isn't clean - DocumentClient.get throws if the item is not found
     // It's not easily detectable either.  When the lib is updated we can improve this
