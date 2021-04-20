@@ -3,7 +3,7 @@ import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
 import Application from './models/application';
 import Version from './models/version';
-import Rules from './models/rules';
+import Rules, { IRule } from './models/rules';
 
 export { Application, Version, Rules };
 
@@ -30,7 +30,16 @@ export default class Manager {
     return Manager._ddbDocClient;
   }
 
-  public async GetVersionsAndRules(appName: string): Promise<IVersionsAndRules> {
+  public static async UpdateDefaultRule(appName: string, semVer: string): Promise<void> {
+    const rules = await Rules.LoadAsync(Manager._ddbDocClient, appName);
+
+    const defaultRule = rules.RuleSet.default;
+    defaultRule.SemVer = semVer;
+
+    await rules.SaveAsync(this._ddbDocClient);
+  }
+
+  public static async GetVersionsAndRules(appName: string): Promise<IVersionsAndRules> {
     // Get all versions and rules for an app
     // Note: versions are moved out of this key as they become inactive
     // There should be less than, say, 100 versions per app

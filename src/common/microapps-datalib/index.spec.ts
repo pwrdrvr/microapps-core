@@ -34,7 +34,7 @@ describe('database manager', () => {
     });
     await rules.SaveAsync(dynamoClient.ddbDocClient);
 
-    const versAndRules = await manager.GetVersionsAndRules('bat');
+    const versAndRules = await Manager.GetVersionsAndRules('bat');
 
     expect(versAndRules).to.have.property('Versions');
     expect(versAndRules).to.have.property('Rules');
@@ -44,5 +44,39 @@ describe('database manager', () => {
     expect(versAndRules.Rules.RuleSet.default.SemVer).to.equal('3.2.1-beta0');
     expect(versAndRules.Versions.length).to.equal(1);
     expect(versAndRules.Versions[0].SemVer).to.equal('3.2.1-beta0');
+  });
+
+  it('should update default rule', async () => {
+    const app = new Application({
+      AppName: 'Bat2',
+      DisplayName: 'Bat App',
+    });
+    await app.SaveAsync(dynamoClient.ddbDocClient);
+
+    const version = new Version({
+      AppName: 'Bat2',
+      DefaultFile: 'bat.html',
+      IntegrationID: 'abcd',
+      SemVer: '3.2.1-beta0',
+      Status: 'deployed',
+      Type: 'next.js',
+    });
+    await version.SaveAsync(dynamoClient.ddbDocClient);
+
+    const rules = new Rules({
+      AppName: 'Bat2',
+      Version: 0,
+      RuleSet: { default: { SemVer: '3.2.1-beta0', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.SaveAsync(dynamoClient.ddbDocClient);
+
+    // Check version before update
+    let versAndRules = await Manager.GetVersionsAndRules('bat2');
+    expect(versAndRules.Rules.RuleSet.default.SemVer).to.equal('3.2.1-beta0');
+
+    // Update default version
+    await Manager.UpdateDefaultRule('bat2', '3.2.2');
+    versAndRules = await Manager.GetVersionsAndRules('bat2');
+    expect(versAndRules.Rules.RuleSet.default.SemVer).to.equal('3.2.2');
   });
 });
