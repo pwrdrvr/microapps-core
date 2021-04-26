@@ -3,6 +3,7 @@
 # TypeScript output
 dist/
 distb/
+*.tsbuildinfo
 
 .vsdbg/
 
