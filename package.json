@@ -12,6 +12,7 @@
   ],
   "private": true,
   "scripts": {
+    "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
     "install:dotnet": "dotnet restore",
     "build": "tsc --build tsconfig.json",
     "build:router": "rollup --config rollup.router.js && cp src/microapps-router/appFrame.html distb/microapps-router/",
