@@ -3,7 +3,7 @@ import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
 import Application from './models/application';
 import Version from './models/version';
-import Rules, { IRule } from './models/rules';
+import Rules from './models/rules';
 
 export { Application, Version, Rules };
 

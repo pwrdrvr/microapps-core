@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 import commander from 'commander';
 import * as util from 'util';
@@ -227,10 +228,9 @@ async function publishToECR(deployConfig: IDeployConfig, versions: IVersions): P
   console.log('Starting Docker build');
   await asyncExec(`docker build -f Dockerfile -t ${IMAGE_TAG}  .`);
   await asyncExec(`docker tag ${IMAGE_TAG} ${ECR_HOST}/${IMAGE_TAG}`);
-  await asyncExec(`docker tag ${IMAGE_TAG} ${ECR_HOST}/${ECR_REPO}:latest`);
+
   console.log('Starting Docker push to ECR');
   await asyncExec(`docker push ${ECR_HOST}/${IMAGE_TAG}`);
-  await asyncExec(`docker push ${ECR_HOST}/${ECR_REPO}:latest`);
 }
 
 async function deployToLambda(deployConfig: IDeployConfig, versions: IVersions): Promise<void> {
