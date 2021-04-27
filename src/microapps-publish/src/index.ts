@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
+import * as lambda from '@aws-sdk/client-lambda';
 import commander from 'commander';
 import * as util from 'util';
 import { exec } from 'child_process';
@@ -15,6 +16,8 @@ program
   .option('-n, --newversion <version>', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
   .parse(process.argv);
+
+const lambdaClient = new lambda.LambdaClient({});
 
 interface IDeployConfig {
   AppName: string;
@@ -31,66 +34,6 @@ interface IDeployConfig {
 interface IVersions {
   version: string;
   alias?: string;
-}
-
-interface ILambdaPublishResponse {
-  FunctionName: string;
-  FunctionArn: string;
-  Role: string;
-  CodeSize: number;
-  Description: string;
-  Timeout: number;
-  MemorySize: number;
-  LastModified: string;
-  CodeSha256: string;
-  Version: string;
-  TracingConfig: {
-    Mode: 'PassThrough';
-  };
-  RevisionId: string;
-  State: 'Active';
-  LastUpdateStatus: 'Successful' | 'InProgress';
-  PackageType: 'Image';
-}
-
-interface ILambdaUpdateConfigurationResponse {
-  FunctionName: string;
-  FunctionArn: string;
-  Role: string;
-  CodeSize: number;
-  Description: string;
-  Timeout: number;
-  MemorySize: number;
-  LastModified: string;
-  CodeSha256: string;
-  Version: string;
-  TracingConfig: {
-    Mode: string;
-  };
-  RevisionId: string;
-  // "RevisionId": "482af8c0-71a8-4b44-8e0f-813def1afc77",
-  State: 'Active' | string;
-  LastUpdateStatus: 'Successful' | 'InProgress'; // Successful
-  LastUpdateStatusReason: 'The function is being created.' | string;
-  LastUpdateStatusReasonCode: 'Creating' | string;
-  PackageType: 'Image' | string;
-}
-
-interface ILambdaUpdateResponse {
-  Configuration: ILambdaUpdateConfigurationResponse;
-  Code: {
-    RepositoryType: 'ECR' | string;
-    ImageUri: string;
-    ResolvedImageUri: string;
-  };
-}
-
-interface ILambdaAliasResponse {
-  AliasArn: string;
-  Name: string;
-  FunctionVersion: string;
-  Description: string;
-  RevisionId: string;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
@@ -148,6 +91,7 @@ async function UpdateVersion(): Promise<void> {
 
     // Invoke DeployTool
     console.log('Invoking DeployTool to deploy MicroApp version');
+    // @ts-ignore
     const { stdout, stderr } = await asyncExec(deployConfig.DeployToolCommand);
     console.log(stdout);
     console.log(stderr);
@@ -241,84 +185,50 @@ async function deployToLambda(deployConfig: IDeployConfig, versions: IVersions):
 
   // Create Lambda version
   console.log(`Updating Lambda code to point to new Docker image`);
-  const { stdout: stdoutUpdate } = await asyncExec(
-    `aws lambda update-function-code --function-name ${ECR_REPO} --image-uri ${IMAGE_URI} --region=${deployConfig.AWSRegion} --output json`,
+  const resultUpdate = await lambdaClient.send(
+    new lambda.UpdateFunctionCodeCommand({
+      FunctionName: ECR_REPO,
+      ImageUri: IMAGE_URI,
+      Publish: true,
+    }),
   );
-  let lambdaUpdateResponse = JSON.parse(stdoutUpdate) as ILambdaUpdateResponse;
-  let lambdaVersion = '';
-  if (lambdaUpdateResponse.Configuration === undefined) {
-    lambdaUpdateResponse.Configuration = (lambdaUpdateResponse as unknown) as ILambdaUpdateConfigurationResponse;
-  }
+  const lambdaVersion = resultUpdate.Version;
+  console.log('Lambda version created: ', resultUpdate.Version);
+
+  let lastUpdateStatus = resultUpdate.LastUpdateStatus;
   for (let i = 0; i < 5; i++) {
-    if (lambdaUpdateResponse.Configuration.LastUpdateStatus === 'Successful') {
-      if (lambdaUpdateResponse.Code.ImageUri !== IMAGE_URI) {
-        throw new Error(
-          `Lambda function updated, but had wrong image URI: ${lambdaUpdateResponse.Code.ImageUri}`,
-        );
-      }
-      // This will usually be "$LATEST" - So we have to get the version after publish
-      lambdaVersion = lambdaUpdateResponse.Configuration.Version;
-      // console.log(`Lambda function updated, version: ${lambdaVersion}`);
+    // When the function is created the status will be "Pending"
+    // and we have to wait until it's done creating
+    // before we can point an alias to it
+    if (lastUpdateStatus === 'Successful') {
+      console.log(`Lambda function updated, version: ${lambdaVersion}`);
       break;
     }
 
     // If it didn't work, wait and try again
-    await asyncSetTimeout(5000);
-    const { stdout } = await asyncExec(
-      `aws lambda get-function --function-name ${ECR_REPO} --output json`,
+    await asyncSetTimeout(1000 * i);
+
+    const resultGet = await lambdaClient.send(
+      new lambda.GetFunctionCommand({
+        FunctionName: ECR_REPO,
+        Qualifier: lambdaVersion,
+      }),
     );
-    lambdaUpdateResponse = JSON.parse(stdout) as ILambdaUpdateResponse;
+
+    // Save the last update status so we can check on re-loop
+    lastUpdateStatus = resultGet?.Configuration?.LastUpdateStatus;
   }
 
-  // Create Lambda alias pointing to version
-  console.log(`Publishing the new lambda version`);
-  const { stdout: stdoutPublish } = await asyncExec(
-    `aws lambda publish-version --function-name ${ECR_REPO} --output json`,
-  );
-  const lambdaPublishResponse = JSON.parse(stdoutPublish) as ILambdaPublishResponse;
-
-  // Save the version created
-  lambdaVersion = lambdaPublishResponse.Version;
-
+  // Create Lambda alias point
   console.log(`Creating the lambda alias for the new version: ${lambdaVersion}`);
-  const { stdout: stdoutAlias } = await asyncExec(
-    `aws lambda create-alias --function-name ${ECR_REPO} --name ${versions.alias} --function-version '${lambdaVersion}' --region=${deployConfig.AWSRegion} --output json`,
+  const resultLambdaAlias = await lambdaClient.send(
+    new lambda.CreateAliasCommand({
+      FunctionName: ECR_REPO,
+      Name: versions.alias,
+      FunctionVersion: lambdaVersion,
+    }),
   );
-  let lambdaAliasResponse = JSON.parse(stdoutAlias) as ILambdaAliasResponse;
-  for (let i = 0; i < 5; i++) {
-    if (lambdaAliasResponse !== undefined && lambdaAliasResponse.FunctionVersion !== undefined) {
-      if (lambdaAliasResponse.FunctionVersion !== lambdaVersion) {
-        throw new Error(
-          `Alias created but points to wrong version, expected: ${lambdaVersion}, got: ${lambdaAliasResponse.FunctionVersion}`,
-        );
-      }
-      lambdaVersion = lambdaAliasResponse.FunctionVersion;
-      console.log(`Lambda alias created, name: ${versions.alias}`);
-      break;
-    }
-
-    // If it didn't work, wait and try again
-    await asyncSetTimeout(5000);
-    const { stdout } = await asyncExec(
-      `aws lambda get-alias --function-name ${ECR_REPO} --name ${versions.alias} --output json`,
-    );
-    lambdaAliasResponse = JSON.parse(stdout) as ILambdaAliasResponse;
-  }
-
-  // # Capture the Revision ID of the newly published code
-  // @echo "Creating new alias, ${LAMBDA_ALIAS}, pointing to ${ECR_HOST}/${IMAGE_TAG}"
-  // @aws lambda update-function-code --function-name ${ECR_REPO} \
-  // 	--image-uri ${ECR_HOST}/${IMAGE_TAG} --region=${REGION} \
-  // 	--output json > /dev/null
-  // @sleep 10
-  // $(eval VERSION:=$$(shell aws lambda publish-version --function-name ${ECR_REPO} \
-  // 	--region=${REGION} \
-  // 	--output json --publish \
-  // 	| jq -r ".Version"))
-  // @echo "New Lambda Version: ${ECR_REPO}/${VERSION}"
-  // @sleep 10
-  // @aws lambda create-alias --function-name ${ECR_REPO} \
-  // 	--name ${LAMBDA_ALIAS} --function-version '${VERSION}' --region=${REGION}
+  console.log(`Lambda alias created, name: ${resultLambdaAlias.Name}`);
 }
 
 Promise.all([UpdateVersion()]);

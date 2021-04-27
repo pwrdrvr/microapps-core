@@ -3,6 +3,7 @@
   "version": "0.9.6",
   "description": "Data library for the microapps framework",
   "types": "dist/index.d.ts",
+  "module": "true",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
