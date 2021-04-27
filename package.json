@@ -8,6 +8,8 @@
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "workspaces": [
     "./src/common/*",
+    "./src/microapps-deployer/",
+    "./src/microapps-publish/",
     "./src/microapps-router/"
   ],
   "private": true,

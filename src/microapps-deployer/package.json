@@ -1,7 +1,7 @@
 {
-  "name": "@pwrdrvr/microapps-router",
+  "name": "@pwrdrvr/microapps-deployer",
   "version": "1.0.0",
-  "description": "Router for the microapps framework",
+  "description": "Deployer svc for the microapps framework",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
