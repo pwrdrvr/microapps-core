@@ -105,15 +105,6 @@ namespace PwrDrvr.MicroApps.Deployer.Controllers {
 
         // TODO: Confirm the Lambda Function exists
         var lambdaClient = new AmazonLambdaClient();
-        // lambdaClient.CreateAliasAsync(new CreateAliasRequest() {
-        //   FunctionName = "",
-        //   FunctionVersion = "1",
-        //   Name = string.Format("v{0}", versionBody.semVer.Replace('.', '_')),
-        // });
-        // var aliasResponse = await lambdaClient.GetAliasAsync(new GetAliasRequest() {
-        //   FunctionName = "",
-        //   Name = "",
-        // });
 
         // Get the API Gateway
         var apigwy = new AmazonApiGatewayV2Client();
