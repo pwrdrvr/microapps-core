@@ -21,21 +21,5 @@ namespace PwrDrvr.MicroApps.Deployer.Lambda {
 
       return null;
     }
-
-    public static async Task<string> GetRouterIntegrationId(AmazonApiGatewayV2Client apigwy, string apiId) {
-      var intRouterId = "";
-      var integrations = await apigwy.GetIntegrationsAsync(new GetIntegrationsRequest() {
-        ApiId = apiId,
-        MaxResults = "100",
-      });
-      foreach (var integration in integrations.Items) {
-        if (integration.IntegrationUri.EndsWith("microapps-router")) {
-          intRouterId = integration.IntegrationId;
-          break;
-        }
-      }
-
-      return intRouterId;
-    }
   }
 }

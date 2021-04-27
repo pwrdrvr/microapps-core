@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
+    "@aws-sdk/client-apigatewayv2": "^3.13.1",
+    "@aws-sdk/client-lambda": "^3.13.1",
+    "@aws-sdk/client-s3": "^3.13.1",
     "lambda-log": "^2.4.0",
     "tslib": "^2.1.0"
   },
