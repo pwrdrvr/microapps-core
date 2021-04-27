@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.packages.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "resolveJsonModule": true
+  },
+  "references": [
+    {
+      "path": "../common/microapps-datalib/"
+    }
+  ],
+  "exclude": ["**/*.spec.ts", "dist/*"]
+}
