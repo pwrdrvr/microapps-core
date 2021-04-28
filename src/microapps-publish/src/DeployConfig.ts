@@ -1,6 +1,18 @@
 import { promises as fs } from 'fs';
 
-export default class DeployConfig {
+export interface IDeployConfig {
+  AppName: string;
+  SemVer: string;
+  DefaultFile: string;
+  StaticAssetsPath: string;
+  LambdaARN: string;
+  AWSAccountID: string;
+  AWSRegion: string;
+  ServerlessNextRouterPath: string;
+  DeployToolCommand: string;
+}
+
+export default class DeployConfig implements IDeployConfig {
   private static readonly _fileName = 'deploy.json';
 
   public static async Load(): Promise<DeployConfig> {
@@ -12,7 +24,6 @@ export default class DeployConfig {
     return undefined;
   }
 
-  public DefaultFile: string;
   private _appName: string;
   public get AppName(): string {
     return this._appName;
@@ -23,4 +34,9 @@ export default class DeployConfig {
   public SemVer: string;
   public StaticAssetsPath: string;
   public LambdaARN: string;
+  public AWSAccountID: string;
+  public AWSRegion: string;
+  public ServerlessNextRouterPath: string;
+  public DeployToolCommand: string;
+  public DefaultFile: string;
 }

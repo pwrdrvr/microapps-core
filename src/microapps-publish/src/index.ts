@@ -6,6 +6,7 @@ import commander from 'commander';
 import * as util from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
+import DeployConfig, { IDeployConfig } from './DeployConfig';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -18,18 +19,6 @@ program
   .parse(process.argv);
 
 const lambdaClient = new lambda.LambdaClient({});
-
-interface IDeployConfig {
-  AppName: string;
-  SemVer: string;
-  DefaultFile: string;
-  StaticAssetsPath: string;
-  LambdaARN: string;
-  AWSAccountID: string;
-  AWSRegion: string;
-  ServerlessNextRouterPath: string;
-  DeployToolCommand: string;
-}
 
 interface IVersions {
   version: string;
@@ -70,7 +59,7 @@ async function UpdateVersion(): Promise<void> {
     }
 
     // Read in the deploy.json config file for DeployTool
-    const deployConfig = JSON.parse(await fs.readFile('deploy.json', 'utf8')) as IDeployConfig;
+    const deployConfig = await DeployConfig.Load();
 
     console.log(`Invoking serverless next.js build for ${deployConfig.AppName}/${version}`);
 
