@@ -10,28 +10,23 @@ const dynamoClient = process.env.TEST
   : new DynamoDB({});
 const manager = new Manager(dynamoClient);
 
-export type DeployerRequest = {
-  a: number;
-};
-
-export type DeployerResponse = {
-  a: number;
-};
-
 interface RequestBase {
   type: 'createApp' | 'deployVersion' | 'checkVersionExists';
 }
 
 export interface CreateApplicationRequest extends RequestBase {
+  type: 'createApp';
   appName: string;
 }
 
 export interface CheckVersionExistsRequest extends RequestBase {
+  type: 'checkVersionExists';
   appName: string;
   semVer: string;
 }
 
 export interface DeployVersionRequest extends RequestBase {
+  type: 'deployVersion';
   appName: string;
   semVer: string;
   s3SourceURI: string;
@@ -39,14 +34,7 @@ export interface DeployVersionRequest extends RequestBase {
   defaultFile: string;
 }
 
-export async function handler(
-  event: RequestBase,
-  context: lambda.Context,
-): Promise<DeployerResponse> {
-  const response = {
-    a: 100,
-  } as DeployerResponse;
-
+export async function handler(event: RequestBase, context: lambda.Context): Promise<string> {
   // Change the logger on each request
   const log = new LambdaLog({
     dev: localTesting,
@@ -65,12 +53,12 @@ export async function handler(
 
   // TODO: Re-implement the DeployerSvc
 
-  return response;
+  return 'OK';
 }
 
 // Run the function locally for testing
 if (localTesting) {
-  const payload = { a: 100 } as DeployerRequest;
+  const payload = { appName: 'test-app' } as CreateApplicationRequest;
   Promise.all([
     handler(payload as RequestBase, { awsRequestId: 'local-testing' } as lambda.Context),
   ]);
