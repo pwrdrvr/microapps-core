@@ -40,7 +40,7 @@ export interface DeployVersionRequest extends RequestBase {
 }
 
 export async function handler(
-  event: DeployerRequest,
+  event: RequestBase,
   context: lambda.Context,
 ): Promise<DeployerResponse> {
   const response = {
@@ -72,6 +72,6 @@ export async function handler(
 if (localTesting) {
   const payload = { a: 100 } as DeployerRequest;
   Promise.all([
-    handler(payload as DeployerRequest, { awsRequestId: 'local-testing' } as lambda.Context),
+    handler(payload as RequestBase, { awsRequestId: 'local-testing' } as lambda.Context),
   ]);
 }
