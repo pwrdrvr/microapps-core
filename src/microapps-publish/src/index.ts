@@ -28,10 +28,10 @@ interface IVersions {
 }
 
 class PublishTool {
-  private ECR_HOST: string;
-  private ECR_REPO: string;
-  private IMAGE_TAG: string;
-  private IMAGE_URI: string;
+  private ECR_HOST = '';
+  private ECR_REPO = '';
+  private IMAGE_TAG = '';
+  private IMAGE_URI = '';
 
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
   private static escapeRegExp(value: string): string {
