@@ -1,9 +1,9 @@
 import * as lambda from '@aws-sdk/client-lambda';
 
 import {
-  CheckVersionExistsRequest,
-  CreateApplicationRequest,
-  DeployVersionRequest,
+  ICheckVersionExistsRequest,
+  ICreateApplicationRequest,
+  IDeployVersionRequest,
 } from '@pwrdrvr/microapps-deployer';
 import DeployConfig from './DeployConfig';
 
@@ -15,7 +15,7 @@ export default class DeployClient {
     const request = {
       type: 'createApp',
       appName: config.AppName,
-    } as CreateApplicationRequest;
+    } as ICreateApplicationRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: this._deployerFunctionName,
@@ -33,7 +33,7 @@ export default class DeployClient {
       type: 'checkVersionExists',
       appName: config.AppName,
       semVer: config.SemVer,
-    } as CheckVersionExistsRequest;
+    } as ICheckVersionExistsRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: this._deployerFunctionName,
@@ -56,7 +56,7 @@ export default class DeployClient {
       defaultFile: config.DefaultFile,
       lambdaARN: config.LambdaARN,
       s3SourceURI: `s3://pwrdrvr-apps-staging/${config.AppName}/${config.SemVer}/`,
-    } as DeployVersionRequest;
+    } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: this._deployerFunctionName,

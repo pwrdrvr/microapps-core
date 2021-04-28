@@ -8,24 +8,24 @@ const localTesting = process.env.DEBUG ? true : false;
 const dynamoClient = process.env.TEST
   ? new DynamoDB({ endpoint: 'http://localhost:8000' })
   : new DynamoDB({});
-const manager = new Manager(dynamoClient);
+export const manager = new Manager(dynamoClient);
 
-interface RequestBase {
+interface IRequestBase {
   type: 'createApp' | 'deployVersion' | 'checkVersionExists';
 }
 
-export interface CreateApplicationRequest extends RequestBase {
+export interface ICreateApplicationRequest extends IRequestBase {
   type: 'createApp';
   appName: string;
 }
 
-export interface CheckVersionExistsRequest extends RequestBase {
+export interface ICheckVersionExistsRequest extends IRequestBase {
   type: 'checkVersionExists';
   appName: string;
   semVer: string;
 }
 
-export interface DeployVersionRequest extends RequestBase {
+export interface IDeployVersionRequest extends IRequestBase {
   type: 'deployVersion';
   appName: string;
   semVer: string;
@@ -34,7 +34,7 @@ export interface DeployVersionRequest extends RequestBase {
   defaultFile: string;
 }
 
-export async function handler(event: RequestBase, context: lambda.Context): Promise<string> {
+export async function handler(event: IRequestBase, context: lambda.Context): Promise<string> {
   // Change the logger on each request
   const log = new LambdaLog({
     dev: localTesting,
@@ -58,8 +58,8 @@ export async function handler(event: RequestBase, context: lambda.Context): Prom
 
 // Run the function locally for testing
 if (localTesting) {
-  const payload = { appName: 'test-app' } as CreateApplicationRequest;
+  const payload = { appName: 'test-app' } as ICreateApplicationRequest;
   Promise.all([
-    handler(payload as RequestBase, { awsRequestId: 'local-testing' } as lambda.Context),
+    handler(payload as IRequestBase, { awsRequestId: 'local-testing' } as lambda.Context),
   ]);
 }
