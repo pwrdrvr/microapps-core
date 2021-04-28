@@ -1,7 +1,6 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
-import fs from 'fs';
 import { LambdaLog, LogMessage } from 'lambda-log';
 
 const localTesting = process.env.DEBUG ? true : false;
@@ -18,6 +17,27 @@ export type DeployerRequest = {
 export type DeployerResponse = {
   a: number;
 };
+
+interface RequestBase {
+  type: 'createApp' | 'deployVersion' | 'checkVersionExists';
+}
+
+export interface CreateApplicationRequest extends RequestBase {
+  appName: string;
+}
+
+export interface CheckVersionExistsRequest extends RequestBase {
+  appName: string;
+  semVer: string;
+}
+
+export interface DeployVersionRequest extends RequestBase {
+  appName: string;
+  semVer: string;
+  s3SourceURI: string;
+  lambdaARN: string;
+  defaultFile: string;
+}
 
 export async function handler(
   event: DeployerRequest,
