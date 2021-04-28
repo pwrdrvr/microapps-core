@@ -1,15 +1,12 @@
-import fs from 'fs';
-const fsAsync = fs.promises;
+import { promises as fs } from 'fs';
 
 export default class DeployConfig {
   private static readonly _fileName = 'deploy.json';
 
   public static async Load(): Promise<DeployConfig> {
-    const stat = await fsAsync.stat(DeployConfig._fileName);
+    const stat = await fs.stat(DeployConfig._fileName);
     if (stat.isFile()) {
-      const config = JSON.parse(
-        await fsAsync.readFile(DeployConfig._fileName, 'utf-8'),
-      ) as DeployConfig;
+      const config = JSON.parse(await fs.readFile(DeployConfig._fileName, 'utf-8')) as DeployConfig;
       return config;
     }
     return undefined;
