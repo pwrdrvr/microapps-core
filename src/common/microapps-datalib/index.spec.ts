@@ -1,13 +1,20 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from './index';
-import { dynamoClient } from '../../fixtures';
-
-let manager: Manager;
+import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
 
 describe('database manager', () => {
-  before(() => {
-    manager = new Manager(dynamoClient.client);
+  before(async () => {
+    new Manager(dynamoClient.client);
+  });
+
+  beforeEach(async () => {
+    // Create the table
+    await InitializeTable();
+  });
+
+  afterEach(async () => {
+    await DropTable();
   });
 
   it('should get versions and rules when asked', async () => {

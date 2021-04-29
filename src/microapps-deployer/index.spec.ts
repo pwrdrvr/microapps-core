@@ -5,7 +5,7 @@ import { handler } from './index';
 import * as lambda from 'aws-lambda';
 import { dynamoClient } from '../fixtures';
 
-describe('router', () => {
+describe('deployer', () => {
   // it('should serve appframe with version and default file substitued', async () => {
   //   const manager = new Manager(dynamoClient.client);
   //   const app = new Application({

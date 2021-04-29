@@ -1,9 +1,23 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient } from '../../../fixtures';
+import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
 import Rules from './rules';
+import Manager from '../index';
 
-describe('application records', () => {
+describe('rules records', () => {
+  before(async () => {
+    new Manager(dynamoClient.client);
+  });
+
+  beforeEach(async () => {
+    // Create the table
+    await InitializeTable();
+  });
+
+  afterEach(async () => {
+    await DropTable();
+  });
+
   it('saving rules should create 1 record', async () => {
     const rules = new Rules();
     rules.AppName = 'Cat';
