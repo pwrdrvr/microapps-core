@@ -1,5 +1,5 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
+import Manager from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import { LambdaLog, LogMessage } from 'lambda-log';
 
@@ -34,7 +34,14 @@ export interface IDeployVersionRequest extends IRequestBase {
   defaultFile: string;
 }
 
-export async function handler(event: IRequestBase, context: lambda.Context): Promise<string> {
+export interface IDeployerResponse {
+  statusCode: number;
+}
+
+export async function handler(
+  event: IRequestBase,
+  context: lambda.Context,
+): Promise<IDeployerResponse> {
   // Change the logger on each request
   const log = new LambdaLog({
     dev: localTesting,
@@ -53,7 +60,9 @@ export async function handler(event: IRequestBase, context: lambda.Context): Pro
 
   // TODO: Re-implement the DeployerSvc
 
-  return 'OK';
+  return {
+    statusCode: 501,
+  };
 }
 
 // Run the function locally for testing
