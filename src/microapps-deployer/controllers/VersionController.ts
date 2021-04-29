@@ -1,4 +1,9 @@
-import { manager, IDeployVersionRequest, ICheckVersionExistsRequest, IDeployerResponse } from '..';
+import {
+  manager,
+  IDeployVersionRequest,
+  ICheckVersionExistsRequest,
+  IDeployerResponse,
+} from '../index';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
