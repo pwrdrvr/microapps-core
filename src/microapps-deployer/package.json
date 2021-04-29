@@ -2,7 +2,9 @@
   "name": "@pwrdrvr/microapps-deployer",
   "version": "1.0.0",
   "description": "Deployer svc for the microapps framework",
+  "source": "index.ts",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
