@@ -1,5 +1,8 @@
 import { describe, it } from 'mocha';
 import * as chai from 'chai';
+import * as s3 from '@aws-sdk/client-s3';
+import * as apigwy from '@aws-sdk/client-apigatewayv2';
+import * as lambda from '@aws-sdk/client-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
 import chaiAsPromised from 'chai-as-promised';
 import sinon from 'sinon';
@@ -12,13 +15,17 @@ import {
 } from '../index';
 import Manager, { Version } from '@pwrdrvr/microapps-datalib';
 import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
-import type * as lambda from 'aws-lambda';
+import type * as lambdaTypes from 'aws-lambda';
 import { VersionStatus } from '@pwrdrvr/microapps-datalib/models/version';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 const { expect } = chai;
+
+let s3Client: AwsClientStub<s3.S3Client>;
+let apigwyClient: AwsClientStub<apigwy.ApiGatewayV2Client>;
+let lambdaClient: AwsClientStub<lambda.LambdaClient>;
 
 describe('VersionController', () => {
   let sandbox: sinon.SinonSandbox;
@@ -38,15 +45,21 @@ describe('VersionController', () => {
         displayName: 'NewDisplayName',
         type: 'createApp',
       } as ICreateApplicationRequest,
-      { awsRequestId: '123' } as lambda.Context,
+      { awsRequestId: '123' } as lambdaTypes.Context,
     );
 
     sandbox = sinon.createSandbox();
+    s3Client = mockClient(s3.S3Client);
+    apigwyClient = mockClient(apigwy.ApiGatewayV2Client);
+    lambdaClient = mockClient(lambda.LambdaClient);
   });
 
   afterEach(async () => {
     await DropTable();
     sandbox.restore();
+    s3Client.restore();
+    apigwyClient.restore();
+    lambdaClient.restore();
   });
 
   describe('checkVersionExists', () => {
@@ -57,7 +70,7 @@ describe('VersionController', () => {
           semVer: '0.0.0',
           type: 'checkVersionExists',
         } as ICheckVersionExistsRequest,
-        { awsRequestId: '123' } as lambda.Context,
+        { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).to.equal(404);
     });
@@ -81,22 +94,104 @@ describe('VersionController', () => {
           semVer: '0.0.0',
           type: 'checkVersionExists',
         } as ICheckVersionExistsRequest,
-        { awsRequestId: '123' } as lambda.Context,
+        { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).to.equal(200);
     });
   });
 
   //IDeployVersionRequest
+  // TODO: Add a test with continuations on:
+  //   S3 List
+  //   API Gateway List
   describe('deployVersion', () => {
-    it.skip('should return 201 for deploying version that does not exist', async () => {
-      // TODO: Mock S3 get for source path - return one file name
+    it('should return 201 for deploying version that does not exist', async () => {
+      const fakeLambdaARN = 'arn:aws:lambda:us-east-2:123456789:function:new-app-function';
+      const fakeAPIID = '123';
+      const fakeIntegrationID = 'abc123integrationID';
+      const appName = 'newapp';
+      const semVer = '0.0.0';
 
-      // TODO: Mock S3 put for destination path - accept the file
+      s3Client
+        // Mock S3 get for staging bucket - return one file name
+        .on(s3.ListObjectsV2Command, {
+          Bucket: 'pwrdrvr-apps-staging',
+          Prefix: `${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: false,
+          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+        })
+        // Mock S3 copy to prod bucket
+        .on(s3.CopyObjectCommand, {
+          Bucket: 'pwrdrvr-apps',
+          CopySource: `pwrdrvr-apps-staging/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({});
+      apigwyClient
+        // Mock Lambda Get request to return success for ARN
+        .on(apigwy.GetApisCommand, {
+          MaxResults: '100',
+        })
+        .resolves({
+          Items: [
+            {
+              Name: 'microapps-apis',
+              ApiId: fakeAPIID,
+              ProtocolType: 'HTTP',
+            } as apigwy.Api,
+          ],
+        });
+      lambdaClient
+        // Mock permission removes - these can fail
+        .on(lambda.RemovePermissionCommand)
+        .rejects()
+        // Mock permission add for version root
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version-root',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock permission add for version/*
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{{proxy+}}`,
+        })
+        .resolves({});
 
-      // TODO: Mock Lambda Get request to return success for ARN
-
-      // TODO: Mock API Gateway Integration Get for Router
+      apigwyClient
+        // Mock API Gateway Integration Create for Version
+        .on(apigwy.CreateIntegrationCommand, {
+          ApiId: fakeAPIID,
+          IntegrationType: apigwy.IntegrationType.AWS_PROXY,
+          IntegrationMethod: 'POST',
+          PayloadFormatVersion: '2.0',
+          IntegrationUri: fakeLambdaARN,
+        })
+        .resolves({
+          IntegrationId: fakeIntegrationID,
+        })
+        // Mock create route - this might fail
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: fakeAPIID,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock create route for /*
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: fakeAPIID,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}/{{proxy+}}`,
+        })
+        .resolves({});
 
       // TODO: Mock API Gateway Integration Create for Version
 
@@ -104,12 +199,12 @@ describe('VersionController', () => {
         {
           appName: 'NewApp',
           semVer: '0.0.0',
-          defaultFile: '',
-          lambdaARN: '', // TODO: Need some sort of arn
-          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/', // TODO: Need a fake s3 URI
+          defaultFile: 'index.html',
+          lambdaARN: fakeLambdaARN,
+          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/',
           type: 'deployVersion',
         } as IDeployVersionRequest,
-        { awsRequestId: '123' } as lambda.Context,
+        { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).to.equal(201);
     });

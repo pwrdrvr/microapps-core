@@ -36,7 +36,7 @@ export default class VersionController {
   public static async DeployVersion(request: IDeployVersionRequest): Promise<IDeployerResponse> {
     Log.Instance.debug(`Got Body:`, request);
 
-    const destinationPrefix = `${request.appName}/${request.semVer}`;
+    const destinationPrefix = `${request.appName}/${request.semVer}`.toLowerCase();
 
     // Check if the version exists
     let record = await Version.LoadVersionAsync(
@@ -199,6 +199,8 @@ export default class VersionController {
     if (rules === undefined) {
       rules = new Rules({
         AppName: request.appName,
+        RuleSet: {},
+        Version: 1,
       });
       rules.RuleSet.default = {
         SemVer: request.semVer,
