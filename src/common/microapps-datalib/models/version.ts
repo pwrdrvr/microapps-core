@@ -12,7 +12,7 @@ export interface IVersionRecord {
   AppName: string;
   SemVer: string;
   Type: string;
-  Status: string;
+  Status: VersionStatus;
   DefaultFile: string;
   IntegrationID: string;
 }
