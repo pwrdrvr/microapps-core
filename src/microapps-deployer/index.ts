@@ -1,7 +1,10 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
+import Log from './lib/Log';
 import { LambdaLog, LogMessage } from 'lambda-log';
+import AppController from './controllers/AppController';
+import VersionController from './controllers/VersionController';
 
 const localTesting = process.env.DEBUG ? true : false;
 
@@ -43,12 +46,13 @@ export async function handler(
   context: lambda.Context,
 ): Promise<IDeployerResponse> {
   // Change the logger on each request
-  const log = new LambdaLog({
+  Log.Instance = new LambdaLog({
     dev: localTesting,
-    //debug: localTesting,
+    debug: localTesting,
     meta: {
       source: 'microapps-deployer',
       awsRequestId: context.awsRequestId,
+      requestType: event.type,
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     dynamicMeta: (_message: LogMessage) => {
@@ -58,11 +62,23 @@ export async function handler(
     },
   });
 
-  // TODO: Re-implement the DeployerSvc
+  // Dispatch based on request type
+  switch (event.type) {
+    case 'createApp': {
+      const request = event as ICreateApplicationRequest;
+      return await AppController.CreateApp(request);
+    }
 
-  return {
-    statusCode: 501,
-  };
+    case 'checkVersionExists': {
+      const request = event as ICheckVersionExistsRequest;
+      return await VersionController.CheckVersionExists(request);
+    }
+
+    case 'deployVersion': {
+      const request = event as IDeployVersionRequest;
+      return await VersionController.DeployVersion(request);
+    }
+  }
 }
 
 // Run the function locally for testing
