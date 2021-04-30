@@ -9,6 +9,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import Log from '../lib/Log';
 
 const lambdaClient = new lambda.LambdaClient({});
 const s3Client = new s3.S3Client({});
@@ -25,14 +26,15 @@ export default class VersionController {
       // Check if the version exists
       const record = await Version.LoadVersionAsync(manager.DBDocClient, appName, semVer);
       if (record !== undefined && record.Status !== 'pending') {
-        console.log(`App/Version already exists: ${appName}/${semVer}`);
+        Log.Instance.info('App/Version already exists', { appName, semVer });
         return { statusCode: 200 };
       } else {
-        console.log(`App/Version does not exist: ${appName}/${semVer}`);
+        Log.Instance.info('App/Version does not exist', { appName, semVer });
         return { statusCode: 404 };
       }
     } catch (err) {
-      console.log(`Caught unexpected exception: ${err.message}`);
+      Log.Instance.info(`Caught unexpected exception: ${err.message}`);
+      Log.Instance.info(err);
     }
 
     return { statusCode: 200 };
@@ -40,7 +42,7 @@ export default class VersionController {
 
   public static async DeployVersion(request: IDeployVersionRequest): Promise<IDeployerResponse> {
     try {
-      console.log(`Got Body:`, request);
+      Log.Instance.debug(`Got Body:`, request);
 
       const destinationPrefix = `${request.appName}/${request.semVer}`;
 
@@ -51,7 +53,10 @@ export default class VersionController {
         request.semVer,
       );
       if (record !== undefined && record.Status === 'routed') {
-        console.log(`App/Version already exists: ${request.appName}/${request.semVer}`);
+        Log.Instance.info('App/Version already exists', {
+          appName: request.appName,
+          semVer: request.semVer,
+        });
         return { statusCode: 409 };
       }
 
