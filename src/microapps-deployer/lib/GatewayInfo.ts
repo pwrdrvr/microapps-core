@@ -18,7 +18,7 @@ export default class GatewayInfo {
       return undefined;
     }
     for (const api of apis.Items) {
-      if (api.Name == 'microapps-apis') {
+      if (api.Name === 'microapps-apis') {
         return api;
       }
     }
