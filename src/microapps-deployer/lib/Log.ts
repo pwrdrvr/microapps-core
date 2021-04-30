@@ -1,5 +1,5 @@
 import { LambdaLog } from 'lambda-log';
 
 export default class Log {
-  public static Instance: LambdaLog;
+  public static Instance = new LambdaLog();
 }

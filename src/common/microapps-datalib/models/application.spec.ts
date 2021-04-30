@@ -80,6 +80,11 @@ describe('application records', () => {
     }
   });
 
+  it('LoadAsync should handle missing records', async () => {
+    const record = await Application.LoadAsync(dynamoClient.ddbDocClient, 'App1');
+    expect(record).to.be.equal(undefined);
+  });
+
   it('LoadAllAppsAsync should return all applications', async () => {
     let application = new Application();
     application.AppName = 'Bpp1';
