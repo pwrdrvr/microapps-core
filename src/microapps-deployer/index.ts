@@ -20,6 +20,7 @@ interface IRequestBase {
 export interface ICreateApplicationRequest extends IRequestBase {
   type: 'createApp';
   appName: string;
+  displayName: string;
 }
 
 export interface ICheckVersionExistsRequest extends IRequestBase {
@@ -62,22 +63,28 @@ export async function handler(
     },
   });
 
-  // Dispatch based on request type
-  switch (event.type) {
-    case 'createApp': {
-      const request = event as ICreateApplicationRequest;
-      return await AppController.CreateApp(request);
-    }
+  try {
+    // Dispatch based on request type
+    switch (event.type) {
+      case 'createApp': {
+        const request = event as ICreateApplicationRequest;
+        return await AppController.CreateApp(request);
+      }
 
-    case 'checkVersionExists': {
-      const request = event as ICheckVersionExistsRequest;
-      return await VersionController.CheckVersionExists(request);
-    }
+      case 'checkVersionExists': {
+        const request = event as ICheckVersionExistsRequest;
+        return await VersionController.CheckVersionExists(request);
+      }
 
-    case 'deployVersion': {
-      const request = event as IDeployVersionRequest;
-      return await VersionController.DeployVersion(request);
+      case 'deployVersion': {
+        const request = event as IDeployVersionRequest;
+        return await VersionController.DeployVersion(request);
+      }
     }
+  } catch (err) {
+    Log.Instance.error('Caught unexpected exception in handler');
+    Log.Instance.error(err);
+    return { statusCode: 500 };
   }
 }
 
