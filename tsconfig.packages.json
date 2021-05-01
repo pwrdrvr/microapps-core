@@ -4,7 +4,7 @@
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
-
+    "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -14,8 +14,13 @@
     "target": "es2018",
     "module": "commonjs",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "typeRoots": ["./src/@types", "./node_modules/@types"]
+    "allowSyntheticDefaultImports": true
   },
-  "exclude": ["node_modules/*", "**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts"]
+  "exclude": [
+    "node_modules/*",
+    "**/node_modules/*",
+    "./src/apigateway-lre-proxy/*",
+    "**/*.spec.ts",
+    "dist"
+  ]
 }

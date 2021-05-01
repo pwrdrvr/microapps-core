@@ -12,10 +12,12 @@ export interface IVersionRecord {
   AppName: string;
   SemVer: string;
   Type: string;
-  Status: string;
+  Status: VersionStatus;
   DefaultFile: string;
   IntegrationID: string;
 }
+
+export type VersionStatus = 'pending' | 'assets-copied' | 'permissioned' | 'integrated' | 'routed';
 
 export default class Version implements IVersionRecord {
   private _keyBy: SaveBy;
@@ -130,11 +132,11 @@ export default class Version implements IVersionRecord {
     this._type = value;
   }
 
-  private _status: string | undefined;
-  public get Status(): string {
-    return this._status as string;
+  private _status: VersionStatus | undefined;
+  public get Status(): VersionStatus {
+    return this._status;
   }
-  public set Status(value: string) {
+  public set Status(value: VersionStatus) {
     this._status = value;
   }
 

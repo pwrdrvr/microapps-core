@@ -10,5 +10,5 @@
       "path": "../common/microapps-datalib/"
     }
   ],
-  "exclude": ["**/*.spec.ts", "dist/*"]
+  "exclude": ["**/*.spec.ts", "dist"]
 }
