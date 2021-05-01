@@ -10,6 +10,7 @@ import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import { Rules, Version } from '@pwrdrvr/microapps-datalib';
 import Log from '../lib/Log';
+import { listenerCount } from 'node:events';
 
 const lambdaClient = new lambda.LambdaClient({});
 const s3Client = new s3.S3Client({});
@@ -245,22 +246,22 @@ export default class VersionController {
     sourcePrefix: string,
     destinationPrefix: string,
   ) {
-    let list = await s3Client.send(
-      new s3.ListObjectsV2Command({
-        Bucket: sourceBucket,
-        Prefix: sourcePrefix,
-      }),
-    );
-    await VersionController.CopyFilesInList(list, sourceBucket, sourcePrefix, destinationPrefix);
-    while (list.IsTruncated) {
+    let list: s3.ListObjectsV2CommandOutput;
+    do {
+      const optionals =
+        list?.NextContinuationToken !== undefined
+          ? {
+              ContinuationToken: list.NextContinuationToken,
+            }
+          : ({} as s3.ListObjectsV2CommandInput);
       list = await s3Client.send(
         new s3.ListObjectsV2Command({
           Bucket: sourceBucket,
           Prefix: sourcePrefix,
-          ContinuationToken: list.NextContinuationToken,
+          ...optionals,
         }),
       );
       await VersionController.CopyFilesInList(list, sourceBucket, sourcePrefix, destinationPrefix);
-    }
+    } while (list.IsTruncated);
   }
 }

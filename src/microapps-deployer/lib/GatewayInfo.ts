@@ -8,20 +8,33 @@ export default class GatewayInfo {
   public static async GetAPI(
     apigwyClient: apigwy.ApiGatewayV2Client,
   ): Promise<apigwy.Api | undefined> {
-    const apis = await apigwyClient.send(
-      new apigwy.GetApisCommand({
-        MaxResults: '100',
-      }),
-    );
-    // TODO: Handle continuation tokens when more than 100 integrations
-    if (apis === undefined || apis.Items === undefined) {
-      return undefined;
-    }
-    for (const api of apis.Items) {
-      if (api.Name === 'microapps-apis') {
-        return api;
+    let apis: apigwy.GetApisCommandOutput | undefined;
+    do {
+      const optionals =
+        apis?.NextToken !== undefined
+          ? { NextToken: apis.NextToken }
+          : ({} as apigwy.GetApisCommandInput);
+      apis = await apigwyClient.send(
+        new apigwy.GetApisCommand({
+          MaxResults: '100',
+          ...optionals,
+        }),
+      );
+
+      if (apis === undefined) {
+        throw new Error('GetApisCommand unexpectedly returned undefined');
       }
-    }
+      if (apis.Items === undefined) {
+        continue;
+      }
+
+      // Loop through and find our item, it it is here
+      for (const api of apis.Items) {
+        if (api.Name === 'microapps-apis') {
+          return api;
+        }
+      }
+    } while (apis.NextToken !== undefined);
 
     return undefined;
   }
