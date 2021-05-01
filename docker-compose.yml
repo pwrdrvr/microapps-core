@@ -9,28 +9,10 @@ services:
     ports:
       - 9000:8080
 
-  deployerts:
-    build:
-      context: .
-      dockerfile: DockerfileDeployerTS
-    environment:
-      - AWS_PROFILE
-    ports:
-      - 9000:8080
-
   router:
     build:
       context: .
       dockerfile: DockerfileRouter
-    environment:
-      - AWS_PROFILE
-    ports:
-      - 9000:8080
-
-  routerts:
-    build:
-      context: .
-      dockerfile: DockerfileRouterTS
     environment:
       - AWS_PROFILE
     ports:

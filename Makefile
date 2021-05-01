@@ -7,8 +7,6 @@ DEPLOYER_ECR_REPO ?= microapps-deployer
 DEPLOYER_ECR_TAG ?= ${DEPLOYER_ECR_REPO}:latest
 ROUTER_ECR_REPO ?= microapps-router
 ROUTER_ECR_TAG ?= ${ROUTER_ECR_REPO}:latest
-RELEASE_ECR_REPO ?= microapps-release
-RELEASE_ECR_TAG ?= ${RELEASE_ECR_REPO}:latest
 
 help:
 	@echo "Commands:"
@@ -28,7 +26,7 @@ aws-ecr-login: ## establish ECR docker login session
 		--username AWS --password-stdin ${ECR_HOST}
 
 aws-ecr-publish-deployer: ## publish updated ECR docker image
-	@docker build -f DockerfileDeployerTS -t ${DEPLOYER_ECR_TAG}  .
+	@docker build -f DockerfileDeployer -t ${DEPLOYER_ECR_TAG}  .
 	@docker tag ${DEPLOYER_ECR_TAG} ${ECR_HOST}/${DEPLOYER_ECR_TAG}
 	@docker push ${ECR_HOST}/${DEPLOYER_ECR_TAG}
 
@@ -41,10 +39,6 @@ aws-ecr-publish-router: ## publish updated ECR docker image
 	@docker tag ${ROUTER_ECR_TAG} ${ECR_HOST}/${ROUTER_ECR_TAG}
 	@docker push ${ECR_HOST}/${ROUTER_ECR_TAG}
 
-aws-ecr-publish-router-ts: ## publish updated ECR docker image
-	@docker build -f DockerfileRouterTS -t ${ROUTER_ECR_TAG}  .
-	@docker tag ${ROUTER_ECR_TAG} ${ECR_HOST}/${ROUTER_ECR_TAG}
-	@docker push ${ECR_HOST}/${ROUTER_ECR_TAG}
 
 aws-lambda-update-router: ## Update the lambda function to use latest image
 	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO} \
@@ -55,15 +49,6 @@ aws-lambda-update-routerz: ## Update the lambda function using a .zip file
 	@sh -c 'cd distb/microapps-router/ && zip ../../microapps-router.zip * -x index.max.js'
 	@aws lambda update-function-code --function-name ${ROUTER_ECR_REPO}z \
 		--zip-file fileb://./microapps-router.zip
-
-aws-ecr-publish-release: ## publish updated ECR docker image
-	@docker build -f DockerfileRelease -t ${RELEASE_ECR_TAG}  .
-	@docker tag ${RELEASE_ECR_TAG} ${ECR_HOST}/${RELEASE_ECR_TAG}
-	@docker push ${ECR_HOST}/${RELEASE_ECR_TAG}
-
-aws-lambda-update-release: ## Update the lambda function to use latest image
-	@aws lambda update-function-code --function-name ${RELEASE_ECR_REPO} \
-		--image-uri ${ECR_HOST}/${RELEASE_ECR_TAG} --publish
 
 
 #
@@ -113,7 +98,3 @@ curl-local-lambda-router: ## Send test request to local app
 	@curl -v -XPOST -H "Content-Type: application/json" \
 		http://localhost:9000/2015-03-31/functions/function/invocations \
 		--data-binary "@test/json/router-release-app.json"
-
-# Build and tag the Lambda Runtime Env Proxy
-lre-proxy-build: ## publish updated ECR docker image
-	@docker build -f DockerfileGatewayProxy -t lre-proxy .
