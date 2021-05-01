@@ -162,7 +162,7 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{{proxy+}}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
@@ -189,7 +189,7 @@ describe('VersionController', () => {
         .on(apigwy.CreateRouteCommand, {
           ApiId: fakeAPIID,
           Target: `integrations/${fakeIntegrationID}`,
-          RouteKey: `ANY /${appName}/${semVer}/{{proxy+}}`,
+          RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
