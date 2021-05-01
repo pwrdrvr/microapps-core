@@ -1,23 +1,58 @@
-FROM public.ecr.aws/lambda/dotnet:5.0 AS base
+FROM node:15 as base
+
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
-WORKDIR /src
+# JRE is needed for DynamoDB emulator
+RUN apt-get update -y && apt-get -y install default-jre jq
+
+COPY tsconfig.*json .npmrc* .eslint* .prettier* package*.json rollup.*.js ./
+COPY ./src/microapps-router/package*.json .npmrc* ./src/microapps-router/
+COPY ./src/common/microapps-datalib/package*.json .npmrc* ./src/common/microapps-datalib/
+
+# npm ci works in order - If the deployer directory appears above router
+# and if the deployer directory is missing, then npm ci will bail out before
+# installing router deps.
+RUN mv tsconfig.json tsconfig.orig.json \
+  && npx strip-json-comments-cli ./tsconfig.orig.json \
+  | jq 'del(.references[] | select(.path != "./src/microapps-router/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json \
+  && mv package.json package.orig.json \
+  && cat package.orig.json | jq 'del(.workspaces[] | select(. != "./src/microapps-router/" and . != "./src/common/*"))' > package.json  
+
+# FROM base AS prodimages
+# # Remove the build packages
+# RUN npm ci --only=production
+# RUN cd ./src/microapps-router/ && npm ci --only=production
+
+
+FROM base AS build
+# Add the rest of the images needed
+RUN npm ci
+
 COPY ./src/ ./src/
-COPY microapps-core.sln ./
-RUN dotnet build src/PwrDrvr.MicroApps.Router/PwrDrvr.MicroApps.Router.csproj \
-  --configuration Release \ 
-  --output /app/build
 
-FROM build AS publish
-RUN dotnet publish src/PwrDrvr.MicroApps.Router/PwrDrvr.MicroApps.Router.csproj \
-  --configuration Release \ 
-  --runtime linux-x64 \
-  --self-contained false \ 
-  --output /app/publish \
-  -p:PublishReadyToRun=true 
+RUN npm run lint
+RUN rm -rf ./src/microapps-deployer/
+RUN npm run test
+RUN npm run build:router
+RUN rm distb/microapps-router/index.max.js
 
-FROM base AS final
-WORKDIR /var/task
-COPY --from=publish /app/publish .
-CMD ["PwrDrvr.MicroApps.Router::PwrDrvr.MicroApps.Router.Function::Handler"]
+# Remove the Dev node modules so they are not copied into the final images
+# RUN find . -name node_modules -type d -prune -exec rm -rf  {} \;
+
+CMD ["node", "distb/microapps-router/index.js"]
+
+
+FROM public.ecr.aws/lambda/nodejs:12 AS final
+
+# Copy the prod images only
+# COPY --from=prodimages /app .
+
+# Copy the source and built source
+# We want these as two layers (prodimages and built source)
+# so that changes to source only push just a new code layer
+# and not a new prodimages layer if that didn't change.
+COPY --from=build /app/distb/microapps-router/* ./
+
+
+CMD [ "./index.handler" ]
+

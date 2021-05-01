@@ -1,7 +1,0 @@
-{
-  "cookies": ["cookie1", "cookie2"],
-  "isBase64Encoded": false,
-  "statusCode": 404,
-  "headers": { "headerName": "headerValue" },
-  "body": "Hello from Lambda!"
-}
