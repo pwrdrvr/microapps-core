@@ -114,8 +114,8 @@ class PublishTool {
       }
 
       // Confirm the Version Does Not Exist in Published State
-      const exists = await DeployClient.CheckVersionExists(deployConfig);
-      if (exists) {
+      const appExists = await DeployClient.CheckVersionExists(deployConfig);
+      if (appExists) {
         console.log(
           `Warning: App/Version already exists: ${deployConfig.AppName}/${deployConfig.SemVer}`,
         );
@@ -126,8 +126,10 @@ class PublishTool {
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
-      console.log('Creating MicroApp');
-      await DeployClient.CreateApp(deployConfig);
+      if (!appExists) {
+        console.log('Creating MicroApp');
+        await DeployClient.CreateApp(deployConfig);
+      }
 
       // Call Deployer to Deploy AppName/Version
       console.log('Creating MicroApp Version');
