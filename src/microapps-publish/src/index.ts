@@ -69,6 +69,15 @@ class PublishTool {
       // Read in the deploy.json config file for DeployTool
       const deployConfig = await DeployConfig.Load();
 
+      if (deployConfig === undefined) {
+        console.log('Failed to load the config file');
+        process.exit(1);
+      }
+      if (deployConfig.StaticAssetsPath === undefined) {
+        console.log('StaticAssetsPath must be specified in the config file');
+        process.exit(1);
+      }
+
       console.log(`Invoking serverless next.js build for ${deployConfig.AppName}/${version}`);
 
       // Run the serverless next.js build
