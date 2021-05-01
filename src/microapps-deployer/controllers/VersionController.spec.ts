@@ -100,13 +100,10 @@ describe('VersionController', () => {
     });
   });
 
-  //IDeployVersionRequest
-  // TODO: Add a test with continuations on:
-  //   S3 List
-  //   API Gateway List
   describe('deployVersion', () => {
+    const fakeLambdaARN = 'arn:aws:lambda:us-east-2:123456789:function:new-app-function';
+
     it('should return 201 for deploying version that does not exist', async () => {
-      const fakeLambdaARN = 'arn:aws:lambda:us-east-2:123456789:function:new-app-function';
       const fakeAPIID = '123';
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
@@ -193,7 +190,122 @@ describe('VersionController', () => {
         })
         .resolves({});
 
-      // TODO: Mock API Gateway Integration Create for Version
+      const response = await handler(
+        {
+          appName: 'NewApp',
+          semVer: '0.0.0',
+          defaultFile: 'index.html',
+          lambdaARN: fakeLambdaARN,
+          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/',
+          type: 'deployVersion',
+        } as IDeployVersionRequest,
+        { awsRequestId: '123' } as lambdaTypes.Context,
+      );
+      expect(response.statusCode).to.equal(201);
+    });
+
+    it('should return 201 for deploying version that does not exist, with continuations', async () => {
+      const fakeAPIID = '123';
+      const fakeIntegrationID = 'abc123integrationID';
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
+      s3Client
+        // Mock S3 get for staging bucket - return one file name
+        .on(s3.ListObjectsV2Command, {
+          Bucket: 'pwrdrvr-apps-staging',
+          Prefix: `${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: true,
+          NextContinuationToken: 'nothing-to-see-here-yet',
+        })
+        .on(s3.ListObjectsV2Command, {
+          ContinuationToken: 'nothing-to-see-here-yet',
+          Bucket: 'pwrdrvr-apps-staging',
+          Prefix: `${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: false,
+          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+        })
+        // Mock S3 copy to prod bucket
+        .on(s3.CopyObjectCommand, {
+          Bucket: 'pwrdrvr-apps',
+          CopySource: `pwrdrvr-apps-staging/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({});
+      apigwyClient
+        // Mock Lambda Get request to return success for ARN
+        .on(apigwy.GetApisCommand, {
+          MaxResults: '100',
+        })
+        .resolves({
+          NextToken: 'nothing-to-see-here-yet',
+        })
+        .on(apigwy.GetApisCommand, {
+          MaxResults: '100',
+          NextToken: 'nothing-to-see-here-yet',
+        })
+        .resolves({
+          Items: [
+            {
+              Name: 'microapps-apis',
+              ApiId: fakeAPIID,
+              ProtocolType: 'HTTP',
+            } as apigwy.Api,
+          ],
+        });
+      lambdaClient
+        // Mock permission removes - these can fail
+        .on(lambda.RemovePermissionCommand)
+        .rejects()
+        // Mock permission add for version root
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version-root',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock permission add for version/*
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{proxy+}`,
+        })
+        .resolves({});
+
+      apigwyClient
+        // Mock API Gateway Integration Create for Version
+        .on(apigwy.CreateIntegrationCommand, {
+          ApiId: fakeAPIID,
+          IntegrationType: apigwy.IntegrationType.AWS_PROXY,
+          IntegrationMethod: 'POST',
+          PayloadFormatVersion: '2.0',
+          IntegrationUri: fakeLambdaARN,
+        })
+        .resolves({
+          IntegrationId: fakeIntegrationID,
+        })
+        // Mock create route - this might fail
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: fakeAPIID,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock create route for /*
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: fakeAPIID,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
+        })
+        .resolves({});
 
       const response = await handler(
         {
@@ -207,6 +319,31 @@ describe('VersionController', () => {
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).to.equal(201);
+    });
+
+    it('should 409 version that exists with "routed" status', async () => {
+      const version = new Version({
+        AppName: 'NewApp',
+        DefaultFile: '',
+        IntegrationID: '',
+        SemVer: '0.0.0',
+        Status: 'routed' as VersionStatus,
+        Type: 'lambda',
+      });
+      await version.SaveAsync(dynamoClient.ddbDocClient);
+
+      const response = await handler(
+        {
+          appName: 'NewApp',
+          semVer: '0.0.0',
+          defaultFile: 'index.html',
+          lambdaARN: fakeLambdaARN,
+          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/',
+          type: 'deployVersion',
+        } as IDeployVersionRequest,
+        { awsRequestId: '123' } as lambdaTypes.Context,
+      );
+      expect(response.statusCode).to.equal(409);
     });
   });
 });
