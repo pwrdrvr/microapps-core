@@ -126,10 +126,8 @@ class PublishTool {
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
-      if (!appExists) {
-        console.log('Creating MicroApp');
-        await DeployClient.CreateApp(deployConfig);
-      }
+      console.log('Creating MicroApp');
+      await DeployClient.CreateApp(deployConfig);
 
       // Call Deployer to Deploy AppName/Version
       console.log('Creating MicroApp Version');
