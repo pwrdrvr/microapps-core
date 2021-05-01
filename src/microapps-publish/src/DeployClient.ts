@@ -88,7 +88,7 @@ export default class DeployClient {
       const dResponse = JSON.parse(
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
-      if (dResponse.statusCode === 200) {
+      if (dResponse.statusCode === 201) {
         console.log(`Deploy succeeded: ${config.AppName}/${config.SemVer}`);
       } else {
         console.log(`Deploy failed with: ${dResponse.statusCode}`);
