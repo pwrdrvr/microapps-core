@@ -173,8 +173,10 @@ export default class VersionController {
             RouteKey: `ANY /${request.appName}/${request.semVer}`,
           }),
         );
-      } catch {
+      } catch (err) {
         // Don't care
+        Log.Instance.error('Caught unexpected error on app/ver route add');
+        Log.Instance.error(err);
       }
       try {
         await apigwyClient.send(
@@ -184,8 +186,10 @@ export default class VersionController {
             RouteKey: `ANY /${request.appName}/${request.semVer}/{{proxy+}}`,
           }),
         );
-      } catch {
+      } catch (err) {
         // Don't care
+        Log.Instance.error('Caught unexpected error on {{proxy+}} route add');
+        Log.Instance.error(err);
       }
 
       // Update the status - Final status
