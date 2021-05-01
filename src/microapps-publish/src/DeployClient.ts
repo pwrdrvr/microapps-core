@@ -15,6 +15,7 @@ export default class DeployClient {
     const request = {
       type: 'createApp',
       appName: config.AppName,
+      displayName: config.AppName,
     } as ICreateApplicationRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
