@@ -25,9 +25,11 @@
     "@aws-sdk/client-s3": "^3.13.1",
     "commander": "^7.1.0",
     "fs-extra": "^9.1.0",
+    "mime-types": "^2.1.30",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "^9.0.11"
+    "@types/fs-extra": "^9.0.11",
+    "@types/mime-types": "^2.1.0"
   }
 }
