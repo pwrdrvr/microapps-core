@@ -12,11 +12,17 @@ export default class S3Uploader {
 
     // Make a local root dir for the upload
     const tempUploadPath = path.join(S3Uploader._tempDir, destinationPrefix);
-    const stats = await fs.stat(S3Uploader._tempDir);
-    if (stats.isDirectory()) {
-      await fs.rm(S3Uploader._tempDir, { recursive: true });
+    try {
+      const stats = await fs.stat(S3Uploader._tempDir);
+      if (stats.isDirectory()) {
+        await fs.rm(S3Uploader._tempDir, { recursive: true });
+      }
+    } catch {
+      // Don't care
+      // fs.stat will throw if file/dir does not exist
+      // Since we want the directory deleted this is ok
     }
-    await fs.mkdir(tempUploadPath);
+    await fs.mkdir(tempUploadPath, { recursive: true });
 
     // Copy the files in the source dir to the root dir
     // Note: It would be faster to move the files, then move them back
@@ -35,7 +41,7 @@ export default class S3Uploader {
     sourceDirName: string,
     destDirName: string,
     copySubDirs: boolean,
-  ) {
+  ): Promise<void> {
     // Get the subdirectories for the specified directory.
     const dir = await fs.stat(sourceDirName);
 
@@ -46,9 +52,17 @@ export default class S3Uploader {
     const all = await fs.readdir(sourceDirName, { withFileTypes: true });
 
     // If the destination directory doesn't exist, create it.
-    const destDirStat = await fs.stat(destDirName);
-    if (!destDirStat.isDirectory()) {
-      fs.mkdir(destDirName);
+    let destDirExists = false;
+    try {
+      const destDirStat = await fs.stat(destDirName);
+      if (destDirStat.isDirectory()) {
+        destDirExists = true;
+      }
+    } catch {
+      // Don't care
+    }
+    if (!destDirExists) {
+      await fs.mkdir(destDirName);
     }
 
     // Get the files in the directory and copy them to the new location.
@@ -59,7 +73,7 @@ export default class S3Uploader {
         await fs.copyFile(file.name, tempPath);
       } else if (file.isDirectory()) {
         const tempPath = path.join(destDirName, file.name);
-        S3Uploader.DirectoryCopy(file.name, tempPath, copySubDirs);
+        await S3Uploader.DirectoryCopy(file.name, tempPath, copySubDirs);
       }
     }
   }
