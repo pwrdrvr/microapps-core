@@ -131,7 +131,7 @@ export default class VersionController {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api.ApiId}/*/*/${request.appName}/${request.semVer}/{{proxy+}}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api.ApiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
         }),
       );
       record.Status = 'permissioned';
@@ -183,12 +183,12 @@ export default class VersionController {
           new apigwy.CreateRouteCommand({
             ApiId: api.ApiId,
             Target: `integrations/${integrationId}`,
-            RouteKey: `ANY /${request.appName}/${request.semVer}/{{proxy+}}`,
+            RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
           }),
         );
       } catch (err) {
         // Don't care
-        Log.Instance.error('Caught unexpected error on {{proxy+}} route add');
+        Log.Instance.error('Caught unexpected error on {proxy+} route add');
         Log.Instance.error(err);
       }
 
