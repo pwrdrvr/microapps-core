@@ -7,17 +7,17 @@ RUN apt-get update -y && apt-get -y install default-jre
 # RUN apt-get update && apt-get install -y jq
 
 COPY tsconfig.*json .npmrc* .eslint* .prettier* package*.json rollup.*.js ./
-COPY ./src/microapps-deployer/package*.json .npmrc* ./src/microapps-deployer/
+COPY ./src/microapps-router/package*.json .npmrc* ./src/microapps-router/
 COPY ./src/common/microapps-datalib/package*.json .npmrc* ./src/common/microapps-datalib/
 
 # RUN mv tsconfig.json tsconfig.orig.json \
 #   && npx strip-json-comments-cli ./tsconfig.orig.json \
-#   | jq 'del(.references[] | select(.path != "./src/microapps-deployer/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json
+#   | jq 'del(.references[] | select(.path != "./src/microapps-router/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json
 
 # FROM base AS prodimages
 # # Remove the build packages
 # RUN npm ci --only=production
-# RUN cd ./src/microapps-deployer/ && npm ci --only=production
+# RUN cd ./src/microapps-router/ && npm ci --only=production
 
 
 FROM base AS build
@@ -28,13 +28,13 @@ COPY ./src/ ./src/
 
 RUN npm run lint
 RUN npm run test
-RUN npm run build:deployer
-RUN rm distb/microapps-deployer/index.max.js
+RUN npm run build:router
+RUN rm distb/microapps-router/index.max.js
 
 # Remove the Dev node modules so they are not copied into the final images
 # RUN find . -name node_modules -type d -prune -exec rm -rf  {} \;
 
-CMD ["node", "distb/microapps-deployer/index.js"]
+CMD ["node", "distb/microapps-router/index.js"]
 
 
 FROM public.ecr.aws/lambda/nodejs:12 AS final
@@ -46,7 +46,7 @@ FROM public.ecr.aws/lambda/nodejs:12 AS final
 # We want these as two layers (prodimages and built source)
 # so that changes to source only push just a new code layer
 # and not a new prodimages layer if that didn't change.
-COPY --from=build /app/distb/microapps-deployer/* ./
+COPY --from=build /app/distb/microapps-router/* ./
 
 
 CMD [ "./index.handler" ]
