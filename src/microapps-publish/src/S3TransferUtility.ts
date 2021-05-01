@@ -5,6 +5,7 @@
 import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
 import * as S3 from '@aws-sdk/client-s3';
+import { contentType } from 'mime-types';
 
 export default class S3TransferUtility {
   // Recursive getFiles from
@@ -32,6 +33,8 @@ export default class S3TransferUtility {
           Key: path.relative(s3Path, filePath),
           Bucket: bucketName,
           Body: createReadStream(filePath),
+          ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
+          CacheControl: 'max-age=86400; public',
         }),
       ),
     );

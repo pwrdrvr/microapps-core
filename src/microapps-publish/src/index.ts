@@ -9,7 +9,6 @@ import * as fs from 'fs/promises';
 import DeployConfig, { IDeployConfig } from './DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
-import { pathToFileURL } from 'node:url';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -126,11 +125,11 @@ class PublishTool {
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
-      console.log('Creating MicroApp');
+      console.log(`Creating MicroApp Application: ${deployConfig.AppName}`);
       await DeployClient.CreateApp(deployConfig);
 
       // Call Deployer to Deploy AppName/Version
-      console.log('Creating MicroApp Version');
+      console.log(`Creating MicroApp Version: ${deployConfig.SemVer}`);
       await DeployClient.DeployVersion(deployConfig);
 
       console.log(`Published: ${deployConfig.AppName}/${deployConfig.SemVer}`);
