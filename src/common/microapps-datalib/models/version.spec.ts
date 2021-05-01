@@ -1,11 +1,24 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import Manager from '../index';
-import { dynamoClient } from '../../../fixtures';
+import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
 import Version from './version';
 import { TABLE_NAME } from '../config';
+import Manager from '../index';
 
 describe('version records', () => {
+  before(async () => {
+    new Manager(dynamoClient.client);
+  });
+
+  beforeEach(async () => {
+    // Create the table
+    await InitializeTable();
+  });
+
+  afterEach(async () => {
+    await DropTable();
+  });
+
   it('saving a version should create one record', async () => {
     const version = new Version();
     version.AppName = 'Cat';

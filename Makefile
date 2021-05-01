@@ -28,7 +28,7 @@ aws-ecr-login: ## establish ECR docker login session
 		--username AWS --password-stdin ${ECR_HOST}
 
 aws-ecr-publish-deployer: ## publish updated ECR docker image
-	@docker build -f DockerfileDeployer -t ${DEPLOYER_ECR_TAG}  .
+	@docker build -f DockerfileDeployerTS -t ${DEPLOYER_ECR_TAG}  .
 	@docker tag ${DEPLOYER_ECR_TAG} ${ECR_HOST}/${DEPLOYER_ECR_TAG}
 	@docker push ${ECR_HOST}/${DEPLOYER_ECR_TAG}
 

@@ -1,13 +1,20 @@
-version: "3.3"
+version: '3.3'
 services:
   deployer:
     build:
       context: .
       dockerfile: DockerfileDeployer
     environment:
-      - AWS_REGION
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
+      - AWS_PROFILE
+    ports:
+      - 9000:8080
+
+  deployerts:
+    build:
+      context: .
+      dockerfile: DockerfileDeployerTS
+    environment:
+      - AWS_PROFILE
     ports:
       - 9000:8080
 
@@ -16,9 +23,7 @@ services:
       context: .
       dockerfile: DockerfileRouter
     environment:
-      - AWS_REGION
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
+      - AWS_PROFILE
     ports:
       - 9000:8080
 
@@ -27,10 +32,6 @@ services:
       context: .
       dockerfile: DockerfileRouterTS
     environment:
-      - AWS_REGION
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_SESSION_TOKEN
-      - AWS_SECURITY_TOKEN
+      - AWS_PROFILE
     ports:
       - 9000:8080

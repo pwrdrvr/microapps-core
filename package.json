@@ -16,7 +16,9 @@
   "scripts": {
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
     "install:dotnet": "dotnet restore",
+    "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
     "build": "tsc --build tsconfig.json",
+    "build:deployer": "rollup --config rollup.deployer.js",
     "build:router": "rollup --config rollup.router.js && cp src/microapps-router/appFrame.html distb/microapps-router/",
     "test:trash": "start-server-and-test test:dynamodb http-get://localhost:8000/ test:mocha",
     "test:dynamodb": "local-dynamodb",
@@ -33,7 +35,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^11.2.0",
+    "@rollup/plugin-node-resolve": "^10.0.0",
     "@types/node": "^14.14.10",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",

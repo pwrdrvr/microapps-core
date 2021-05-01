@@ -6,5 +6,5 @@
     "moduleResolution": "node",
     "resolveJsonModule": true
   },
-  "exclude": ["**/*.spec.ts", "dist/*"]
+  "exclude": ["**/*.spec.ts", "dist"]
 }

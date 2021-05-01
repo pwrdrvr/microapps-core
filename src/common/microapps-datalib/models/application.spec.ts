@@ -1,10 +1,24 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient } from '../../../fixtures';
+import { dynamoClient, DropTable, InitializeTable } from '../../../fixtures';
 import Application from './application';
 import { TABLE_NAME } from '../config';
+import Manager from '../index';
 
 describe('application records', () => {
+  before(async () => {
+    new Manager(dynamoClient.client);
+  });
+
+  beforeEach(async () => {
+    // Create the table
+    await InitializeTable();
+  });
+
+  afterEach(async () => {
+    await DropTable();
+  });
+
   it('saving an application should create two records', async () => {
     const application = new Application();
     application.AppName = 'Cat';
@@ -64,6 +78,11 @@ describe('application records', () => {
       expect(record.AppName).equal('app2');
       expect(record.DisplayName).equal('Application Two');
     }
+  });
+
+  it('LoadAsync should handle missing records', async () => {
+    const record = await Application.LoadAsync(dynamoClient.ddbDocClient, 'App1');
+    expect(record).to.be.equal(undefined);
   });
 
   it('LoadAllAppsAsync should return all applications', async () => {

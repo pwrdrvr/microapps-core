@@ -4,13 +4,14 @@
     "target": "es2018",
     "module": "commonjs",
     "allowJs": false,
-    "outDir": "./dist/",
+    "outDir": "dist",
     "rootDir": "./src/",
     "strict": true,
     "typeRoots": ["./src/@types"],
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true
   },
   "references": [
     {
@@ -26,5 +27,5 @@
       "path": "./src/microapps-publish/"
     }
   ],
-  "exclude": ["**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts"]
+  "exclude": ["**/node_modules/*", "./src/apigateway-lre-proxy/*", "**/*.spec.ts", "dist"]
 }

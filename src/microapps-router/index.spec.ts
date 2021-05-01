@@ -3,12 +3,25 @@ import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import { handler } from './index';
 import * as lambda from 'aws-lambda';
-import { dynamoClient } from '../fixtures';
+import { dynamoClient, InitializeTable, DropTable } from '../fixtures';
+
+//const manager = new Manager(dynamoClient.client);
 
 describe('router', () => {
-  it('should serve appframe with version and default file substitued', async () => {
-    const manager = new Manager(dynamoClient.client);
+  before(async () => {
+    new Manager(dynamoClient.client);
+  });
 
+  beforeEach(async () => {
+    // Create the table
+    await InitializeTable();
+  });
+
+  afterEach(async () => {
+    await DropTable();
+  });
+
+  it('should serve appframe with version and default file substitued', async () => {
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -47,8 +60,6 @@ describe('router', () => {
   });
 
   it('should serve appframe with no default file', async () => {
-    const manager = new Manager(dynamoClient.client);
-
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -87,8 +98,6 @@ describe('router', () => {
   });
 
   it('should serve appframe with sub-route', async () => {
-    const manager = new Manager(dynamoClient.client);
-
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -127,8 +136,6 @@ describe('router', () => {
   });
 
   it('should serve appframe with sub-route', async () => {
-    const manager = new Manager(dynamoClient.client);
-
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -167,8 +174,6 @@ describe('router', () => {
   });
 
   it('should return 404 for /favicon.ico', async () => {
-    const manager = new Manager(dynamoClient.client);
-
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "target": "es2019",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["./src/microapps-deployer/index.ts"]
+}
