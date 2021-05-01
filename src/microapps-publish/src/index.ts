@@ -105,7 +105,6 @@ class PublishTool {
       //
       // Tasks that used to be in DeployTool
       //
-      console.log('Copying S3 assets');
 
       // Check that Static Assets Folder exists
       const staticAssetsStats = await fs.stat(deployConfig.StaticAssetsPath);
@@ -123,12 +122,15 @@ class PublishTool {
       }
 
       // Upload Files to S3 Staging AppName/Version Prefix
+      console.log('Copying S3 assets');
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
+      console.log('Creating MicroApp');
       await DeployClient.CreateApp(deployConfig);
 
       // Call Deployer to Deploy AppName/Version
+      console.log('Creating MicroApp Version');
       await DeployClient.DeployVersion(deployConfig);
 
       console.log(`Published: ${deployConfig.AppName}/${deployConfig.SemVer}`);
