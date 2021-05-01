@@ -8,8 +8,8 @@ import {
 import DeployConfig from './DeployConfig';
 
 export default class DeployClient {
-  static readonly _client: lambda.LambdaClient;
-  static readonly _deployerFunctionName = 'TODO';
+  static readonly _client = new lambda.LambdaClient({});
+  static readonly _deployerFunctionName = 'microapps-deployer';
 
   public static async CreateApp(config: DeployConfig): Promise<void> {
     const request = {
@@ -23,7 +23,7 @@ export default class DeployClient {
       }),
     );
 
-    if (response.StatusCode !== 200) {
+    if (response.StatusCode !== 201 && response.StatusCode !== 200) {
       throw new Error('App create failed');
     }
   }
@@ -64,7 +64,7 @@ export default class DeployClient {
       }),
     );
 
-    if (response.StatusCode !== 200) {
+    if (response.StatusCode !== 201) {
       throw new Error('Failed to deploy version');
     }
   }

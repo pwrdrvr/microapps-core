@@ -9,6 +9,7 @@ import * as fs from 'fs/promises';
 import DeployConfig, { IDeployConfig } from './DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
+import { pathToFileURL } from 'node:url';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -16,7 +17,7 @@ const program = new commander.Command();
 
 program
   .version('0.9.3')
-  .option('-n, --newversion <version>', 'New version to apply')
+  .option('-n, --new-version [version]', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
   .parse(process.argv);
 
@@ -40,11 +41,11 @@ class PublishTool {
 
   public async UpdateVersion(): Promise<void> {
     const options = program.opts();
-    const version = options.newversion as string;
+    const version = options.newVersion as string;
     const leaveFiles = options.leave as boolean;
 
     if (version === undefined) {
-      console.log('--newversion <version> is a required parameter');
+      console.log('--new-version <version> is a required parameter');
       process.exit(1);
     }
 
@@ -81,7 +82,7 @@ class PublishTool {
       console.log(`Invoking serverless next.js build for ${deployConfig.AppName}/${version}`);
 
       // Run the serverless next.js build
-      await asyncExec('npx serverless');
+      await asyncExec('serverless');
 
       if (deployConfig.ServerlessNextRouterPath !== undefined) {
         console.log('Copying Serverless Next.js router to build output directory');
@@ -133,7 +134,6 @@ class PublishTool {
       console.log(`Published: ${deployConfig.AppName}/${deployConfig.SemVer}`);
     } catch (error) {
       console.log(`Caught exception: ${error.message}`);
-      process.exit(1);
     } finally {
       // Put the old files back when succeeded or failed
       for (const fileToModify of filesToModify) {
@@ -201,11 +201,9 @@ class PublishTool {
     await asyncExec(
       `aws ecr get-login-password --region ${deployConfig.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
     );
-
     console.log('Starting Docker build');
     await asyncExec(`docker build -f Dockerfile -t ${this.IMAGE_TAG}  .`);
     await asyncExec(`docker tag ${this.IMAGE_TAG} ${this.ECR_HOST}/${this.IMAGE_TAG}`);
-
     console.log('Starting Docker push to ECR');
     await asyncExec(`docker push ${this.ECR_HOST}/${this.IMAGE_TAG}`);
   }
@@ -260,5 +258,6 @@ class PublishTool {
   }
 }
 
+process.chdir('/Users/huntharo/pwrdrvr/microapps-app-release/');
 const publishTool = new PublishTool();
 publishTool.UpdateVersion();
