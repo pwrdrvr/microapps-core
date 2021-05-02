@@ -233,18 +233,6 @@ export class MicroApps extends cdk.Stack {
     });
 
     //
-    // Add a route to the Deployer function
-    //
-    const intDeployer = new apigwyint.LambdaProxyIntegration({
-      handler: deployerFunc,
-    });
-    httpApi.addRoutes({
-      path: '/deployer/{proxy+}',
-      methods: [apigwy.HttpMethod.ANY],
-      integration: intDeployer,
-    });
-
-    //
     // Let API Gateway accept request at apps-apis.pwrdrvr.com
     // That is the origin URI that CloudFront uses for this gateway.
     // The gateway will refuse the traffic if it doesn't have the
