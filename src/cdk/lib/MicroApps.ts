@@ -194,7 +194,7 @@ export class MicroApps extends cdk.Stack {
 
     // TODO: Add Last Route for /*/{proxy+}
     // Note: That might not work, may need a Behavior in CloudFront
-    //       or a Lambda @ Edge function that detecgts these and routes
+    //       or a Lambda @ Edge function that detects these and routes
     //       to origin Lambda Router function.
 
     //
