@@ -15,6 +15,9 @@
   },
   "references": [
     {
+      "path": "./src/cdk/"
+    },
+    {
       "path": "./src/common/microapps-datalib/"
     },
     {
