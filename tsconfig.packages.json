@@ -1,5 +1,4 @@
 {
-  //"extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -14,7 +13,6 @@
     "importHelpers": true,
     "composite": true,
     "target": "es2018",
-    // "lib": ["es2018"],
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
