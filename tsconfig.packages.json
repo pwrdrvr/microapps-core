@@ -1,9 +1,11 @@
 {
+  //"extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "outDir": "dist",
     "declaration": true,
     "declarationMap": true,
@@ -12,9 +14,14 @@
     "importHelpers": true,
     "composite": true,
     "target": "es2018",
+    // "lib": ["es2018"],
     "module": "commonjs",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+
+    "allowJs": false,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": ["node_modules/*", "**/node_modules/*", "**/*.spec.ts", "dist"]
 }

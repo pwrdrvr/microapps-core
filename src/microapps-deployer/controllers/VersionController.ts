@@ -10,7 +10,7 @@ import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import { Rules, Version } from '@pwrdrvr/microapps-datalib';
 import Log from '../lib/Log';
-import { listenerCount } from 'node:events';
+import { URL } from 'url';
 
 const lambdaClient = new lambda.LambdaClient({});
 const s3Client = new s3.S3Client({});
@@ -123,7 +123,7 @@ export default class VersionController {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api.ApiId}/*/*/${request.appName}/${request.semVer}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api?.ApiId}/*/*/${request.appName}/${request.semVer}`,
         }),
       );
       await lambdaClient.send(
@@ -132,7 +132,7 @@ export default class VersionController {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api.ApiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api?.ApiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
         }),
       );
       record.Status = 'permissioned';
@@ -147,7 +147,7 @@ export default class VersionController {
       } else {
         const integration = await apigwyClient.send(
           new apigwy.CreateIntegrationCommand({
-            ApiId: api.ApiId,
+            ApiId: api?.ApiId,
             IntegrationType: apigwy.IntegrationType.AWS_PROXY,
             IntegrationMethod: 'POST',
             PayloadFormatVersion: '2.0',
@@ -169,7 +169,7 @@ export default class VersionController {
       try {
         await apigwyClient.send(
           new apigwy.CreateRouteCommand({
-            ApiId: api.ApiId,
+            ApiId: api?.ApiId,
             Target: `integrations/${integrationId}`,
             RouteKey: `ANY /${request.appName}/${request.semVer}`,
           }),
@@ -182,7 +182,7 @@ export default class VersionController {
       try {
         await apigwyClient.send(
           new apigwy.CreateRouteCommand({
-            ApiId: api.ApiId,
+            ApiId: api?.ApiId,
             Target: `integrations/${integrationId}`,
             RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
           }),
@@ -246,7 +246,7 @@ export default class VersionController {
     sourcePrefix: string,
     destinationPrefix: string,
   ) {
-    let list: s3.ListObjectsV2CommandOutput;
+    let list: s3.ListObjectsV2CommandOutput | undefined;
     do {
       const optionals =
         list?.NextContinuationToken !== undefined

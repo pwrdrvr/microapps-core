@@ -3,8 +3,7 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "dist",
-    "moduleResolution": "node",
-    "resolveJsonModule": true
+    "strict": false
   },
   "exclude": ["**/*.spec.ts", "dist"]
 }
