@@ -23,7 +23,7 @@
     "build:router": "rollup --config rollup.router.js && cp src/microapps-router/appFrame.html distb/microapps-router/",
     "test:trash": "start-server-and-test test:dynamodb http-get://localhost:8000/ test:mocha",
     "test:dynamodb": "local-dynamodb",
-    "test": "TEST=true AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --require ./src/fixtures.ts --retries 2 -p tsconfig.json --ignore ./src/**/node_modules/**/*.spec.ts './src/**/*.spec.ts'",
+    "test": "TEST=true AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --require ./src/fixtures.ts --retries 2 -p tsconfig.packages.json --ignore ./src/**/node_modules/**/*.spec.ts './src/**/*.spec.ts'",
     "test:dumpdb": "AWS_REGION=mock AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey  aws dynamodb scan --endpoint-url http://localhost:8000 --region local --table-name MicroApps",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",

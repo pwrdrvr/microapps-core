@@ -1,8 +1,4 @@
 {
-  // Files must be blanked out else the files will get built
-  // with settings from this file in addition to the configs
-  // in the specific project directories.
-  // https://www.typescriptlang.org/docs/handbook/project-references.html#overall-structure
   "files": [],
   "references": [
     {
