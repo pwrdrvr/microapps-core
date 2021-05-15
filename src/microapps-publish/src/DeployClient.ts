@@ -1,5 +1,4 @@
 import * as lambda from '@aws-sdk/client-lambda';
-import { RemoveLayerVersionPermissionCommand } from '@aws-sdk/client-lambda';
 
 import {
   ICheckVersionExistsRequest,
@@ -7,7 +6,6 @@ import {
   IDeployerResponse,
   IDeployVersionRequest,
 } from '@pwrdrvr/microapps-deployer';
-import { errorMonitor } from 'node:events';
 import DeployConfig from './DeployConfig';
 
 export default class DeployClient {
