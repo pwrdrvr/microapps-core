@@ -5,7 +5,10 @@ services:
       context: .
       dockerfile: DockerfileDeployer
     environment:
-      - AWS_PROFILE
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
     ports:
       - 9000:8080
 
@@ -14,6 +17,9 @@ services:
       context: .
       dockerfile: DockerfileRouter
     environment:
-      - AWS_PROFILE
+      - AWS_REGION
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
     ports:
       - 9000:8080
