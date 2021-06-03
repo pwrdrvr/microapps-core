@@ -16,27 +16,22 @@
   "private": true,
   "scripts": {
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
-    "install:dotnet": "dotnet restore",
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
     "build": "tsc --build tsconfig.json",
     "build:deployer": "rollup --config rollup.deployer.js",
     "build:router": "rollup --config rollup.router.js && cp src/microapps-router/appFrame.html distb/microapps-router/",
     "test:trash": "start-server-and-test test:dynamodb http-get://localhost:8000/ test:mocha",
     "test:dynamodb": "local-dynamodb",
-    "test": "TEST=true AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --require ./src/fixtures.ts --retries 2 -p tsconfig.json --ignore ./src/**/node_modules/**/*.spec.ts './src/**/*.spec.ts'",
+    "test": "TEST=true AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey AWS_REGION=mock ts-mocha --require ./src/fixtures.ts --retries 2 -p tsconfig.packages.json --ignore ./src/**/node_modules/**/*.spec.ts './src/**/*.spec.ts'",
     "test:dumpdb": "AWS_REGION=mock AWS_ACCESS_KEY_ID=accessKeyId AWS_SECRET_ACCESS_KEY=secretAccessKey  aws dynamodb scan --endpoint-url http://localhost:8000 --region local --table-name MicroApps",
     "lint": "eslint ./ --ext .ts --ext .tsx",
-    "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
-    "build:all": "dotnet build --configuration release",
-    "start:deployer": "cross-env ASPNETCORE_URLS=http://*:5000 ASPNETCORE_ENVIRONMENT=Development dotnet watch --project src/PwrDrvr.MicroApps.Deployer/ run --no-launch-profile",
-    "generate-client:deployer": "start-server-and-test generate-client:deployer:serve http-get://localhost:5000/swagger/v1/swagger.json generate-client:deployer:generate",
-    "generate-client:deployer:serve": "cross-env ASPNETCORE_URLS=http://*:5000 ASPNETCORE_ENVIRONMENT=Development dotnet run --project src/PwrDrvr.MicroApps.Deployer --no-launch-profile",
-    "generate-client:deployer:generate": "dotnet run --project src/PwrDrvr.MicroApps.APIClientGenerator http://localhost:5000/swagger/v1/swagger.json src/PwrDrvr.MicroApps.Deployer/ClientExports/DeployerClient.ts TypeScript"
+    "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
+    "@tsconfig/node14": "^1.0.0",
     "@types/node": "^14.14.10",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",
@@ -56,6 +51,5 @@
     "ts-mocha": "^8.0.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.2"
-  },
-  "dependencies": {}
+  }
 }
