@@ -7,9 +7,16 @@
   "bin": {
     "microapps-publish": "dist/index.js"
   },
+  "engineStrict": true,
+  "engine": {
+    "node": ">= 10.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pwrdrvr/microapps-core.git"
