@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "target": "es2017",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "strict": false,
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["./src/microapps-publish/src/index.ts"]
+}
