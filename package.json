@@ -19,6 +19,7 @@
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
     "build": "tsc --build tsconfig.json",
     "build:deployer": "rollup --config rollup.deployer.js",
+    "build:publish": "rollup --config rollup.publish.js",
     "build:router": "rollup --config rollup.router.js && cp src/microapps-router/appFrame.html distb/microapps-router/",
     "test:trash": "start-server-and-test test:dynamodb http-get://localhost:8000/ test:mocha",
     "test:dynamodb": "local-dynamodb",
