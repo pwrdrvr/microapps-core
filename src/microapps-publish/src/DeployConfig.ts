@@ -15,10 +15,17 @@ export default class DeployConfig implements IDeployConfig {
   private static readonly _fileName = 'deploy.json';
 
   public static async Load(): Promise<DeployConfig> {
-    const stat = await fs.stat(DeployConfig._fileName);
-    if (stat.isFile()) {
-      const config = JSON.parse(await fs.readFile(DeployConfig._fileName, 'utf-8')) as DeployConfig;
-      return config;
+    try {
+      const stat = await fs.stat(DeployConfig._fileName);
+      if (stat.isFile()) {
+        const config = JSON.parse(
+          await fs.readFile(DeployConfig._fileName, 'utf-8'),
+        ) as DeployConfig;
+        return config;
+      }
+    } catch {
+      // File did not exist, so stat throws
+      return undefined;
     }
     return undefined;
   }

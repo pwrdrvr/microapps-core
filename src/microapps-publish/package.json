@@ -2,10 +2,10 @@
   "name": "@pwrdrvr/microapps-publish",
   "version": "0.9.4",
   "description": "Publish tool for deploying apps and updates",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "source": "src/index.ts",
   "bin": {
-    "microapps-publish": "dist/index.js"
+    "microapps-publish": "dist/src/index.js"
   },
   "engineStrict": true,
   "engine": {
@@ -15,7 +15,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "package.json",
+    "LICENSE",
+    "README.md"
   ],
   "repository": {
     "type": "git",
