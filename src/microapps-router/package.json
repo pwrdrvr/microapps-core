@@ -1,6 +1,7 @@
 {
   "name": "@pwrdrvr/microapps-router",
   "version": "1.0.0",
+  "private": true,
   "description": "Router for the microapps framework",
   "main": "dist/index.js",
   "scripts": {
