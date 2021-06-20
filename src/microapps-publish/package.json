@@ -21,8 +21,8 @@
     "type": "git",
     "url": "git+https://github.com/pwrdrvr/microapps-core.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "PwrDrvr LLC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
