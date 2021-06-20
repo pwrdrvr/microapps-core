@@ -18,7 +18,7 @@
   "private": true,
   "scripts": {
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
-    "start:publish": "node src/microapps-publish/dist/index.js",
+    "start:publish": "node src/microapps-publish/dist/src/index.js",
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
     "build": "tsc --build tsconfig.json",
     "build:deployer": "rollup --config rollup.deployer.js",
