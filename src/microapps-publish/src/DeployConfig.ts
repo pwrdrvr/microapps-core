@@ -9,7 +9,6 @@ export interface IDeployConfig {
   AWSAccountID: string;
   AWSRegion: string;
   ServerlessNextRouterPath: string;
-  DeployToolCommand: string;
 }
 
 export default class DeployConfig implements IDeployConfig {
@@ -37,6 +36,5 @@ export default class DeployConfig implements IDeployConfig {
   public AWSAccountID: string;
   public AWSRegion: string;
   public ServerlessNextRouterPath: string;
-  public DeployToolCommand: string;
   public DefaultFile: string;
 }
