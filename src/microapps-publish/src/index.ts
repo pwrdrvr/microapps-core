@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
+import 'source-map-support/register';
 import * as lambda from '@aws-sdk/client-lambda';
 import commander from 'commander';
 import * as util from 'util';
