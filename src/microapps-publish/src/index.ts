@@ -10,13 +10,14 @@ import * as fs from 'fs/promises';
 import DeployConfig, { IDeployConfig } from './DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
+import pkg from '../package.json';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
 const program = new commander.Command();
 
 program
-  .version('0.9.3')
+  .version(pkg.version)
   .option('-n, --new-version [version]', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
   .parse(process.argv);
@@ -33,6 +34,15 @@ class PublishTool {
   private ECR_REPO = '';
   private IMAGE_TAG = '';
   private IMAGE_URI = '';
+  private FILES_TO_MODIFY: {
+    path: string;
+    versions: IVersions;
+  }[];
+  private _restoreFilesStarted = false;
+
+  constructor() {
+    this.restoreFiles = this.restoreFiles.bind(this);
+  }
 
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
   private static escapeRegExp(value: string): string {
@@ -52,15 +62,26 @@ class PublishTool {
     const versionAndAlias = this.createVersions(version);
     const versionOnly = { version: versionAndAlias.version };
 
-    const filesToModify = [
+    this.FILES_TO_MODIFY = [
       { path: 'package.json', versions: versionOnly },
       { path: 'deploy.json', versions: versionAndAlias },
       { path: 'next.config.js', versions: versionOnly },
     ] as { path: string; versions: IVersions }[];
 
+    // Install handler to ensure that we restore files
+    process.on('SIGINT', () => {
+      if (this._restoreFilesStarted) {
+        return;
+      } else {
+        this._restoreFilesStarted = true;
+      }
+      console.log('Caught Ctrl-C, restoring files');
+      this.restoreFiles();
+    });
+
     try {
       // Modify the existing files with the new version
-      for (const fileToModify of filesToModify) {
+      for (const fileToModify of this.FILES_TO_MODIFY) {
         console.log(`Patching version (${versionAndAlias.version}) into ${fileToModify.path}`);
         if (!(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))) {
           console.log(`Failed modifying file: ${fileToModify.path}`);
@@ -107,8 +128,13 @@ class PublishTool {
       //
 
       // Check that Static Assets Folder exists
-      const staticAssetsStats = await fs.stat(deployConfig.StaticAssetsPath);
-      if (!staticAssetsStats.isDirectory()) {
+      try {
+        const staticAssetsStats = await fs.stat(deployConfig.StaticAssetsPath);
+        if (!staticAssetsStats.isDirectory()) {
+          console.log(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
+          process.exit(1);
+        }
+      } catch {
         console.log(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
         process.exit(1);
       }
@@ -137,8 +163,14 @@ class PublishTool {
     } catch (error) {
       console.log(`Caught exception: ${error.message}`);
     } finally {
-      // Put the old files back when succeeded or failed
-      for (const fileToModify of filesToModify) {
+      await this.restoreFiles();
+    }
+  }
+
+  public async restoreFiles(): Promise<void> {
+    // Put the old files back when succeeded or failed
+    for (const fileToModify of this.FILES_TO_MODIFY) {
+      try {
         const stats = await fs.stat(`${fileToModify.path}.original`);
         if (stats.isFile()) {
           // Remove the possibly modified file
@@ -147,6 +179,8 @@ class PublishTool {
           // Move the original file back
           await fs.rename(`${fileToModify.path}.original`, fileToModify.path);
         }
+      } catch {
+        // don't care... if the file doesn't exist we can't do anything
       }
     }
   }
