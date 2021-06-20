@@ -5,6 +5,8 @@
     "type": "git",
     "url": "git+https://github.com/pwrdrvr/microapps-core.git"
   },
+  "author": "PwrDrvr LLC",
+  "license": "MIT",
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "workspaces": [
     "./src/cdk/",

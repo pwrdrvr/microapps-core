@@ -12,10 +12,11 @@
     "registry": "https://npm.pkg.github.com/pwrdrvr"
   },
   "repository": {
-    "url": "git://github.com/pwrdrvr/microapps-core.git"
+    "type": "git",
+    "url": "git+https://github.com/pwrdrvr/microapps-core.git"
   },
   "author": "PwrDrvr LLC",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
