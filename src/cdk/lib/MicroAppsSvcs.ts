@@ -7,18 +7,32 @@ import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as logs from '@aws-cdk/aws-logs';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as r53 from '@aws-cdk/aws-route53';
-import * as r53targets from '@aws-cdk/aws-route53-targets';
-import { ICloudFrontExports } from './CloudFront';
-import { IReposExports } from './Repos';
+import { IMicroAppsCFExports } from './MicroAppsCF';
+import { IMicroAppsReposExports } from './MicroAppsRepos';
+import { IMicroAppsS3Exports } from './MicroAppsS3';
 
-interface IMicroAppsStackProps extends cdk.StackProps {
-  ReposExports: IReposExports;
-  CFStackExports: ICloudFrontExports;
+interface IMicroAppsSvcsStackProps extends cdk.StackProps {
+  reposExports: IMicroAppsReposExports;
+  cfStackExports: IMicroAppsCFExports;
+  s3Exports: IMicroAppsS3Exports;
+  local: {
+    domainName: string;
+    domainNameOrigin: string;
+    cert: acm.ICertificate;
+  };
 }
 
-export class MicroApps extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsStackProps) {
+export interface IMicroAppsSvcsExports {
+  dnAppsOrigin: apigwy.DomainName;
+}
+
+export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
+  private _dnAppsOrigin: apigwy.DomainName;
+  public get dnAppsOrigin(): apigwy.DomainName {
+    return this._dnAppsOrigin;
+  }
+
+  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsSvcsStackProps) {
     super(scope, id, props);
 
     if (props === undefined) {
@@ -28,12 +42,13 @@ export class MicroApps extends cdk.Stack {
       throw new Error('props.env cannot be undefined');
     }
 
-    // The code that defines your stack goes here
+    const { bucketApps, bucketAppsStaging } = props.s3Exports;
+    const { cert } = props.local;
+
     //
     // DynamoDB Table
     //
-    const table = new dynamodb.Table(this, 'table', {
-      tableName: 'MicroApps',
+    const table = new dynamodb.Table(this, 'microapps-router-table', {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',
@@ -46,19 +61,12 @@ export class MicroApps extends cdk.Stack {
     });
 
     //
-    // Import S3 Buckets
-    //
-    const bucketApps = props.CFStackExports.BucketApps;
-    const bucketStaging = s3.Bucket.fromBucketName(this, 'bucketStaging', 'pwrdrvr-apps-staging');
-
-    //
     // Deployer Lambda Function
     //
 
     // Create Deployer Lambda Function
-    const deployerFunc = new lambda.DockerImageFunction(this, 'deployer-func', {
-      code: lambda.DockerImageCode.fromEcr(props.ReposExports.RepoDeployer),
-      functionName: 'microapps-deployer',
+    const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+      code: lambda.DockerImageCode.fromEcr(props.reposExports.RepoDeployer),
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
@@ -79,7 +87,7 @@ export class MicroApps extends cdk.Stack {
       actions: ['s3:*'],
       notPrincipals: [
         new iam.CanonicalUserPrincipal(
-          props.CFStackExports.CloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
         new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
@@ -99,7 +107,7 @@ export class MicroApps extends cdk.Stack {
       actions: ['s3:*'],
       notPrincipals: [
         new iam.CanonicalUserPrincipal(
-          props.CFStackExports.CloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
         new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
@@ -120,7 +128,7 @@ export class MicroApps extends cdk.Stack {
       actions: ['s3:GetObject'],
       principals: [
         new iam.CanonicalUserPrincipal(
-          props.CFStackExports.CloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`],
@@ -142,7 +150,7 @@ export class MicroApps extends cdk.Stack {
     const policyReadListStaging = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject', 's3:ListBucket'],
-      resources: [`${bucketStaging.bucketArn}/*`, bucketStaging.bucketArn],
+      resources: [`${bucketAppsStaging.bucketArn}/*`, bucketAppsStaging.bucketArn],
     });
     deployerFunc.addToRolePolicy(policyReadListStaging);
 
@@ -159,20 +167,20 @@ export class MicroApps extends cdk.Stack {
     //
 
     // Create Router Lambda Function - Docker Image Version (aka "slow")
-    const routerFunc = new lambda.DockerImageFunction(this, 'router-func', {
-      code: lambda.DockerImageCode.fromEcr(props.ReposExports.RepoRouter),
-      functionName: 'microapps-router',
+    const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
+      code: lambda.DockerImageCode.fromEcr(props.reposExports.RepoRouter),
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
-    const routerzFunc = new lambda.Function(this, 'routerz-func', {
+    // Zip version of the function
+    // This is *much* faster on cold inits
+    const routerzFunc = new lambda.Function(this, 'microapps-router-funcz', {
       code: lambda.Code.fromInline(
         "function handler() { return 'cat'; }; exports.handler=handler;",
       ),
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
-      functionName: 'microapps-routerz',
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
@@ -198,21 +206,16 @@ export class MicroApps extends cdk.Stack {
     //       to origin Lambda Router function.
 
     //
-    // APIGateway for appsapis.pwrdrvr.com
+    // APIGateway domain names for CloudFront and origin
     //
 
-    // Import certificate
-    const certArn =
-      'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
-    const cert = acm.Certificate.fromCertificateArn(this, 'cert', certArn);
-
     // Create Custom Domains for API Gateway
-    const dnApps = new apigwy.DomainName(this, 'micro-apps-http-api-dn', {
-      domainName: 'apps.pwrdrvr.com',
+    const dnApps = new apigwy.DomainName(this, 'microapps-apps-dn', {
+      domainName: props.local.domainName,
       certificate: cert,
     });
-    const dnAppsApis = new apigwy.DomainName(this, 'micro-apps-http-apps-api-dn', {
-      domainName: 'appsapis.pwrdrvr.com',
+    const dnAppsApis = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
+      domainName: props.local.domainNameOrigin,
       certificate: cert,
     });
 
@@ -226,10 +229,9 @@ export class MicroApps extends cdk.Stack {
     const httpApiDomainMapping: apigwy.DomainMappingOptions = {
       domainName: dnApps,
     };
-    const httpApi = new apigwy.HttpApi(this, 'micro-apps-http-api', {
+    const httpApi = new apigwy.HttpApi(this, 'microapps-apis', {
       defaultDomainMapping: httpApiDomainMapping,
       defaultIntegration: intRouter,
-      apiName: 'microapps-apis',
     });
 
     //
@@ -238,30 +240,11 @@ export class MicroApps extends cdk.Stack {
     // The gateway will refuse the traffic if it doesn't have the
     // domain name registered.
     //
-    const mappingAppsApis = new apigwy.ApiMapping(this, 'apps-apis-mapping', {
+    const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-apis-mapping', {
       api: httpApi,
       domainName: dnAppsApis,
     });
     mappingAppsApis.node.addDependency(dnAppsApis);
-
-    //
-    // Create the appsapis.pwrdrvr.com name
-    //
-    const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'zone', {
-      zoneName: 'pwrdrvr.com',
-      hostedZoneId: 'ZHYNI9F572BBD',
-    });
-
-    const arecord = new r53.ARecord(this, 'ARecord', {
-      zone: zone,
-      recordName: 'appsapis',
-      target: r53.RecordTarget.fromAlias(
-        new r53targets.ApiGatewayv2DomainProperties(
-          dnAppsApis.regionalDomainName,
-          dnAppsApis.regionalHostedZoneId,
-        ),
-      ),
-    });
 
     //
     // Give Deployer permissions to create routes and integrations
