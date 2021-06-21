@@ -1,22 +1,17 @@
 import * as cdk from '@aws-cdk/core';
 import * as ecr from '@aws-cdk/aws-ecr';
 
-export interface IReposExports {
+export interface IMicroAppsReposExports {
   RepoDeployer: ecr.Repository;
   RepoRouter: ecr.Repository;
 }
 
-export class Repos extends cdk.Stack implements IReposExports {
+export class MicroAppsRepos extends cdk.Stack implements IMicroAppsReposExports {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-    this.RepoDeployer = new ecr.Repository(this, 'repoDeployer', {
-      repositoryName: 'microapps-deployer',
-    });
-    this.RepoRouter = new ecr.Repository(this, 'repoRouter', {
-      repositoryName: 'microapps-router',
-    });
+    this.RepoDeployer = new ecr.Repository(this, 'microapps-deployer', {});
+    this.RepoRouter = new ecr.Repository(this, 'microapps-router', {});
   }
   RepoDeployer: ecr.Repository;
   RepoRouter: ecr.Repository;
