@@ -34,7 +34,7 @@ export class MicroAppsR53 extends cdk.Stack {
     // Create the edge name for the CloudFront distro
     //
 
-    const rrAppsPwrDrvrCom = new r53.RecordSet(this, 'microapps-edge-arecord', {
+    const rrAppsEdge = new r53.RecordSet(this, 'microapps-edge-arecord', {
       recordName: domainName,
       recordType: r53.RecordType.A,
       target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(cloudFrontDistro)),
@@ -44,7 +44,7 @@ export class MicroAppsR53 extends cdk.Stack {
     //
     // Create the origin name for API Gateway
     //
-    const arecord = new r53.ARecord(this, 'microapps-origin-arecord', {
+    const rrAppsOrigin = new r53.ARecord(this, 'microapps-origin-arecord', {
       zone: zone,
       recordName: hostNameOrigin,
       target: r53.RecordTarget.fromAlias(

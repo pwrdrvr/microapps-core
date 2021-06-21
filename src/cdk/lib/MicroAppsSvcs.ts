@@ -210,11 +210,11 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     //
 
     // Create Custom Domains for API Gateway
-    const dnApps = new apigwy.DomainName(this, 'microapps-apps-dn', {
+    const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
       domainName: props.local.domainName,
       certificate: cert,
     });
-    const dnAppsApis = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
+    const dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
       domainName: props.local.domainNameOrigin,
       certificate: cert,
     });
@@ -225,26 +225,26 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       handler: routerFunc,
     });
 
-    // Create APIGateway for apps-apis.pwrdrvr.com
+    // Create APIGateway for the Edge name
     const httpApiDomainMapping: apigwy.DomainMappingOptions = {
-      domainName: dnApps,
+      domainName: dnAppsEdge,
     };
-    const httpApi = new apigwy.HttpApi(this, 'microapps-apis', {
+    const httpApi = new apigwy.HttpApi(this, 'microapps-api', {
       defaultDomainMapping: httpApiDomainMapping,
       defaultIntegration: intRouter,
     });
 
     //
-    // Let API Gateway accept request at apps-apis.pwrdrvr.com
+    // Let API Gateway accept requests using domainNameOrigin
     // That is the origin URI that CloudFront uses for this gateway.
     // The gateway will refuse the traffic if it doesn't have the
     // domain name registered.
     //
-    const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-apis-mapping', {
+    const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-api-mapping-origin', {
       api: httpApi,
-      domainName: dnAppsApis,
+      domainName: dnAppsOrigin,
     });
-    mappingAppsApis.node.addDependency(dnAppsApis);
+    mappingAppsApis.node.addDependency(dnAppsOrigin);
 
     //
     // Give Deployer permissions to create routes and integrations
