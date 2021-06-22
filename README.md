@@ -1,6 +1,10 @@
-# MicroApps Project
+# Overview
 
-- CDK Stacks
+The MicroApps project...
+
+# Project Layout
+
+- [src/cdk]() - CDK Stacks
   - MicroAppsS3
     - Creates S3 buckets
   - MicroAppsRepos
@@ -16,16 +20,16 @@
     - Creates Cloudfront distribution
   - MicroAppsR53
     - Creates domain names to point to the edge (Cloudfront) and origin (API Gateway)
-- microapps-deployer
+- [src/microapps-deployer]()
   - Lambda service invoked by `microapps-publish` to record new app/version in the DynamoDB table, create API Gateway integrations, copy S3 assets from staging to prod bucket, etc.
-- microapps-publish
+- [src/microapps-publish]()
   - Node executable that updates versions in config files, deploys static assets to the S3 staging bucket, optionally compiles and deploys a new Lambda function version, and invokes `microapps-deployer`
   - Permissions required:
     - Lambda invoke
     - S3 publish to the staging bucket
     - ECR write
     - Lambda version publish
-- microapps-router
+- [src/microapps-router]()
   - Lambda function that determines which version of an app to point a user to on a particular invocation
 
 # Useful Commands
