@@ -8,7 +8,7 @@ export default class SharedTags {
   }
 
   public static addEnvTag(construct: cdk.IConstruct, env: Env | '', isEphemeral: boolean): void {
-    cdk.Tags.of(construct).add('Environment', env);
+    if (env !== '' && env !== undefined) cdk.Tags.of(construct).add('Environment', env);
     if (isEphemeral) {
       cdk.Tags.of(construct).add('Ephemeral', 'true');
       cdk.Tags.of(construct).add('Ephemeral-Created', new Date().toISOString());
