@@ -8,6 +8,7 @@ import { MicroAppsCF } from '../lib/MicroAppsCF';
 import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
 import { MicroAppsS3 } from '../lib/MicroAppsS3';
 import { MicroAppsR53 } from '../lib/MicroAppsR53';
+import Tags from '../lib/Tags';
 
 const env: cdk.Environment = {
   region: 'us-east-2',
@@ -15,6 +16,8 @@ const env: cdk.Environment = {
 };
 
 const app = new cdk.App();
+
+Tags.addSharedTags(app);
 
 // CloudFront certificate
 // Note: Must be in US East 1
@@ -26,9 +29,9 @@ const cert = acm.Certificate.fromCertificateArn(
 
 // Specific cert for API Gateway
 // Note: Must be in region where CDK stack is deployed
-const apiGwycertArn =
+const apiGwyCertArn =
   'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
-const certApiGwy = acm.Certificate.fromCertificateArn(app, 'microapps-apigwy-cert', apiGwycertArn);
+const certApiGwy = acm.Certificate.fromCertificateArn(app, 'microapps-apigwy-cert', apiGwyCertArn);
 
 const zone = r53.HostedZone.fromHostedZoneAttributes(app, 'microapps-zone', {
   zoneName: 'pwrdrvr.com', // FIXME: domainNameOrigin (zone only)
