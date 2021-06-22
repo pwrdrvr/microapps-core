@@ -3,11 +3,11 @@ import { Env } from './Types';
 export default class SharedProps {
   private _env: Env | '';
   public get env(): Env | '' {
-    if (this._env === '') return '';
+    if (this._env === '' || this._env == undefined) return '';
     return this._env;
   }
   public get envSuffix(): string {
-    if (this._env === '') return '';
+    if (this._env === '' || this._env == undefined) return '';
     return `-${this._env}`;
   }
 
