@@ -45,6 +45,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
     this._cloudFrontDistro = new cf.Distribution(this, 'microapps-cloudfront', {
+      comment: 'microapps-cloudfront', // TODO: env, pr
       domainNames: [props.local.domainNameEdge],
       certificate: props.local.cert,
       httpVersion: cf.HttpVersion.HTTP2,
@@ -65,7 +66,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
 
     // Create S3 Origin Identity
     this._cloudFrontOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
-      comment: 'cloudfront-access',
+      comment: 'microapps-cloudfront-access', // TODO: env, pr
     });
 
     //
