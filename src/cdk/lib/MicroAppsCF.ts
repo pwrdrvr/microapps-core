@@ -13,7 +13,7 @@ export interface IMicroAppsCFExports {
 interface IMicroAppsCFProps extends cdk.StackProps {
   local: {
     cert: acm.ICertificate;
-    domainName: string;
+    domainNameEdge: string;
     domainNameOrigin: string;
   };
   s3Exports: IMicroAppsS3Exports;
@@ -45,7 +45,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
     this._cloudFrontDistro = new cf.Distribution(this, 'microapps-cloudfront', {
-      domainNames: [props.local.domainName],
+      domainNames: [props.local.domainNameEdge],
       certificate: props.local.cert,
       httpVersion: cf.HttpVersion.HTTP2,
       defaultBehavior: {
@@ -60,7 +60,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       priceClass: cf.PriceClass.PRICE_CLASS_100,
       enableLogging: true,
       logBucket: props.s3Exports.bucketLogs,
-      logFilePrefix: `${props.local.domainName.split('.').reverse().join('.')}/cloudfront-raw/`,
+      logFilePrefix: `${props.local.domainNameEdge.split('.').reverse().join('.')}/cloudfront-raw/`,
     });
 
     // Create S3 Origin Identity

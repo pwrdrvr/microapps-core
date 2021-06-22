@@ -8,7 +8,7 @@ interface IMicroAppsR53StackProps extends cdk.StackProps {
   svcsExports: IMicroAppsSvcsExports;
   cfExports: IMicroAppsCFExports;
   local: {
-    domainName: string;
+    domainNameEdge: string;
     domainNameOrigin: string;
     zone: r53.IHostedZone;
   };
@@ -26,7 +26,7 @@ export class MicroAppsR53 extends cdk.Stack {
     }
 
     const { dnAppsOrigin } = props.svcsExports;
-    const { domainNameOrigin: hostNameOrigin, zone, domainName } = props.local;
+    const { domainNameOrigin, zone, domainNameEdge } = props.local;
     const { cloudFrontDistro } = props.cfExports;
 
     //
@@ -34,7 +34,7 @@ export class MicroAppsR53 extends cdk.Stack {
     //
 
     const rrAppsEdge = new r53.RecordSet(this, 'microapps-edge-arecord', {
-      recordName: domainName,
+      recordName: domainNameEdge,
       recordType: r53.RecordType.A,
       target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(cloudFrontDistro)),
       zone,
@@ -45,7 +45,7 @@ export class MicroAppsR53 extends cdk.Stack {
     //
     const rrAppsOrigin = new r53.ARecord(this, 'microapps-origin-arecord', {
       zone: zone,
-      recordName: hostNameOrigin,
+      recordName: domainNameOrigin,
       target: r53.RecordTarget.fromAlias(
         new r53targets.ApiGatewayv2DomainProperties(
           dnAppsOrigin.regionalDomainName,

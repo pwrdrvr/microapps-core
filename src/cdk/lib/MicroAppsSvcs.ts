@@ -16,7 +16,7 @@ interface IMicroAppsSvcsStackProps extends cdk.StackProps {
   cfStackExports: IMicroAppsCFExports;
   s3Exports: IMicroAppsS3Exports;
   local: {
-    domainName: string;
+    domainNameEdge: string;
     domainNameOrigin: string;
     cert: acm.ICertificate;
   };
@@ -211,7 +211,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     // Create Custom Domains for API Gateway
     const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
-      domainName: props.local.domainName,
+      domainName: props.local.domainNameEdge,
       certificate: cert,
     });
     this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
