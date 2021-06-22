@@ -9,6 +9,7 @@ import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
 import { MicroAppsS3 } from '../lib/MicroAppsS3';
 import { MicroAppsR53 } from '../lib/MicroAppsR53';
 import Tags from '../lib/Tags';
+import { Imports } from '../lib/Imports';
 
 const env: cdk.Environment = {
   region: 'us-east-2',
@@ -19,31 +20,18 @@ const app = new cdk.App();
 
 Tags.addSharedTags(app);
 
-// CloudFront certificate
-// Note: Must be in US East 1
-const cert = acm.Certificate.fromCertificateArn(
-  app,
-  'microapps-cloudfront-cert',
-  'arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09',
-);
+const imports = new Imports(app, 'microapps-imports', {});
 
-// Specific cert for API Gateway
-// Note: Must be in region where CDK stack is deployed
-const apiGwyCertArn =
-  'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
-const certApiGwy = acm.Certificate.fromCertificateArn(app, 'microapps-apigwy-cert', apiGwyCertArn);
-
-const zone = r53.HostedZone.fromHostedZoneAttributes(app, 'microapps-zone', {
-  zoneName: 'pwrdrvr.com', // FIXME: domainNameOrigin (zone only)
-  hostedZoneId: 'ZHYNI9F572BBD',
-});
-
-const s3 = new MicroAppsS3(app, 'microapps-cloudfront', {
+const s3 = new MicroAppsS3(app, 'microapps-s3', {
   env,
   local: {},
 });
 const cf = new MicroAppsCF(app, 'microapps-cloudfront', {
-  local: { cert, domainName: 'apps.pwrdrvr.com', domainNameOrigin: 'apps-origin.pwrdrvr.com' },
+  local: {
+    cert: imports.certEdge,
+    domainName: 'apps.pwrdrvr.com',
+    domainNameOrigin: 'apps-origin.pwrdrvr.com',
+  },
   s3Exports: s3,
   env,
 });
@@ -55,7 +43,7 @@ const svcs = new MicroAppsSvcs(app, 'microapps-core', {
   local: {
     domainName: 'apps.pwrdrvr.com',
     domainNameOrigin: 'apps-origin.pwrdrvr.com',
-    cert: certApiGwy,
+    cert: imports.certOrigin,
   },
   env,
 });
@@ -65,7 +53,7 @@ const route53 = new MicroAppsR53(app, 'microapps-r53', {
   local: {
     domainName: 'apps.pwrdrvr.com',
     domainNameOrigin: 'apps-origin.pwrdrvr.com',
-    zone,
+    zone: imports.zone,
   },
   env,
 });

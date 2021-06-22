@@ -214,7 +214,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       domainName: props.local.domainName,
       certificate: cert,
     });
-    const dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
+    this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
       domainName: props.local.domainNameOrigin,
       certificate: cert,
     });
@@ -242,9 +242,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     //
     const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-api-mapping-origin', {
       api: httpApi,
-      domainName: dnAppsOrigin,
+      domainName: this.dnAppsOrigin,
     });
-    mappingAppsApis.node.addDependency(dnAppsOrigin);
+    mappingAppsApis.node.addDependency(this.dnAppsOrigin);
 
     //
     // Give Deployer permissions to create routes and integrations
