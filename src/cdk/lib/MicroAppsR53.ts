@@ -1,5 +1,4 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfront from '@aws-cdk/aws-cloudfront';
 import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
 import { IMicroAppsSvcsExports } from './MicroAppsSvcs';
