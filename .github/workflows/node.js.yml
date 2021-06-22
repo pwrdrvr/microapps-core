@@ -25,9 +25,6 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: pwd
-    - run: mkdir -p /home/runner/work/microapps-core/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/src/
-    - run: touch /home/runner/work/microapps-core/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/src/index.js
     - run: npm ci
     - run: npm lint
     - run: npm run build --if-present
