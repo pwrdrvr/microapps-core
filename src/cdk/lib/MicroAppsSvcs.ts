@@ -66,7 +66,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     // Create Deployer Lambda Function
     const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
-      code: lambda.DockerImageCode.fromEcr(props.reposExports.RepoDeployer),
+      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
@@ -168,7 +168,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     // Create Router Lambda Function - Docker Image Version (aka "slow")
     const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
-      code: lambda.DockerImageCode.fromEcr(props.reposExports.RepoRouter),
+      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
