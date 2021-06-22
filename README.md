@@ -1,30 +1,45 @@
 # MicroApps Project
 
 - CDK Stacks
-  - Repos
-    - Creates the ECR repos for components to be published into
-    - Deployer
-    - Router
-    - ReleaseApp
-  - MicroApps
-    - Create MicroApps DynamoDB Table
+  - MicroAppsS3
+    - Creates S3 buckets
+  - MicroAppsRepos
+    - Creates the ECR repos for components to be published into;
+      - Deployer
+      - Router
+  - MicroAppsSvcs
+    - Create DynamoDB table
     - Create Deployer Lambda function
-      - Listens on https://apps.pwrdrvr.com/deployer/
     - Create Router Lambda function
-    - Create S3 bucket
-  - CloudfrontStack
-    - Creates https://apps.pwrdrvr.com/
-- Release App
-  - This controls the released versions of applications
+    - Create APIGateway HTTP API
+  - MicroAppsCF
+    - Creates Cloudfront distribution
+  - MicroAppsR53
+    - Creates domain names to point to the edge (Cloudfront) and origin (API Gateway)
+- microapps-deployer
+  - Lambda service invoked by `microapps-publish` to record new app/version in the DynamoDB table, create API Gateway integrations, copy S3 assets from staging to prod bucket, etc.
+- microapps-publish
+  - Node executable that updates versions in config files, deploys static assets to the S3 staging bucket, optionally compiles and deploys a new Lambda function version, and invokes `microapps-deployer`
+  - Permissions required:
+    - Lambda invoke
+    - S3 publish to the staging bucket
+    - ECR write
+    - Lambda version publish
+- microapps-router
+  - Lambda function that determines which version of an app to point a user to on a particular invocation
 
 # Useful Commands
 
-- `dotnet build src` compile this app
+- `npm run build` compiles TypeSript to JavaScript
+- `npm run lint` checks TypeScript for compliance with Lint rules
+- `cdk list` list the stack names
 - `cdk deploy` deploy this stack to your default AWS account/region
 - `cdk diff` compare deployed stack with current state
 - `cdk synth` emits the synthesized CloudFormation template
 
 # Running CDK
+
+Always run CDK from the root of the git repo, which is the directory containing `cdk.json`.
 
 ## Set AWS Profile
 
