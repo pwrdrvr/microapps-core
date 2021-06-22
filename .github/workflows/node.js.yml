@@ -28,6 +28,6 @@ jobs:
     - run: mkdir -p ./src/microapps-publish/dist/src/
     - run: touch ./src/microapps-publish/dist/src/index.js
     - run: npm ci
-    - run: npm lint
+    - run: npm run lint
     - run: npm run build --if-present
-    - run: npm test
+    - run: npm run test
