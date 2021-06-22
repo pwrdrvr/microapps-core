@@ -4,6 +4,9 @@ import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as cf from '@aws-cdk/aws-cloudfront';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
+import SharedProps from './SharedProps';
+import { RemovalPolicy } from '@aws-cdk/core';
+import SharedTags from './SharedTags';
 
 export interface IMicroAppsCFExports {
   cloudFrontOAI: cloudfront.OriginAccessIdentity;
@@ -16,6 +19,7 @@ interface IMicroAppsCFProps extends cdk.StackProps {
     domainNameEdge: string;
     domainNameOrigin: string;
   };
+  shared: SharedProps;
   s3Exports: IMicroAppsS3Exports;
 }
 
@@ -37,6 +41,10 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       throw new Error('props must be set');
     }
 
+    const { shared } = props;
+
+    SharedTags.addEnvTag(this, shared.env, shared.isPR);
+
     //
     // CloudFront Distro
     //
@@ -45,7 +53,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
     this._cloudFrontDistro = new cf.Distribution(this, 'microapps-cloudfront', {
-      comment: 'microapps-cloudfront', // TODO: env, pr
+      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
       domainNames: [props.local.domainNameEdge],
       certificate: props.local.cert,
       httpVersion: cf.HttpVersion.HTTP2,
@@ -63,11 +71,17 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       logBucket: props.s3Exports.bucketLogs,
       logFilePrefix: `${props.local.domainNameEdge.split('.').reverse().join('.')}/cloudfront-raw/`,
     });
+    if (shared.isPR) {
+      this._cloudFrontOAI.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     // Create S3 Origin Identity
     this._cloudFrontOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
-      comment: 'microapps-cloudfront-access', // TODO: env, pr
+      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
     });
+    if (shared.isPR) {
+      this._cloudFrontDistro.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Add Origins
@@ -106,7 +120,6 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
     // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
     // Let everything else fall through to the API Gateway
     //
-    this._cloudFrontDistro.addBehavior('/deployer/*', apiGwyOrigin, apiGwyBehavior);
     this._cloudFrontDistro.addBehavior('/*/*/api/*', apiGwyOrigin, apiGwyBehavior);
     this._cloudFrontDistro.addBehavior('/*/*/static/*', statics3, s3Behavior);
     this._cloudFrontDistro.addBehavior('/*/*/*.*', statics3, s3Behavior);

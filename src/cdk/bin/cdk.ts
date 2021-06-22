@@ -44,6 +44,7 @@ const s3 = new MicroAppsS3(app, 'microapps-s3', {
   shared: sharedProps,
 });
 const cf = new MicroAppsCF(app, 'microapps-cloudfront', {
+  shared: sharedProps,
   local: {
     cert: imports.certEdge,
     domainNameEdge,
@@ -52,7 +53,11 @@ const cf = new MicroAppsCF(app, 'microapps-cloudfront', {
   s3Exports: s3,
   env,
 });
-const repos = new MicroAppsRepos(app, 'microapps-repos', { env });
+const repos = new MicroAppsRepos(app, 'microapps-repos', {
+  env,
+  shared: sharedProps,
+  local: {},
+});
 const svcs = new MicroAppsSvcs(app, 'microapps-core', {
   cfStackExports: cf,
   reposExports: repos,
