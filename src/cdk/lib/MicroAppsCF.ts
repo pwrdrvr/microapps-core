@@ -72,7 +72,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       logFilePrefix: `${props.local.domainNameEdge.split('.').reverse().join('.')}/cloudfront-raw/`,
     });
     if (shared.isPR) {
-      this._cloudFrontOAI.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      this._cloudFrontDistro.applyRemovalPolicy(RemovalPolicy.DESTROY);
     }
 
     // Create S3 Origin Identity
@@ -80,7 +80,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
     });
     if (shared.isPR) {
-      this._cloudFrontDistro.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      this._cloudFrontOAI.applyRemovalPolicy(RemovalPolicy.DESTROY);
     }
 
     //

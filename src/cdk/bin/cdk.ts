@@ -31,54 +31,74 @@ const certARNOrigin =
 const domainNameEdge = `apps${sharedProps.envDomainSuffix}${sharedProps.prSuffix}.${r53ZoneName}`;
 const domainNameOrigin = `apps-origin${sharedProps.envDomainSuffix}${sharedProps.prSuffix}.${r53ZoneName}`;
 
-const imports = new Imports(app, 'microapps-imports', {
-  local: {
-    certARNEdge,
-    certARNOrigin,
-    r53ZoneID,
-    r53ZoneName,
+const imports = new Imports(
+  app,
+  `microapps-imports${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+  {
+    local: {
+      certARNEdge,
+      certARNOrigin,
+      r53ZoneID,
+      r53ZoneName,
+    },
   },
-});
-const s3 = new MicroAppsS3(app, 'microapps-s3', {
+);
+const s3 = new MicroAppsS3(app, `microapps-s3${sharedProps.envSuffix}${sharedProps.prSuffix}`, {
   env,
   local: {},
   shared: sharedProps,
 });
-const cf = new MicroAppsCF(app, 'microapps-cloudfront', {
-  shared: sharedProps,
-  local: {
-    cert: imports.certEdge,
-    domainNameEdge,
-    domainNameOrigin,
+const cf = new MicroAppsCF(
+  app,
+  `microapps-cloudfront${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+  {
+    shared: sharedProps,
+    local: {
+      cert: imports.certEdge,
+      domainNameEdge,
+      domainNameOrigin,
+    },
+    s3Exports: s3,
+    env,
   },
-  s3Exports: s3,
-  env,
-});
-const repos = new MicroAppsRepos(app, 'microapps-repos', {
-  env,
-  shared: sharedProps,
-  local: {},
-});
-const svcs = new MicroAppsSvcs(app, 'microapps-core', {
-  cfStackExports: cf,
-  reposExports: repos,
-  s3Exports: s3,
-  local: {
-    domainNameEdge,
-    domainNameOrigin,
-    cert: imports.certOrigin,
+);
+const repos = new MicroAppsRepos(
+  app,
+  `microapps-repos${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+  {
+    env,
+    shared: sharedProps,
+    local: {},
   },
-  env,
-  shared: sharedProps,
-});
-const route53 = new MicroAppsR53(app, 'microapps-r53', {
-  svcsExports: svcs,
-  cfExports: cf,
-  local: {
-    domainNameEdge,
-    domainNameOrigin,
-    zone: imports.zone,
+);
+const svcs = new MicroAppsSvcs(
+  app,
+  `microapps-core${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+  {
+    cfStackExports: cf,
+    reposExports: repos,
+    s3Exports: s3,
+    local: {
+      domainNameEdge,
+      domainNameOrigin,
+      cert: imports.certOrigin,
+    },
+    env,
+    shared: sharedProps,
   },
-  env,
-  shared: sharedProps,
-});
+);
+const route53 = new MicroAppsR53(
+  app,
+  `microapps-r53${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+  {
+    svcsExports: svcs,
+    cfExports: cf,
+    local: {
+      domainNameEdge,
+      domainNameOrigin,
+      zone: imports.zone,
+    },
+    env,
+    shared: sharedProps,
+  },
+);
