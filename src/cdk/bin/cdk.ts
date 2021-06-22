@@ -20,8 +20,23 @@ const app = new cdk.App();
 
 Tags.addSharedTags(app);
 
-const imports = new Imports(app, 'microapps-imports', {});
+const r53ZoneName = 'pwrdrvr.com';
+const r53ZoneID = 'ZHYNI9F572BBD';
+const domainNameEdge = 'apps.pwrdrvr.com';
+const domainNameOrigin = 'apps-origin.pwrdrvr.com';
+const certARNEdge =
+  'arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09';
+const certARNOrigin =
+  'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
 
+const imports = new Imports(app, 'microapps-imports', {
+  local: {
+    certARNEdge,
+    certARNOrigin,
+    r53ZoneID,
+    r53ZoneName,
+  },
+});
 const s3 = new MicroAppsS3(app, 'microapps-s3', {
   env,
   local: {},
@@ -29,8 +44,8 @@ const s3 = new MicroAppsS3(app, 'microapps-s3', {
 const cf = new MicroAppsCF(app, 'microapps-cloudfront', {
   local: {
     cert: imports.certEdge,
-    domainName: 'apps.pwrdrvr.com',
-    domainNameOrigin: 'apps-origin.pwrdrvr.com',
+    domainNameEdge,
+    domainNameOrigin,
   },
   s3Exports: s3,
   env,
@@ -41,8 +56,8 @@ const svcs = new MicroAppsSvcs(app, 'microapps-core', {
   reposExports: repos,
   s3Exports: s3,
   local: {
-    domainName: 'apps.pwrdrvr.com',
-    domainNameOrigin: 'apps-origin.pwrdrvr.com',
+    domainNameEdge,
+    domainNameOrigin,
     cert: imports.certOrigin,
   },
   env,
@@ -51,8 +66,8 @@ const route53 = new MicroAppsR53(app, 'microapps-r53', {
   svcsExports: svcs,
   cfExports: cf,
   local: {
-    domainName: 'apps.pwrdrvr.com',
-    domainNameOrigin: 'apps-origin.pwrdrvr.com',
+    domainNameEdge,
+    domainNameOrigin,
     zone: imports.zone,
   },
   env,
