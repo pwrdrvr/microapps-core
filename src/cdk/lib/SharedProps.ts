@@ -10,6 +10,10 @@ export default class SharedProps {
     if (this._env === '' || this._env == undefined) return '';
     return `-${this._env}`;
   }
+  public get envDomainSuffix(): string {
+    if (this._env === '' || this._env == undefined || this._env === 'prod') return '';
+    return `-${this._env}`;
+  }
 
   private _pr: string;
   public get pr(): string {

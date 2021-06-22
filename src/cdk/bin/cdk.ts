@@ -23,12 +23,13 @@ SharedTags.addSharedTags(app);
 
 const r53ZoneName = 'pwrdrvr.com';
 const r53ZoneID = 'ZHYNI9F572BBD';
-const domainNameEdge = 'apps.pwrdrvr.com';
-const domainNameOrigin = 'apps-origin.pwrdrvr.com';
 const certARNEdge =
   'arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09';
 const certARNOrigin =
   'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
+
+const domainNameEdge = `apps${sharedProps.envDomainSuffix}${sharedProps.prSuffix}.${r53ZoneName}`;
+const domainNameOrigin = `apps-origin${sharedProps.envDomainSuffix}${sharedProps.prSuffix}.${r53ZoneName}`;
 
 const imports = new Imports(app, 'microapps-imports', {
   local: {
@@ -68,6 +69,7 @@ const svcs = new MicroAppsSvcs(app, 'microapps-core', {
     cert: imports.certOrigin,
   },
   env,
+  shared: sharedProps,
 });
 const route53 = new MicroAppsR53(app, 'microapps-r53', {
   svcsExports: svcs,
@@ -78,4 +80,5 @@ const route53 = new MicroAppsR53(app, 'microapps-r53', {
     zone: imports.zone,
   },
   env,
+  shared: sharedProps,
 });
