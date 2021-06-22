@@ -10,6 +10,9 @@ import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsCFExports } from './MicroAppsCF';
 import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
+import SharedProps from './SharedProps';
+import SharedTags from './SharedTags';
+import { RemovalPolicy } from '@aws-cdk/core';
 
 interface IMicroAppsSvcsStackProps extends cdk.StackProps {
   reposExports: IMicroAppsReposExports;
@@ -20,6 +23,7 @@ interface IMicroAppsSvcsStackProps extends cdk.StackProps {
     domainNameOrigin: string;
     cert: acm.ICertificate;
   };
+  shared: SharedProps;
 }
 
 export interface IMicroAppsSvcsExports {
@@ -44,11 +48,15 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     const { bucketApps, bucketAppsStaging } = props.s3Exports;
     const { cert } = props.local;
+    const { shared } = props;
+
+    SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
     //
     // DynamoDB Table
     //
     const table = new dynamodb.Table(this, 'microapps-router-table', {
+      tableName: `microapps${shared.envSuffix}${shared.prSuffix}`,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',
@@ -59,6 +67,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
         type: dynamodb.AttributeType.STRING,
       },
     });
+    if (shared.isPR) {
+      table.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Deployer Lambda Function
@@ -66,11 +77,15 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     // Create Deployer Lambda Function
     const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+      functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
       code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
+    if (shared.isPR) {
+      deployerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
     // Give the Deployer access to DynamoDB table
     table.grantReadWriteData(deployerFunc);
     table.grant(deployerFunc, 'dynamodb:DescribeTable');
@@ -90,6 +105,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
           props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
+        // TODO: This hard-coded role/AdminAccess needs to be parameterized
         new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
         deployerFunc.grantPrincipal,
       ],
@@ -110,8 +126,10 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
           props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
+        // TODO: This hard-coded role/AdminAccess needs to be parameterized
         new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
         deployerFunc.grantPrincipal,
+
         new iam.ArnPrincipal(
           `arn:aws:sts::${props.env.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
         ),
@@ -119,6 +137,8 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
       conditions: {
         Null: { 'aws:PrincipalTag/microapp-name': 'true' },
+        // TODO: This admin role AROA needs to be parameterized
+        // TODO: The StringNotLike Condition can be left off if the AROA is not supplied
         StringNotLike: { 'aws:userid': ['AROATPLZCRY427AZLMDOB:*', props.env.account] },
       },
     });
@@ -168,14 +188,20 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     // Create Router Lambda Function - Docker Image Version (aka "slow")
     const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
+      functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
       code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
+    if (shared.isPR) {
+      routerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
     // Zip version of the function
     // This is *much* faster on cold inits
-    const routerzFunc = new lambda.Function(this, 'microapps-router-funcz', {
+    const routerzFunc = new lambda.Function(this, 'microapps-routerz-func', {
+      functionName: `microapps-routerz${shared.envSuffix}${shared.prSuffix}`,
+      // This is just a dummy placeholder until the real version gets published
       code: lambda.Code.fromInline(
         "function handler() { return 'cat'; }; exports.handler=handler;",
       ),
@@ -185,6 +211,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
+    if (shared.isPR) {
+      routerzFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
     const policyReadTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject'],
@@ -214,10 +243,16 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       domainName: props.local.domainNameEdge,
       certificate: cert,
     });
+    if (shared.isPR) {
+      dnAppsEdge.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
     this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
       domainName: props.local.domainNameOrigin,
       certificate: cert,
     });
+    if (shared.isPR) {
+      this._dnAppsOrigin.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     // Create an integration for the Router
     // Do this here since it's the default route
@@ -233,6 +268,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       defaultDomainMapping: httpApiDomainMapping,
       defaultIntegration: intRouter,
     });
+    if (shared.isPR) {
+      httpApi.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Let API Gateway accept requests using domainNameOrigin
@@ -245,6 +283,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       domainName: this.dnAppsOrigin,
     });
     mappingAppsApis.node.addDependency(this.dnAppsOrigin);
+    if (shared.isPR) {
+      mappingAppsApis.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Give Deployer permissions to create routes and integrations
