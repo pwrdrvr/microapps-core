@@ -1,7 +1,7 @@
 import { Env } from './Types';
 
 export default class SharedProps {
-  private _env: Env | '';
+  private _env: Env | '' = 'dev';
   public get env(): Env | '' {
     if (this._env === '' || this._env == undefined) return '';
     return this._env;
@@ -21,7 +21,7 @@ export default class SharedProps {
   }
   public get prSuffix(): string {
     if (this._pr === undefined) return '';
-    return `-${this._pr}`;
+    return `-pr-${this._pr}`;
   }
   public get isPR(): boolean {
     if (this._pr === undefined) return false;
@@ -35,5 +35,23 @@ export default class SharedProps {
 
   constructor() {
     // TODO: Set some values using env vars
+
+    // Determine if we have a PR number
+    const prPrefix = 'pr/';
+    const sourceVersion = process.env['CODEBUILD_SOURCE_VERSION'];
+    const isPR = sourceVersion?.indexOf(prPrefix) === 0;
+    if (isPR) {
+      this._pr = sourceVersion?.slice(prPrefix.length) as string;
+    }
+
+    // Determine the env from NODE_ENV
+    const env = process.env['NODE_ENV'];
+    if (env !== undefined && env !== '') {
+      if (env.startsWith('prod')) {
+        this._env = 'prod';
+      } else if (env === 'qa') {
+        this._env = 'qa';
+      }
+    }
   }
 }
