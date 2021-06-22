@@ -49,45 +49,6 @@ Always run CDK from the root of the git repo, which is the directory containing 
 
 `nvm use`
 
-## Check CDK Status
-
-`cdk diff`
-
-# Release App
-
-## Update HTML for App
-
-Change version in [src/PwrDrvr.MicroApps.Release/deploy.json]()
-
-Use the [src/PwrDrvr.MicroApps.DeployTool]() to deploy the static assets:
-
-```
-cd src/PwrDrvr.MicroApps.Release
-dotnet run --project ../../src/PwrDrvr.MicroApps.DeployTool/
-```
-
-## Update Lambda Function Code
-
-### Signin to ECR
-
-`make aws-ecr-login`
-
-### Build and Publish Updated Image
-
-`make aws-ecr-publish-release`
-
-### Update Lambda to Use Updated Image
-
-`make aws-lambda-update-release`
-
-## Run Latest Version of App
-
-https://apps.pwrdrvr.com/release/
-
-## Run Specific Version of App
-
-https://apps.pwrdrvr.com/release/1.0.3/
-
 # Deployer Service
 
 Copies static assets from staging to deployed directory, creates record of application / version in DynamoDB Table.
@@ -99,19 +60,6 @@ make aws-ecr-login
 make aws-ecr-publish-deployer
 make aws-lambda-update-deployer
 ```
-
-# Generating Swagger Clients
-
-https://blog.logrocket.com/generate-typescript-csharp-clients-nswag-api/
-
-- Install All Node and DotNet Dependencies
-  - `npm i`
-- Start the Deployer Svc in Watch Mode
-  - `npm run start:deployer`
-- Explore the Swagger Spec
-  - `http://localhost:5000/swagger`
-- Export the Swagger TypeScript Client
-  - `npm run generate-client:deployer`
 
 # Notes on Selection of Docker Image Lambdas
 
