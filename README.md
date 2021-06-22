@@ -57,9 +57,9 @@ Always run CDK from the root of the git repo, which is the directory containing 
 
 ## Update HTML for App
 
-Change version in [src/PwrDrvr.MicroApps.Release/deploy.json]
+Change version in [src/PwrDrvr.MicroApps.Release/deploy.json]()
 
-Use the [src/PwrDrvr.MicroApps.DeployTool] to deploy the static assets:
+Use the [src/PwrDrvr.MicroApps.DeployTool]() to deploy the static assets:
 
 ```
 cd src/PwrDrvr.MicroApps.Release
