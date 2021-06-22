@@ -1,24 +1,25 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as r53 from '@aws-cdk/aws-route53';
 import { MicroAppsRepos } from '../lib/MicroAppsRepos';
 import { MicroAppsCF } from '../lib/MicroAppsCF';
 import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
 import { MicroAppsS3 } from '../lib/MicroAppsS3';
 import { MicroAppsR53 } from '../lib/MicroAppsR53';
-import Tags from '../lib/Tags';
+import SharedTags from '../lib/SharedTags';
 import { Imports } from '../lib/Imports';
+import SharedProps from '../lib/SharedProps';
 
 const env: cdk.Environment = {
   region: 'us-east-2',
   account: '***REMOVED***',
 };
 
+const sharedProps = new SharedProps();
+
 const app = new cdk.App();
 
-Tags.addSharedTags(app);
+SharedTags.addSharedTags(app);
 
 const r53ZoneName = 'pwrdrvr.com';
 const r53ZoneID = 'ZHYNI9F572BBD';
@@ -40,6 +41,7 @@ const imports = new Imports(app, 'microapps-imports', {
 const s3 = new MicroAppsS3(app, 'microapps-s3', {
   env,
   local: {},
+  shared: sharedProps,
 });
 const cf = new MicroAppsCF(app, 'microapps-cloudfront', {
   local: {
