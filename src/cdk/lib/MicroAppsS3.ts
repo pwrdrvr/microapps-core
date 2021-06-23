@@ -52,34 +52,34 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
       // S3 Bucket for Logging - Usable by many stacks
       //
       this._bucketLogs = new s3.Bucket(this, 'microapps-logs', {
-        bucketName: `${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
       });
 
       //
       // S3 Buckets for Apps
       //
       this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
-        bucketName: `${shared.stackName}-apps${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
       });
       this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
-        bucketName: `${shared.stackName}-apps-staging${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`,
       });
     } else {
       //
       // S3 Bucket for Logging - Usable by many stacks
       //
       this._bucketLogs = new AutoDeleteBucket(this, 'microapps-logs', {
-        bucketName: `${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
       });
 
       //
       // S3 Buckets for Apps
       //
       this._bucketApps = new AutoDeleteBucket(this, 'microapps-apps', {
-        bucketName: `${shared.stackName}-apps${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
       });
       this._bucketAppsStaging = new AutoDeleteBucket(this, 'microapps-apps-staging', {
-        bucketName: `${shared.stackName}-apps-staging${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`,
       });
     }
   }
