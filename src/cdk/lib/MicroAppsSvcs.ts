@@ -219,15 +219,12 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       actions: ['s3:GetObject'],
       resources: [`${bucketApps.bucketArn}/*`],
     });
-    routerFunc.addToRolePolicy(policyReadTarget);
-    // Give the Router access to DynamoDB table
-    table.grantReadData(routerFunc);
-    table.grant(routerFunc, 'dynamodb:DescribeTable');
-    // Repeat for zip file function
-    routerzFunc.addToRolePolicy(policyReadTarget);
-    // Give the Router access to DynamoDB table
-    table.grantReadData(routerzFunc);
-    table.grant(routerzFunc, 'dynamodb:DescribeTable');
+    for (const router of [routerFunc, routerzFunc]) {
+      router.addToRolePolicy(policyReadTarget);
+      // Give the Router access to DynamoDB table
+      table.grantReadData(router);
+      table.grant(router, 'dynamodb:DescribeTable');
+    }
 
     // TODO: Add Last Route for /*/{proxy+}
     // Note: That might not work, may need a Behavior in CloudFront
