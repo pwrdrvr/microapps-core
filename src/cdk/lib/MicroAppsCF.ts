@@ -20,8 +20,6 @@ interface IMicroAppsCFProps extends cdk.StackProps {
     cert: acm.ICertificate;
     domainNameEdge: string;
     domainNameOrigin: string;
-    r53ZoneName: string;
-    r53ZoneID: string;
   };
   shared: SharedProps;
   s3Exports: IMicroAppsS3Exports;
@@ -46,7 +44,8 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
     }
 
     const { shared } = props;
-    const { domainNameEdge, r53ZoneID, r53ZoneName } = props.local;
+    const { domainNameEdge } = props.local;
+    const { r53ZoneID, r53ZoneName } = shared;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
