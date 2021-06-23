@@ -5,6 +5,8 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as r53 from '@aws-cdk/aws-route53';
+import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as logs from '@aws-cdk/aws-logs';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsCFExports } from './MicroAppsCF';
@@ -22,6 +24,8 @@ interface IMicroAppsSvcsStackProps extends cdk.StackProps {
     domainNameEdge: string;
     domainNameOrigin: string;
     cert: acm.ICertificate;
+    r53ZoneName: string;
+    r53ZoneID: string;
   };
   shared: SharedProps;
 }
@@ -47,7 +51,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     }
 
     const { bucketApps, bucketAppsStaging } = props.s3Exports;
-    const { cert } = props.local;
+    const { cert, r53ZoneID, r53ZoneName, domainNameOrigin } = props.local;
     const { shared } = props;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
@@ -320,5 +324,28 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       },
     });
     deployerFunc.addToRolePolicy(policyAPIManageLambdas);
+
+    //
+    // Create the origin name for API Gateway
+    //
+
+    const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
+      zoneName: r53ZoneName,
+      hostedZoneId: r53ZoneID,
+    });
+
+    const rrAppsOrigin = new r53.ARecord(this, 'microapps-origin-arecord', {
+      zone: zone,
+      recordName: domainNameOrigin,
+      target: r53.RecordTarget.fromAlias(
+        new r53targets.ApiGatewayv2DomainProperties(
+          this._dnAppsOrigin.regionalDomainName,
+          this._dnAppsOrigin.regionalHostedZoneId,
+        ),
+      ),
+    });
+    if (shared.isPR) {
+      rrAppsOrigin.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
   }
 }

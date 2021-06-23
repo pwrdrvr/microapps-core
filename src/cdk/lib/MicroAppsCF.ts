@@ -2,6 +2,8 @@ import * as cdk from '@aws-cdk/core';
 import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as cf from '@aws-cdk/aws-cloudfront';
+import * as r53 from '@aws-cdk/aws-route53';
+import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
@@ -18,6 +20,8 @@ interface IMicroAppsCFProps extends cdk.StackProps {
     cert: acm.ICertificate;
     domainNameEdge: string;
     domainNameOrigin: string;
+    r53ZoneName: string;
+    r53ZoneID: string;
   };
   shared: SharedProps;
   s3Exports: IMicroAppsS3Exports;
@@ -42,6 +46,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
     }
 
     const { shared } = props;
+    const { domainNameEdge, r53ZoneID, r53ZoneName } = props.local;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
@@ -124,5 +129,24 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
     this._cloudFrontDistro.addBehavior('/*/*/static/*', statics3, s3Behavior);
     this._cloudFrontDistro.addBehavior('/*/*/*.*', statics3, s3Behavior);
     this._cloudFrontDistro.addBehavior('/*/*/', apiGwyOrigin, apiGwyVersionRootBehavior);
+
+    //
+    // Create the edge name for the CloudFront distro
+    //
+
+    const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
+      zoneName: r53ZoneName,
+      hostedZoneId: r53ZoneID,
+    });
+
+    const rrAppsEdge = new r53.RecordSet(this, 'microapps-edge-arecord', {
+      recordName: domainNameEdge,
+      recordType: r53.RecordType.A,
+      target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(this._cloudFrontDistro)),
+      zone,
+    });
+    if (shared.isPR) {
+      rrAppsEdge.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
   }
 }

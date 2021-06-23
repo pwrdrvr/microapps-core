@@ -5,7 +5,6 @@ import { MicroAppsRepos } from '../lib/MicroAppsRepos';
 import { MicroAppsCF } from '../lib/MicroAppsCF';
 import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
 import { MicroAppsS3 } from '../lib/MicroAppsS3';
-import { MicroAppsR53 } from '../lib/MicroAppsR53';
 import SharedTags from '../lib/SharedTags';
 import { Imports } from '../lib/Imports';
 import SharedProps from '../lib/SharedProps';
@@ -38,8 +37,6 @@ const imports = new Imports(
     local: {
       certARNEdge,
       certARNOrigin,
-      r53ZoneID,
-      r53ZoneName,
     },
     env,
   },
@@ -58,6 +55,8 @@ const cf = new MicroAppsCF(
       cert: imports.certEdge,
       domainNameEdge,
       domainNameOrigin,
+      r53ZoneID,
+      r53ZoneName,
     },
     s3Exports: s3,
     env,
@@ -74,7 +73,7 @@ const repos = new MicroAppsRepos(
 );
 const svcs = new MicroAppsSvcs(
   app,
-  `microapps-core${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+  `microapps-svcs${sharedProps.envSuffix}${sharedProps.prSuffix}`,
   {
     cfStackExports: cf,
     reposExports: repos,
@@ -83,23 +82,25 @@ const svcs = new MicroAppsSvcs(
       domainNameEdge,
       domainNameOrigin,
       cert: imports.certOrigin,
+      r53ZoneID,
+      r53ZoneName,
     },
     env,
     shared: sharedProps,
   },
 );
-const route53 = new MicroAppsR53(
-  app,
-  `microapps-r53${sharedProps.envSuffix}${sharedProps.prSuffix}`,
-  {
-    svcsExports: svcs,
-    cfExports: cf,
-    local: {
-      domainNameEdge,
-      domainNameOrigin,
-      zone: imports.zone,
-    },
-    env,
-    shared: sharedProps,
-  },
-);
+// const route53 = new MicroAppsR53(
+//   app,
+//   `microapps-r53${sharedProps.envSuffix}${sharedProps.prSuffix}`,
+//   {
+//     svcsExports: svcs,
+//     cfExports: cf,
+//     local: {
+//       domainNameEdge,
+//       domainNameOrigin,
+//       zone: imports.zone,
+//     },
+//     env,
+//     shared: sharedProps,
+//   },
+// );

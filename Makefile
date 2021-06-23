@@ -14,7 +14,7 @@ CODEBUILD_SOURCE_VERSION ?= dummy
 CODEBUILD_PR_NUMBER := $(shell echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { print $$2 }' )
 CODEBUILD_STACK_SUFFIX := $(shell if [[ ${CODEBUILD_SOURCE_VERSION} = pr/* ]] ; then (echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { printf "-pr-%s", $$2 }') ; else echo "" ; fi )
 CODEBUILD_REPOS_STACK_NAME := microapps-repos-${ENV}${CODEBUILD_STACK_SUFFIX}
-CODEBUILD_CORE_STACK_NAME := microapps-r53-${ENV}${CODEBUILD_STACK_SUFFIX}
+CODEBUILD_CORE_STACK_NAME := microapps-svcs-${ENV}${CODEBUILD_STACK_SUFFIX}
 CODEBUILD_IMAGE_LABEL := latest # $(shell [[ ${CODEBUILD_SOURCE_VERSION} = pr/* ]] && (echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { printf "pr-%s", $$2 }') || echo "latest")
 CODEBUILD_ECR_HOST ?= ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
