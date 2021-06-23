@@ -41,6 +41,7 @@ const imports = new Imports(
       r53ZoneID,
       r53ZoneName,
     },
+    env,
   },
 );
 const s3 = new MicroAppsS3(app, `microapps-s3${sharedProps.envSuffix}${sharedProps.prSuffix}`, {
