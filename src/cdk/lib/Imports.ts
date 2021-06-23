@@ -1,11 +1,12 @@
 import * as cdk from '@aws-cdk/core';
 import * as acm from '@aws-cdk/aws-certificatemanager';
+import SharedProps from './SharedProps';
 
 interface IImportsStackProps extends cdk.StackProps {
   local: {
-    certARNEdge: string;
-    certARNOrigin: string;
+    // None yet
   };
+  shared: SharedProps;
 }
 export interface IImportsExports {
   certEdge: acm.ICertificate;
@@ -29,7 +30,7 @@ export class Imports extends cdk.Stack implements IImportsExports {
       throw new Error('props must be set');
     }
 
-    const { certARNEdge, certARNOrigin } = props.local;
+    const { certARNEdge, certARNOrigin } = props.shared;
 
     // CloudFront certificate
     // Note: Must be in US East 1

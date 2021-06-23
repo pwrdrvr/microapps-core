@@ -9,98 +9,55 @@ import SharedTags from '../lib/SharedTags';
 import { Imports } from '../lib/Imports';
 import SharedProps from '../lib/SharedProps';
 
-const env: cdk.Environment = {
-  region: 'us-east-2',
-  account: '***REMOVED***',
-};
-
-const sharedProps = new SharedProps();
-
 const app = new cdk.App();
+
+const shared = new SharedProps(app);
+
+// We must set the env so that R53 zone imports will work
+const env: cdk.Environment = {
+  region: shared.region,
+  account: shared.account,
+};
 
 SharedTags.addSharedTags(app);
 
-const r53ZoneName = 'pwrdrvr.com';
-const r53ZoneID = 'ZHYNI9F572BBD';
-const certARNEdge =
-  'arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09';
-const certARNOrigin =
-  'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
+const domainNameEdge = `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
+const domainNameOrigin = `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
 
-const domainNameEdge = `apps${sharedProps.envDomainSuffix}${sharedProps.prSuffix}.${r53ZoneName}`;
-const domainNameOrigin = `apps-origin${sharedProps.envDomainSuffix}${sharedProps.prSuffix}.${r53ZoneName}`;
-
-const imports = new Imports(
-  app,
-  `microapps-imports${sharedProps.envSuffix}${sharedProps.prSuffix}`,
-  {
-    local: {
-      certARNEdge,
-      certARNOrigin,
-    },
-    env,
-  },
-);
-const s3 = new MicroAppsS3(app, `microapps-s3${sharedProps.envSuffix}${sharedProps.prSuffix}`, {
+const imports = new Imports(app, `microapps-imports${shared.envSuffix}${shared.prSuffix}`, {
+  shared,
+  local: {},
+  env,
+});
+const s3 = new MicroAppsS3(app, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
   env,
   local: {},
-  shared: sharedProps,
+  shared,
 });
-const cf = new MicroAppsCF(
-  app,
-  `microapps-cloudfront${sharedProps.envSuffix}${sharedProps.prSuffix}`,
-  {
-    shared: sharedProps,
-    local: {
-      cert: imports.certEdge,
-      domainNameEdge,
-      domainNameOrigin,
-      r53ZoneID,
-      r53ZoneName,
-    },
-    s3Exports: s3,
-    env,
+const cf = new MicroAppsCF(app, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
+  shared,
+  local: {
+    cert: imports.certEdge,
+    domainNameEdge,
+    domainNameOrigin,
   },
-);
-const repos = new MicroAppsRepos(
-  app,
-  `microapps-repos${sharedProps.envSuffix}${sharedProps.prSuffix}`,
-  {
-    env,
-    shared: sharedProps,
-    local: {},
+  s3Exports: s3,
+  env,
+});
+const repos = new MicroAppsRepos(app, `microapps-repos${shared.envSuffix}${shared.prSuffix}`, {
+  env,
+  shared,
+  local: {},
+});
+const svcs = new MicroAppsSvcs(app, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
+  cfStackExports: cf,
+  reposExports: repos,
+  s3Exports: s3,
+  local: {
+    domainNameEdge,
+    domainNameOrigin,
+    cert: imports.certOrigin,
   },
-);
-const svcs = new MicroAppsSvcs(
-  app,
-  `microapps-svcs${sharedProps.envSuffix}${sharedProps.prSuffix}`,
-  {
-    cfStackExports: cf,
-    reposExports: repos,
-    s3Exports: s3,
-    local: {
-      domainNameEdge,
-      domainNameOrigin,
-      cert: imports.certOrigin,
-      r53ZoneID,
-      r53ZoneName,
-    },
-    env,
-    shared: sharedProps,
-  },
-);
-// const route53 = new MicroAppsR53(
-//   app,
-//   `microapps-r53${sharedProps.envSuffix}${sharedProps.prSuffix}`,
-//   {
-//     svcsExports: svcs,
-//     cfExports: cf,
-//     local: {
-//       domainNameEdge,
-//       domainNameOrigin,
-//       zone: imports.zone,
-//     },
-//     env,
-//     shared: sharedProps,
-//   },
-// );
+  env,
+  shared,
+});

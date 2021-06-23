@@ -24,8 +24,6 @@ interface IMicroAppsSvcsStackProps extends cdk.StackProps {
     domainNameEdge: string;
     domainNameOrigin: string;
     cert: acm.ICertificate;
-    r53ZoneName: string;
-    r53ZoneID: string;
   };
   shared: SharedProps;
 }
@@ -51,8 +49,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     }
 
     const { bucketApps, bucketAppsStaging } = props.s3Exports;
-    const { cert, r53ZoneID, r53ZoneName, domainNameOrigin } = props.local;
+    const { cert, domainNameOrigin } = props.local;
     const { shared } = props;
+    const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
@@ -109,8 +108,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
           props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        // TODO: This hard-coded role/AdminAccess needs to be parameterized
-        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
+        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
       ],
       notResources: [
@@ -130,10 +128,8 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
           props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        // TODO: This hard-coded role/AdminAccess needs to be parameterized
-        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
+        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
-
         new iam.ArnPrincipal(
           `arn:aws:sts::${props.env.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
         ),
@@ -141,9 +137,12 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
       conditions: {
         Null: { 'aws:PrincipalTag/microapp-name': 'true' },
-        // TODO: This admin role AROA needs to be parameterized
-        // TODO: The StringNotLike Condition can be left off if the AROA is not supplied
-        StringNotLike: { 'aws:userid': ['AROATPLZCRY427AZLMDOB:*', props.env.account] },
+        // Note: This AROA must be specified to prevent this policy from locking
+        // out non-root sessions that have assumed the admin role.
+        // The notPrincipals will only match the role name exactly and will not match
+        // any session that has assumed the role since notPrincipals does not allow
+        // wildcard matches and does not do them implicitly either.
+        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, props.env.account] },
       },
     });
     const policyCloudFrontAccess = new iam.PolicyStatement({
