@@ -73,6 +73,8 @@ export default class VersionController {
       // Parse the S3 Source URI
       const uri = new URL(request.s3SourceURI);
 
+      // FIXME: Get sourceBucket from env var
+      // FIXME: Get destinationBucket from env var
       const sourceBucket = uri.host;
       const sourcePrefix = uri.pathname.length >= 1 ? uri.pathname.slice(1) : '';
 
@@ -229,6 +231,8 @@ export default class VersionController {
     }
     for (const obj of list.Contents) {
       const sourceKeyRootless = obj.Key?.slice(sourcePrefix.length);
+
+      // TODO: Use p-map to parallelize with limit
       await s3Client.send(
         new s3.CopyObjectCommand({
           // Source
