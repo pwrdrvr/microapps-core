@@ -30,6 +30,7 @@ export default class GatewayInfo {
 
       // Loop through and find our item, it it is here
       for (const api of apis.Items) {
+        // FIXME: Load the api name from an env var
         if (api.Name === 'microapps-apis') {
           return api;
         }
