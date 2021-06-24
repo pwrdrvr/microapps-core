@@ -16,6 +16,7 @@ export default class Manager {
   private static _client: DynamoDB;
   private static _ddbDocClient: DynamoDBDocument;
 
+  // FIXME: Pass the table name
   public constructor(dynamoDB: DynamoDB) {
     if (Manager._client === undefined) {
       Manager._client = dynamoDB;
