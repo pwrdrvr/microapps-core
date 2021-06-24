@@ -42,7 +42,7 @@ RUN rm distb/microapps-router/index.max.js
 CMD ["node", "distb/microapps-router/index.js"]
 
 
-FROM public.ecr.aws/lambda/nodejs:12 AS final
+FROM public.ecr.aws/lambda/nodejs:14 AS final
 
 # Copy the prod images only
 # COPY --from=prodimages /app .

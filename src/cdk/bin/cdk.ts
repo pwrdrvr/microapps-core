@@ -1,21 +1,63 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { Repos } from '../lib/Repos';
-import { CloudFront } from '../lib/CloudFront';
-import { MicroApps } from '../lib/MicroApps';
-
-const env: cdk.Environment = {
-  region: 'us-east-2',
-  account: '***REMOVED***',
-};
+import { MicroAppsRepos } from '../lib/MicroAppsRepos';
+import { MicroAppsCF } from '../lib/MicroAppsCF';
+import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
+import { MicroAppsS3 } from '../lib/MicroAppsS3';
+import SharedTags from '../lib/SharedTags';
+import { Imports } from '../lib/Imports';
+import SharedProps from '../lib/SharedProps';
 
 const app = new cdk.App();
-const cf = new CloudFront(app, 'CloudfrontStack', { env }); //'microapps-cloudfront');
-const repos = new Repos(app, 'Repos', { env }); //'microapps-repos');
-new MicroApps(app, 'MicroApps', {
-  //'microapps-core', {
-  CFStackExports: cf,
-  ReposExports: repos,
+
+const shared = new SharedProps(app);
+
+// We must set the env so that R53 zone imports will work
+const env: cdk.Environment = {
+  region: shared.region,
+  account: shared.account,
+};
+
+SharedTags.addSharedTags(app);
+
+const domainNameEdge = `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
+const domainNameOrigin = `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
+
+const imports = new Imports(app, `microapps-imports${shared.envSuffix}${shared.prSuffix}`, {
+  shared,
+  local: {},
   env,
+});
+const s3 = new MicroAppsS3(app, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
+  env,
+  local: {},
+  shared,
+});
+const cf = new MicroAppsCF(app, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
+  shared,
+  local: {
+    cert: imports.certEdge,
+    domainNameEdge,
+    domainNameOrigin,
+  },
+  s3Exports: s3,
+  env,
+});
+const repos = new MicroAppsRepos(app, `microapps-repos${shared.envSuffix}${shared.prSuffix}`, {
+  env,
+  shared,
+  local: {},
+});
+const svcs = new MicroAppsSvcs(app, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
+  cfStackExports: cf,
+  reposExports: repos,
+  s3Exports: s3,
+  local: {
+    domainNameEdge,
+    domainNameOrigin,
+    cert: imports.certOrigin,
+  },
+  env,
+  shared,
 });

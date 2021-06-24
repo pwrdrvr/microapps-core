@@ -1,44 +1,65 @@
 import * as cdk from '@aws-cdk/core';
 import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as cf from '@aws-cdk/aws-cloudfront';
-import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
+import * as acm from '@aws-cdk/aws-certificatemanager';
+import { IMicroAppsS3Exports } from './MicroAppsS3';
+import SharedProps from './SharedProps';
+import { RemovalPolicy } from '@aws-cdk/core';
+import SharedTags from './SharedTags';
 
-export interface ICloudFrontExports {
-  CloudFrontOAI: cloudfront.OriginAccessIdentity;
-  BucketApps: s3.IBucket;
+export interface IMicroAppsCFExports {
+  cloudFrontOAI: cloudfront.OriginAccessIdentity;
+  cloudFrontDistro: cloudfront.Distribution;
 }
 
-export class CloudFront extends cdk.Stack implements ICloudFrontExports {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+interface IMicroAppsCFProps extends cdk.StackProps {
+  local: {
+    cert: acm.ICertificate;
+    domainNameEdge: string;
+    domainNameOrigin: string;
+  };
+  shared: SharedProps;
+  s3Exports: IMicroAppsS3Exports;
+}
+
+export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
+  private _cloudFrontOAI: cloudfront.OriginAccessIdentity;
+  public get cloudFrontOAI(): cloudfront.OriginAccessIdentity {
+    return this._cloudFrontOAI;
+  }
+
+  private _cloudFrontDistro: cloudfront.Distribution;
+  public get cloudFrontDistro(): cloudfront.Distribution {
+    return this._cloudFrontDistro;
+  }
+
+  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsCFProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-    //
-    // S3 Bucket for Logging - Usable by many stacks
-    //
+    if (props === undefined) {
+      throw new Error('props must be set');
+    }
 
-    const bucketLogs = new s3.Bucket(this, 'logsBucket', {
-      bucketName: 'pwrdrvr-logs',
-    });
+    const { shared } = props;
+    const { domainNameEdge } = props.local;
+    const { r53ZoneID, r53ZoneName } = shared;
+
+    SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
     //
     // CloudFront Distro
     //
-    const apiGwyOrigin = new cforigins.HttpOrigin('appsapis.pwrdrvr.com', {
+    const apiGwyOrigin = new cforigins.HttpOrigin(props.local.domainNameOrigin, {
       protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
-    const cfdistro = new cf.Distribution(this, 'cloudfront', {
-      domainNames: ['apps.pwrdrvr.com'],
-      certificate: acm.Certificate.fromCertificateArn(
-        this,
-        'splat.pwrdrvr.com',
-        'arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09',
-      ),
+    this._cloudFrontDistro = new cf.Distribution(this, 'microapps-cloudfront', {
+      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+      domainNames: [props.local.domainNameEdge],
+      certificate: props.local.cert,
       httpVersion: cf.HttpVersion.HTTP2,
       defaultBehavior: {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
@@ -51,21 +72,26 @@ export class CloudFront extends cdk.Stack implements ICloudFrontExports {
       enableIpv6: true,
       priceClass: cf.PriceClass.PRICE_CLASS_100,
       enableLogging: true,
-      logBucket: bucketLogs,
-      logFilePrefix: 'com.pwrdrvr.apps/cloudfront-raw/',
+      logBucket: props.s3Exports.bucketLogs,
+      logFilePrefix: `${props.local.domainNameEdge.split('.').reverse().join('.')}/cloudfront-raw/`,
     });
+    if (shared.isPR) {
+      this._cloudFrontDistro.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     // Create S3 Origin Identity
-    this.BucketApps = s3.Bucket.fromBucketName(this, 'staticbucket', 'pwrdrvr-apps');
-    this.CloudFrontOAI = new cf.OriginAccessIdentity(this, 'staticAccessIdentity', {
-      comment: 'cloudfront-access',
+    this._cloudFrontOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
+      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
     });
+    if (shared.isPR) {
+      this._cloudFrontOAI.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Add Origins
     //
-    const statics3 = new cforigins.S3Origin(this.BucketApps, {
-      originAccessIdentity: this.CloudFrontOAI,
+    const statics3 = new cforigins.S3Origin(props.s3Exports.bucketApps, {
+      originAccessIdentity: this.cloudFrontOAI,
     });
 
     //
@@ -98,27 +124,28 @@ export class CloudFront extends cdk.Stack implements ICloudFrontExports {
     // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
     // Let everything else fall through to the API Gateway
     //
-    cfdistro.addBehavior('/deployer/*', apiGwyOrigin, apiGwyBehavior);
-    cfdistro.addBehavior('/*/*/api/*', apiGwyOrigin, apiGwyBehavior);
-    cfdistro.addBehavior('/*/*/static/*', statics3, s3Behavior);
-    cfdistro.addBehavior('/*/*/*.*', statics3, s3Behavior);
-    cfdistro.addBehavior('/*/*/', apiGwyOrigin, apiGwyVersionRootBehavior);
+    this._cloudFrontDistro.addBehavior('/*/*/api/*', apiGwyOrigin, apiGwyBehavior);
+    this._cloudFrontDistro.addBehavior('/*/*/static/*', statics3, s3Behavior);
+    this._cloudFrontDistro.addBehavior('/*/*/*.*', statics3, s3Behavior);
+    this._cloudFrontDistro.addBehavior('/*/*/', apiGwyOrigin, apiGwyVersionRootBehavior);
 
     //
-    // Route53 - Point apps.pwrdrvr.com at this distro
+    // Create the edge name for the CloudFront distro
     //
 
-    const hzonePwrDrvrCom = r53.HostedZone.fromLookup(this, 'hzonePwrDrvrCom', {
-      domainName: 'pwrdrvr.com',
+    const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
+      zoneName: r53ZoneName,
+      hostedZoneId: r53ZoneID,
     });
-    const rrAppsPwrDrvrCom = new r53.RecordSet(this, 'appspwrdrvrcom', {
-      recordName: 'apps.pwrdrvr.com',
+
+    const rrAppsEdge = new r53.RecordSet(this, 'microapps-edge-arecord', {
+      recordName: domainNameEdge,
       recordType: r53.RecordType.A,
-      target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(cfdistro)),
-      zone: hzonePwrDrvrCom,
+      target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(this._cloudFrontDistro)),
+      zone,
     });
+    if (shared.isPR) {
+      rrAppsEdge.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
   }
-
-  CloudFrontOAI: cloudfront.OriginAccessIdentity;
-  BucketApps: s3.IBucket;
 }

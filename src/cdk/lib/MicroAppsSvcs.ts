@@ -5,20 +5,40 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as s3 from '@aws-cdk/aws-s3';
-import * as logs from '@aws-cdk/aws-logs';
-import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
-import { ICloudFrontExports } from './CloudFront';
-import { IReposExports } from './Repos';
+import * as logs from '@aws-cdk/aws-logs';
+import * as acm from '@aws-cdk/aws-certificatemanager';
+import { IMicroAppsCFExports } from './MicroAppsCF';
+import { IMicroAppsReposExports } from './MicroAppsRepos';
+import { IMicroAppsS3Exports } from './MicroAppsS3';
+import SharedProps from './SharedProps';
+import SharedTags from './SharedTags';
+import { RemovalPolicy } from '@aws-cdk/core';
 
-interface IMicroAppsStackProps extends cdk.StackProps {
-  ReposExports: IReposExports;
-  CFStackExports: ICloudFrontExports;
+interface IMicroAppsSvcsStackProps extends cdk.StackProps {
+  reposExports: IMicroAppsReposExports;
+  cfStackExports: IMicroAppsCFExports;
+  s3Exports: IMicroAppsS3Exports;
+  local: {
+    domainNameEdge: string;
+    domainNameOrigin: string;
+    cert: acm.ICertificate;
+  };
+  shared: SharedProps;
 }
 
-export class MicroApps extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsStackProps) {
+export interface IMicroAppsSvcsExports {
+  dnAppsOrigin: apigwy.DomainName;
+}
+
+export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
+  private _dnAppsOrigin: apigwy.DomainName;
+  public get dnAppsOrigin(): apigwy.DomainName {
+    return this._dnAppsOrigin;
+  }
+
+  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsSvcsStackProps) {
     super(scope, id, props);
 
     if (props === undefined) {
@@ -28,12 +48,18 @@ export class MicroApps extends cdk.Stack {
       throw new Error('props.env cannot be undefined');
     }
 
-    // The code that defines your stack goes here
+    const { bucketApps, bucketAppsStaging } = props.s3Exports;
+    const { cert, domainNameOrigin } = props.local;
+    const { shared } = props;
+    const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
+
+    SharedTags.addEnvTag(this, shared.env, shared.isPR);
+
     //
     // DynamoDB Table
     //
-    const table = new dynamodb.Table(this, 'table', {
-      tableName: 'MicroApps',
+    const table = new dynamodb.Table(this, 'microapps-router-table', {
+      tableName: `microapps${shared.envSuffix}${shared.prSuffix}`,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',
@@ -44,25 +70,25 @@ export class MicroApps extends cdk.Stack {
         type: dynamodb.AttributeType.STRING,
       },
     });
-
-    //
-    // Import S3 Buckets
-    //
-    const bucketApps = props.CFStackExports.BucketApps;
-    const bucketStaging = s3.Bucket.fromBucketName(this, 'bucketStaging', 'pwrdrvr-apps-staging');
+    if (shared.isPR) {
+      table.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Deployer Lambda Function
     //
 
     // Create Deployer Lambda Function
-    const deployerFunc = new lambda.DockerImageFunction(this, 'deployer-func', {
-      code: lambda.DockerImageCode.fromEcr(props.ReposExports.RepoDeployer),
-      functionName: 'microapps-deployer',
+    const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+      functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
+      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
+    if (shared.isPR) {
+      deployerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
     // Give the Deployer access to DynamoDB table
     table.grantReadWriteData(deployerFunc);
     table.grant(deployerFunc, 'dynamodb:DescribeTable');
@@ -79,10 +105,10 @@ export class MicroApps extends cdk.Stack {
       actions: ['s3:*'],
       notPrincipals: [
         new iam.CanonicalUserPrincipal(
-          props.CFStackExports.CloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
+        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
       ],
       notResources: [
@@ -99,10 +125,10 @@ export class MicroApps extends cdk.Stack {
       actions: ['s3:*'],
       notPrincipals: [
         new iam.CanonicalUserPrincipal(
-          props.CFStackExports.CloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/AdminAccess`),
+        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
         new iam.ArnPrincipal(
           `arn:aws:sts::${props.env.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
@@ -111,7 +137,12 @@ export class MicroApps extends cdk.Stack {
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
       conditions: {
         Null: { 'aws:PrincipalTag/microapp-name': 'true' },
-        StringNotLike: { 'aws:userid': ['AROATPLZCRY427AZLMDOB:*', props.env.account] },
+        // Note: This AROA must be specified to prevent this policy from locking
+        // out non-root sessions that have assumed the admin role.
+        // The notPrincipals will only match the role name exactly and will not match
+        // any session that has assumed the role since notPrincipals does not allow
+        // wildcard matches and does not do them implicitly either.
+        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, props.env.account] },
       },
     });
     const policyCloudFrontAccess = new iam.PolicyStatement({
@@ -120,7 +151,7 @@ export class MicroApps extends cdk.Stack {
       actions: ['s3:GetObject'],
       principals: [
         new iam.CanonicalUserPrincipal(
-          props.CFStackExports.CloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`],
@@ -142,7 +173,7 @@ export class MicroApps extends cdk.Stack {
     const policyReadListStaging = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject', 's3:ListBucket'],
-      resources: [`${bucketStaging.bucketArn}/*`, bucketStaging.bucketArn],
+      resources: [`${bucketAppsStaging.bucketArn}/*`, bucketAppsStaging.bucketArn],
     });
     deployerFunc.addToRolePolicy(policyReadListStaging);
 
@@ -159,38 +190,44 @@ export class MicroApps extends cdk.Stack {
     //
 
     // Create Router Lambda Function - Docker Image Version (aka "slow")
-    const routerFunc = new lambda.DockerImageFunction(this, 'router-func', {
-      code: lambda.DockerImageCode.fromEcr(props.ReposExports.RepoRouter),
-      functionName: 'microapps-router',
+    const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
+      functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
+      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
-    const routerzFunc = new lambda.Function(this, 'routerz-func', {
+    if (shared.isPR) {
+      routerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
+    // Zip version of the function
+    // This is *much* faster on cold inits
+    const routerzFunc = new lambda.Function(this, 'microapps-routerz-func', {
+      functionName: `microapps-routerz${shared.envSuffix}${shared.prSuffix}`,
+      // This is just a dummy placeholder until the real version gets published
       code: lambda.Code.fromInline(
         "function handler() { return 'cat'; }; exports.handler=handler;",
       ),
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
-      functionName: 'microapps-routerz',
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
     });
+    if (shared.isPR) {
+      routerzFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
     const policyReadTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject'],
       resources: [`${bucketApps.bucketArn}/*`],
     });
-    routerFunc.addToRolePolicy(policyReadTarget);
-    // Give the Router access to DynamoDB table
-    table.grantReadData(routerFunc);
-    table.grant(routerFunc, 'dynamodb:DescribeTable');
-    // Repeat for zip file function
-    routerzFunc.addToRolePolicy(policyReadTarget);
-    // Give the Router access to DynamoDB table
-    table.grantReadData(routerzFunc);
-    table.grant(routerzFunc, 'dynamodb:DescribeTable');
+    for (const router of [routerFunc, routerzFunc]) {
+      router.addToRolePolicy(policyReadTarget);
+      // Give the Router access to DynamoDB table
+      table.grantReadData(router);
+      table.grant(router, 'dynamodb:DescribeTable');
+    }
 
     // TODO: Add Last Route for /*/{proxy+}
     // Note: That might not work, may need a Behavior in CloudFront
@@ -198,23 +235,24 @@ export class MicroApps extends cdk.Stack {
     //       to origin Lambda Router function.
 
     //
-    // APIGateway for appsapis.pwrdrvr.com
+    // APIGateway domain names for CloudFront and origin
     //
 
-    // Import certificate
-    const certArn =
-      'arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c';
-    const cert = acm.Certificate.fromCertificateArn(this, 'cert', certArn);
-
     // Create Custom Domains for API Gateway
-    const dnApps = new apigwy.DomainName(this, 'micro-apps-http-api-dn', {
-      domainName: 'apps.pwrdrvr.com',
+    const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
+      domainName: props.local.domainNameEdge,
       certificate: cert,
     });
-    const dnAppsApis = new apigwy.DomainName(this, 'micro-apps-http-apps-api-dn', {
-      domainName: 'appsapis.pwrdrvr.com',
+    if (shared.isPR) {
+      dnAppsEdge.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
+    this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
+      domainName: props.local.domainNameOrigin,
       certificate: cert,
     });
+    if (shared.isPR) {
+      this._dnAppsOrigin.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     // Create an integration for the Router
     // Do this here since it's the default route
@@ -222,46 +260,32 @@ export class MicroApps extends cdk.Stack {
       handler: routerFunc,
     });
 
-    // Create APIGateway for apps-apis.pwrdrvr.com
+    // Create APIGateway for the Edge name
     const httpApiDomainMapping: apigwy.DomainMappingOptions = {
-      domainName: dnApps,
+      domainName: dnAppsEdge,
     };
-    const httpApi = new apigwy.HttpApi(this, 'micro-apps-http-api', {
+    const httpApi = new apigwy.HttpApi(this, 'microapps-api', {
       defaultDomainMapping: httpApiDomainMapping,
       defaultIntegration: intRouter,
-      apiName: 'microapps-apis',
     });
+    if (shared.isPR) {
+      httpApi.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
-    // Let API Gateway accept request at apps-apis.pwrdrvr.com
+    // Let API Gateway accept requests using domainNameOrigin
     // That is the origin URI that CloudFront uses for this gateway.
     // The gateway will refuse the traffic if it doesn't have the
     // domain name registered.
     //
-    const mappingAppsApis = new apigwy.ApiMapping(this, 'apps-apis-mapping', {
+    const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-api-mapping-origin', {
       api: httpApi,
-      domainName: dnAppsApis,
+      domainName: this.dnAppsOrigin,
     });
-    mappingAppsApis.node.addDependency(dnAppsApis);
-
-    //
-    // Create the appsapis.pwrdrvr.com name
-    //
-    const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'zone', {
-      zoneName: 'pwrdrvr.com',
-      hostedZoneId: 'ZHYNI9F572BBD',
-    });
-
-    const arecord = new r53.ARecord(this, 'ARecord', {
-      zone: zone,
-      recordName: 'appsapis',
-      target: r53.RecordTarget.fromAlias(
-        new r53targets.ApiGatewayv2DomainProperties(
-          dnAppsApis.regionalDomainName,
-          dnAppsApis.regionalHostedZoneId,
-        ),
-      ),
-    });
+    mappingAppsApis.node.addDependency(this.dnAppsOrigin);
+    if (shared.isPR) {
+      mappingAppsApis.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
 
     //
     // Give Deployer permissions to create routes and integrations
@@ -299,5 +323,28 @@ export class MicroApps extends cdk.Stack {
       },
     });
     deployerFunc.addToRolePolicy(policyAPIManageLambdas);
+
+    //
+    // Create the origin name for API Gateway
+    //
+
+    const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
+      zoneName: r53ZoneName,
+      hostedZoneId: r53ZoneID,
+    });
+
+    const rrAppsOrigin = new r53.ARecord(this, 'microapps-origin-arecord', {
+      zone: zone,
+      recordName: domainNameOrigin,
+      target: r53.RecordTarget.fromAlias(
+        new r53targets.ApiGatewayv2DomainProperties(
+          this._dnAppsOrigin.regionalDomainName,
+          this._dnAppsOrigin.regionalHostedZoneId,
+        ),
+      ),
+    });
+    if (shared.isPR) {
+      rrAppsOrigin.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
   }
 }

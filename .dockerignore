@@ -4,11 +4,15 @@
 docker-compose.*
 .dockerignore
 Dockerfile*
+Makefile
+*.md
 .git
 .gitignore
 **/node_modules
 node_modules
-cdk/
+**/cdk
+cdk.json
+cdk.context.json
 cdk.out/
 ts-cdk/
 **/dist/
