@@ -1,6 +1,14 @@
 import { Property } from 'ts-convict';
 
-export class Database implements config.IDatabase {
+export interface IDatabase {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+}
+
+export class Database implements IDatabase {
   @Property({
     doc: 'The database host',
     default: 'localhost',

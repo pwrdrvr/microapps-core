@@ -2,7 +2,7 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import { handler, ICreateApplicationRequest } from '../index';
 import Manager, { Application } from '@pwrdrvr/microapps-datalib';
-import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
+import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
 import type * as lambda from 'aws-lambda';
 
 describe('AppController', () => {

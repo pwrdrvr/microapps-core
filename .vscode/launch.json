@@ -40,7 +40,7 @@
       "runtimeVersion": "15.3.0",
       "env": {
         "DEBUG": "true",
-        "DATABASE_USER": "deployer_db_user"
+        "DATABASE_USER": "env_var_override-user"
       },
       "envFile": "${workspaceFolder}/.env",
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],

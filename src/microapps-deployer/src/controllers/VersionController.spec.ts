@@ -14,7 +14,7 @@ import {
   IDeployVersionRequest,
 } from '../index';
 import Manager, { Version } from '@pwrdrvr/microapps-datalib';
-import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
+import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
 import type * as lambdaTypes from 'aws-lambda';
 import { VersionStatus } from '@pwrdrvr/microapps-datalib/models/version';
 

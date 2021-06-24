@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import { handler } from './index';
 import * as lambda from 'aws-lambda';
-import { dynamoClient, InitializeTable, DropTable } from '../fixtures';
+import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
 
 //const manager = new Manager(dynamoClient.client);
 

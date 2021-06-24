@@ -1,6 +1,9 @@
 import { Property } from 'ts-convict';
 
-export class SubConfig implements config.ISubConfig {
+export interface ISubConfig {
+  bar: number;
+}
+export class SubConfig implements ISubConfig {
   @Property({
     doc: 'A sub prop',
     default: 3,
