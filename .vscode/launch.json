@@ -29,7 +29,7 @@
       },
       "envFile": "${workspaceFolder}/.env",
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-      "args": ["${workspaceFolder}/src/microapps-router/index.ts"]
+      "args": ["${workspaceFolder}/src/microapps-router/src/index.ts"]
     },
     {
       "name": "Debug TS Deployer",
@@ -40,11 +40,12 @@
       "runtimeVersion": "15.3.0",
       "env": {
         "DEBUG": "true",
+        "NODE_ENV": "dev",
         "DATABASE_USER": "env_var_override-user"
       },
       "envFile": "${workspaceFolder}/.env",
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-      "args": ["${workspaceFolder}/src/microapps-deployer/index.ts"]
+      "args": ["${workspaceFolder}/src/microapps-deployer/src/index.ts"]
     },
     {
       "type": "node",
