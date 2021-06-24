@@ -11,6 +11,9 @@ const localTesting = process.env.DEBUG ? true : false;
 const dynamoClient = process.env.TEST
   ? new DynamoDB({ endpoint: 'http://localhost:8000' })
   : new DynamoDB({});
+
+// FIXME: Move to a file to fix circular reference
+// FIXME: Pass the table name from an env var
 export const manager = new Manager(dynamoClient);
 
 interface IRequestBase {

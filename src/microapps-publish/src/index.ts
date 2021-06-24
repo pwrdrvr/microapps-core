@@ -69,14 +69,15 @@ class PublishTool {
     ] as { path: string; versions: IVersions }[];
 
     // Install handler to ensure that we restore files
-    process.on('SIGINT', () => {
+    process.on('SIGINT', async () => {
       if (this._restoreFilesStarted) {
         return;
       } else {
         this._restoreFilesStarted = true;
       }
       console.log('Caught Ctrl-C, restoring files');
-      this.restoreFiles();
+      await S3Uploader.removeTempDirIfExists();
+      await this.restoreFiles();
     });
 
     try {

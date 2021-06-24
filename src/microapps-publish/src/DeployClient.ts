@@ -10,6 +10,7 @@ import DeployConfig from './DeployConfig';
 
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({});
+  // FIXME: Load deployer Lambda Name / ARN from env var
   static readonly _deployerFunctionName = 'microapps-deployer';
   static readonly _decoder = new TextDecoder('utf-8');
 
