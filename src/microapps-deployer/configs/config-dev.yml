@@ -1,3 +1,2 @@
-name: Dev App Name Override
-subConfig: 
-    bar: 50
+db:
+    tableName: microapps-dev

@@ -1,13 +1,10 @@
 import * as convict from 'ts-convict';
-import { ISubConfig, SubConfig } from './SubConfig';
 import { Database, IDatabase } from './Database';
 import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
 import { FilesExist } from '../lib/FilesExist';
 
 export interface IConfig {
-  name: string;
-  subConfig: ISubConfig;
   db: IDatabase;
 }
 
@@ -45,25 +42,21 @@ export class Config implements IConfig {
 
   public static configFiles(): string[] {
     const possibleFiles = [
-      'config.yaml',
-      'config.yml',
-      `config-${Config.envLevel}.yaml`,
-      `config-${Config.envLevel}.yml`,
+      './configs/config.yaml',
+      './configs/config.yml',
+      `./configs/config-${Config.envLevel}.yaml`,
+      `./configs/config-${Config.envLevel}.yml`,
     ];
     return FilesExist.getExistingFilesSync(possibleFiles);
   }
 
   // ts-convict will use the Typescript type if no format given
-  // ts-convict will use the Typescript type if no format given
-  @convict.Property({
-    doc: 'The name of the thing',
-    default: 'Convict',
-    env: 'MY_CONFIG_NAME',
-  })
-  public name!: string;
-
-  @convict.Property(SubConfig)
-  public subConfig!: ISubConfig;
+  // @convict.Property({
+  //   doc: 'The name of the thing',
+  //   default: 'Convict',
+  //   env: 'MY_CONFIG_NAME',
+  // })
+  // public name!: string;
 
   @convict.Property(Database)
   public db!: IDatabase;

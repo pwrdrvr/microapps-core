@@ -1,49 +1,15 @@
 import { Property } from 'ts-convict';
 
 export interface IDatabase {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
+  tableName: string;
 }
 
 export class Database implements IDatabase {
   @Property({
-    doc: 'The database host',
-    default: 'localhost',
+    doc: 'DynamoDB Table Name',
+    default: 'MicroApps',
     format: 'url',
-    env: 'DATABASE_HOST',
+    env: 'DATABASE_TABLE_NAME',
   })
-  public host!: string;
-
-  @Property({
-    doc: 'The database port',
-    default: 5432,
-    format: 'port',
-    env: 'DATABASE_PORT',
-  })
-  public port!: number;
-
-  @Property({
-    doc: 'The database db',
-    default: 'my_db',
-    env: 'DATABASE_DB',
-  })
-  public database!: string;
-
-  @Property({
-    doc: 'The database user',
-    default: 'magik',
-    env: 'DATABASE_USER',
-  })
-  public user!: string;
-
-  @Property({
-    doc: 'The database pass',
-    default: 'secretpassword',
-    sensitive: true,
-    env: 'DATABASE_PASS',
-  })
-  public password!: string;
+  public tableName!: string;
 }
