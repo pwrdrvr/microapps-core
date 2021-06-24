@@ -1,8 +1,5 @@
 // Used by ts-convict
 import 'reflect-metadata';
-import { TSConvict } from 'ts-convict';
-import { Config } from './config/Config';
-
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
@@ -10,10 +7,6 @@ import Log from './lib/Log';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import AppController from './controllers/AppController';
 import VersionController from './controllers/VersionController';
-
-// Load the config
-const myConfigLoader = new TSConvict<Config>(Config);
-const myConfig: Config = myConfigLoader.load(Config.configFiles());
 
 const localTesting = process.env.DEBUG ? true : false;
 

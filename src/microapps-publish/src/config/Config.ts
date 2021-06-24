@@ -1,15 +1,13 @@
 import * as convict from 'ts-convict';
-import { Database, IDatabase } from './Database';
 import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
 import { FilesExist } from '../lib/FilesExist';
-import { APIGateway, IAPIGateway } from './APIGateway';
 import { FileStore, IFileStore } from './FileStore';
+import { Deployer, IDeployer } from './Deployer';
 import { TSConvict } from 'ts-convict';
 
 export interface IConfig {
-  db: IDatabase;
-  apigwy: IAPIGateway;
+  db: IDeployer;
   filestore: IFileStore;
 }
 
@@ -72,11 +70,8 @@ export class Config implements IConfig {
   // })
   // public name!: string;
 
-  @convict.Property(Database)
-  public db!: IDatabase;
-
-  @convict.Property(APIGateway)
-  public apigwy!: IAPIGateway;
+  @convict.Property(Deployer)
+  public db!: IDeployer;
 
   @convict.Property(FileStore)
   public filestore!: IFileStore;

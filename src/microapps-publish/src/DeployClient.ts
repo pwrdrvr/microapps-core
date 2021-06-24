@@ -74,6 +74,7 @@ export default class DeployClient {
       semVer: config.SemVer,
       defaultFile: config.DefaultFile,
       lambdaARN: config.LambdaARN,
+      // FIXME: Remove bucket name
       s3SourceURI: `s3://pwrdrvr-apps-staging/${config.AppName}/${config.SemVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(

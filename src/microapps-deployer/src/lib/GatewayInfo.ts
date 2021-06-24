@@ -1,4 +1,5 @@
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
+import { Config } from '../config/Config';
 
 export default class GatewayInfo {
   // public static async GetAPIID(apigwyClient: apigwy.ApiGatewayV2Client): Promise<string> {
@@ -30,8 +31,7 @@ export default class GatewayInfo {
 
       // Loop through and find our item, it it is here
       for (const api of apis.Items) {
-        // FIXME: Load the api name from an env var
-        if (api.Name === 'microapps-apis') {
+        if (api.Name === Config.instance.apigwy.name) {
           return api;
         }
       }

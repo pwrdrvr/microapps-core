@@ -16,7 +16,6 @@ import {
 import Manager, { Version } from '@pwrdrvr/microapps-datalib';
 import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
 import type * as lambdaTypes from 'aws-lambda';
-import { VersionStatus } from '@pwrdrvr/microapps-datalib/models/version';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -83,7 +82,7 @@ describe('VersionController', () => {
         SemVer: '0.0.0',
         // Note: Pending is reported as "does not exist"
         // So don't set this to pending or the test will fail
-        Status: 'integrated' as VersionStatus,
+        Status: 'integrated',
         Type: 'lambda',
       });
       await version.SaveAsync(dynamoClient.ddbDocClient);
@@ -327,7 +326,7 @@ describe('VersionController', () => {
         DefaultFile: '',
         IntegrationID: '',
         SemVer: '0.0.0',
-        Status: 'routed' as VersionStatus,
+        Status: 'routed',
         Type: 'lambda',
       });
       await version.SaveAsync(dynamoClient.ddbDocClient);
