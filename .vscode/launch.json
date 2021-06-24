@@ -32,6 +32,21 @@
       "args": ["${workspaceFolder}/src/microapps-router/index.ts"]
     },
     {
+      "name": "Debug TS Deployer",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src/microapps-deployer/",
+      "skipFiles": ["${workspaceFolder}/src/microapps-deployer/<node_internals>/**"],
+      "runtimeVersion": "15.3.0",
+      "env": {
+        "DEBUG": "true",
+        "DATABASE_USER": "deployer_db_user"
+      },
+      "envFile": "${workspaceFolder}/.env",
+      "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
+      "args": ["${workspaceFolder}/src/microapps-deployer/index.ts"]
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Debug TS Mocha",

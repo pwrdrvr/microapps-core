@@ -1,0 +1,6 @@
+name: Cool App
+subConfig: 
+    bar: 5
+db:
+    user: devuser
+    password: devpassword
