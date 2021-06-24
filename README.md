@@ -1,30 +1,49 @@
-# MicroApps Project
+# Overview
 
-- CDK Stacks
-  - Repos
-    - Creates the ECR repos for components to be published into
-    - Deployer
-    - Router
-    - ReleaseApp
-  - MicroApps
-    - Create MicroApps DynamoDB Table
+The MicroApps project...
+
+# Project Layout
+
+- [src/cdk]() - CDK Stacks
+  - MicroAppsS3
+    - Creates S3 buckets
+  - MicroAppsRepos
+    - Creates the ECR repos for components to be published into;
+      - Deployer
+      - Router
+  - MicroAppsSvcs
+    - Create DynamoDB table
     - Create Deployer Lambda function
-      - Listens on https://apps.pwrdrvr.com/deployer/
     - Create Router Lambda function
-    - Create S3 bucket
-  - CloudfrontStack
-    - Creates https://apps.pwrdrvr.com/
-- Release App
-  - This controls the released versions of applications
+    - Create APIGateway HTTP API
+  - MicroAppsCF
+    - Creates Cloudfront distribution
+  - MicroAppsR53
+    - Creates domain names to point to the edge (Cloudfront) and origin (API Gateway)
+- [src/microapps-deployer]()
+  - Lambda service invoked by `microapps-publish` to record new app/version in the DynamoDB table, create API Gateway integrations, copy S3 assets from staging to prod bucket, etc.
+- [src/microapps-publish]()
+  - Node executable that updates versions in config files, deploys static assets to the S3 staging bucket, optionally compiles and deploys a new Lambda function version, and invokes `microapps-deployer`
+  - Permissions required:
+    - Lambda invoke
+    - S3 publish to the staging bucket
+    - ECR write
+    - Lambda version publish
+- [src/microapps-router]()
+  - Lambda function that determines which version of an app to point a user to on a particular invocation
 
 # Useful Commands
 
-- `dotnet build src` compile this app
+- `npm run build` compiles TypeSript to JavaScript
+- `npm run lint` checks TypeScript for compliance with Lint rules
+- `cdk list` list the stack names
 - `cdk deploy` deploy this stack to your default AWS account/region
 - `cdk diff` compare deployed stack with current state
 - `cdk synth` emits the synthesized CloudFormation template
 
 # Running CDK
+
+Always run CDK from the root of the git repo, which is the directory containing `cdk.json`.
 
 ## Set AWS Profile
 
@@ -33,45 +52,6 @@
 ## Set NVM Version
 
 `nvm use`
-
-## Check CDK Status
-
-`cdk diff`
-
-# Release App
-
-## Update HTML for App
-
-Change version in [src/PwrDrvr.MicroApps.Release/deploy.json]
-
-Use the [src/PwrDrvr.MicroApps.DeployTool] to deploy the static assets:
-
-```
-cd src/PwrDrvr.MicroApps.Release
-dotnet run --project ../../src/PwrDrvr.MicroApps.DeployTool/
-```
-
-## Update Lambda Function Code
-
-### Signin to ECR
-
-`make aws-ecr-login`
-
-### Build and Publish Updated Image
-
-`make aws-ecr-publish-release`
-
-### Update Lambda to Use Updated Image
-
-`make aws-lambda-update-release`
-
-## Run Latest Version of App
-
-https://apps.pwrdrvr.com/release/
-
-## Run Specific Version of App
-
-https://apps.pwrdrvr.com/release/1.0.3/
 
 # Deployer Service
 
@@ -84,19 +64,6 @@ make aws-ecr-login
 make aws-ecr-publish-deployer
 make aws-lambda-update-deployer
 ```
-
-# Generating Swagger Clients
-
-https://blog.logrocket.com/generate-typescript-csharp-clients-nswag-api/
-
-- Install All Node and DotNet Dependencies
-  - `npm i`
-- Start the Deployer Svc in Watch Mode
-  - `npm run start:deployer`
-- Explore the Swagger Spec
-  - `http://localhost:5000/swagger`
-- Export the Swagger TypeScript Client
-  - `npm run generate-client:deployer`
 
 # Notes on Selection of Docker Image Lambdas
 
