@@ -1,9 +1,15 @@
 import * as convict from 'ts-convict';
-import { SubConfig } from './SubConfig';
-import { Database } from './Database';
+import { ISubConfig, SubConfig } from './SubConfig';
+import { Database, IDatabase } from './Database';
 import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
 import { FilesExist } from '../lib/FilesExist';
+
+export interface IConfig {
+  name: string;
+  subConfig: ISubConfig;
+  db: IDatabase;
+}
 
 @convict.Config({
   // optional default file to load, no errors if it doesn't exist
@@ -24,7 +30,7 @@ import { FilesExist } from '../lib/FilesExist';
     ipaddress,
   },
 })
-export class Config implements config.IConfig {
+export class Config implements IConfig {
   public static get envLevel(): 'dev' | 'qa' | 'prod' | 'local' {
     const nodeEnv = process.env.NODE_ENV || 'dev';
     if (nodeEnv.startsWith('prod')) {
@@ -57,8 +63,8 @@ export class Config implements config.IConfig {
   public name!: string;
 
   @convict.Property(SubConfig)
-  public subConfig!: config.ISubConfig;
+  public subConfig!: ISubConfig;
 
   @convict.Property(Database)
-  public db!: config.IDatabase;
+  public db!: IDatabase;
 }

@@ -9,9 +9,9 @@ const LOCAL_EXTERNALS = [];
 const NPM_EXTERNALS = [];
 
 const generateConfig = (input) => ({
-  input: `./src/microapps-router/${input.filename}.ts`,
+  input: `./src/microapps-router/src/${input.filename}.ts`,
   output: {
-    file: `./distb/microapps-router/${input.filename}${input.minify ? '' : '.max'}.js`,
+    file: `./distb/microapps-router/src/${input.filename}${input.minify ? '' : '.max'}.js`,
     format: 'cjs',
   },
   plugins: [
