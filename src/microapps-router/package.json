@@ -18,11 +18,16 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
+    "convict": "^6.1.0",
+    "js-yaml": "^4.1.0",
     "lambda-log": "^2.4.0",
+    "reflect-metadata": "^0.1.13",
+    "ts-convict": "^1.1.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.72",
+    "@types/convict": "^6.0.2",
     "@types/lambda-log": "^2.2.0"
   }
 }
