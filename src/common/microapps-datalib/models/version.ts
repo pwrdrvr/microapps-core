@@ -6,6 +6,14 @@ enum SaveBy {
   AppName,
 }
 
+export type VersionStatus =
+  | 'pending'
+  | 'assets-copied'
+  | 'permissioned'
+  | 'integrated'
+  | 'routed'
+  | 'deployed';
+
 export interface IVersionRecord {
   PK: string;
   SK: string;
@@ -16,8 +24,6 @@ export interface IVersionRecord {
   DefaultFile: string;
   IntegrationID: string;
 }
-
-export type VersionStatus = 'pending' | 'assets-copied' | 'permissioned' | 'integrated' | 'routed';
 
 export default class Version implements IVersionRecord {
   private _keyBy: SaveBy;

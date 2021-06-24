@@ -3,14 +3,10 @@ import { Database, IDatabase } from './Database';
 import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
 import { FilesExist } from '../lib/FilesExist';
-import { APIGateway, IAPIGateway } from './APIGateway';
-import { FileStore, IFileStore } from './FileStore';
 import { TSConvict } from 'ts-convict';
 
 export interface IConfig {
   db: IDatabase;
-  apigwy: IAPIGateway;
-  filestore: IFileStore;
 }
 
 @convict.Config({
@@ -74,10 +70,4 @@ export class Config implements IConfig {
 
   @convict.Property(Database)
   public db!: IDatabase;
-
-  @convict.Property(APIGateway)
-  public apigwy!: IAPIGateway;
-
-  @convict.Property(FileStore)
-  public filestore!: IFileStore;
 }

@@ -9,6 +9,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { Config } from '../config/Config';
 import Log from '../lib/Log';
 import { URL } from 'url';
 
@@ -17,7 +18,7 @@ const s3Client = new s3.S3Client({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
-  static destinationBucket = 'pwrdrvr-apps';
+  static destinationBucket = Config.instance.filestore.destinationBucket;
 
   public static async CheckVersionExists({
     appName,
@@ -73,8 +74,6 @@ export default class VersionController {
       // Parse the S3 Source URI
       const uri = new URL(request.s3SourceURI);
 
-      // FIXME: Get sourceBucket from env var
-      // FIXME: Get destinationBucket from env var
       const sourceBucket = uri.host;
       const sourcePrefix = uri.pathname.length >= 1 ? uri.pathname.slice(1) : '';
 
