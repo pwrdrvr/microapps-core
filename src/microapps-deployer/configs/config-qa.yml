@@ -5,5 +5,5 @@ apigwy:
     name: microapps-api-qa
 
 filestore:
-    sourceBucket: microapps-apps-qa
-    destinationBucket: microapps-apps-staging-qa
+    stagingBucket: microapps-apps-staging-qa
+    destinationBucket: microapps-apps-qa

@@ -88,7 +88,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       environment: {
         NODE_ENV: shared.env,
         DATABASE_TABLE_NAME: table.tableName,
-        FILESTORE_SRC_BUCKET: bucketAppsStaging.bucketName,
+        FILESTORE_STAGING_BUCKET: bucketAppsStaging.bucketName,
         FILESTORE_DEST_BUCKET: bucketApps.bucketName,
       },
     });

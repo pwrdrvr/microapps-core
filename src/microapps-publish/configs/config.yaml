@@ -1,9 +1,5 @@
-db:
-    tableName: MicroApps
-
-apigwy:
-    name: microapps-api
+deployer:
+    lambdaName: microapps-deployer
 
 filestore:
-    sourceBucket: microapps-apps
-    destinationBucket: microapps-apps-staging
+    stagingBucket: microapps-apps-staging

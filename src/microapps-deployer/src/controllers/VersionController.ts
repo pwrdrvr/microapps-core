@@ -69,12 +69,12 @@ export default class VersionController {
       // Parse the S3 Source URI
       const uri = new URL(request.s3SourceURI);
 
-      const sourceBucket = uri.host;
+      const stagingBucket = uri.host;
       const sourcePrefix = uri.pathname.length >= 1 ? uri.pathname.slice(1) : '';
 
       // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
       // Loop through all S3 source assets and copy to the destination
-      await VersionController.CopyToProdBucket(sourceBucket, sourcePrefix, destinationPrefix);
+      await VersionController.CopyToProdBucket(stagingBucket, sourcePrefix, destinationPrefix);
 
       // Update status to assets-copied
       record.Status = 'assets-copied';
@@ -216,7 +216,7 @@ export default class VersionController {
 
   private static async CopyFilesInList(
     list: s3.ListObjectsV2CommandOutput,
-    sourceBucket: string,
+    stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
   ): Promise<void> {
@@ -230,7 +230,7 @@ export default class VersionController {
       await s3Client.send(
         new s3.CopyObjectCommand({
           // Source
-          CopySource: `${sourceBucket}/${obj.Key}`,
+          CopySource: `${stagingBucket}/${obj.Key}`,
           // Destination
           Bucket: VersionController.destinationBucket,
           Key: `${destinationPrefix}/${sourceKeyRootless}`,
@@ -240,7 +240,7 @@ export default class VersionController {
   }
 
   private static async CopyToProdBucket(
-    sourceBucket: string,
+    stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
   ) {
@@ -254,12 +254,12 @@ export default class VersionController {
           : ({} as s3.ListObjectsV2CommandInput);
       list = await s3Client.send(
         new s3.ListObjectsV2Command({
-          Bucket: sourceBucket,
+          Bucket: stagingBucket,
           Prefix: sourcePrefix,
           ...optionals,
         }),
       );
-      await VersionController.CopyFilesInList(list, sourceBucket, sourcePrefix, destinationPrefix);
+      await VersionController.CopyFilesInList(list, stagingBucket, sourcePrefix, destinationPrefix);
     } while (list.IsTruncated);
   }
 }

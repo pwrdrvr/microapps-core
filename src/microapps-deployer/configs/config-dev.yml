@@ -5,5 +5,5 @@ apigwy:
     name: microapps-api-dev
 
 filestore:
-    sourceBucket: microapps-apps-dev
-    destinationBucket: microapps-apps-staging-dev
+    stagingBucket: microapps-apps-staging-dev
+    destinationBucket: microapps-apps-dev

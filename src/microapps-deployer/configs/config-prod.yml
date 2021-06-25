@@ -2,8 +2,8 @@ db:
     tableName: microapps-prod
 
 apigwy:
-    name: microapps-api-qa
+    name: microapps-api-prod
 
 filestore:
-    sourceBucket: microapps-apps-qa
-    destinationBucket: microapps-apps-staging-qa
+    stagingBucket: microapps-apps-staging-prod
+    destinationBucket: microapps-apps-prod

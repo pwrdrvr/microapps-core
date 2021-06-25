@@ -1,17 +1,17 @@
 import { Property } from 'ts-convict';
 
 export interface IFileStore {
-  sourceBucket: string;
+  stagingBucket: string;
   destinationBucket: string;
 }
 
 export class FileStore implements IFileStore {
   @Property({
-    doc: 'Source bucket to copy staged apps from',
+    doc: 'Staging bucket to copy staged apps from',
     default: 'microapps-staging',
-    env: 'FILESTORE_SRC_BUCKET',
+    env: 'FILESTORE_STAGING_BUCKET',
   })
-  public sourceBucket!: string;
+  public stagingBucket!: string;
 
   @Property({
     doc: 'Destination bucket to copy staged apps to',
