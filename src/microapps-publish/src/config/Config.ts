@@ -7,7 +7,7 @@ import { Deployer, IDeployer } from './Deployer';
 import { TSConvict } from 'ts-convict';
 
 export interface IConfig {
-  db: IDeployer;
+  deployer: IDeployer;
   filestore: IFileStore;
 }
 
@@ -71,7 +71,7 @@ export class Config implements IConfig {
   // public name!: string;
 
   @convict.Property(Deployer)
-  public db!: IDeployer;
+  public deployer!: IDeployer;
 
   @convict.Property(FileStore)
   public filestore!: IFileStore;
