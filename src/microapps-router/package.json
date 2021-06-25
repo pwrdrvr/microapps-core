@@ -19,6 +19,7 @@
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
     "convict": "^6.1.0",
+    "convict-format-with-validator": "^6.0.1",
     "js-yaml": "^4.1.0",
     "lambda-log": "^2.4.0",
     "reflect-metadata": "^0.1.13",
@@ -28,6 +29,8 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.72",
     "@types/convict": "^6.0.2",
+    "@types/convict-format-with-validator": "^6.0.2",
+    "@types/js-yaml": "^4.0.1",
     "@types/lambda-log": "^2.2.0"
   }
 }
