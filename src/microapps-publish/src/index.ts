@@ -13,6 +13,7 @@ import DeployConfig, { IDeployConfig } from './DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
 import pkg from '../package.json';
+import { Config } from './config/Config';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
