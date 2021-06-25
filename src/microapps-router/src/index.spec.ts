@@ -3,13 +3,11 @@ import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import { handler } from './index';
 import * as lambda from 'aws-lambda';
-import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
-
-//const manager = new Manager(dynamoClient.client);
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../fixtures';
 
 describe('router', () => {
   before(async () => {
-    new Manager(dynamoClient.client);
+    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {

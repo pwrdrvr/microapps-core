@@ -1,6 +1,6 @@
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { TABLE_NAME } from '../config';
+import { Config } from '../config';
 
 enum SaveBy {
   AppName,
@@ -37,14 +37,14 @@ export default class Application implements IApplicationRecord {
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
     const taskByName = ddbDocClient.put({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       Item: this.DbStruct,
     });
 
     // Save under all Applications key
     this._keyBy = SaveBy.Applications;
     const taskByApplications = ddbDocClient.put({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       Item: this.DbStruct,
     });
 
@@ -60,7 +60,7 @@ export default class Application implements IApplicationRecord {
     appName: string,
   ): Promise<Application> {
     const { Item } = await ddbDocClient.get({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'application' },
     });
     const record = plainToClass<Application, unknown>(Application, Item);
@@ -69,7 +69,7 @@ export default class Application implements IApplicationRecord {
 
   public static async LoadAllAppsAsync(ddbDocClient: DynamoDBDocument): Promise<Application[]> {
     const { Items } = await ddbDocClient.query({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       KeyConditionExpression: 'PK = :pkval',
       ExpressionAttributeValues: {
         ':pkval': 'applications',

@@ -14,7 +14,7 @@ import {
   IDeployVersionRequest,
 } from '../index';
 import Manager, { Version } from '@pwrdrvr/microapps-datalib';
-import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
 import type * as lambdaTypes from 'aws-lambda';
 
 chai.use(sinonChai);
@@ -30,7 +30,7 @@ describe('VersionController', () => {
   let sandbox: sinon.SinonSandbox;
 
   before(async () => {
-    new Manager(dynamoClient.client);
+    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {

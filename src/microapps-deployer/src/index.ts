@@ -7,6 +7,7 @@ import Log from './lib/Log';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import AppController from './controllers/AppController';
 import VersionController from './controllers/VersionController';
+import { Config } from './config/Config';
 
 const localTesting = process.env.DEBUG ? true : false;
 
@@ -14,9 +15,7 @@ const dynamoClient = process.env.TEST
   ? new DynamoDB({ endpoint: 'http://localhost:8000' })
   : new DynamoDB({});
 
-// FIXME: Move to a file to fix circular reference
-// FIXME: Pass the table name from an env var
-export const manager = new Manager(dynamoClient);
+let manager: Manager;
 
 interface IRequestBase {
   type: 'createApp' | 'deployVersion' | 'checkVersionExists';
@@ -51,6 +50,13 @@ export async function handler(
   event: IRequestBase,
   context: lambda.Context,
 ): Promise<IDeployerResponse> {
+  if (manager === undefined) {
+    manager = new Manager({
+      dynamoDB: dynamoClient,
+      tableName: Config.instance.db.tableName,
+    });
+  }
+
   // Change the logger on each request
   Log.Instance = new LambdaLog({
     dev: localTesting,
