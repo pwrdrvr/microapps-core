@@ -80,6 +80,19 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "autoAttachChildProcesses": true
+    },
+    {
+      "command": "npm run test",
+      "name": "Debug TS Mocha via npm",
+      "request": "launch",
+      "type": "node-terminal",
+      "nodeVersionHint": 15,
+      "env": {
+        "AWS_ACCESS_KEY_ID": "accessKeyId",
+        "AWS_SECRET_ACCESS_KEY": "secretAccessKey",
+        "AWS_REGION": "mock",
+        "TEST": "true"
+      }
     }
   ]
 }

@@ -1,12 +1,12 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
 import Rules from './rules';
 import Manager from '../index';
 
 describe('rules records', () => {
   before(async () => {
-    new Manager(dynamoClient.client);
+    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {

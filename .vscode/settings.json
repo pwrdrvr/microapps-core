@@ -1,7 +1,7 @@
 {
   "files.exclude": {
     //"**/node_modules/*": true,
-    "cdk.out": true,
+    "cdk.out": true
     //"node_modules": true,
     //"**/node_modules": true
   },
@@ -10,5 +10,5 @@
   "editor.tabSize": 2,
   "files.associations": {
     "Dockerfile*": "dockerfile"
-  },
+  }
 }

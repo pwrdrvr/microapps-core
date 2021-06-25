@@ -1,14 +1,9 @@
-import {
-  manager,
-  IDeployVersionRequest,
-  ICheckVersionExistsRequest,
-  IDeployerResponse,
-} from '../index';
+import { IDeployVersionRequest, ICheckVersionExistsRequest, IDeployerResponse } from '../index';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
-import { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { Config } from '../config/Config';
 import Log from '../lib/Log';
 import { URL } from 'url';
@@ -25,7 +20,7 @@ export default class VersionController {
     semVer,
   }: ICheckVersionExistsRequest): Promise<IDeployerResponse> {
     // Check if the version exists
-    const record = await Version.LoadVersionAsync(manager.DBDocClient, appName, semVer);
+    const record = await Version.LoadVersionAsync(Manager.DBDocClient, appName, semVer);
     if (record !== undefined && record.Status !== 'pending') {
       Log.Instance.info('App/Version already exists', { appName, semVer });
       return { statusCode: 200 };
@@ -42,7 +37,7 @@ export default class VersionController {
 
     // Check if the version exists
     let record = await Version.LoadVersionAsync(
-      manager.DBDocClient,
+      Manager.DBDocClient,
       request.appName,
       request.semVer,
     );
@@ -66,7 +61,7 @@ export default class VersionController {
       });
 
       // Save record with pending status
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // Only copy the files if not copied yet
@@ -83,7 +78,7 @@ export default class VersionController {
 
       // Update status to assets-copied
       record.Status = 'assets-copied';
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // TODO: Confirm the Lambda Function exists
@@ -137,7 +132,7 @@ export default class VersionController {
         }),
       );
       record.Status = 'permissioned';
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // Add Integration pointing to Lambda Function Alias
@@ -161,7 +156,7 @@ export default class VersionController {
         // Save the created IntegrationID
         record.IntegrationID = integration.IntegrationId as string;
         record.Status = 'integrated';
-        await record.SaveAsync(manager.DBDocClient);
+        await record.SaveAsync(Manager.DBDocClient);
       }
     }
 
@@ -196,12 +191,12 @@ export default class VersionController {
 
       // Update the status - Final status
       record.Status = 'routed';
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // Check if there are any release rules
     // If no rules record, create one pointing to this version by default
-    let rules = await Rules.LoadAsync(manager.DBDocClient, request.appName);
+    let rules = await Rules.LoadAsync(Manager.DBDocClient, request.appName);
     if (rules === undefined) {
       rules = new Rules({
         AppName: request.appName,
@@ -213,7 +208,7 @@ export default class VersionController {
         AttributeName: '',
         AttributeValue: '',
       };
-      await rules.SaveAsync(manager.DBDocClient);
+      await rules.SaveAsync(Manager.DBDocClient);
     }
 
     return { statusCode: 201 };

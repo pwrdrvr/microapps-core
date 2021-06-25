@@ -2,24 +2,26 @@ import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import * as dynamodbLocal from 'dynamodb-local';
 import { promisify } from 'util';
-import { TABLE_NAME } from '@pwrdrvr/microapps-datalib/config';
+import Manager from '@pwrdrvr/microapps-datalib';
 import fetch from 'node-fetch';
 import { ChildProcess } from 'child_process';
 const asyncSleep = promisify(setTimeout);
+
+export const TEST_TABLE_NAME = 'MicroAppsLocalTest';
 
 export const dynamoClient: { client?: dynamodb.DynamoDB; ddbDocClient?: DynamoDBDocument } = {};
 let dynamodbProcess: ChildProcess;
 
 export async function DropTable(): Promise<void> {
   await dynamoClient.client?.deleteTable({
-    TableName: TABLE_NAME,
+    TableName: Manager.TableName,
   });
 }
 
 export async function InitializeTable(): Promise<void> {
   // Create the table
   await dynamoClient.client?.createTable({
-    TableName: TABLE_NAME,
+    TableName: Manager.TableName,
     AttributeDefinitions: [
       {
         AttributeName: 'PK',
@@ -71,6 +73,8 @@ export async function mochaGlobalSetup(): Promise<void> {
 
     dynamoClient.client = new dynamodb.DynamoDB({ endpoint: 'http://localhost:8000/' });
     dynamoClient.ddbDocClient = DynamoDBDocument.from(dynamoClient.client);
+
+    const manager = new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
 
     console.log('mochaGlobalSetup - DB Created');
   } catch (error) {
