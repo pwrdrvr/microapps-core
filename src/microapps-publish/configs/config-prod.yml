@@ -1,9 +1,5 @@
-db:
-    tableName: microapps-prod
-
-apigwy:
-    name: microapps-api-qa
+deployer:
+    lambdaName: microapps-deployer-prod
 
 filestore:
-    sourceBucket: microapps-apps-qa
-    destinationBucket: microapps-apps-staging-qa
+    stagingBucket: microapps-apps-staging-prod
