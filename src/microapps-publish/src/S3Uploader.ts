@@ -2,10 +2,10 @@ import DeployConfig from './DeployConfig';
 import S3TransferUtility from './S3TransferUtility';
 import path from 'path';
 import fs from 'fs-extra';
+import { Config } from './config/Config';
 
 export default class S3Uploader {
-  // FIXME: Get the staging bucket from an env var
-  private static readonly _s3Bucket = 'pwrdrvr-apps-staging';
+  private static readonly _s3Bucket = Config.instance.filestore.stagingBucket;
   private static readonly _tempDir = './deploytool-temp';
 
   public static async Upload(config: DeployConfig): Promise<void> {

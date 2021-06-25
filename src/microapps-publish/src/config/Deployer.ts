@@ -1,15 +1,14 @@
 import { Property } from 'ts-convict';
 
 export interface IDeployer {
-  tableName: string;
+  lambdaName: string;
 }
 
 export class Deployer implements IDeployer {
   @Property({
-    doc: 'DynamoDB Table Name',
-    default: 'MicroApps',
-    format: 'url',
-    env: 'DATABASE_TABLE_NAME',
+    doc: 'Name of Deployer Lambda function',
+    default: 'microapps-deployer',
+    env: 'DEPLOYER_LAMBDA_NAME',
   })
-  public tableName!: string;
+  public lambdaName!: string;
 }

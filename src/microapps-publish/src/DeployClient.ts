@@ -7,11 +7,11 @@ import {
   IDeployVersionRequest,
 } from '@pwrdrvr/microapps-deployer';
 import DeployConfig from './DeployConfig';
+import { Config } from './config/Config';
 
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({});
-  // FIXME: Load deployer Lambda Name / ARN from env var
-  static readonly _deployerFunctionName = 'microapps-deployer';
+  static readonly _deployerFunctionName = Config.instance.deployer.lambdaName;
   static readonly _decoder = new TextDecoder('utf-8');
 
   public static async CreateApp(config: DeployConfig): Promise<void> {
@@ -74,8 +74,7 @@ export default class DeployClient {
       semVer: config.SemVer,
       defaultFile: config.DefaultFile,
       lambdaARN: config.LambdaARN,
-      // FIXME: Remove bucket name
-      s3SourceURI: `s3://pwrdrvr-apps-staging/${config.AppName}/${config.SemVer}/`,
+      s3SourceURI: `s3://${Config.instance.filestore.stagingBucket}/${config.AppName}/${config.SemVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
