@@ -48,7 +48,8 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       throw new Error('props.env cannot be undefined');
     }
 
-    const { bucketApps, bucketAppsStaging } = props.s3Exports;
+    const { bucketApps, bucketAppsName, bucketAppsStaging, bucketAppsStagingName } =
+      props.s3Exports;
     const { cert, domainNameOrigin } = props.local;
     const { shared } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
@@ -91,8 +92,8 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
         NODE_ENV: shared.env,
         APIGWY_NAME: apigatewayName,
         DATABASE_TABLE_NAME: table.tableName,
-        FILESTORE_STAGING_BUCKET: bucketAppsStaging.bucketName,
-        FILESTORE_DEST_BUCKET: bucketApps.bucketName,
+        FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
+        FILESTORE_DEST_BUCKET: bucketAppsName,
       },
     });
     if (shared.isPR) {
