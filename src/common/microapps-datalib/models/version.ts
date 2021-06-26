@@ -1,10 +1,18 @@
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { TABLE_NAME } from '../config';
+import { Config } from '../config';
 
 enum SaveBy {
   AppName,
 }
+
+export type VersionStatus =
+  | 'pending'
+  | 'assets-copied'
+  | 'permissioned'
+  | 'integrated'
+  | 'routed'
+  | 'deployed';
 
 export interface IVersionRecord {
   PK: string;
@@ -16,8 +24,6 @@ export interface IVersionRecord {
   DefaultFile: string;
   IntegrationID: string;
 }
-
-export type VersionStatus = 'pending' | 'assets-copied' | 'permissioned' | 'integrated' | 'routed';
 
 export default class Version implements IVersionRecord {
   private _keyBy: SaveBy;
@@ -46,7 +52,7 @@ export default class Version implements IVersionRecord {
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
     await ddbDocClient.put({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       Item: this.DbStruct,
     });
   }
@@ -56,7 +62,7 @@ export default class Version implements IVersionRecord {
     appName: string,
   ): Promise<Version[]> {
     const { Items } = await ddbDocClient.query({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       KeyConditionExpression: 'PK = :pkval and begins_with(SK, :skval)',
       ExpressionAttributeValues: {
         ':pkval': `appName#${appName}`.toLowerCase(),
@@ -80,7 +86,7 @@ export default class Version implements IVersionRecord {
     semVer: string,
   ): Promise<Version> {
     const { Item } = await ddbDocClient.get({
-      TableName: TABLE_NAME,
+      TableName: Config.TableName,
       Key: {
         PK: `appName#${appName}`.toLowerCase(),
         SK: `version#${semVer}`.toLowerCase(),

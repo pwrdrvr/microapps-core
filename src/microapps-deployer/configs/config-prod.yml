@@ -1,0 +1,9 @@
+db:
+    tableName: microapps-prod
+
+apigwy:
+    name: microapps-api-prod
+
+filestore:
+    stagingBucket: microapps-apps-staging-prod
+    destinationBucket: microapps-apps-prod

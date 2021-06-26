@@ -1,0 +1,9 @@
+db:
+    tableName: microapps-qa
+
+apigwy:
+    name: microapps-api-qa
+
+filestore:
+    stagingBucket: microapps-apps-staging-qa
+    destinationBucket: microapps-apps-qa

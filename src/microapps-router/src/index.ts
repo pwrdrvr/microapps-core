@@ -1,15 +1,18 @@
+// Used by ts-convict
+import 'reflect-metadata';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import fs from 'fs';
 import { LambdaLog, LogMessage } from 'lambda-log';
+import { Config } from './config/Config';
 
 const localTesting = process.env.DEBUG ? true : false;
 
 const dynamoClient = process.env.TEST
   ? new DynamoDB({ endpoint: 'http://localhost:8000' })
   : new DynamoDB({});
-const manager = new Manager(dynamoClient);
+let manager: Manager;
 
 function loadAppFrame(): string {
   try {
@@ -31,6 +34,9 @@ export async function handler(
   event: lambda.APIGatewayProxyEventV2,
   context: lambda.Context,
 ): Promise<lambda.APIGatewayProxyStructuredResultV2> {
+  if (manager === undefined) {
+    manager = new Manager({ dynamoDB: dynamoClient, tableName: Config.instance.db.tableName });
+  }
   const response = {
     statusCode: 200,
     headers: {},

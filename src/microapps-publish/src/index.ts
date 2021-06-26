@@ -2,6 +2,8 @@
 /* eslint-disable no-console */
 
 import 'source-map-support/register';
+// Used by ts-convict
+import 'reflect-metadata';
 import * as lambda from '@aws-sdk/client-lambda';
 import commander from 'commander';
 import * as util from 'util';
@@ -11,6 +13,7 @@ import DeployConfig, { IDeployConfig } from './DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
 import pkg from '../package.json';
+import { Config } from './config/Config';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -20,6 +23,8 @@ program
   .version(pkg.version)
   .option('-n, --new-version [version]', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
+  .option('--lambda-name [name]', 'Name of the deployer lambda function')
+  .option('--staging-bucket-name [name]', 'Name (not URI) of the S3 staging bucket')
   .parse(process.argv);
 
 const lambdaClient = new lambda.LambdaClient({});
@@ -53,11 +58,27 @@ class PublishTool {
     const options = program.opts();
     const version = options.newVersion as string;
     const leaveFiles = options.leave as boolean;
+    const lambdaName = options.lambdaName as string;
+    const bucketName = options.stagingBucketName as string;
 
-    if (version === undefined) {
-      console.log('--new-version <version> is a required parameter');
+    if (bucketName === undefined) {
+      console.log('--staging-bucket-name [bucketName] is a required parameter');
       process.exit(1);
     }
+
+    if (lambdaName === undefined) {
+      console.log('--lambda-name [lambdaName] is a required parameter');
+      process.exit(1);
+    }
+
+    if (version === undefined) {
+      console.log('--new-version [version] is a required parameter');
+      process.exit(1);
+    }
+
+    // Override the config value
+    Config.instance.deployer.lambdaName = lambdaName;
+    Config.instance.filestore.stagingBucket = bucketName;
 
     const versionAndAlias = this.createVersions(version);
     const versionOnly = { version: versionAndAlias.version };
@@ -69,14 +90,15 @@ class PublishTool {
     ] as { path: string; versions: IVersions }[];
 
     // Install handler to ensure that we restore files
-    process.on('SIGINT', () => {
+    process.on('SIGINT', async () => {
       if (this._restoreFilesStarted) {
         return;
       } else {
         this._restoreFilesStarted = true;
       }
       console.log('Caught Ctrl-C, restoring files');
-      this.restoreFiles();
+      await S3Uploader.removeTempDirIfExists();
+      await this.restoreFiles();
     });
 
     try {

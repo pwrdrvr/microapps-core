@@ -80,6 +80,9 @@ aws-lambda-update-routerz: ## Update the lambda function using a .zip file
 # invoking `cdk deploy`
 #
 
+codebuild-cdk: ## Deploy only the core CDK stack only
+	@cdk deploy --require-approval never ${CODEBUILD_CORE_STACK_NAME}
+
 codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@echo "CODEBUILD_STACK_SUFFIX: ${CODEBUILD_STACK_SUFFIX}"
 	@echo "CODEBUILD_REPOS_STACK_NAME: ${CODEBUILD_REPOS_STACK_NAME}"
@@ -104,6 +107,29 @@ codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@cdk diff ${CODEBUILD_CORE_STACK_NAME}
 	@echo "Running CDK Deploy - Core"
 	@cdk deploy --require-approval never ${CODEBUILD_CORE_STACK_NAME}
+	@echo "Running Lambda Update - Router"
+	@aws lambda update-function-code --function-name ${CODEBUILD_ROUTER_LAMBDA_NAME} \
+		--region ${REGION} --image-uri ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG} --publish
+	@echo "Running Lambda Update - Deployer"
+	@aws lambda update-function-code --function-name ${CODEBUILD_DEPLOYER_LAMBDA_NAME} \
+		--region ${REGION} --image-uri ${CODEBUILD_ECR_HOST}/${CODEBUILD_DEPLOYER_ECR_TAG} --publish
+
+codebuild-update-lambdas: ## Build docker images and update Lambdas only
+	@echo "CODEBUILD_STACK_SUFFIX: ${CODEBUILD_STACK_SUFFIX}"
+	@echo "CODEBUILD_REPOS_STACK_NAME: ${CODEBUILD_REPOS_STACK_NAME}"
+	@echo "CODEBUILD_CORE_STACK_NAME: ${CODEBUILD_CORE_STACK_NAME}"
+	@echo "CODEBUILD_IMAGE_LABEL: ${CODEBUILD_IMAGE_LABEL}"
+	@echo "CODEBUILD_PR_NUMBER: ${CODEBUILD_PR_NUMBER}"
+	@echo "CODEBUILD_ROUTER_ECR_TAG: ${CODEBUILD_ROUTER_ECR_TAG}"
+	@echo "CODEBUILD_DEPLOYER_ECR_TAG: ${CODEBUILD_DEPLOYER_ECR_TAG}"
+	@echo "Running Docker Build / Publish - Router"
+	@docker build -f DockerfileRouter -t ${CODEBUILD_ROUTER_ECR_TAG}  .
+	@docker tag ${CODEBUILD_ROUTER_ECR_TAG} ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG}
+	@docker push ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG}
+	@echo "Running Docker Build / Publish - Deployer"
+	@docker build -f DockerfileDeployer -t ${CODEBUILD_DEPLOYER_ECR_TAG}  .
+	@docker tag ${CODEBUILD_DEPLOYER_ECR_TAG} ${CODEBUILD_ECR_HOST}/${CODEBUILD_DEPLOYER_ECR_TAG}
+	@docker push ${CODEBUILD_ECR_HOST}/${CODEBUILD_DEPLOYER_ECR_TAG}
 	@echo "Running Lambda Update - Router"
 	@aws lambda update-function-code --function-name ${CODEBUILD_ROUTER_LAMBDA_NAME} \
 		--region ${REGION} --image-uri ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG} --publish

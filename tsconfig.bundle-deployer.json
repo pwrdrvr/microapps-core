@@ -8,7 +8,11 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+
+    // Used by ts-convict
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
-  "include": ["./src/microapps-deployer/index.ts"]
+  "include": ["./src/microapps-deployer/src/index.ts"]
 }

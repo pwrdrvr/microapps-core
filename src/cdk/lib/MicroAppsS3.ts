@@ -6,7 +6,9 @@ import SharedTags from './SharedTags';
 
 export interface IMicroAppsS3Exports {
   bucketApps: s3.IBucket;
+  bucketAppsName: string;
   bucketAppsStaging: s3.IBucket;
+  bucketAppsStagingName: string;
   bucketLogs: s3.IBucket;
 }
 
@@ -23,9 +25,19 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
     return this._bucketApps;
   }
 
+  private _bucketAppsName: string;
+  public get bucketAppsName(): string {
+    return this._bucketAppsName;
+  }
+
   private _bucketAppsStaging: s3.IBucket;
   public get bucketAppsStaging(): s3.IBucket {
     return this._bucketAppsStaging;
+  }
+
+  private _bucketAppsStagingName: string;
+  public get bucketAppsStagingName(): string {
+    return this._bucketAppsStagingName;
   }
 
   private _bucketLogs: s3.IBucket;
@@ -47,6 +59,8 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
     // Use Auto-Delete S3Bucket for PRs
     // https://www.scavasoft.com/aws-cdk-s3-auto-delete/
     // https://www.npmjs.com/package/@mobileposse/auto-delete-bucket
+    this._bucketAppsName = `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`;
+    this._bucketAppsStagingName = `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`;
     if (!shared.isPR) {
       //
       // S3 Bucket for Logging - Usable by many stacks
@@ -59,10 +73,10 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
       // S3 Buckets for Apps
       //
       this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
-        bucketName: `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: this._bucketAppsName,
       });
       this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
-        bucketName: `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: this._bucketAppsStagingName,
       });
     } else {
       //
@@ -76,10 +90,10 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
       // S3 Buckets for Apps
       //
       this._bucketApps = new AutoDeleteBucket(this, 'microapps-apps', {
-        bucketName: `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: this._bucketAppsName,
       });
       this._bucketAppsStaging = new AutoDeleteBucket(this, 'microapps-apps-staging', {
-        bucketName: `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`,
+        bucketName: this._bucketAppsStagingName,
       });
     }
   }
