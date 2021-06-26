@@ -48,12 +48,15 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       throw new Error('props.env cannot be undefined');
     }
 
-    const { bucketApps, bucketAppsStaging } = props.s3Exports;
+    const { bucketApps, bucketAppsName, bucketAppsStaging, bucketAppsStagingName } =
+      props.s3Exports;
     const { cert, domainNameOrigin } = props.local;
     const { shared } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
+
+    const apigatewayName = `microapps${shared.envSuffix}${shared.prSuffix}`;
 
     //
     // DynamoDB Table
@@ -85,6 +88,13 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       timeout: cdk.Duration.seconds(30),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
+      environment: {
+        NODE_ENV: shared.env,
+        APIGWY_NAME: apigatewayName,
+        DATABASE_TABLE_NAME: table.tableName,
+        FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
+        FILESTORE_DEST_BUCKET: bucketAppsName,
+      },
     });
     if (shared.isPR) {
       deployerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
@@ -196,6 +206,10 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
+      environment: {
+        NODE_ENV: shared.env,
+        DATABASE_TABLE_NAME: table.tableName,
+      },
     });
     if (shared.isPR) {
       routerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
@@ -213,6 +227,10 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       timeout: cdk.Duration.seconds(3),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
+      environment: {
+        NODE_ENV: shared.env,
+        DATABASE_TABLE_NAME: table.tableName,
+      },
     });
     if (shared.isPR) {
       routerzFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
@@ -267,6 +285,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     const httpApi = new apigwy.HttpApi(this, 'microapps-api', {
       defaultDomainMapping: httpApiDomainMapping,
       defaultIntegration: intRouter,
+      apiName: apigatewayName,
     });
     if (shared.isPR) {
       httpApi.applyRemovalPolicy(RemovalPolicy.DESTROY);

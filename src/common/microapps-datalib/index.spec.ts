@@ -1,11 +1,11 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import Manager, { Application, Version, Rules } from './index';
-import { dynamoClient, InitializeTable, DropTable } from '../../fixtures';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../fixtures';
 
 describe('database manager', () => {
   before(async () => {
-    new Manager(dynamoClient.client);
+    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {

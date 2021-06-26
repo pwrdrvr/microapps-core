@@ -34,12 +34,12 @@ RUN npm run lint
 RUN rm -rf ./src/microapps-deployer/
 RUN npm run test
 RUN npm run build:router
-RUN rm distb/microapps-router/index.max.js
+RUN rm distb/microapps-router/src/index.max.js
 
 # Remove the Dev node modules so they are not copied into the final images
 # RUN find . -name node_modules -type d -prune -exec rm -rf  {} \;
 
-CMD ["node", "distb/microapps-router/index.js"]
+CMD ["node", "distb/microapps-router/src/index.js"]
 
 
 FROM public.ecr.aws/lambda/nodejs:14 AS final

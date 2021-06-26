@@ -1,0 +1,5 @@
+deployer:
+    lambdaName: microapps-deployer-qa
+
+filestore:
+    stagingBucket: microapps-apps-staging-qa

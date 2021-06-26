@@ -28,12 +28,12 @@ COPY ./src/ ./src/
 RUN npm run lint
 RUN npm run test
 RUN npm run build:deployer
-RUN rm distb/microapps-deployer/index.max.js
+RUN rm distb/microapps-deployer/src/index.max.js
 
 # Remove the Dev node modules so they are not copied into the final images
 # RUN find . -name node_modules -type d -prune -exec rm -rf  {} \;
 
-CMD ["node", "distb/microapps-deployer/index.js"]
+CMD ["node", "distb/microapps-deployer/src/index.js"]
 
 
 FROM public.ecr.aws/lambda/nodejs:14 AS final

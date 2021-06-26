@@ -1,14 +1,10 @@
-import {
-  manager,
-  IDeployVersionRequest,
-  ICheckVersionExistsRequest,
-  IDeployerResponse,
-} from '../index';
+import { IDeployVersionRequest, ICheckVersionExistsRequest, IDeployerResponse } from '../index';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
-import { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { Config } from '../config/Config';
 import Log from '../lib/Log';
 import { URL } from 'url';
 
@@ -17,14 +13,14 @@ const s3Client = new s3.S3Client({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
-  static destinationBucket = 'pwrdrvr-apps';
+  static destinationBucket = Config.instance.filestore.destinationBucket;
 
   public static async CheckVersionExists({
     appName,
     semVer,
   }: ICheckVersionExistsRequest): Promise<IDeployerResponse> {
     // Check if the version exists
-    const record = await Version.LoadVersionAsync(manager.DBDocClient, appName, semVer);
+    const record = await Version.LoadVersionAsync(Manager.DBDocClient, appName, semVer);
     if (record !== undefined && record.Status !== 'pending') {
       Log.Instance.info('App/Version already exists', { appName, semVer });
       return { statusCode: 200 };
@@ -41,7 +37,7 @@ export default class VersionController {
 
     // Check if the version exists
     let record = await Version.LoadVersionAsync(
-      manager.DBDocClient,
+      Manager.DBDocClient,
       request.appName,
       request.semVer,
     );
@@ -65,7 +61,7 @@ export default class VersionController {
       });
 
       // Save record with pending status
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // Only copy the files if not copied yet
@@ -73,16 +69,16 @@ export default class VersionController {
       // Parse the S3 Source URI
       const uri = new URL(request.s3SourceURI);
 
-      const sourceBucket = uri.host;
+      const stagingBucket = uri.host;
       const sourcePrefix = uri.pathname.length >= 1 ? uri.pathname.slice(1) : '';
 
       // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
       // Loop through all S3 source assets and copy to the destination
-      await VersionController.CopyToProdBucket(sourceBucket, sourcePrefix, destinationPrefix);
+      await VersionController.CopyToProdBucket(stagingBucket, sourcePrefix, destinationPrefix);
 
       // Update status to assets-copied
       record.Status = 'assets-copied';
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // TODO: Confirm the Lambda Function exists
@@ -136,7 +132,7 @@ export default class VersionController {
         }),
       );
       record.Status = 'permissioned';
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // Add Integration pointing to Lambda Function Alias
@@ -160,7 +156,7 @@ export default class VersionController {
         // Save the created IntegrationID
         record.IntegrationID = integration.IntegrationId as string;
         record.Status = 'integrated';
-        await record.SaveAsync(manager.DBDocClient);
+        await record.SaveAsync(Manager.DBDocClient);
       }
     }
 
@@ -195,12 +191,12 @@ export default class VersionController {
 
       // Update the status - Final status
       record.Status = 'routed';
-      await record.SaveAsync(manager.DBDocClient);
+      await record.SaveAsync(Manager.DBDocClient);
     }
 
     // Check if there are any release rules
     // If no rules record, create one pointing to this version by default
-    let rules = await Rules.LoadAsync(manager.DBDocClient, request.appName);
+    let rules = await Rules.LoadAsync(Manager.DBDocClient, request.appName);
     if (rules === undefined) {
       rules = new Rules({
         AppName: request.appName,
@@ -212,7 +208,7 @@ export default class VersionController {
         AttributeName: '',
         AttributeValue: '',
       };
-      await rules.SaveAsync(manager.DBDocClient);
+      await rules.SaveAsync(Manager.DBDocClient);
     }
 
     return { statusCode: 201 };
@@ -220,7 +216,7 @@ export default class VersionController {
 
   private static async CopyFilesInList(
     list: s3.ListObjectsV2CommandOutput,
-    sourceBucket: string,
+    stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
   ): Promise<void> {
@@ -229,10 +225,12 @@ export default class VersionController {
     }
     for (const obj of list.Contents) {
       const sourceKeyRootless = obj.Key?.slice(sourcePrefix.length);
+
+      // TODO: Use p-map to parallelize with limit
       await s3Client.send(
         new s3.CopyObjectCommand({
           // Source
-          CopySource: `${sourceBucket}/${obj.Key}`,
+          CopySource: `${stagingBucket}/${obj.Key}`,
           // Destination
           Bucket: VersionController.destinationBucket,
           Key: `${destinationPrefix}/${sourceKeyRootless}`,
@@ -242,7 +240,7 @@ export default class VersionController {
   }
 
   private static async CopyToProdBucket(
-    sourceBucket: string,
+    stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
   ) {
@@ -256,12 +254,12 @@ export default class VersionController {
           : ({} as s3.ListObjectsV2CommandInput);
       list = await s3Client.send(
         new s3.ListObjectsV2Command({
-          Bucket: sourceBucket,
+          Bucket: stagingBucket,
           Prefix: sourcePrefix,
           ...optionals,
         }),
       );
-      await VersionController.CopyFilesInList(list, sourceBucket, sourcePrefix, destinationPrefix);
+      await VersionController.CopyFilesInList(list, stagingBucket, sourcePrefix, destinationPrefix);
     } while (list.IsTruncated);
   }
 }

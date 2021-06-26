@@ -1,13 +1,12 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient, DropTable, InitializeTable } from '../../../fixtures';
+import { dynamoClient, DropTable, InitializeTable, TEST_TABLE_NAME } from '../../../fixtures';
 import Application from './application';
-import { TABLE_NAME } from '../config';
 import Manager from '../index';
 
 describe('application records', () => {
   before(async () => {
-    new Manager(dynamoClient.client);
+    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {
@@ -28,7 +27,7 @@ describe('application records', () => {
 
     {
       const { Item } = await dynamoClient.ddbDocClient.get({
-        TableName: TABLE_NAME,
+        TableName: Manager.TableName,
         Key: { PK: 'appname#cat', SK: 'application' },
       });
       expect(Item.PK).equal('appname#cat');
@@ -39,7 +38,7 @@ describe('application records', () => {
 
     {
       const { Item } = await dynamoClient.ddbDocClient.get({
-        TableName: TABLE_NAME,
+        TableName: Manager.TableName,
         Key: { PK: 'applications', SK: 'appname#cat' },
         // ProjectionExpression: 'PK,SK,AppName,DisplayName',
       });

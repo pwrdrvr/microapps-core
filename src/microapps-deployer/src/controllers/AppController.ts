@@ -1,9 +1,9 @@
-import { Application } from '@pwrdrvr/microapps-datalib';
-import { manager, ICreateApplicationRequest, IDeployerResponse } from '../index';
+import Manager, { Application } from '@pwrdrvr/microapps-datalib';
+import { ICreateApplicationRequest, IDeployerResponse } from '../index';
 
 export default class AppController {
   public static async CreateApp(app: ICreateApplicationRequest): Promise<IDeployerResponse> {
-    const response = await Application.LoadAsync(manager.DBDocClient, app.appName);
+    const response = await Application.LoadAsync(Manager.DBDocClient, app.appName);
 
     if (response !== undefined) {
       // Indicate that record already existed
@@ -15,7 +15,7 @@ export default class AppController {
       AppName: app.appName,
       DisplayName: app.displayName,
     });
-    await item.SaveAsync(manager.DBDocClient);
+    await item.SaveAsync(Manager.DBDocClient);
 
     // Indicate that record was created
     return { statusCode: 201 };

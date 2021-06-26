@@ -29,7 +29,23 @@
       },
       "envFile": "${workspaceFolder}/.env",
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-      "args": ["${workspaceFolder}/src/microapps-router/index.ts"]
+      "args": ["${workspaceFolder}/src/microapps-router/src/index.ts"]
+    },
+    {
+      "name": "Debug TS Deployer",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/src/microapps-deployer/",
+      "skipFiles": ["${workspaceFolder}/src/microapps-deployer/<node_internals>/**"],
+      "runtimeVersion": "15.3.0",
+      "env": {
+        "DEBUG": "true",
+        "NODE_ENV": "dev",
+        "DATABASE_USER": "env_var_override-user"
+      },
+      "envFile": "${workspaceFolder}/.env",
+      "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
+      "args": ["${workspaceFolder}/src/microapps-deployer/src/index.ts"]
     },
     {
       "type": "node",
@@ -64,6 +80,19 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "autoAttachChildProcesses": true
+    },
+    {
+      "command": "npm run test",
+      "name": "Debug TS Mocha via npm",
+      "request": "launch",
+      "type": "node-terminal",
+      "nodeVersionHint": 15,
+      "env": {
+        "AWS_ACCESS_KEY_ID": "accessKeyId",
+        "AWS_SECRET_ACCESS_KEY": "secretAccessKey",
+        "AWS_REGION": "mock",
+        "TEST": "true"
+      }
     }
   ]
 }

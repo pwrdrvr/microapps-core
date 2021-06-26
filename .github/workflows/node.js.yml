@@ -33,3 +33,5 @@ jobs:
     - run: npm i -g aws-cdk
     - run: cdk list
     - run: npm run test
+    - run: docker build -f DockerfileRouter .
+    - run: docker build -f DockerfileDeployer .

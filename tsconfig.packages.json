@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
@@ -9,6 +7,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
 
     "importHelpers": true,
     "composite": true,

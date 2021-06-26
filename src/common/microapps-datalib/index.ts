@@ -4,6 +4,7 @@ import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import Application from './models/application';
 import Version from './models/version';
 import Rules from './models/rules';
+import { Config } from './config';
 
 export { Application, Version, Rules };
 
@@ -16,17 +17,23 @@ export default class Manager {
   private static _client: DynamoDB;
   private static _ddbDocClient: DynamoDBDocument;
 
-  public constructor(dynamoDB: DynamoDB) {
+  public constructor(args: { dynamoDB: DynamoDB; tableName: string }) {
+    const { dynamoDB, tableName } = args;
     if (Manager._client === undefined) {
+      Config.TableName = tableName;
       Manager._client = dynamoDB;
       Manager._ddbDocClient = DynamoDBDocument.from(Manager._client);
     }
   }
 
-  public get DBClient(): DynamoDB {
+  public static get TableName(): string {
+    return Config.TableName;
+  }
+
+  public static get DBClient(): DynamoDB {
     return Manager._client;
   }
-  public get DBDocClient(): DynamoDBDocument {
+  public static get DBDocClient(): DynamoDBDocument {
     return Manager._ddbDocClient;
   }
 

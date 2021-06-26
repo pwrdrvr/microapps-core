@@ -1,13 +1,12 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import { dynamoClient, InitializeTable, DropTable } from '../../../fixtures';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
 import Version from './version';
-import { TABLE_NAME } from '../config';
 import Manager from '../index';
 
 describe('version records', () => {
   before(async () => {
-    new Manager(dynamoClient.client);
+    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {
@@ -31,7 +30,7 @@ describe('version records', () => {
     await version.SaveAsync(dynamoClient.ddbDocClient);
 
     const { Item } = await dynamoClient.ddbDocClient.get({
-      TableName: TABLE_NAME,
+      TableName: Manager.TableName,
       Key: { PK: 'appname#cat', SK: 'version#1.2.3-beta4' },
     });
     expect(Item.PK).equal('appname#cat');
