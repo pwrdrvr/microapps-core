@@ -55,6 +55,8 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
+    const apigatewayName = `microapps${shared.envSuffix}${shared.prSuffix}`;
+
     //
     // DynamoDB Table
     //
@@ -87,6 +89,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         NODE_ENV: shared.env,
+        APIGWY_NAME: apigatewayName,
         DATABASE_TABLE_NAME: table.tableName,
         FILESTORE_STAGING_BUCKET: bucketAppsStaging.bucketName,
         FILESTORE_DEST_BUCKET: bucketApps.bucketName,
@@ -281,6 +284,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     const httpApi = new apigwy.HttpApi(this, 'microapps-api', {
       defaultDomainMapping: httpApiDomainMapping,
       defaultIntegration: intRouter,
+      apiName: apigatewayName,
     });
     if (shared.isPR) {
       httpApi.applyRemovalPolicy(RemovalPolicy.DESTROY);
