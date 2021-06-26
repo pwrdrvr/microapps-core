@@ -80,6 +80,9 @@ aws-lambda-update-routerz: ## Update the lambda function using a .zip file
 # invoking `cdk deploy`
 #
 
+codebuild-cdk: ## Deploy only the core CDK stack only
+	@cdk deploy --require-approval never ${CODEBUILD_CORE_STACK_NAME}
+
 codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@echo "CODEBUILD_STACK_SUFFIX: ${CODEBUILD_STACK_SUFFIX}"
 	@echo "CODEBUILD_REPOS_STACK_NAME: ${CODEBUILD_REPOS_STACK_NAME}"
@@ -111,7 +114,7 @@ codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@aws lambda update-function-code --function-name ${CODEBUILD_DEPLOYER_LAMBDA_NAME} \
 		--region ${REGION} --image-uri ${CODEBUILD_ECR_HOST}/${CODEBUILD_DEPLOYER_ECR_TAG} --publish
 
-codebuild-update-lambdas:
+codebuild-update-lambdas: ## Build docker images and update Lambdas only
 	@echo "CODEBUILD_STACK_SUFFIX: ${CODEBUILD_STACK_SUFFIX}"
 	@echo "CODEBUILD_REPOS_STACK_NAME: ${CODEBUILD_REPOS_STACK_NAME}"
 	@echo "CODEBUILD_CORE_STACK_NAME: ${CODEBUILD_CORE_STACK_NAME}"
