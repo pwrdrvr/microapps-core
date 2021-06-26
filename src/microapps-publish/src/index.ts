@@ -23,6 +23,8 @@ program
   .version(pkg.version)
   .option('-n, --new-version [version]', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
+  .option('--lambda-name [name]', 'Name of the deployer lambda function')
+  .option('--staging-bucket-name [name]', 'Name (not URI) of the S3 staging bucket')
   .parse(process.argv);
 
 const lambdaClient = new lambda.LambdaClient({});
@@ -56,11 +58,27 @@ class PublishTool {
     const options = program.opts();
     const version = options.newVersion as string;
     const leaveFiles = options.leave as boolean;
+    const lambdaName = options.lambdaName as string;
+    const bucketName = options.stagingBucketName as string;
 
-    if (version === undefined) {
-      console.log('--new-version <version> is a required parameter');
+    if (bucketName === undefined) {
+      console.log('--staging-bucket-name [bucketName] is a required parameter');
       process.exit(1);
     }
+
+    if (lambdaName === undefined) {
+      console.log('--lambda-name [lambdaName] is a required parameter');
+      process.exit(1);
+    }
+
+    if (version === undefined) {
+      console.log('--new-version [version] is a required parameter');
+      process.exit(1);
+    }
+
+    // Override the config value
+    Config.instance.deployer.lambdaName = lambdaName;
+    Config.instance.filestore.stagingBucket = bucketName;
 
     const versionAndAlias = this.createVersions(version);
     const versionOnly = { version: versionAndAlias.version };

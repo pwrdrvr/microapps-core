@@ -5,7 +5,6 @@ import fs from 'fs-extra';
 import { Config } from './config/Config';
 
 export default class S3Uploader {
-  private static readonly _s3Bucket = Config.instance.filestore.stagingBucket;
   private static readonly _tempDir = './deploytool-temp';
 
   public static async Upload(config: DeployConfig): Promise<void> {
@@ -23,7 +22,7 @@ export default class S3Uploader {
       await fs.copy(config.StaticAssetsPath, tempUploadPath);
 
       // Do the upload
-      await S3TransferUtility.UploadDir(this._tempDir, this._s3Bucket);
+      await S3TransferUtility.UploadDir(this._tempDir, Config.instance.filestore.stagingBucket);
     } finally {
       // Delete the directory, now that it's uploaded or if we failed
       await S3Uploader.removeTempDirIfExists();

@@ -48,5 +48,5 @@ FROM public.ecr.aws/lambda/nodejs:14 AS final
 COPY --from=build /app/distb/microapps-deployer/* ./
 
 
-CMD [ "./src/index.handler" ]
+CMD [ "./index.handler" ]
 
