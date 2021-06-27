@@ -85,7 +85,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
       functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
       code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
-      timeout: cdk.Duration.seconds(30),
+      timeout: cdk.Duration.seconds(60),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
@@ -203,7 +203,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
       functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
       code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
-      timeout: cdk.Duration.seconds(3),
+      timeout: cdk.Duration.seconds(15),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
@@ -224,7 +224,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       ),
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
-      timeout: cdk.Duration.seconds(3),
+      timeout: cdk.Duration.seconds(15),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
