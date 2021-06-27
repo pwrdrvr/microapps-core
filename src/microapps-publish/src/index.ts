@@ -23,7 +23,7 @@ program
   .version(pkg.version)
   .option('-n, --new-version [version]', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
-  .option('--lambda-name [name]', 'Name of the deployer lambda function')
+  .option('--deployer-lambda-name [name]', 'Name of the deployer lambda function')
   .option('--staging-bucket-name [name]', 'Name (not URI) of the S3 staging bucket')
   .parse(process.argv);
 
@@ -67,7 +67,7 @@ class PublishTool {
     }
 
     if (lambdaName === undefined) {
-      console.log('--lambda-name [lambdaName] is a required parameter');
+      console.log('--deployer-lambda-name [lambdaName] is a required parameter');
       process.exit(1);
     }
 
@@ -113,6 +113,9 @@ class PublishTool {
       // Read in the deploy.json config file for DeployTool
       const deployConfig = DeployConfig.instance;
 
+      // Override values
+      deployConfig.SemVer = version;
+
       if (deployConfig === undefined) {
         console.log('Failed to load the config file');
         process.exit(1);
@@ -134,6 +137,7 @@ class PublishTool {
 
       // Save settings
       this.ECR_HOST = `${deployConfig.AWSAccountID}.dkr.ecr.${deployConfig.AWSRegion}.amazonaws.com`;
+      // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
       this.ECR_REPO = `app-${deployConfig.AppName}`;
       this.IMAGE_TAG = `${this.ECR_REPO}:${versionAndAlias.version}`;
       this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;

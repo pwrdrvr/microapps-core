@@ -9,8 +9,8 @@ export interface IDeployConfig {
   SemVer: string;
   DefaultFile: string;
   StaticAssetsPath: string;
-  LambdaARN: string;
-  AWSAccountID: string;
+  LambdaName: string;
+  AWSAccountID: number;
   AWSRegion: string;
   ServerlessNextRouterPath: string;
 }
@@ -93,11 +93,32 @@ export default class DeployConfig implements IDeployConfig {
   })
   public DefaultFile: string;
 
+  @convict.Property({
+    doc: 'Local path to static assets path to upload to S3',
+    default: './static/',
+    env: 'APP_STATIC_ASSETS_PATH',
+  })
   public StaticAssetsPath: string;
 
-  public LambdaARN: string;
+  @convict.Property({
+    doc: 'Local path to static assets path to upload to S3',
+    default: 'microapps-my-app',
+    env: 'APP_LAMBDA_NAME',
+  })
+  public LambdaName: string;
 
-  public AWSAccountID: string;
+  @convict.Property({
+    doc: 'AWS Account ID to deploy to',
+    default: 'microapps-my-app',
+    env: 'AWS_ACCOUNT_ID',
+  })
+  public AWSAccountID: number;
+
+  @convict.Property({
+    doc: 'AWS Region to deploy to',
+    default: 'us-east-1',
+    env: 'AWS_REGION',
+  })
   public AWSRegion: string;
 
   @convict.Property({
