@@ -6,7 +6,7 @@ import {
   IDeployerResponse,
   IDeployVersionRequest,
 } from '@pwrdrvr/microapps-deployer';
-import DeployConfig from './DeployConfig';
+import { IDeployConfig } from './deployConfig/DeployConfig';
 import { Config } from './config/Config';
 
 export default class DeployClient {
@@ -14,7 +14,7 @@ export default class DeployClient {
   static readonly _deployerFunctionName = Config.instance.deployer.lambdaName;
   static readonly _decoder = new TextDecoder('utf-8');
 
-  public static async CreateApp(config: DeployConfig): Promise<void> {
+  public static async CreateApp(config: IDeployConfig): Promise<void> {
     const request = {
       type: 'createApp',
       appName: config.AppName,
@@ -39,7 +39,7 @@ export default class DeployClient {
     }
   }
 
-  public static async CheckVersionExists(config: DeployConfig): Promise<boolean> {
+  public static async CheckVersionExists(config: IDeployConfig): Promise<boolean> {
     const request = {
       type: 'checkVersionExists',
       appName: config.AppName,
@@ -67,7 +67,7 @@ export default class DeployClient {
     }
   }
 
-  public static async DeployVersion(config: DeployConfig): Promise<void> {
+  public static async DeployVersion(config: IDeployConfig): Promise<void> {
     const request = {
       type: 'deployVersion',
       appName: config.AppName,

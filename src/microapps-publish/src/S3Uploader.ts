@@ -1,4 +1,4 @@
-import DeployConfig from './DeployConfig';
+import { IDeployConfig } from './deployConfig/DeployConfig';
 import S3TransferUtility from './S3TransferUtility';
 import path from 'path';
 import fs from 'fs-extra';
@@ -7,7 +7,7 @@ import { Config } from './config/Config';
 export default class S3Uploader {
   private static readonly _tempDir = './deploytool-temp';
 
-  public static async Upload(config: DeployConfig): Promise<void> {
+  public static async Upload(config: IDeployConfig): Promise<void> {
     try {
       const destinationPrefix = `${config.AppName}/${config.SemVer}`;
 
