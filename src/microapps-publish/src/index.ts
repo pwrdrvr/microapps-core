@@ -9,7 +9,7 @@ import commander from 'commander';
 import * as util from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
-import DeployConfig, { IDeployConfig } from './DeployConfig';
+import DeployConfig, { IDeployConfig } from './deployConfig/DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
 import pkg from '../package.json';
@@ -111,7 +111,7 @@ class PublishTool {
       }
 
       // Read in the deploy.json config file for DeployTool
-      const deployConfig = await DeployConfig.Load();
+      const deployConfig = DeployConfig.instance;
 
       if (deployConfig === undefined) {
         console.log('Failed to load the config file');
