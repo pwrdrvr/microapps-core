@@ -73,7 +73,7 @@ export default class DeployClient {
       appName: config.AppName,
       semVer: config.SemVer,
       defaultFile: config.DefaultFile,
-      lambdaARN: config.LambdaARN,
+      lambdaARN: config.LambdaName,
       s3SourceURI: `s3://${Config.instance.filestore.stagingBucket}/${config.AppName}/${config.SemVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(
