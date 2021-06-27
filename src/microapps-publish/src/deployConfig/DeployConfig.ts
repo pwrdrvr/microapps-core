@@ -10,6 +10,7 @@ export interface IDeployConfig {
   DefaultFile: string;
   StaticAssetsPath: string;
   LambdaName: string;
+  LambdaARN: string;
   AWSAccountID: number;
   AWSRegion: string;
   ServerlessNextRouterPath: string;
@@ -17,7 +18,7 @@ export interface IDeployConfig {
 
 @convict.Config({
   // optional default file to load, no errors if it doesn't exist
-  file: 'microapps.yml', // relative to NODE_PATH or cwd()
+  file: './microapps.yml', // relative to NODE_PATH or cwd()
 
   // optional parameter. Defaults to 'strict', can also be 'warn'
   validationMethod: 'strict',
@@ -58,10 +59,10 @@ export default class DeployConfig implements IDeployConfig {
 
   public static configFiles(): string[] {
     const possibleFiles = [
-      './configs/config.yaml',
-      './configs/config.yml',
-      `./configs/config-${DeployConfig.envLevel}.yaml`,
-      `./configs/config-${DeployConfig.envLevel}.yml`,
+      './microapps.yaml',
+      './microapps.yml',
+      `./microapps-${DeployConfig.envLevel}.yaml`,
+      `./microapps-${DeployConfig.envLevel}.yml`,
     ];
     return FilesExist.getExistingFilesSync(possibleFiles);
   }
@@ -93,12 +94,18 @@ export default class DeployConfig implements IDeployConfig {
   })
   public DefaultFile: string;
 
+  private _staticAssetsPath: string;
   @convict.Property({
     doc: 'Local path to static assets path to upload to S3',
     default: './static/',
     env: 'APP_STATIC_ASSETS_PATH',
   })
-  public StaticAssetsPath: string;
+  public set StaticAssetsPath(value: string) {
+    this._staticAssetsPath = value;
+  }
+  public get StaticAssetsPath(): string {
+    return this._staticAssetsPath.replace(/\$SEMVER/, this.SemVer);
+  }
 
   @convict.Property({
     doc: 'Local path to static assets path to upload to S3',
@@ -106,10 +113,15 @@ export default class DeployConfig implements IDeployConfig {
     env: 'APP_LAMBDA_NAME',
   })
   public LambdaName: string;
+  public get LambdaARN(): string {
+    return `arn:aws:lambda:${this.AWSRegion}:${this.AWSAccountID}:function:${
+      this.LambdaName
+    }:v${this.SemVer.replace(/\./g, '_')}`;
+  }
 
   @convict.Property({
     doc: 'AWS Account ID to deploy to',
-    default: 'microapps-my-app',
+    default: 0,
     env: 'AWS_ACCOUNT_ID',
   })
   public AWSAccountID: number;

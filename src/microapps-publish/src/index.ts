@@ -35,6 +35,7 @@ interface IVersions {
 }
 
 class PublishTool {
+  private VersionAndAlias: IVersions;
   private ECR_HOST = '';
   private ECR_REPO = '';
   private IMAGE_TAG = '';
@@ -58,7 +59,7 @@ class PublishTool {
     const options = program.opts();
     const version = options.newVersion as string;
     const leaveFiles = options.leave as boolean;
-    const lambdaName = options.lambdaName as string;
+    const lambdaName = options.deployerLambdaName as string;
     const bucketName = options.stagingBucketName as string;
 
     if (bucketName === undefined) {
@@ -80,12 +81,12 @@ class PublishTool {
     Config.instance.deployer.lambdaName = lambdaName;
     Config.instance.filestore.stagingBucket = bucketName;
 
-    const versionAndAlias = this.createVersions(version);
-    const versionOnly = { version: versionAndAlias.version };
+    this.VersionAndAlias = this.createVersions(version);
+    const versionOnly = { version: this.VersionAndAlias.version };
 
     this.FILES_TO_MODIFY = [
       { path: 'package.json', versions: versionOnly },
-      { path: 'deploy.json', versions: versionAndAlias },
+      // { path: 'deploy.json', versions: this.VersionAndAlias },
       { path: 'next.config.js', versions: versionOnly },
     ] as { path: string; versions: IVersions }[];
 
@@ -104,7 +105,7 @@ class PublishTool {
     try {
       // Modify the existing files with the new version
       for (const fileToModify of this.FILES_TO_MODIFY) {
-        console.log(`Patching version (${versionAndAlias.version}) into ${fileToModify.path}`);
+        console.log(`Patching version (${this.VersionAndAlias.version}) into ${fileToModify.path}`);
         if (!(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))) {
           console.log(`Failed modifying file: ${fileToModify.path}`);
         }
@@ -117,12 +118,23 @@ class PublishTool {
       deployConfig.SemVer = version;
 
       if (deployConfig === undefined) {
-        console.log('Failed to load the config file');
-        process.exit(1);
+        throw new Error('Failed to load the config file');
       }
       if (deployConfig.StaticAssetsPath === undefined) {
-        console.log('StaticAssetsPath must be specified in the config file');
-        process.exit(1);
+        throw new Error('StaticAssetsPath must be specified in the config file');
+      }
+
+      this.loginToECR(deployConfig);
+
+      // Confirm the Version Does Not Exist in Published State
+      console.log(
+        `Checking if deployed app/version already exists for ${deployConfig.AppName}/${version}`,
+      );
+      const appExists = await DeployClient.CheckVersionExists(deployConfig);
+      if (appExists) {
+        console.log(
+          `Warning: App/Version already exists: ${deployConfig.AppName}/${deployConfig.SemVer}`,
+        );
       }
 
       console.log(`Invoking serverless next.js build for ${deployConfig.AppName}/${version}`);
@@ -135,19 +147,12 @@ class PublishTool {
         await fs.copyFile(deployConfig.ServerlessNextRouterPath, './.serverless_nextjs/index.js');
       }
 
-      // Save settings
-      this.ECR_HOST = `${deployConfig.AWSAccountID}.dkr.ecr.${deployConfig.AWSRegion}.amazonaws.com`;
-      // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
-      this.ECR_REPO = `app-${deployConfig.AppName}`;
-      this.IMAGE_TAG = `${this.ECR_REPO}:${versionAndAlias.version}`;
-      this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;
-
       // Docker, build, tag, push to ECR
       // Note: Need to already have AWS env vars set
-      await this.publishToECR(deployConfig);
+      await this.publishToECR();
 
       // Update the Lambda function
-      await this.deployToLambda(deployConfig, versionAndAlias);
+      await this.deployToLambda(deployConfig, this.VersionAndAlias);
 
       //
       // Tasks that used to be in DeployTool
@@ -157,20 +162,10 @@ class PublishTool {
       try {
         const staticAssetsStats = await fs.stat(deployConfig.StaticAssetsPath);
         if (!staticAssetsStats.isDirectory()) {
-          console.log(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
-          process.exit(1);
+          throw new Error(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
         }
       } catch {
-        console.log(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
-        process.exit(1);
-      }
-
-      // Confirm the Version Does Not Exist in Published State
-      const appExists = await DeployClient.CheckVersionExists(deployConfig);
-      if (appExists) {
-        console.log(
-          `Warning: App/Version already exists: ${deployConfig.AppName}/${deployConfig.SemVer}`,
-        );
+        throw new Error(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
       }
 
       // Upload Files to S3 Staging AppName/Version Prefix
@@ -257,12 +252,27 @@ class PublishTool {
     return true;
   }
 
-  private async publishToECR(deployConfig: IDeployConfig): Promise<void> {
-    // Make sure we're logged into ECR for the Docker push
+  private async loginToECR(deployConfig: IDeployConfig): Promise<boolean> {
+    // Save settings
+    this.ECR_HOST = `${deployConfig.AWSAccountID}.dkr.ecr.${deployConfig.AWSRegion}.amazonaws.com`;
+    // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
+    this.ECR_REPO = `app-${deployConfig.AppName}`;
+    this.IMAGE_TAG = `${this.ECR_REPO}:${this.VersionAndAlias.version}`;
+    this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;
+
     console.log('Logging into ECR');
-    await asyncExec(
-      `aws ecr get-login-password --region ${deployConfig.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
-    );
+    try {
+      await asyncExec(
+        `aws ecr get-login-password --region ${deployConfig.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
+      );
+    } catch (error) {
+      throw new Error(`ECR Login Failed: ${error.message}`);
+    }
+
+    return true;
+  }
+
+  private async publishToECR(): Promise<void> {
     console.log('Starting Docker build');
     await asyncExec(`docker build -f Dockerfile -t ${this.IMAGE_TAG}  .`);
     await asyncExec(`docker tag ${this.IMAGE_TAG} ${this.ECR_HOST}/${this.IMAGE_TAG}`);
@@ -320,6 +330,7 @@ class PublishTool {
   }
 }
 
+// FIXME: This chdir shouldn't be here at all
 process.chdir('/Users/huntharo/pwrdrvr/microapps-app-release/');
 const publishTool = new PublishTool();
 publishTool.UpdateVersion();
