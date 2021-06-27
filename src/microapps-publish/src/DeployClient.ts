@@ -11,7 +11,6 @@ import { Config } from './config/Config';
 
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({});
-  static readonly _deployerFunctionName = Config.instance.deployer.lambdaName;
   static readonly _decoder = new TextDecoder('utf-8');
 
   public static async CreateApp(config: IDeployConfig): Promise<void> {
@@ -22,7 +21,7 @@ export default class DeployClient {
     } as ICreateApplicationRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: this._deployerFunctionName,
+        FunctionName: Config.instance.deployer.lambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
@@ -47,7 +46,7 @@ export default class DeployClient {
     } as ICheckVersionExistsRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: this._deployerFunctionName,
+        FunctionName: Config.instance.deployer.lambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
@@ -73,12 +72,12 @@ export default class DeployClient {
       appName: config.AppName,
       semVer: config.SemVer,
       defaultFile: config.DefaultFile,
-      lambdaARN: config.LambdaName,
+      lambdaARN: config.LambdaARN,
       s3SourceURI: `s3://${Config.instance.filestore.stagingBucket}/${config.AppName}/${config.SemVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: this._deployerFunctionName,
+        FunctionName: Config.instance.deployer.lambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
