@@ -21,11 +21,13 @@
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "dependencies": {
+  "peerDependencies": {
     "@aws-sdk/client-dynamodb": "^3.8.0",
     "@aws-sdk/lib-dynamodb": "^3.8.0",
-    "class-transformer": "^0.4.0",
     "tslib": "^2.1.0"
+  },
+  "dependencies": {
+    "class-transformer": "^0.4.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.15",
