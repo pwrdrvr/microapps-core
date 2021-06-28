@@ -1,10 +1,10 @@
 import { Property } from 'ts-convict';
 
-export interface IDeployer {
+export interface IDeployerConfig {
   lambdaName: string;
 }
 
-export class Deployer implements IDeployer {
+export class DeployerConfig implements IDeployerConfig {
   @Property({
     doc: 'Name of Deployer Lambda function',
     default: 'microapps-deployer',

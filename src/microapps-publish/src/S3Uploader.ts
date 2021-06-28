@@ -1,4 +1,4 @@
-import { IDeployConfig } from './deployConfig/DeployConfig';
+import { IConfig } from './config/Config';
 import S3TransferUtility from './S3TransferUtility';
 import path from 'path';
 import fs from 'fs-extra';
@@ -7,9 +7,9 @@ import { Config } from './config/Config';
 export default class S3Uploader {
   private static readonly _tempDir = './deploytool-temp';
 
-  public static async Upload(config: IDeployConfig): Promise<void> {
+  public static async Upload(config: IConfig): Promise<void> {
     try {
-      const destinationPrefix = `${config.AppName}/${config.SemVer}`;
+      const destinationPrefix = `${config.app.Name}/${config.app.SemVer}`;
 
       // Make a local root dir for the upload
       const tempUploadPath = path.join(S3Uploader._tempDir, destinationPrefix);
@@ -19,7 +19,7 @@ export default class S3Uploader {
       // Copy the files in the source dir to the root dir
       // Note: It would be faster to move the files, then move them back
       // FIXME: Use p-map for controlled parallelism
-      await fs.copy(config.StaticAssetsPath, tempUploadPath);
+      await fs.copy(config.app.StaticAssetsPath, tempUploadPath);
 
       // Do the upload
       await S3TransferUtility.UploadDir(this._tempDir, Config.instance.filestore.stagingBucket);

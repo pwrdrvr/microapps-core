@@ -2,13 +2,15 @@ import * as convict from 'ts-convict';
 import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
 import { FilesExist } from '../lib/FilesExist';
-import { FileStore, IFileStore } from './FileStore';
-import { Deployer, IDeployer } from './Deployer';
+import { FileStoreConfig, IFileStoreRename } from './FileStore';
+import { DeployerConfig, IDeployerConfig } from './Deployer';
+import { ApplicationConfig, IApplicationConfig } from './Application';
 import { TSConvict } from 'ts-convict';
 
 export interface IConfig {
-  deployer: IDeployer;
-  filestore: IFileStore;
+  deployer: IDeployerConfig;
+  filestore: IFileStoreRename;
+  app: IApplicationConfig;
 }
 
 @convict.Config({
@@ -54,10 +56,10 @@ export class Config implements IConfig {
 
   public static configFiles(): string[] {
     const possibleFiles = [
-      './configs/config.yaml',
-      './configs/config.yml',
-      `./configs/config-${Config.envLevel}.yaml`,
-      `./configs/config-${Config.envLevel}.yml`,
+      './microapps.yaml',
+      './microapps.yml',
+      `./microapps-${Config.envLevel}.yaml`,
+      `./microapps-${Config.envLevel}.yml`,
     ];
     return FilesExist.getExistingFilesSync(possibleFiles);
   }
@@ -70,9 +72,12 @@ export class Config implements IConfig {
   // })
   // public name!: string;
 
-  @convict.Property(Deployer)
-  public deployer!: IDeployer;
+  @convict.Property(ApplicationConfig)
+  public app!: IApplicationConfig;
 
-  @convict.Property(FileStore)
-  public filestore!: IFileStore;
+  @convict.Property(DeployerConfig)
+  public deployer!: IDeployerConfig;
+
+  @convict.Property(FileStoreConfig)
+  public filestore!: IFileStoreRename;
 }
