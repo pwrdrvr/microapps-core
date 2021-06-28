@@ -1,8 +1,9 @@
-AppName: appname
-SemVer: 0.0.0
-DefaultFile: ""
-StaticAssetsPath: ./.serverless_nextjs/assets/appname/0.0.0/
-LambdaName: appname
-AWSAccountID: "123456789012"
-AWSRegion: us-east-1
-ServerlessNextRouterPath: ./node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js
+app:
+  name: appname
+  semVer: 0.0.0
+  defaultFile: ""
+  staticAssetsPath: ./.serverless_nextjs/assets/appname/0.0.0/
+  lambdaName: appname
+  awsAccountID: "123456789012"
+  awsRegion: us-east-1
+  serverlessNextRouterPath: ./node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js
