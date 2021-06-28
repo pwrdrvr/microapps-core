@@ -6,23 +6,21 @@ import {
   IDeployerResponse,
   IDeployVersionRequest,
 } from '@pwrdrvr/microapps-deployer';
-import DeployConfig from './DeployConfig';
-import { Config } from './config/Config';
+import { IConfig } from './config/Config';
 
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({});
-  static readonly _deployerFunctionName = Config.instance.deployer.lambdaName;
   static readonly _decoder = new TextDecoder('utf-8');
 
-  public static async CreateApp(config: DeployConfig): Promise<void> {
+  public static async CreateApp(config: IConfig): Promise<void> {
     const request = {
       type: 'createApp',
-      appName: config.AppName,
-      displayName: config.AppName,
+      appName: config.app.name,
+      displayName: config.app.name,
     } as ICreateApplicationRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: this._deployerFunctionName,
+        FunctionName: config.deployer.lambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
@@ -39,15 +37,15 @@ export default class DeployClient {
     }
   }
 
-  public static async CheckVersionExists(config: DeployConfig): Promise<boolean> {
+  public static async CheckVersionExists(config: IConfig): Promise<boolean> {
     const request = {
       type: 'checkVersionExists',
-      appName: config.AppName,
-      semVer: config.SemVer,
+      appName: config.app.name,
+      semVer: config.app.semVer,
     } as ICheckVersionExistsRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: this._deployerFunctionName,
+        FunctionName: config.deployer.lambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
@@ -57,7 +55,7 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 404) {
-        console.log(`App/Version do not exist: ${config.AppName}/${config.SemVer}`);
+        console.log(`App/Version do not exist: ${config.app.name}/${config.app.semVer}`);
         return false;
       } else {
         return true;
@@ -67,18 +65,18 @@ export default class DeployClient {
     }
   }
 
-  public static async DeployVersion(config: DeployConfig): Promise<void> {
+  public static async DeployVersion(config: IConfig): Promise<void> {
     const request = {
       type: 'deployVersion',
-      appName: config.AppName,
-      semVer: config.SemVer,
-      defaultFile: config.DefaultFile,
-      lambdaARN: config.LambdaARN,
-      s3SourceURI: `s3://${Config.instance.filestore.stagingBucket}/${config.AppName}/${config.SemVer}/`,
+      appName: config.app.name,
+      semVer: config.app.semVer,
+      defaultFile: config.app.defaultFile,
+      lambdaARN: config.app.lambdaARN,
+      s3SourceURI: `s3://${config.filestore.stagingBucket}/${config.app.name}/${config.app.semVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: this._deployerFunctionName,
+        FunctionName: config.deployer.lambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
@@ -88,7 +86,7 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
-        console.log(`Deploy succeeded: ${config.AppName}/${config.SemVer}`);
+        console.log(`Deploy succeeded: ${config.app.name}/${config.app.semVer}`);
       } else {
         console.log(`Deploy failed with: ${dResponse.statusCode}`);
       }
