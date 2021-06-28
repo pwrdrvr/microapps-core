@@ -85,16 +85,18 @@ export default class SharedProps {
   }
 
   constructor(scope: cdk.Construct) {
-    this._r53ZoneName = scope.node.tryGetContext('r53ZoneName');
+    this._r53ZoneName = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneName');
     this._reverseDomainName = SharedProps.reverseDomain(this._r53ZoneName);
     this._domainName = SharedProps.reverseDomain(this._reverseDomainName);
-    this._r53ZoneID = scope.node.tryGetContext('r53ZoneID');
-    this._certARNEdge = scope.node.tryGetContext('certARNEdge');
-    this._certARNOrigin = scope.node.tryGetContext('certARNOrigin');
-    this._s3PolicyBypassRoleName = scope.node.tryGetContext('s3PolicyBypassRoleName');
-    this._s3PolicyBypassAROA = scope.node.tryGetContext('s3PolicyBypassAROA');
-    this._account = scope.node.tryGetContext('account');
-    this._region = scope.node.tryGetContext('region');
+    this._r53ZoneID = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneID');
+    this._certARNEdge = scope.node.tryGetContext('@pwrdrvr/microapps:certARNEdge');
+    this._certARNOrigin = scope.node.tryGetContext('@pwrdrvr/microapps:certARNOrigin');
+    this._s3PolicyBypassRoleName = scope.node.tryGetContext(
+      '@pwrdrvr/microapps:s3PolicyBypassRoleName',
+    );
+    this._s3PolicyBypassAROA = scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROA');
+    this._account = scope.node.tryGetContext('@pwrdrvr/microapps:account');
+    this._region = scope.node.tryGetContext('@pwrdrvr/microapps:region');
 
     // Determine if we have a PR number
     const prPrefix = 'pr/';

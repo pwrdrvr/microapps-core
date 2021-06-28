@@ -23,7 +23,13 @@ Note: passing `CODEBUILD_SOURCE_VERSION=pr/NN`, where NN is a number, will cause
 
 ## All-In-One Bootstrap with Make
 
+### Temporary PR Stack
+
 - `AWS_REGION=us-east-2 CODEBUILD_SOURCE_VERSION=pr/42 NODE_ENV=dev ENV=dev make codebuild-deploy`
+
+### Permanent Stack
+
+- `AWS_REGION=us-east-2 CODEBUILD_SOURCE_VERSION=main NODE_ENV=dev ENV=dev make codebuild-deploy`
 
 ## Manual Steps
 
