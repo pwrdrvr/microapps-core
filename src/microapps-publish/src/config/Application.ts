@@ -3,15 +3,15 @@ import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
 
 export interface IApplicationConfig {
-  Name: string;
-  SemVer: string;
-  DefaultFile: string;
-  StaticAssetsPath: string;
-  LambdaName: string;
-  LambdaARN: string;
-  AWSAccountID: number;
-  AWSRegion: string;
-  ServerlessNextRouterPath: string;
+  name: string;
+  semVer: string;
+  defaultFile: string;
+  staticAssetsPath: string;
+  lambdaName: string;
+  lambdaARN: string;
+  awsAccountID: number;
+  awsRegion: string;
+  serverlessNextRouterPath: string;
 }
 
 @convict.Config({
@@ -35,7 +35,7 @@ export interface IApplicationConfig {
 })
 export class ApplicationConfig implements IApplicationConfig {
   private _name: string;
-  public get Name(): string {
+  public get name(): string {
     return this._name;
   }
   @convict.Property({
@@ -43,7 +43,7 @@ export class ApplicationConfig implements IApplicationConfig {
     default: 'microapps-my-app',
     env: 'APP_NAME',
   })
-  public set Name(value: string) {
+  public set name(value: string) {
     this._name = value.toLowerCase();
   }
 
@@ -52,14 +52,14 @@ export class ApplicationConfig implements IApplicationConfig {
     default: '0.0.1',
     env: 'APP_SEMVER',
   })
-  public SemVer: string;
+  public semVer: string;
 
   @convict.Property({
     doc: 'Default file to reference when loading the app with no version',
     default: '',
     env: 'APP_DEFAULT_FILE',
   })
-  public DefaultFile: string;
+  public defaultFile: string;
 
   private _staticAssetsPath: string;
   @convict.Property({
@@ -67,11 +67,11 @@ export class ApplicationConfig implements IApplicationConfig {
     default: './static/',
     env: 'APP_STATIC_ASSETS_PATH',
   })
-  public set StaticAssetsPath(value: string) {
+  public set staticAssetsPath(value: string) {
     this._staticAssetsPath = value;
   }
-  public get StaticAssetsPath(): string {
-    return this._staticAssetsPath.replace(/\$SEMVER/, this.SemVer);
+  public get staticAssetsPath(): string {
+    return this._staticAssetsPath.replace(/\$SEMVER/, this.semVer);
   }
 
   @convict.Property({
@@ -79,11 +79,11 @@ export class ApplicationConfig implements IApplicationConfig {
     default: 'microapps-my-app',
     env: 'APP_LAMBDA_NAME',
   })
-  public LambdaName: string;
-  public get LambdaARN(): string {
-    return `arn:aws:lambda:${this.AWSRegion}:${this.AWSAccountID}:function:${
-      this.LambdaName
-    }:v${this.SemVer.replace(/\./g, '_')}`;
+  public lambdaName: string;
+  public get lambdaARN(): string {
+    return `arn:aws:lambda:${this.awsRegion}:${this.awsAccountID}:function:${
+      this.lambdaName
+    }:v${this.semVer.replace(/\./g, '_')}`;
   }
 
   @convict.Property({
@@ -91,19 +91,19 @@ export class ApplicationConfig implements IApplicationConfig {
     default: 0,
     env: 'AWS_ACCOUNT_ID',
   })
-  public AWSAccountID: number;
+  public awsAccountID: number;
 
   @convict.Property({
     doc: 'AWS Region to deploy to',
     default: 'us-east-1',
     env: 'AWS_REGION',
   })
-  public AWSRegion: string;
+  public awsRegion: string;
 
   @convict.Property({
     doc: 'Path to the serverless-nextjs-router index.js file',
     default: './node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js',
     env: 'SERVERLESS_NEXTJS_ROUTER_INDEX_JS',
   })
-  public ServerlessNextRouterPath: string;
+  public serverlessNextRouterPath: string;
 }
