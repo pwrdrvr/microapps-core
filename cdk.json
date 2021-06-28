@@ -11,6 +11,14 @@
     "@aws-cdk/aws-s3:grantWriteWithoutAcl": true,
     "@aws-cdk/aws-ecs-patterns:removeDefaultDesiredCount": true,
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
-    "@aws-cdk/aws-efs:defaultEncryptionAtRest": true
+    "@aws-cdk/aws-efs:defaultEncryptionAtRest": true,
+    "@pwrdrvr/microapps:account": "***REMOVED***",
+    "@pwrdrvr/microapps:region": "us-east-2",
+    "@pwrdrvr/microapps:r53ZoneName": "pwrdrvr.com.",
+    "@pwrdrvr/microapps:r53ZoneID": "ZHYNI9F572BBD",
+    "@pwrdrvr/microapps:certARNEdge": "arn:aws:acm:us-east-1:***REMOVED***:certificate/e2434943-4295-4514-8f83-eeef556d8d09",
+    "@pwrdrvr/microapps:certARNOrigin": "arn:aws:acm:us-east-2:***REMOVED***:certificate/533cdfa2-0528-484f-bd53-0a0d0dc6159c",
+    "@pwrdrvr/microapps:s3PolicyBypassRoleName": "AdminAccess",
+    "@pwrdrvr/microapps:s3PolicyBypassAROA": "AROATPLZCRY427AZLMDOB"
   }
 }
