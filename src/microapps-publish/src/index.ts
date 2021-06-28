@@ -9,11 +9,10 @@ import commander from 'commander';
 import * as util from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
-import DeployConfig, { IDeployConfig } from './DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
 import pkg from '../package.json';
-import { Config } from './config/Config';
+import { Config, IConfig } from './config/Config';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -23,7 +22,7 @@ program
   .version(pkg.version)
   .option('-n, --new-version [version]', 'New version to apply')
   .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
-  .option('--lambda-name [name]', 'Name of the deployer lambda function')
+  .option('--deployer-lambda-name [name]', 'Name of the deployer lambda function')
   .option('--staging-bucket-name [name]', 'Name (not URI) of the S3 staging bucket')
   .parse(process.argv);
 
@@ -35,6 +34,7 @@ interface IVersions {
 }
 
 class PublishTool {
+  private VersionAndAlias: IVersions;
   private ECR_HOST = '';
   private ECR_REPO = '';
   private IMAGE_TAG = '';
@@ -58,7 +58,7 @@ class PublishTool {
     const options = program.opts();
     const version = options.newVersion as string;
     const leaveFiles = options.leave as boolean;
-    const lambdaName = options.lambdaName as string;
+    const lambdaName = options.deployerLambdaName as string;
     const bucketName = options.stagingBucketName as string;
 
     if (bucketName === undefined) {
@@ -67,7 +67,7 @@ class PublishTool {
     }
 
     if (lambdaName === undefined) {
-      console.log('--lambda-name [lambdaName] is a required parameter');
+      console.log('--deployer-lambda-name [lambdaName] is a required parameter');
       process.exit(1);
     }
 
@@ -77,15 +77,17 @@ class PublishTool {
     }
 
     // Override the config value
-    Config.instance.deployer.lambdaName = lambdaName;
-    Config.instance.filestore.stagingBucket = bucketName;
+    const deployConfig = Config.instance;
+    deployConfig.deployer.lambdaName = lambdaName;
+    deployConfig.filestore.stagingBucket = bucketName;
+    deployConfig.app.semVer = version;
 
-    const versionAndAlias = this.createVersions(version);
-    const versionOnly = { version: versionAndAlias.version };
+    this.VersionAndAlias = this.createVersions(version);
+    const versionOnly = { version: this.VersionAndAlias.version };
 
     this.FILES_TO_MODIFY = [
       { path: 'package.json', versions: versionOnly },
-      { path: 'deploy.json', versions: versionAndAlias },
+      // { path: 'deploy.json', versions: this.VersionAndAlias },
       { path: 'next.config.js', versions: versionOnly },
     ] as { path: string; versions: IVersions }[];
 
@@ -104,46 +106,51 @@ class PublishTool {
     try {
       // Modify the existing files with the new version
       for (const fileToModify of this.FILES_TO_MODIFY) {
-        console.log(`Patching version (${versionAndAlias.version}) into ${fileToModify.path}`);
+        console.log(`Patching version (${this.VersionAndAlias.version}) into ${fileToModify.path}`);
         if (!(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))) {
           console.log(`Failed modifying file: ${fileToModify.path}`);
         }
       }
 
-      // Read in the deploy.json config file for DeployTool
-      const deployConfig = await DeployConfig.Load();
-
       if (deployConfig === undefined) {
-        console.log('Failed to load the config file');
-        process.exit(1);
+        throw new Error('Failed to load the config file');
       }
-      if (deployConfig.StaticAssetsPath === undefined) {
-        console.log('StaticAssetsPath must be specified in the config file');
-        process.exit(1);
+      if (deployConfig.app.staticAssetsPath === undefined) {
+        throw new Error('StaticAssetsPath must be specified in the config file');
       }
 
-      console.log(`Invoking serverless next.js build for ${deployConfig.AppName}/${version}`);
+      this.loginToECR(deployConfig);
+
+      // Confirm the Version Does Not Exist in Published State
+      console.log(
+        `Checking if deployed app/version already exists for ${deployConfig.app.name}/${version}`,
+      );
+      const appExists = await DeployClient.CheckVersionExists(deployConfig);
+      if (appExists) {
+        console.log(
+          `Warning: App/Version already exists: ${deployConfig.app.name}/${deployConfig.app.semVer}`,
+        );
+      }
+
+      console.log(`Invoking serverless next.js build for ${deployConfig.app.name}/${version}`);
 
       // Run the serverless next.js build
       await asyncExec('serverless');
 
-      if (deployConfig.ServerlessNextRouterPath !== undefined) {
+      if (deployConfig.app.serverlessNextRouterPath !== undefined) {
         console.log('Copying Serverless Next.js router to build output directory');
-        await fs.copyFile(deployConfig.ServerlessNextRouterPath, './.serverless_nextjs/index.js');
+        await fs.copyFile(
+          deployConfig.app.serverlessNextRouterPath,
+          './.serverless_nextjs/index.js',
+        );
       }
-
-      // Save settings
-      this.ECR_HOST = `${deployConfig.AWSAccountID}.dkr.ecr.${deployConfig.AWSRegion}.amazonaws.com`;
-      this.ECR_REPO = `app-${deployConfig.AppName}`;
-      this.IMAGE_TAG = `${this.ECR_REPO}:${versionAndAlias.version}`;
-      this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;
 
       // Docker, build, tag, push to ECR
       // Note: Need to already have AWS env vars set
-      await this.publishToECR(deployConfig);
+      await this.publishToECR();
 
       // Update the Lambda function
-      await this.deployToLambda(deployConfig, versionAndAlias);
+      await this.deployToLambda(deployConfig, this.VersionAndAlias);
 
       //
       // Tasks that used to be in DeployTool
@@ -151,22 +158,12 @@ class PublishTool {
 
       // Check that Static Assets Folder exists
       try {
-        const staticAssetsStats = await fs.stat(deployConfig.StaticAssetsPath);
+        const staticAssetsStats = await fs.stat(deployConfig.app.staticAssetsPath);
         if (!staticAssetsStats.isDirectory()) {
-          console.log(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
-          process.exit(1);
+          throw new Error(`Static asset path does not exist: ${deployConfig.app.staticAssetsPath}`);
         }
       } catch {
-        console.log(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
-        process.exit(1);
-      }
-
-      // Confirm the Version Does Not Exist in Published State
-      const appExists = await DeployClient.CheckVersionExists(deployConfig);
-      if (appExists) {
-        console.log(
-          `Warning: App/Version already exists: ${deployConfig.AppName}/${deployConfig.SemVer}`,
-        );
+        throw new Error(`Static asset path does not exist: ${deployConfig.app.staticAssetsPath}`);
       }
 
       // Upload Files to S3 Staging AppName/Version Prefix
@@ -174,14 +171,14 @@ class PublishTool {
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
-      console.log(`Creating MicroApp Application: ${deployConfig.AppName}`);
+      console.log(`Creating MicroApp Application: ${deployConfig.app.name}`);
       await DeployClient.CreateApp(deployConfig);
 
       // Call Deployer to Deploy AppName/Version
-      console.log(`Creating MicroApp Version: ${deployConfig.SemVer}`);
+      console.log(`Creating MicroApp Version: ${deployConfig.app.semVer}`);
       await DeployClient.DeployVersion(deployConfig);
 
-      console.log(`Published: ${deployConfig.AppName}/${deployConfig.SemVer}`);
+      console.log(`Published: ${deployConfig.app.name}/${deployConfig.app.semVer}`);
     } catch (error) {
       console.log(`Caught exception: ${error.message}`);
     } finally {
@@ -253,12 +250,27 @@ class PublishTool {
     return true;
   }
 
-  private async publishToECR(deployConfig: IDeployConfig): Promise<void> {
-    // Make sure we're logged into ECR for the Docker push
+  private async loginToECR(config: IConfig): Promise<boolean> {
+    // Save settings
+    this.ECR_HOST = `${config.app.awsAccountID}.dkr.ecr.${config.app.awsRegion}.amazonaws.com`;
+    // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
+    this.ECR_REPO = `app-${config.app.name}`;
+    this.IMAGE_TAG = `${this.ECR_REPO}:${this.VersionAndAlias.version}`;
+    this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;
+
     console.log('Logging into ECR');
-    await asyncExec(
-      `aws ecr get-login-password --region ${deployConfig.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
-    );
+    try {
+      await asyncExec(
+        `aws ecr get-login-password --region ${config.app.awsRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
+      );
+    } catch (error) {
+      throw new Error(`ECR Login Failed: ${error.message}`);
+    }
+
+    return true;
+  }
+
+  private async publishToECR(): Promise<void> {
     console.log('Starting Docker build');
     await asyncExec(`docker build -f Dockerfile -t ${this.IMAGE_TAG}  .`);
     await asyncExec(`docker tag ${this.IMAGE_TAG} ${this.ECR_HOST}/${this.IMAGE_TAG}`);
@@ -266,7 +278,7 @@ class PublishTool {
     await asyncExec(`docker push ${this.ECR_HOST}/${this.IMAGE_TAG}`);
   }
 
-  private async deployToLambda(deployConfig: IDeployConfig, versions: IVersions): Promise<void> {
+  private async deployToLambda(_config: IConfig, versions: IVersions): Promise<void> {
     // Create Lambda version
     console.log(`Updating Lambda code to point to new Docker image`);
     const resultUpdate = await lambdaClient.send(
@@ -316,6 +328,5 @@ class PublishTool {
   }
 }
 
-process.chdir('/Users/huntharo/pwrdrvr/microapps-app-release/');
 const publishTool = new PublishTool();
 publishTool.UpdateVersion();
