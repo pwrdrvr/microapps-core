@@ -11,6 +11,9 @@ export interface IConfig {
   db: IDatabase;
   apigwy: IAPIGateway;
   filestore: IFileStore;
+
+  awsAccountID: number;
+  awsRegion: string;
 }
 
 @convict.Config({
@@ -80,4 +83,18 @@ export class Config implements IConfig {
 
   @convict.Property(FileStore)
   public filestore!: IFileStore;
+
+  @convict.Property({
+    doc: 'AWS Account ID for app Lambda function',
+    default: 0,
+    env: 'AWS_ACCOUNT_ID',
+  })
+  public awsAccountID!: number;
+
+  @convict.Property({
+    doc: 'AWS Region for app Lambda function',
+    default: 'us-east-1',
+    env: 'AWS_REGION',
+  })
+  public awsRegion!: string;
 }
