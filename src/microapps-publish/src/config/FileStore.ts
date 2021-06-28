@@ -1,10 +1,10 @@
 import { Property } from 'ts-convict';
 
-export interface IFileStore {
+export interface IFileStoreRename {
   stagingBucket: string;
 }
 
-export class FileStore implements IFileStore {
+export class FileStoreConfig implements IFileStoreRename {
   @Property({
     doc: 'Staging bucket',
     default: 'microapps-staging',

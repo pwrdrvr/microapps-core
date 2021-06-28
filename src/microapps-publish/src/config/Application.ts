@@ -1,11 +1,9 @@
 import * as convict from 'ts-convict';
 import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
-import { FilesExist } from '../lib/FilesExist';
-import { TSConvict } from 'ts-convict';
 
-export interface IDeployConfig {
-  AppName: string;
+export interface IApplicationConfig {
+  Name: string;
   SemVer: string;
   DefaultFile: string;
   StaticAssetsPath: string;
@@ -35,49 +33,18 @@ export interface IDeployConfig {
     ipaddress,
   },
 })
-export default class DeployConfig implements IDeployConfig {
-  private static _instance: IDeployConfig;
-  public static get instance(): IDeployConfig {
-    if (DeployConfig._instance === undefined) {
-      const configLoader = new TSConvict<DeployConfig>(DeployConfig);
-      DeployConfig._instance = configLoader.load(DeployConfig.configFiles());
-    }
-    return DeployConfig._instance;
-  }
-
-  public static get envLevel(): 'dev' | 'qa' | 'prod' | 'local' {
-    const nodeEnv = process.env.NODE_ENV || 'dev';
-    if (nodeEnv.startsWith('prod')) {
-      return 'prod';
-    } else if (nodeEnv === 'qa') {
-      return 'qa';
-    } else if (nodeEnv === 'local') {
-      return 'local';
-    }
-    return 'dev';
-  }
-
-  public static configFiles(): string[] {
-    const possibleFiles = [
-      './microapps.yaml',
-      './microapps.yml',
-      `./microapps-${DeployConfig.envLevel}.yaml`,
-      `./microapps-${DeployConfig.envLevel}.yml`,
-    ];
-    return FilesExist.getExistingFilesSync(possibleFiles);
-  }
-
-  private _appName: string;
-  public get AppName(): string {
-    return this._appName;
+export class ApplicationConfig implements IApplicationConfig {
+  private _name: string;
+  public get Name(): string {
+    return this._name;
   }
   @convict.Property({
-    doc: 'Name microapps app',
+    doc: 'Name of microapps app',
     default: 'microapps-my-app',
     env: 'APP_NAME',
   })
-  public set AppName(value: string) {
-    this._appName = value.toLowerCase();
+  public set Name(value: string) {
+    this._name = value.toLowerCase();
   }
 
   @convict.Property({

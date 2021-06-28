@@ -9,11 +9,10 @@ import commander from 'commander';
 import * as util from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
-import DeployConfig, { IDeployConfig } from './deployConfig/DeployConfig';
 import S3Uploader from './S3Uploader';
 import DeployClient from './DeployClient';
 import pkg from '../package.json';
-import { Config } from './config/Config';
+import { Config, IConfig } from './config/Config';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -78,8 +77,10 @@ class PublishTool {
     }
 
     // Override the config value
-    Config.instance.deployer.lambdaName = lambdaName;
-    Config.instance.filestore.stagingBucket = bucketName;
+    const deployConfig = Config.instance;
+    deployConfig.deployer.lambdaName = lambdaName;
+    deployConfig.filestore.stagingBucket = bucketName;
+    deployConfig.app.SemVer = version;
 
     this.VersionAndAlias = this.createVersions(version);
     const versionOnly = { version: this.VersionAndAlias.version };
@@ -111,16 +112,10 @@ class PublishTool {
         }
       }
 
-      // Read in the deploy.json config file for DeployTool
-      const deployConfig = DeployConfig.instance;
-
-      // Override values
-      deployConfig.SemVer = version;
-
       if (deployConfig === undefined) {
         throw new Error('Failed to load the config file');
       }
-      if (deployConfig.StaticAssetsPath === undefined) {
+      if (deployConfig.app.StaticAssetsPath === undefined) {
         throw new Error('StaticAssetsPath must be specified in the config file');
       }
 
@@ -128,23 +123,26 @@ class PublishTool {
 
       // Confirm the Version Does Not Exist in Published State
       console.log(
-        `Checking if deployed app/version already exists for ${deployConfig.AppName}/${version}`,
+        `Checking if deployed app/version already exists for ${deployConfig.app.Name}/${version}`,
       );
       const appExists = await DeployClient.CheckVersionExists(deployConfig);
       if (appExists) {
         console.log(
-          `Warning: App/Version already exists: ${deployConfig.AppName}/${deployConfig.SemVer}`,
+          `Warning: App/Version already exists: ${deployConfig.app.Name}/${deployConfig.app.SemVer}`,
         );
       }
 
-      console.log(`Invoking serverless next.js build for ${deployConfig.AppName}/${version}`);
+      console.log(`Invoking serverless next.js build for ${deployConfig.app.Name}/${version}`);
 
       // Run the serverless next.js build
       await asyncExec('serverless');
 
-      if (deployConfig.ServerlessNextRouterPath !== undefined) {
+      if (deployConfig.app.ServerlessNextRouterPath !== undefined) {
         console.log('Copying Serverless Next.js router to build output directory');
-        await fs.copyFile(deployConfig.ServerlessNextRouterPath, './.serverless_nextjs/index.js');
+        await fs.copyFile(
+          deployConfig.app.ServerlessNextRouterPath,
+          './.serverless_nextjs/index.js',
+        );
       }
 
       // Docker, build, tag, push to ECR
@@ -160,12 +158,12 @@ class PublishTool {
 
       // Check that Static Assets Folder exists
       try {
-        const staticAssetsStats = await fs.stat(deployConfig.StaticAssetsPath);
+        const staticAssetsStats = await fs.stat(deployConfig.app.StaticAssetsPath);
         if (!staticAssetsStats.isDirectory()) {
-          throw new Error(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
+          throw new Error(`Static asset path does not exist: ${deployConfig.app.StaticAssetsPath}`);
         }
       } catch {
-        throw new Error(`Static asset path does not exist: ${deployConfig.StaticAssetsPath}`);
+        throw new Error(`Static asset path does not exist: ${deployConfig.app.StaticAssetsPath}`);
       }
 
       // Upload Files to S3 Staging AppName/Version Prefix
@@ -173,14 +171,14 @@ class PublishTool {
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
-      console.log(`Creating MicroApp Application: ${deployConfig.AppName}`);
+      console.log(`Creating MicroApp Application: ${deployConfig.app.Name}`);
       await DeployClient.CreateApp(deployConfig);
 
       // Call Deployer to Deploy AppName/Version
-      console.log(`Creating MicroApp Version: ${deployConfig.SemVer}`);
+      console.log(`Creating MicroApp Version: ${deployConfig.app.SemVer}`);
       await DeployClient.DeployVersion(deployConfig);
 
-      console.log(`Published: ${deployConfig.AppName}/${deployConfig.SemVer}`);
+      console.log(`Published: ${deployConfig.app.Name}/${deployConfig.app.SemVer}`);
     } catch (error) {
       console.log(`Caught exception: ${error.message}`);
     } finally {
@@ -252,18 +250,18 @@ class PublishTool {
     return true;
   }
 
-  private async loginToECR(deployConfig: IDeployConfig): Promise<boolean> {
+  private async loginToECR(config: IConfig): Promise<boolean> {
     // Save settings
-    this.ECR_HOST = `${deployConfig.AWSAccountID}.dkr.ecr.${deployConfig.AWSRegion}.amazonaws.com`;
+    this.ECR_HOST = `${config.app.AWSAccountID}.dkr.ecr.${config.app.AWSRegion}.amazonaws.com`;
     // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
-    this.ECR_REPO = `app-${deployConfig.AppName}`;
+    this.ECR_REPO = `app-${config.app.Name}`;
     this.IMAGE_TAG = `${this.ECR_REPO}:${this.VersionAndAlias.version}`;
     this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;
 
     console.log('Logging into ECR');
     try {
       await asyncExec(
-        `aws ecr get-login-password --region ${deployConfig.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
+        `aws ecr get-login-password --region ${config.app.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
       );
     } catch (error) {
       throw new Error(`ECR Login Failed: ${error.message}`);
@@ -280,7 +278,7 @@ class PublishTool {
     await asyncExec(`docker push ${this.ECR_HOST}/${this.IMAGE_TAG}`);
   }
 
-  private async deployToLambda(deployConfig: IDeployConfig, versions: IVersions): Promise<void> {
+  private async deployToLambda(_config: IConfig, versions: IVersions): Promise<void> {
     // Create Lambda version
     console.log(`Updating Lambda code to point to new Docker image`);
     const resultUpdate = await lambdaClient.send(
