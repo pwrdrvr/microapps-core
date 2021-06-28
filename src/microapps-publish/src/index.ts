@@ -268,7 +268,6 @@ class PublishTool {
   }
 
   private async loginToECR(config: IConfig): Promise<boolean> {
-    // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
     this.IMAGE_TAG = `${config.app.ecrRepoName}:${this.VersionAndAlias.version}`;
     this.IMAGE_URI = `${config.app.ecrHost}/${this.IMAGE_TAG}`;
 
