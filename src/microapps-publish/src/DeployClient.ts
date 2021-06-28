@@ -15,8 +15,8 @@ export default class DeployClient {
   public static async CreateApp(config: IConfig): Promise<void> {
     const request = {
       type: 'createApp',
-      appName: config.app.Name,
-      displayName: config.app.Name,
+      appName: config.app.name,
+      displayName: config.app.name,
     } as ICreateApplicationRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
@@ -40,8 +40,8 @@ export default class DeployClient {
   public static async CheckVersionExists(config: IConfig): Promise<boolean> {
     const request = {
       type: 'checkVersionExists',
-      appName: config.app.Name,
-      semVer: config.app.SemVer,
+      appName: config.app.name,
+      semVer: config.app.semVer,
     } as ICheckVersionExistsRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
@@ -55,7 +55,7 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 404) {
-        console.log(`App/Version do not exist: ${config.app.Name}/${config.app.SemVer}`);
+        console.log(`App/Version do not exist: ${config.app.name}/${config.app.semVer}`);
         return false;
       } else {
         return true;
@@ -68,11 +68,11 @@ export default class DeployClient {
   public static async DeployVersion(config: IConfig): Promise<void> {
     const request = {
       type: 'deployVersion',
-      appName: config.app.Name,
-      semVer: config.app.SemVer,
-      defaultFile: config.app.DefaultFile,
-      lambdaARN: config.app.LambdaARN,
-      s3SourceURI: `s3://${config.filestore.stagingBucket}/${config.app.Name}/${config.app.SemVer}/`,
+      appName: config.app.name,
+      semVer: config.app.semVer,
+      defaultFile: config.app.defaultFile,
+      lambdaARN: config.app.lambdaARN,
+      s3SourceURI: `s3://${config.filestore.stagingBucket}/${config.app.name}/${config.app.semVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
@@ -86,7 +86,7 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
-        console.log(`Deploy succeeded: ${config.app.Name}/${config.app.SemVer}`);
+        console.log(`Deploy succeeded: ${config.app.name}/${config.app.semVer}`);
       } else {
         console.log(`Deploy failed with: ${dResponse.statusCode}`);
       }

@@ -80,7 +80,7 @@ class PublishTool {
     const deployConfig = Config.instance;
     deployConfig.deployer.lambdaName = lambdaName;
     deployConfig.filestore.stagingBucket = bucketName;
-    deployConfig.app.SemVer = version;
+    deployConfig.app.semVer = version;
 
     this.VersionAndAlias = this.createVersions(version);
     const versionOnly = { version: this.VersionAndAlias.version };
@@ -115,7 +115,7 @@ class PublishTool {
       if (deployConfig === undefined) {
         throw new Error('Failed to load the config file');
       }
-      if (deployConfig.app.StaticAssetsPath === undefined) {
+      if (deployConfig.app.staticAssetsPath === undefined) {
         throw new Error('StaticAssetsPath must be specified in the config file');
       }
 
@@ -123,24 +123,24 @@ class PublishTool {
 
       // Confirm the Version Does Not Exist in Published State
       console.log(
-        `Checking if deployed app/version already exists for ${deployConfig.app.Name}/${version}`,
+        `Checking if deployed app/version already exists for ${deployConfig.app.name}/${version}`,
       );
       const appExists = await DeployClient.CheckVersionExists(deployConfig);
       if (appExists) {
         console.log(
-          `Warning: App/Version already exists: ${deployConfig.app.Name}/${deployConfig.app.SemVer}`,
+          `Warning: App/Version already exists: ${deployConfig.app.name}/${deployConfig.app.semVer}`,
         );
       }
 
-      console.log(`Invoking serverless next.js build for ${deployConfig.app.Name}/${version}`);
+      console.log(`Invoking serverless next.js build for ${deployConfig.app.name}/${version}`);
 
       // Run the serverless next.js build
       await asyncExec('serverless');
 
-      if (deployConfig.app.ServerlessNextRouterPath !== undefined) {
+      if (deployConfig.app.serverlessNextRouterPath !== undefined) {
         console.log('Copying Serverless Next.js router to build output directory');
         await fs.copyFile(
-          deployConfig.app.ServerlessNextRouterPath,
+          deployConfig.app.serverlessNextRouterPath,
           './.serverless_nextjs/index.js',
         );
       }
@@ -158,12 +158,12 @@ class PublishTool {
 
       // Check that Static Assets Folder exists
       try {
-        const staticAssetsStats = await fs.stat(deployConfig.app.StaticAssetsPath);
+        const staticAssetsStats = await fs.stat(deployConfig.app.staticAssetsPath);
         if (!staticAssetsStats.isDirectory()) {
-          throw new Error(`Static asset path does not exist: ${deployConfig.app.StaticAssetsPath}`);
+          throw new Error(`Static asset path does not exist: ${deployConfig.app.staticAssetsPath}`);
         }
       } catch {
-        throw new Error(`Static asset path does not exist: ${deployConfig.app.StaticAssetsPath}`);
+        throw new Error(`Static asset path does not exist: ${deployConfig.app.staticAssetsPath}`);
       }
 
       // Upload Files to S3 Staging AppName/Version Prefix
@@ -171,14 +171,14 @@ class PublishTool {
       await S3Uploader.Upload(deployConfig);
 
       // Call Deployer to Create App if Not Exists
-      console.log(`Creating MicroApp Application: ${deployConfig.app.Name}`);
+      console.log(`Creating MicroApp Application: ${deployConfig.app.name}`);
       await DeployClient.CreateApp(deployConfig);
 
       // Call Deployer to Deploy AppName/Version
-      console.log(`Creating MicroApp Version: ${deployConfig.app.SemVer}`);
+      console.log(`Creating MicroApp Version: ${deployConfig.app.semVer}`);
       await DeployClient.DeployVersion(deployConfig);
 
-      console.log(`Published: ${deployConfig.app.Name}/${deployConfig.app.SemVer}`);
+      console.log(`Published: ${deployConfig.app.name}/${deployConfig.app.semVer}`);
     } catch (error) {
       console.log(`Caught exception: ${error.message}`);
     } finally {
@@ -252,16 +252,16 @@ class PublishTool {
 
   private async loginToECR(config: IConfig): Promise<boolean> {
     // Save settings
-    this.ECR_HOST = `${config.app.AWSAccountID}.dkr.ecr.${config.app.AWSRegion}.amazonaws.com`;
+    this.ECR_HOST = `${config.app.awsAccountID}.dkr.ecr.${config.app.awsRegion}.amazonaws.com`;
     // FIXME: Get ECR Repo name the right way - from Lambda function or config file?
-    this.ECR_REPO = `app-${config.app.Name}`;
+    this.ECR_REPO = `app-${config.app.name}`;
     this.IMAGE_TAG = `${this.ECR_REPO}:${this.VersionAndAlias.version}`;
     this.IMAGE_URI = `${this.ECR_HOST}/${this.IMAGE_TAG}`;
 
     console.log('Logging into ECR');
     try {
       await asyncExec(
-        `aws ecr get-login-password --region ${config.app.AWSRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
+        `aws ecr get-login-password --region ${config.app.awsRegion} | docker login --username AWS --password-stdin ${this.ECR_HOST}`,
       );
     } catch (error) {
       throw new Error(`ECR Login Failed: ${error.message}`);
@@ -328,7 +328,5 @@ class PublishTool {
   }
 }
 
-// FIXME: This chdir shouldn't be here at all
-process.chdir('/Users/huntharo/pwrdrvr/microapps-app-release/');
 const publishTool = new PublishTool();
 publishTool.UpdateVersion();
