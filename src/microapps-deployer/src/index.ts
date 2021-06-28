@@ -17,6 +17,8 @@ const dynamoClient = process.env.TEST
 
 let manager: Manager;
 
+const config = Config.instance;
+
 interface IRequestBase {
   type: 'createApp' | 'deployVersion' | 'checkVersionExists';
 }
@@ -89,7 +91,7 @@ export async function handler(
 
       case 'deployVersion': {
         const request = event as IDeployVersionRequest;
-        return await VersionController.DeployVersion(request);
+        return await VersionController.DeployVersion(request, config);
       }
     }
   } catch (err) {
