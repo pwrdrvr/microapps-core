@@ -20,7 +20,7 @@ let manager: Manager;
 const config = Config.instance;
 
 interface IRequestBase {
-  type: 'createApp' | 'deployVersion' | 'checkVersionExists';
+  type: 'createApp' | 'deployVersion' | 'deployVersionPreflight';
 }
 
 export interface ICreateApplicationRequest extends IRequestBase {
@@ -29,23 +29,27 @@ export interface ICreateApplicationRequest extends IRequestBase {
   displayName: string;
 }
 
-export interface ICheckVersionExistsRequest extends IRequestBase {
-  type: 'checkVersionExists';
+export interface IDeployVersionRequestBase extends IRequestBase {
   appName: string;
   semVer: string;
 }
 
-export interface IDeployVersionRequest extends IRequestBase {
+export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBase {
+  type: 'deployVersionPreflight';
+}
+
+export interface IDeployVersionRequest extends IDeployVersionRequestBase {
   type: 'deployVersion';
-  appName: string;
-  semVer: string;
-  s3SourceURI: string;
   lambdaARN: string;
   defaultFile: string;
 }
 
 export interface IDeployerResponse {
   statusCode: number;
+}
+
+export interface IDeployVersionPreflightResponse extends IDeployerResponse {
+  s3UploadUrl?: string;
 }
 
 export async function handler(
@@ -84,9 +88,9 @@ export async function handler(
         return await AppController.CreateApp(request);
       }
 
-      case 'checkVersionExists': {
-        const request = event as ICheckVersionExistsRequest;
-        return await VersionController.CheckVersionExists(request);
+      case 'deployVersionPreflight': {
+        const request = event as IDeployVersionPreflightRequest;
+        return await VersionController.DeployVersionPreflight(request, config);
       }
 
       case 'deployVersion': {

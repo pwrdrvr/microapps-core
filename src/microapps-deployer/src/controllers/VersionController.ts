@@ -1,4 +1,10 @@
-import { IDeployVersionRequest, ICheckVersionExistsRequest, IDeployerResponse } from '../index';
+import {
+  IDeployVersionRequest,
+  IDeployVersionPreflightRequest,
+  IDeployerResponse,
+  IDeployVersionPreflightResponse,
+  IDeployVersionRequestBase,
+} from '../index';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
@@ -13,10 +19,11 @@ const s3Client = new s3.S3Client({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
-  public static async CheckVersionExists({
-    appName,
-    semVer,
-  }: ICheckVersionExistsRequest): Promise<IDeployerResponse> {
+  public static async DeployVersionPreflight(
+    request: IDeployVersionPreflightRequest,
+    config: IConfig,
+  ): Promise<IDeployVersionPreflightResponse> {
+    const { appName, semVer } = request;
     // Check if the version exists
     const record = await Version.LoadVersionAsync(Manager.DBDocClient, appName, semVer);
     if (record !== undefined && record.Status !== 'pending') {
@@ -24,7 +31,12 @@ export default class VersionController {
       return { statusCode: 200 };
     } else {
       Log.Instance.info('App/Version does not exist', { appName, semVer });
-      return { statusCode: 404 };
+      return {
+        statusCode: 404,
+        s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
+          request,
+        )}`,
+      };
     }
   }
 
@@ -34,7 +46,7 @@ export default class VersionController {
   ): Promise<IDeployerResponse> {
     Log.Instance.debug(`Got Body:`, request);
 
-    const destinationPrefix = `${request.appName}/${request.semVer}`.toLowerCase();
+    const destinationPrefix = VersionController.GetBucketPrefix(request);
 
     // Check if the version exists
     let record = await Version.LoadVersionAsync(
@@ -67,11 +79,8 @@ export default class VersionController {
 
     // Only copy the files if not copied yet
     if (record.Status === 'pending') {
-      // Parse the S3 Source URI
-      const uri = new URL(request.s3SourceURI);
-
-      const stagingBucket = uri.host;
-      const sourcePrefix = uri.pathname.length >= 1 ? uri.pathname.slice(1) : '';
+      const { stagingBucket } = config.filestore;
+      const sourcePrefix = VersionController.GetBucketPrefix(request) + '/';
 
       // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
       // Loop through all S3 source assets and copy to the destination
@@ -276,5 +285,9 @@ export default class VersionController {
         config,
       );
     } while (list.IsTruncated);
+  }
+
+  private static GetBucketPrefix(request: IDeployVersionRequestBase): string {
+    return `${request.appName}/${request.semVer}`.toLowerCase();
   }
 }
