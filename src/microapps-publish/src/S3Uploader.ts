@@ -2,14 +2,18 @@ import { IConfig } from './config/Config';
 import S3TransferUtility from './S3TransferUtility';
 import path from 'path';
 import fs from 'fs-extra';
-import { Config } from './config/Config';
 
 export default class S3Uploader {
   private static readonly _tempDir = './deploytool-temp';
 
-  public static async Upload(config: IConfig): Promise<void> {
+  public static async Upload(config: IConfig, s3UploadPath: string): Promise<void> {
     try {
-      const destinationPrefix = `${config.app.name}/${config.app.semVer}`;
+      //const destinationPrefix = `${config.app.name}/${config.app.semVer}`;
+
+      // Parse the S3 Source URI
+      const uri = new URL(s3UploadPath);
+      const bucketName = uri.host;
+      const destinationPrefix = uri.pathname.length >= 1 ? uri.pathname.slice(1) : '';
 
       // Make a local root dir for the upload
       const tempUploadPath = path.join(S3Uploader._tempDir, destinationPrefix);
@@ -22,7 +26,7 @@ export default class S3Uploader {
       await fs.copy(config.app.staticAssetsPath, tempUploadPath);
 
       // Do the upload
-      await S3TransferUtility.UploadDir(this._tempDir, Config.instance.filestore.stagingBucket);
+      await S3TransferUtility.UploadDir(this._tempDir, bucketName);
     } finally {
       // Delete the directory, now that it's uploaded or if we failed
       await S3Uploader.removeTempDirIfExists();
