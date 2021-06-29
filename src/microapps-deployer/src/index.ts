@@ -63,6 +63,15 @@ export async function handler(
     });
   }
 
+  // Get the current AWS Account ID, once, if not set as env var
+  if (config.awsAccountID === 0) {
+    const parts = context.invokedFunctionArn.split(':');
+    const accountIDStr = parts[4];
+    if (accountIDStr !== '') {
+      config.awsAccountID = parseInt(accountIDStr, 10);
+    }
+  }
+
   // Change the logger on each request
   Log.Instance = new LambdaLog({
     dev: localTesting,
