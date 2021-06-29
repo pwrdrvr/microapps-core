@@ -64,7 +64,7 @@ export async function handler(
   }
 
   // Get the current AWS Account ID, once, if not set as env var
-  if (config.awsAccountID === 0) {
+  if (config.awsAccountID === 0 && context?.invokedFunctionArn !== undefined) {
     const parts = context.invokedFunctionArn.split(':');
     const accountIDStr = parts[4];
     if (accountIDStr !== '') {
