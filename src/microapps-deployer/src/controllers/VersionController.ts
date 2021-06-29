@@ -4,7 +4,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
-import { Config } from '../config/Config';
+import { IConfig } from '../config/Config';
 import Log from '../lib/Log';
 import { URL } from 'url';
 
@@ -13,8 +13,6 @@ const s3Client = new s3.S3Client({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
-  static destinationBucket = Config.instance.filestore.destinationBucket;
-
   public static async CheckVersionExists({
     appName,
     semVer,
@@ -30,7 +28,10 @@ export default class VersionController {
     }
   }
 
-  public static async DeployVersion(request: IDeployVersionRequest): Promise<IDeployerResponse> {
+  public static async DeployVersion(
+    request: IDeployVersionRequest,
+    config: IConfig,
+  ): Promise<IDeployerResponse> {
     Log.Instance.debug(`Got Body:`, request);
 
     const destinationPrefix = `${request.appName}/${request.semVer}`.toLowerCase();
@@ -74,7 +75,12 @@ export default class VersionController {
 
       // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
       // Loop through all S3 source assets and copy to the destination
-      await VersionController.CopyToProdBucket(stagingBucket, sourcePrefix, destinationPrefix);
+      await VersionController.CopyToProdBucket(
+        stagingBucket,
+        sourcePrefix,
+        destinationPrefix,
+        config,
+      );
 
       // Update status to assets-copied
       record.Status = 'assets-copied';
@@ -87,10 +93,9 @@ export default class VersionController {
     const api = await GatewayInfo.GetAPI(apigwyClient);
 
     if (record.Status === 'assets-copied') {
-      // Get the account ID
-      const lambdaArnParts = request.lambdaARN.split(':');
-      const accountId = lambdaArnParts[4];
-      const region = lambdaArnParts[3];
+      // Get the account ID and region for API Gateway to Lambda permissions
+      const accountId = config.awsAccountID;
+      const region = config.awsRegion;
 
       // Ensure that the Lambda function allows API Gateway to invoke
       try {
@@ -147,6 +152,8 @@ export default class VersionController {
             IntegrationType: apigwy.IntegrationType.AWS_PROXY,
             IntegrationMethod: 'POST',
             PayloadFormatVersion: '2.0',
+            // For a Lambda function the IntegrationUri is the full
+            // ARN of the Lambda function
             IntegrationUri: request.lambdaARN,
           }),
         );
@@ -219,6 +226,7 @@ export default class VersionController {
     stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
+    config: IConfig,
   ): Promise<void> {
     if (list === undefined || list.Contents === undefined) {
       return;
@@ -226,13 +234,13 @@ export default class VersionController {
     for (const obj of list.Contents) {
       const sourceKeyRootless = obj.Key?.slice(sourcePrefix.length);
 
-      // TODO: Use p-map to parallelize with limit
+      // FIXME: Use p-map to parallelize with limit
       await s3Client.send(
         new s3.CopyObjectCommand({
           // Source
           CopySource: `${stagingBucket}/${obj.Key}`,
           // Destination
-          Bucket: VersionController.destinationBucket,
+          Bucket: config.filestore.destinationBucket,
           Key: `${destinationPrefix}/${sourceKeyRootless}`,
         }),
       );
@@ -243,6 +251,7 @@ export default class VersionController {
     stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
+    config: IConfig,
   ) {
     let list: s3.ListObjectsV2CommandOutput | undefined;
     do {
@@ -259,7 +268,13 @@ export default class VersionController {
           ...optionals,
         }),
       );
-      await VersionController.CopyFilesInList(list, stagingBucket, sourcePrefix, destinationPrefix);
+      await VersionController.CopyFilesInList(
+        list,
+        stagingBucket,
+        sourcePrefix,
+        destinationPrefix,
+        config,
+      );
     } while (list.IsTruncated);
   }
 }
