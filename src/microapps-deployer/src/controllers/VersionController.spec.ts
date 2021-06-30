@@ -9,13 +9,15 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import {
   handler,
-  ICheckVersionExistsRequest,
+  IDeployVersionPreflightRequest,
   ICreateApplicationRequest,
   IDeployVersionRequest,
 } from '../index';
 import Manager, { Version } from '@pwrdrvr/microapps-datalib';
 import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
 import type * as lambdaTypes from 'aws-lambda';
+import { Config } from '../config/Config';
+import { config } from 'chai';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -30,6 +32,9 @@ describe('VersionController', () => {
   let sandbox: sinon.SinonSandbox;
 
   before(async () => {
+    // Load the config files
+    Config.instance.filestore.stagingBucket = 'pwrdrvr-apps-staging';
+    // Init the DB manager to point it at the right table
     new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
   });
 
@@ -61,14 +66,14 @@ describe('VersionController', () => {
     lambdaClient.restore();
   });
 
-  describe('checkVersionExists', () => {
+  describe('deployVersionPreflight', () => {
     it('should return 404 for version that does not exist', async () => {
       const response = await handler(
         {
           appName: 'NewApp',
           semVer: '0.0.0',
-          type: 'checkVersionExists',
-        } as ICheckVersionExistsRequest,
+          type: 'deployVersionPreflight',
+        } as IDeployVersionPreflightRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).to.equal(404);
@@ -91,8 +96,8 @@ describe('VersionController', () => {
         {
           appName: 'NewApp',
           semVer: '0.0.0',
-          type: 'checkVersionExists',
-        } as ICheckVersionExistsRequest,
+          type: 'deployVersionPreflight',
+        } as IDeployVersionPreflightRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).to.equal(200);
@@ -195,7 +200,6 @@ describe('VersionController', () => {
           semVer: '0.0.0',
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
-          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/',
           type: 'deployVersion',
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
@@ -312,7 +316,6 @@ describe('VersionController', () => {
           semVer: '0.0.0',
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
-          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/',
           type: 'deployVersion',
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
@@ -337,7 +340,6 @@ describe('VersionController', () => {
           semVer: '0.0.0',
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
-          s3SourceURI: 's3://pwrdrvr-apps-staging/newapp/0.0.0/',
           type: 'deployVersion',
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,

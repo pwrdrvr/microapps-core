@@ -11,7 +11,12 @@ export default class SharedTags {
     if (env !== '' && env !== undefined) cdk.Tags.of(construct).add('Environment', env);
     if (isEphemeral) {
       cdk.Tags.of(construct).add('Ephemeral', 'true');
-      cdk.Tags.of(construct).add('Ephemeral-Created', new Date().toISOString());
+      // Note: a dynamic timestamp tag causes all dependency stacks
+      // to redeploy to update the timestamp tag, which takes forever with
+      // CloudFront.  It may be possible to preserve this in `cdk.context.json`
+      // for local deploys, but this won't work well with CI builds of PRs as
+      // there is no where to store the updated `cdk.context.json` for that PR.
+      // cdk.Tags.of(construct).add('Ephemeral-Created', new Date().toISOString());
     }
   }
 }

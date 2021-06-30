@@ -1,5 +1,2 @@
 deployer:
     lambdaName: microapps-deployer
-
-filestore:
-    stagingBucket: microapps-apps-staging
