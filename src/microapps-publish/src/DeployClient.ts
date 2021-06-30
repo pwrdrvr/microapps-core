@@ -1,7 +1,8 @@
 import * as lambda from '@aws-sdk/client-lambda';
 
 import {
-  ICheckVersionExistsRequest,
+  IDeployVersionPreflightRequest,
+  IDeployVersionPreflightResponse,
   ICreateApplicationRequest,
   IDeployerResponse,
   IDeployVersionRequest,
@@ -37,12 +38,14 @@ export default class DeployClient {
     }
   }
 
-  public static async CheckVersionExists(config: IConfig): Promise<boolean> {
+  public static async DeployVersionPreflight(
+    config: IConfig,
+  ): Promise<{ exists: boolean; response: IDeployVersionPreflightResponse }> {
     const request = {
-      type: 'checkVersionExists',
+      type: 'deployVersionPreflight',
       appName: config.app.name,
       semVer: config.app.semVer,
-    } as ICheckVersionExistsRequest;
+    } as IDeployVersionPreflightRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: config.deployer.lambdaName,
@@ -53,15 +56,15 @@ export default class DeployClient {
     if (response.$metadata.httpStatusCode === 200 && response.Payload !== undefined) {
       const dResponse = JSON.parse(
         Buffer.from(response.Payload).toString('utf-8'),
-      ) as IDeployerResponse;
+      ) as IDeployVersionPreflightResponse;
       if (dResponse.statusCode === 404) {
         console.log(`App/Version do not exist: ${config.app.name}/${config.app.semVer}`);
-        return false;
+        return { exists: false, response: dResponse };
       } else {
-        return true;
+        return { exists: true, response: dResponse };
       }
     } else {
-      throw new Error(`Lambda call to CheckVersionExists failed: ${JSON.stringify(response)}`);
+      throw new Error(`Lambda call to DeployVersionPreflight failed: ${JSON.stringify(response)}`);
     }
   }
 
@@ -72,7 +75,6 @@ export default class DeployClient {
       semVer: config.app.semVer,
       defaultFile: config.app.defaultFile,
       lambdaARN: config.app.lambdaARN,
-      s3SourceURI: `s3://${config.filestore.stagingBucket}/${config.app.name}/${config.app.semVer}/`,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({

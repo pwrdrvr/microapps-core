@@ -59,13 +59,7 @@ class PublishTool {
     const version = options.newVersion as string;
     const leaveFiles = options.leave as boolean;
     const lambdaName = options.deployerLambdaName as string;
-    const bucketName = options.stagingBucketName as string;
     const ecrRepo = options.repoName as string;
-
-    if (bucketName === undefined) {
-      console.log('--staging-bucket-name [bucketName] is a required parameter');
-      process.exit(1);
-    }
 
     if (lambdaName === undefined) {
       console.log('--deployer-lambda-name [lambdaName] is a required parameter');
@@ -80,7 +74,6 @@ class PublishTool {
     // Override the config value
     const config = Config.instance;
     config.deployer.lambdaName = lambdaName;
-    config.filestore.stagingBucket = bucketName;
     config.app.semVer = version;
 
     // Get the account ID and region from STS
@@ -147,8 +140,8 @@ class PublishTool {
       console.log(
         `Checking if deployed app/version already exists for ${config.app.name}/${version}`,
       );
-      const appExists = await DeployClient.CheckVersionExists(config);
-      if (appExists) {
+      const preflightResponse = await DeployClient.DeployVersionPreflight(config);
+      if (preflightResponse.exists) {
         console.log(`Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`);
       }
 
@@ -185,7 +178,7 @@ class PublishTool {
 
       // Upload Files to S3 Staging AppName/Version Prefix
       console.log('Copying S3 assets');
-      await S3Uploader.Upload(config);
+      await S3Uploader.Upload(config, preflightResponse.response.s3UploadUrl);
 
       // Call Deployer to Create App if Not Exists
       console.log(`Creating MicroApp Application: ${config.app.name}`);

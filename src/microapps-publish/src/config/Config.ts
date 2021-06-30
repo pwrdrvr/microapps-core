@@ -9,7 +9,6 @@ import { TSConvict } from 'ts-convict';
 
 export interface IConfig {
   deployer: IDeployerConfig;
-  filestore: IFileStoreRename;
   app: IApplicationConfig;
 }
 
