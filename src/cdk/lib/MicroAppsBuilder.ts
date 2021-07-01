@@ -70,7 +70,6 @@ export class MicroAppsBuilder extends cdk.Stack {
     const userBuilder = new iam.User(this, 'microapps-builder-user', {
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCertificateManagerReadOnly'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53FullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('CloudFrontFullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonAPIGatewayAdministrator'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambda_FullAccess'),
@@ -85,7 +84,10 @@ export class MicroAppsBuilder extends cdk.Stack {
     });
     const groupBuilder = new iam.Group(this, 'microapps-builder-group-1', {
       groupName: `${nameRoot}-1`,
-      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess')],
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53FullAccess'),
+      ],
     });
     userBuilder.addToGroup(groupBuilder);
     // Always destroy this user if the stack is destroyed
