@@ -17,6 +17,8 @@ ROUTER_ECR_TAG ?= ${ROUTER_ECR_REPO}:latest
 # passed in as pr/## or main and everything will still work
 PR_NUMBER ?= 
 CODEBUILD_SOURCE_VERSION ?= $(shell if [[ "${PR_NUMBER}" -eq "" ]] ; then echo "dummy"; else echo "pr/${PR_NUMBER}" ; fi )
+# Export our faked-up CODEBUILD_SOURCE_VERSION, if not already set, so the shell sees it
+export CODEBUILD_SOURCE_VERSION
 CODEBUILD_PR_NUMBER := $(shell echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { print $$2 }' )
 CODEBUILD_STACK_SUFFIX := $(shell if [[ ${CODEBUILD_SOURCE_VERSION} = pr/* ]] ; then (echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { printf "-pr-%s", $$2 }') ; else echo "" ; fi )
 CODEBUILD_REPOS_STACK_NAME := microapps-repos-${ENV}${CODEBUILD_STACK_SUFFIX}
