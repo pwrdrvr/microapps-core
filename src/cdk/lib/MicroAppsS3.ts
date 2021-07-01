@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
+import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
@@ -14,7 +15,7 @@ export interface IMicroAppsS3Exports {
 
 interface IMicroAppsS3Props extends cdk.StackProps {
   local: {
-    // none yet
+    ttl: cdk.Duration;
   };
   shared: SharedProps;
 }
@@ -53,6 +54,14 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
     }
 
     const { shared } = props;
+    const { ttl } = props.local;
+
+    // Set stack to delete if this is a PR build
+    if (shared.isPR) {
+      new TimeToLive(this, 'TimeToLive', {
+        ttl,
+      });
+    }
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 

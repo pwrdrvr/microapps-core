@@ -32,7 +32,9 @@ const imports = new Imports(app, `microapps-imports${shared.envSuffix}${shared.p
 });
 const s3 = new MicroAppsS3(app, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
   env,
-  local: {},
+  local: {
+    ttl: shared.ttlBase.plus(shared.ttlIncrement).plus(shared.ttlIncrementAfterCF),
+  },
   shared,
 });
 const cf = new MicroAppsCF(app, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
@@ -41,6 +43,7 @@ const cf = new MicroAppsCF(app, `microapps-cloudfront${shared.envSuffix}${shared
     cert: imports.certEdge,
     domainNameEdge,
     domainNameOrigin,
+    ttl: shared.ttlBase.plus(shared.ttlIncrement),
   },
   s3Exports: s3,
   env,
@@ -48,13 +51,17 @@ const cf = new MicroAppsCF(app, `microapps-cloudfront${shared.envSuffix}${shared
 const repos = new MicroAppsRepos(app, `microapps-repos${shared.envSuffix}${shared.prSuffix}`, {
   env,
   shared,
-  local: {},
+  local: {
+    // Note: Does not depend on CloudFront so can start at same time
+    ttl: shared.ttlBase.plus(shared.ttlIncrement),
+  },
 });
 const svcs = new MicroAppsSvcs(app, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
   cfStackExports: cf,
   reposExports: repos,
   s3Exports: s3,
   local: {
+    ttl: shared.ttlBase,
     domainNameEdge,
     domainNameOrigin,
     cert: imports.certOrigin,

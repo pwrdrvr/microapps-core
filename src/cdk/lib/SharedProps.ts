@@ -2,6 +2,19 @@ import * as cdk from '@aws-cdk/core';
 import { Env } from './Types';
 
 export default class SharedProps {
+  private _ttlBase = cdk.Duration.minutes(20); //cdk.Duration.hours(6);
+  private _ttlIncrement = cdk.Duration.minutes(10);
+  private _ttlIncrementAfterCF = cdk.Duration.minutes(30);
+  public get ttlBase(): cdk.Duration {
+    return this._ttlBase;
+  }
+  public get ttlIncrement(): cdk.Duration {
+    return this._ttlIncrement;
+  }
+  public get ttlIncrementAfterCF(): cdk.Duration {
+    return this._ttlIncrementAfterCF;
+  }
+
   private _env: Env | '' = 'dev';
   public get env(): Env | '' {
     if (this._env === '' || this._env == undefined) return '';
