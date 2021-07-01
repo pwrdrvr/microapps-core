@@ -1,0 +1,32 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+        aws-region: us-east-2
+    - name: Run CodeBuild
+      uses: aws-actions/aws-codebuild-run-build@v1.0.3
+      with:
+        project-name: CodeBuildProjectName
+        buildspec-override: src/cdk/codebuild/dev/buildspec.yaml
+        env-vars-for-codebuild: |
+          custom,
+          requester,
+          event-name
+      env:
+        custom: my environment variable
+        requester: ${{ github.actor }}
+        event-name: ${{ github.event_name }}
