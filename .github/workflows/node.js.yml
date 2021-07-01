@@ -34,8 +34,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - run: mkdir -p ./src/microapps-publish/dist/src/
-    - run: touch ./src/microapps-publish/dist/src/index.js
+    - run: npm run preinstall
 
     - name: Cache Node.js modules
       uses: actions/cache@v2

@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
-import { AutoDeleteBucket } from '@mobileposse/auto-delete-bucket';
+import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 
@@ -80,20 +80,26 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
       });
     } else {
       //
-      // S3 Bucket for Logging - Usable by many stacks
+      // PR - S3 Bucket for Logging - Usable by many stacks
       //
-      this._bucketLogs = new AutoDeleteBucket(this, 'microapps-logs', {
+      this._bucketLogs = new DeletableBucket(this, 'microapps-logs', {
         bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
       });
 
       //
-      // S3 Buckets for Apps
+      // PR - S3 Buckets for Apps
       //
-      this._bucketApps = new AutoDeleteBucket(this, 'microapps-apps', {
+      this._bucketApps = new DeletableBucket(this, 'microapps-apps', {
         bucketName: this._bucketAppsName,
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
       });
-      this._bucketAppsStaging = new AutoDeleteBucket(this, 'microapps-apps-staging', {
+      this._bucketAppsStaging = new DeletableBucket(this, 'microapps-apps-staging', {
         bucketName: this._bucketAppsStagingName,
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
       });
     }
   }
