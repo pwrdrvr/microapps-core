@@ -8,6 +8,7 @@ import { MicroAppsS3 } from '../lib/MicroAppsS3';
 import SharedTags from '../lib/SharedTags';
 import { Imports } from '../lib/Imports';
 import SharedProps from '../lib/SharedProps';
+import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 
 const app = new cdk.App();
 
@@ -60,4 +61,13 @@ const svcs = new MicroAppsSvcs(app, `microapps-svcs${shared.envSuffix}${shared.p
   },
   env,
   shared,
+});
+
+// Note: This is only run manually once per env to create build user
+const builder = new MicroAppsBuilder(app, `microapps-builder${shared.envSuffix}`, {
+  local: {
+    // None yet
+  },
+  shared,
+  env,
 });
