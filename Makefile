@@ -90,6 +90,7 @@ codebuild-cdk: ## Deploy only the core CDK stack only
 	@cdk deploy --require-approval never ${CODEBUILD_CORE_STACK_NAME}
 
 codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
+	@echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
 	@echo "CODEBUILD_STACK_SUFFIX: ${CODEBUILD_STACK_SUFFIX}"
 	@echo "CODEBUILD_REPOS_STACK_NAME: ${CODEBUILD_REPOS_STACK_NAME}"
 	@echo "CODEBUILD_CORE_STACK_NAME: ${CODEBUILD_CORE_STACK_NAME}"
@@ -97,10 +98,12 @@ codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@echo "CODEBUILD_PR_NUMBER: ${CODEBUILD_PR_NUMBER}"
 	@echo "CODEBUILD_ROUTER_ECR_TAG: ${CODEBUILD_ROUTER_ECR_TAG}"
 	@echo "CODEBUILD_DEPLOYER_ECR_TAG: ${CODEBUILD_DEPLOYER_ECR_TAG}"
+	@echo "Listing CDK Stacks"
+	@cdk list
 	@echo "Running CDK Diff - Repos"
-	@cdk diff ${CODEBUILD_REPOS_STACK_NAME}
+	cdk diff ${CODEBUILD_REPOS_STACK_NAME}
 	@echo "Running CDK Deploy - Repos"
-	@cdk deploy --require-approval never ${CODEBUILD_REPOS_STACK_NAME}
+	cdk deploy --require-approval never ${CODEBUILD_REPOS_STACK_NAME}
 	@echo "Running Docker Build / Publish - Router"
 	@docker build -f DockerfileRouter -t ${CODEBUILD_ROUTER_ECR_TAG}  .
 	@docker tag ${CODEBUILD_ROUTER_ECR_TAG} ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG}
