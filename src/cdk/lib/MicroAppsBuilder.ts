@@ -70,7 +70,7 @@ export class MicroAppsBuilder extends cdk.Stack {
     const userBuilder = new iam.User(this, 'microapps-builder-user', {
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCertificateManagerReadOnly'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53DomainsFullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53FullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('CloudFrontFullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonAPIGatewayAdministrator'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambda_FullAccess'),
