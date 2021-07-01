@@ -11,12 +11,11 @@ on:
   pull_request:
     branches: [ main ]
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   build:
+    defaults:
+      run:
+        shell: bash
 
     runs-on: ubuntu-latest
 
