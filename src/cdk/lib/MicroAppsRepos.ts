@@ -1,13 +1,13 @@
 import * as cdk from '@aws-cdk/core';
 import * as ecr from '@aws-cdk/aws-ecr';
+import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
+import { ImageRepository } from '@cloudcomponents/cdk-container-registry';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
-import { RemovalPolicy } from '@aws-cdk/core';
-import { ImageRepository } from '@cloudcomponents/cdk-container-registry';
 
 interface IMicroAppsReposProps extends cdk.StackProps {
   local: {
-    // None yet
+    ttl: cdk.Duration;
   };
   shared: SharedProps;
 }
@@ -35,27 +35,35 @@ export class MicroAppsRepos extends cdk.Stack implements IMicroAppsReposExports 
     }
 
     const { shared } = props;
+    const { ttl } = props.local;
+
+    // Set stack to delete if this is a PR build
+    if (shared.isPR) {
+      new TimeToLive(this, 'TimeToLive', {
+        ttl,
+      });
+    }
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
     if (!shared.isPR) {
       this._repoDeployer = new ecr.Repository(this, 'microapps-deployer', {
         repositoryName: `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`,
       });
-      this._repoDeployer.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      this._repoDeployer.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
       this._repoRouter = new ecr.Repository(this, 'microapps-router', {
         repositoryName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
       });
-      this._repoRouter.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      this._repoRouter.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     } else {
       // PRs - Delete the repos and images in them on stack destroy
       this._repoDeployer = new ImageRepository(this, 'microapps-deployer', {
         repositoryName: `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`,
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
         forceDelete: true,
       });
       this._repoRouter = new ImageRepository(this, 'microapps-router', {
         repositoryName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
         forceDelete: true,
       });
     }

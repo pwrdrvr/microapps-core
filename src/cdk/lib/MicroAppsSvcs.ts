@@ -9,12 +9,12 @@ import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as logs from '@aws-cdk/aws-logs';
 import * as acm from '@aws-cdk/aws-certificatemanager';
+import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { IMicroAppsCFExports } from './MicroAppsCF';
 import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
-import { RemovalPolicy } from '@aws-cdk/core';
 
 interface IMicroAppsSvcsStackProps extends cdk.StackProps {
   reposExports: IMicroAppsReposExports;
@@ -24,6 +24,7 @@ interface IMicroAppsSvcsStackProps extends cdk.StackProps {
     domainNameEdge: string;
     domainNameOrigin: string;
     cert: acm.ICertificate;
+    ttl: cdk.Duration;
   };
   shared: SharedProps;
 }
@@ -50,9 +51,16 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     const { bucketApps, bucketAppsName, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
-    const { cert, domainNameOrigin } = props.local;
+    const { cert, domainNameOrigin, ttl } = props.local;
     const { shared } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
+
+    // Set stack to delete if this is a PR build
+    if (shared.isPR) {
+      new TimeToLive(this, 'TimeToLive', {
+        ttl,
+      });
+    }
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
@@ -74,7 +82,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       },
     });
     if (shared.isPR) {
-      table.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      table.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
     //
@@ -97,7 +105,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       },
     });
     if (shared.isPR) {
-      deployerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      deployerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     // Give the Deployer access to DynamoDB table
     table.grantReadWriteData(deployerFunc);
@@ -212,7 +220,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       },
     });
     if (shared.isPR) {
-      routerFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     // Zip version of the function
     // This is *much* faster on cold inits
@@ -233,7 +241,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       },
     });
     if (shared.isPR) {
-      routerzFunc.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      routerzFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     const policyReadTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -262,14 +270,14 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       certificate: cert,
     });
     if (shared.isPR) {
-      dnAppsEdge.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      dnAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
       domainName: props.local.domainNameOrigin,
       certificate: cert,
     });
     if (shared.isPR) {
-      this._dnAppsOrigin.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      this._dnAppsOrigin.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
     // Create an integration for the Router
@@ -288,7 +296,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       apiName: apigatewayName,
     });
     if (shared.isPR) {
-      httpApi.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      httpApi.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
     //
@@ -303,7 +311,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     });
     mappingAppsApis.node.addDependency(this.dnAppsOrigin);
     if (shared.isPR) {
-      mappingAppsApis.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      mappingAppsApis.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
     //
@@ -363,7 +371,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       ),
     });
     if (shared.isPR) {
-      rrAppsOrigin.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      rrAppsOrigin.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
   }
 }
