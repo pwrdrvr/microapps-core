@@ -39,8 +39,10 @@ jobs:
     - run: cdk list
     - run: npm run test
   
-    - name: Deploy CDK Stack
+    - name: Login to ECR
       run: make aws-ecr-login
+
+    - name: Deploy CDK Stack
       run: make codebuild-deploy
       env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
