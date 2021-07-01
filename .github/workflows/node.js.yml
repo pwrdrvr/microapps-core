@@ -11,6 +11,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+
 jobs:
   build:
     defaults:
@@ -41,6 +44,11 @@ jobs:
   
     - name: Login to ECR
       run: make aws-ecr-login
+      env:
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+
 
     - name: Deploy CDK Stack
       run: make codebuild-deploy
