@@ -83,8 +83,14 @@ export class MicroAppsBuilder extends cdk.Stack {
       ],
       userName: nameRoot,
     });
+    const groupBuilder = new iam.Group(this, 'microapps-builder-group-1', {
+      groupName: `${nameRoot}-1`,
+      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess')],
+    });
+    userBuilder.addToGroup(groupBuilder);
     // Always destroy this user if the stack is destroyed
     // This user is not critical and if we destroy the stack we should rotate the keys
     userBuilder.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    groupBuilder.applyRemovalPolicy(RemovalPolicy.DESTROY);
   }
 }
