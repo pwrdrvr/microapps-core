@@ -1,5 +1,7 @@
 .PHONY: help
 
+SHELL=/bin/bash
+
 AWS_ACCOUNT_ID ?= $(shell aws sts get-caller-identity --query "Account" --output text)
 REGION ?= us-east-2
 ENV ?= dev
