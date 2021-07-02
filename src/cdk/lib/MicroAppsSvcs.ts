@@ -16,7 +16,7 @@ import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 
-interface IMicroAppsSvcsStackProps extends cdk.StackProps {
+interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
   reposExports: IMicroAppsReposExports;
   cfStackExports: IMicroAppsCFExports;
   s3Exports: IMicroAppsS3Exports;
@@ -33,7 +33,7 @@ export interface IMicroAppsSvcsExports {
   dnAppsOrigin: apigwy.DomainName;
 }
 
-export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
+export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports {
   private _dnAppsOrigin: apigwy.DomainName;
   public get dnAppsOrigin(): apigwy.DomainName {
     return this._dnAppsOrigin;
@@ -44,9 +44,6 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
 
     if (props === undefined) {
       throw new Error('props cannot be undefined');
-    }
-    if (props.env === undefined) {
-      throw new Error('props.env cannot be undefined');
     }
 
     const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
@@ -126,7 +123,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
+        new iam.ArnPrincipal(`arn:aws:iam::${shared.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
       ],
       notResources: [
@@ -146,10 +143,10 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
+        new iam.ArnPrincipal(`arn:aws:iam::${shared.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
         new iam.ArnPrincipal(
-          `arn:aws:sts::${props.env.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
+          `arn:aws:sts::${shared.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
@@ -160,7 +157,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
         // The notPrincipals will only match the role name exactly and will not match
         // any session that has assumed the role since notPrincipals does not allow
         // wildcard matches and does not do them implicitly either.
-        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, props.env.account] },
+        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, shared.account] },
       },
     });
     const policyCloudFrontAccess = new iam.PolicyStatement({
@@ -323,7 +320,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
     const policyAPIList = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['apigateway:GET'],
-      resources: [`arn:aws:apigateway:${this.region}::/apis`],
+      resources: [`arn:aws:apigateway:${shared.region}::/apis`],
     });
     deployerFunc.addToRolePolicy(policyAPIList);
     // Grant full control over the API we created
@@ -331,9 +328,9 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       effect: iam.Effect.ALLOW,
       actions: ['apigateway:*'],
       resources: [
-        `arn:aws:apigateway:${this.region}:${this.account}:${httpApi.httpApiId}/*`,
-        `arn:aws:apigateway:${this.region}::/apis/${httpApi.httpApiId}/integrations`,
-        `arn:aws:apigateway:${this.region}::/apis/${httpApi.httpApiId}/routes`,
+        `arn:aws:apigateway:${shared.region}:${shared.account}:${httpApi.httpApiId}/*`,
+        `arn:aws:apigateway:${shared.region}::/apis/${httpApi.httpApiId}/integrations`,
+        `arn:aws:apigateway:${shared.region}::/apis/${httpApi.httpApiId}/routes`,
       ],
     });
     deployerFunc.addToRolePolicy(policyAPIManage);
@@ -342,8 +339,8 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       effect: iam.Effect.ALLOW,
       actions: ['lambda:*'],
       resources: [
-        `arn:aws:lambda:${this.region}:${this.account}:function:*`,
-        `arn:aws:lambda:${this.region}:${this.account}:function:*:*`,
+        `arn:aws:lambda:${shared.region}:${shared.account}:function:*`,
+        `arn:aws:lambda:${shared.region}:${shared.account}:function:*:*`,
       ],
       conditions: {
         StringEqualsIfExists: { 'aws:ResourceTag/microapp-managed': 'true' },

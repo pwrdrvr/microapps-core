@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import SharedProps from './SharedProps';
 
-interface IImportsStackProps extends cdk.StackProps {
+interface IImportsProps extends cdk.ResourceProps {
   local: {
     // None yet
   };
@@ -13,7 +13,7 @@ export interface IImportsExports {
   certOrigin: acm.ICertificate;
 }
 
-export class Imports extends cdk.Stack implements IImportsExports {
+export class Imports extends cdk.Resource implements IImportsExports {
   private _certEdge: acm.ICertificate;
   public get certEdge(): acm.ICertificate {
     return this._certEdge;
@@ -23,7 +23,7 @@ export class Imports extends cdk.Stack implements IImportsExports {
     return this._certOrigin;
   }
 
-  constructor(scope: cdk.Construct, id: string, props?: IImportsStackProps) {
+  constructor(scope: cdk.Construct, id: string, props?: IImportsProps) {
     super(scope, id, props);
 
     if (props === undefined) {
