@@ -11,7 +11,6 @@ import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 
 export interface IMicroAppsCFExports {
-  cloudFrontOAI: cloudfront.OriginAccessIdentity;
   cloudFrontDistro: cloudfront.Distribution;
 }
 
@@ -27,11 +26,6 @@ interface IMicroAppsCFProps extends cdk.StackProps {
 }
 
 export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
-  private _cloudFrontOAI: cloudfront.OriginAccessIdentity;
-  public get cloudFrontOAI(): cloudfront.OriginAccessIdentity {
-    return this._cloudFrontOAI;
-  }
-
   private _cloudFrontDistro: cloudfront.Distribution;
   public get cloudFrontDistro(): cloudfront.Distribution {
     return this._cloudFrontDistro;
@@ -44,7 +38,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       throw new Error('props must be set');
     }
 
-    const { shared } = props;
+    const { shared, s3Exports } = props;
     const { domainNameEdge, ttl } = props.local;
     const { r53ZoneID, r53ZoneName } = shared;
 
@@ -87,21 +81,6 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       this._cloudFrontDistro.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
-    // Create S3 Origin Identity
-    this._cloudFrontOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
-      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
-    });
-    if (shared.isPR) {
-      this._cloudFrontOAI.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
-
-    //
-    // Add Origins
-    //
-    const statics3 = new cforigins.S3Origin(props.s3Exports.bucketApps, {
-      originAccessIdentity: this.cloudFrontOAI,
-    });
-
     //
     // Add Behaviors
     //
@@ -133,8 +112,8 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
     // Let everything else fall through to the API Gateway
     //
     this._cloudFrontDistro.addBehavior('/*/*/api/*', apiGwyOrigin, apiGwyBehavior);
-    this._cloudFrontDistro.addBehavior('/*/*/static/*', statics3, s3Behavior);
-    this._cloudFrontDistro.addBehavior('/*/*/*.*', statics3, s3Behavior);
+    this._cloudFrontDistro.addBehavior('/*/*/static/*', s3Exports.bucketAppsOrigin, s3Behavior);
+    this._cloudFrontDistro.addBehavior('/*/*/*.*', s3Exports.bucketAppsOrigin, s3Behavior);
     this._cloudFrontDistro.addBehavior('/*/*/', apiGwyOrigin, apiGwyVersionRootBehavior);
 
     //

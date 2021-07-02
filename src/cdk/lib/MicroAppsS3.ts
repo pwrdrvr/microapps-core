@@ -1,5 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as cf from '@aws-cdk/aws-cloudfront';
+import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
 import SharedProps from './SharedProps';
@@ -8,6 +10,8 @@ import SharedTags from './SharedTags';
 export interface IMicroAppsS3Exports {
   bucketApps: s3.IBucket;
   bucketAppsName: string;
+  bucketAppsOAI: cf.OriginAccessIdentity;
+  bucketAppsOrigin: cforigins.S3Origin;
   bucketAppsStaging: s3.IBucket;
   bucketAppsStagingName: string;
   bucketLogs: s3.IBucket;
@@ -29,6 +33,16 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
   private _bucketAppsName: string;
   public get bucketAppsName(): string {
     return this._bucketAppsName;
+  }
+
+  private _bucketAppsOAI: cf.OriginAccessIdentity;
+  public get bucketAppsOAI(): cf.OriginAccessIdentity {
+    return this._bucketAppsOAI;
+  }
+
+  private _bucketAppsOrigin: cforigins.S3Origin;
+  public get bucketAppsOrigin(): cforigins.S3Origin {
+    return this._bucketAppsOrigin;
   }
 
   private _bucketAppsStaging: s3.IBucket;
@@ -66,8 +80,6 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
     // Use Auto-Delete S3Bucket for PRs
-    // https://www.scavasoft.com/aws-cdk-s3-auto-delete/
-    // https://www.npmjs.com/package/@mobileposse/auto-delete-bucket
     this._bucketAppsName = `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`;
     this._bucketAppsStagingName = `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`;
     if (!shared.isPR) {
@@ -111,5 +123,20 @@ export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
         removalPolicy: cdk.RemovalPolicy.DESTROY,
       });
     }
+
+    // Create S3 Origin Identity
+    this._bucketAppsOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
+      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+    });
+    if (shared.isPR) {
+      this._bucketAppsOAI.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+
+    //
+    // Add Origins
+    //
+    this._bucketAppsOrigin = new cforigins.S3Origin(this._bucketApps, {
+      originAccessIdentity: this.bucketAppsOAI,
+    });
   }
 }
