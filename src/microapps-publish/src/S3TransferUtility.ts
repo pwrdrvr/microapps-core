@@ -12,15 +12,13 @@ import { contentType } from 'mime-types';
 export default class S3TransferUtility {
   // Recursive getFiles from
   // https://stackoverflow.com/a/45130990/831465
-  private static _cwd = process.cwd();
 
   private static async GetFiles(dir: string): Promise<string | string[]> {
     const dirents = await fs.readdir(dir, { withFileTypes: true });
     const files = await Promise.all(
       dirents.map((dirent) => {
         const res = path.resolve(dir, dirent.name);
-        const rel = path.relative(res, S3TransferUtility._cwd);
-        return dirent.isDirectory() ? S3TransferUtility.GetFiles(rel) : rel;
+        return dirent.isDirectory() ? S3TransferUtility.GetFiles(res) : res;
       }),
     );
     return Array.prototype.concat(...files);
