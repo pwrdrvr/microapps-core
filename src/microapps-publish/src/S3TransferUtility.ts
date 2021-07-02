@@ -4,12 +4,15 @@
 
 import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
-import * as S3 from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import * as s3 from '@aws-sdk/client-s3';
+import pMap from 'p-map';
 import { contentType } from 'mime-types';
 
 export default class S3TransferUtility {
   // Recursive getFiles from
   // https://stackoverflow.com/a/45130990/831465
+
   private static async GetFiles(dir: string): Promise<string | string[]> {
     const dirents = await fs.readdir(dir, { withFileTypes: true });
     const files = await Promise.all(
@@ -22,22 +25,39 @@ export default class S3TransferUtility {
   }
 
   public static async UploadDir(s3Path: string, bucketName: string): Promise<void> {
-    const s3 = new S3.S3Client({});
+    const s3Client = new s3.S3Client({});
 
     const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
     console.log(`Uploading files to S3: ${files}`);
-    // FIXME: Use p-map to limit upload parallelism
-    const uploads = files.map((filePath) =>
-      s3.send(
-        new S3.PutObjectCommand({
-          Key: path.relative(s3Path, filePath),
-          Bucket: bucketName,
-          Body: createReadStream(filePath),
-          ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
-          CacheControl: 'max-age=86400; public',
-        }),
-      ),
+    // Use p-map to limit upload parallelism
+    await pMap(
+      files,
+      async (filePath) => {
+        // Use 4 multi-part parallel uploads for items > 5 MB
+        const upload = new Upload({
+          client: s3Client,
+          leavePartsOnError: false,
+          params: {
+            Bucket: bucketName,
+            Key: path.relative(s3Path, filePath),
+            Body: createReadStream(filePath),
+            ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
+            CacheControl: 'max-age=86400; public',
+          },
+        });
+        await upload.done();
+      },
+      {
+        concurrency: 10,
+      },
+      // await s3.send(
+      //   new S3.PutObjectCommand({
+      //     Key: path.relative(s3Path, filePath),
+      //     Bucket: bucketName,
+      //     Body: createReadStream(filePath),
+      //     ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
+      //     CacheControl: 'max-age=86400; public',
+      //   }),
     );
-    await Promise.all(uploads);
   }
 }
