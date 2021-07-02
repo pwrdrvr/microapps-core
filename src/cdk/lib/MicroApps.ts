@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { IMicroAppsReposExports, MicroAppsRepos } from '../lib/MicroAppsRepos';
+import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
+import { IMicroAppsReposExports } from '../lib/MicroAppsRepos';
 import { MicroAppsCF } from '../lib/MicroAppsCF';
 import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
 import { MicroAppsS3 } from '../lib/MicroAppsS3';
@@ -12,7 +13,7 @@ import SharedProps from '../lib/SharedProps';
 interface IMicroAppsProps extends cdk.StackProps {
   reposExports: IMicroAppsReposExports;
   local: {
-    // None yet
+    ttl: cdk.Duration;
   };
   shared: SharedProps;
 }
@@ -25,7 +26,15 @@ export class MicroApps extends cdk.Stack {
       throw new Error('props must be set');
     }
 
-    const { shared, reposExports } = props;
+    const { shared, reposExports, local } = props;
+    const { ttl } = local;
+
+    // Set stack to delete if this is a PR build
+    if (shared.isPR) {
+      new TimeToLive(this, 'TimeToLive', {
+        ttl,
+      });
+    }
 
     SharedTags.addSharedTags(this);
 
@@ -37,9 +46,7 @@ export class MicroApps extends cdk.Stack {
       local: {},
     });
     const s3 = new MicroAppsS3(this, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
-      local: {
-        ttl: shared.ttlBase.plus(shared.ttlIncrement).plus(shared.ttlIncrementAfterCF),
-      },
+      local: {},
       shared,
     });
     const cf = new MicroAppsCF(this, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
@@ -48,7 +55,6 @@ export class MicroApps extends cdk.Stack {
         cert: imports.certEdge,
         domainNameEdge,
         domainNameOrigin,
-        ttl: shared.ttlBase.plus(shared.ttlIncrement),
       },
       s3Exports: s3,
     });
@@ -57,7 +63,6 @@ export class MicroApps extends cdk.Stack {
       reposExports,
       s3Exports: s3,
       local: {
-        ttl: shared.ttlBase,
         domainNameEdge,
         domainNameOrigin,
         cert: imports.certOrigin,

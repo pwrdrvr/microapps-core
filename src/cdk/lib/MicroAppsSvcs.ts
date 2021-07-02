@@ -9,7 +9,6 @@ import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as logs from '@aws-cdk/aws-logs';
 import * as acm from '@aws-cdk/aws-certificatemanager';
-import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { IMicroAppsCFExports } from './MicroAppsCF';
 import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
@@ -24,7 +23,6 @@ interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
     domainNameEdge: string;
     domainNameOrigin: string;
     cert: acm.ICertificate;
-    ttl: cdk.Duration;
   };
   shared: SharedProps;
 }
@@ -48,16 +46,9 @@ export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports
 
     const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
-    const { cert, domainNameOrigin, ttl } = props.local;
+    const { cert, domainNameOrigin } = props.local;
     const { shared } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
-
-    // Set stack to delete if this is a PR build
-    if (shared.isPR) {
-      new TimeToLive(this, 'TimeToLive', {
-        ttl,
-      });
-    }
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
