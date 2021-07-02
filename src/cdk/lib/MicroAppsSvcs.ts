@@ -216,7 +216,9 @@ export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports
     const routerzFunc = new lambda.Function(this, 'microapps-routerz-func', {
       functionName: `microapps-routerz${shared.envSuffix}${shared.prSuffix}`,
       // This is just a dummy placeholder until the real version gets published
-      code: lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'microapps-router', 'src')),
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, '..', '..', '..', 'distb', 'microapps-router', 'src'),
+      ),
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
       timeout: cdk.Duration.seconds(15),
