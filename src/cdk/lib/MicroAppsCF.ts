@@ -14,7 +14,7 @@ export interface IMicroAppsCFExports {
   cloudFrontDistro: cloudfront.Distribution;
 }
 
-interface IMicroAppsCFProps extends cdk.StackProps {
+interface IMicroAppsCFProps extends cdk.ResourceProps {
   local: {
     cert: acm.ICertificate;
     domainNameEdge: string;
@@ -25,7 +25,7 @@ interface IMicroAppsCFProps extends cdk.StackProps {
   s3Exports: IMicroAppsS3Exports;
 }
 
-export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
+export class MicroAppsCF extends cdk.Resource implements IMicroAppsCFExports {
   private _cloudFrontDistro: cloudfront.Distribution;
   public get cloudFrontDistro(): cloudfront.Distribution {
     return this._cloudFrontDistro;

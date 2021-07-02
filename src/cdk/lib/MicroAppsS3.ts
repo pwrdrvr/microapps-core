@@ -17,14 +17,14 @@ export interface IMicroAppsS3Exports {
   bucketLogs: s3.IBucket;
 }
 
-interface IMicroAppsS3Props extends cdk.StackProps {
+interface IMicroAppsS3Props extends cdk.ResourceProps {
   local: {
     ttl: cdk.Duration;
   };
   shared: SharedProps;
 }
 
-export class MicroAppsS3 extends cdk.Stack implements IMicroAppsS3Exports {
+export class MicroAppsS3 extends cdk.Resource implements IMicroAppsS3Exports {
   private _bucketApps: s3.IBucket;
   public get bucketApps(): s3.IBucket {
     return this._bucketApps;
