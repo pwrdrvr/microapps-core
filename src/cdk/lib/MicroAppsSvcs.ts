@@ -14,6 +14,7 @@ import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
+import path from 'path';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
   reposExports: IMicroAppsReposExports;
@@ -215,9 +216,7 @@ export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports
     const routerzFunc = new lambda.Function(this, 'microapps-routerz-func', {
       functionName: `microapps-routerz${shared.envSuffix}${shared.prSuffix}`,
       // This is just a dummy placeholder until the real version gets published
-      code: lambda.Code.fromInline(
-        "function handler() { return 'cat'; }; exports.handler=handler;",
-      ),
+      code: lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'microapps-router', 'src')),
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
       timeout: cdk.Duration.seconds(15),
