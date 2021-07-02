@@ -49,7 +49,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       throw new Error('props.env cannot be undefined');
     }
 
-    const { bucketApps, bucketAppsName, bucketAppsStaging, bucketAppsStagingName } =
+    const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
     const { cert, domainNameOrigin, ttl } = props.local;
     const { shared } = props;
@@ -123,7 +123,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       actions: ['s3:*'],
       notPrincipals: [
         new iam.CanonicalUserPrincipal(
-          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
         new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
@@ -143,7 +143,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       actions: ['s3:*'],
       notPrincipals: [
         new iam.CanonicalUserPrincipal(
-          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
         new iam.ArnPrincipal(`arn:aws:iam::${props.env.account}:role/${s3PolicyBypassRoleName}`),
@@ -169,7 +169,7 @@ export class MicroAppsSvcs extends cdk.Stack implements IMicroAppsSvcsExports {
       actions: ['s3:GetObject'],
       principals: [
         new iam.CanonicalUserPrincipal(
-          props.cfStackExports.cloudFrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
+          bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`],
