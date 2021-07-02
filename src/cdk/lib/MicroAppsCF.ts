@@ -7,15 +7,13 @@ import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
-import { RemovalPolicy } from '@aws-cdk/core';
 import SharedTags from './SharedTags';
 
 export interface IMicroAppsCFExports {
-  cloudFrontOAI: cloudfront.OriginAccessIdentity;
   cloudFrontDistro: cloudfront.Distribution;
 }
 
-interface IMicroAppsCFProps extends cdk.StackProps {
+interface IMicroAppsCFProps extends cdk.ResourceProps {
   local: {
     cert: acm.ICertificate;
     domainNameEdge: string;
@@ -25,12 +23,7 @@ interface IMicroAppsCFProps extends cdk.StackProps {
   s3Exports: IMicroAppsS3Exports;
 }
 
-export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
-  private _cloudFrontOAI: cloudfront.OriginAccessIdentity;
-  public get cloudFrontOAI(): cloudfront.OriginAccessIdentity {
-    return this._cloudFrontOAI;
-  }
-
+export class MicroAppsCF extends cdk.Resource implements IMicroAppsCFExports {
   private _cloudFrontDistro: cloudfront.Distribution;
   public get cloudFrontDistro(): cloudfront.Distribution {
     return this._cloudFrontDistro;
@@ -43,7 +36,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       throw new Error('props must be set');
     }
 
-    const { shared } = props;
+    const { shared, s3Exports } = props;
     const { domainNameEdge } = props.local;
     const { r53ZoneID, r53ZoneName } = shared;
 
@@ -76,23 +69,8 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       logFilePrefix: `${props.local.domainNameEdge.split('.').reverse().join('.')}/cloudfront-raw/`,
     });
     if (shared.isPR) {
-      this._cloudFrontDistro.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      this._cloudFrontDistro.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
-
-    // Create S3 Origin Identity
-    this._cloudFrontOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
-      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
-    });
-    if (shared.isPR) {
-      this._cloudFrontOAI.applyRemovalPolicy(RemovalPolicy.DESTROY);
-    }
-
-    //
-    // Add Origins
-    //
-    const statics3 = new cforigins.S3Origin(props.s3Exports.bucketApps, {
-      originAccessIdentity: this.cloudFrontOAI,
-    });
 
     //
     // Add Behaviors
@@ -125,8 +103,8 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
     // Let everything else fall through to the API Gateway
     //
     this._cloudFrontDistro.addBehavior('/*/*/api/*', apiGwyOrigin, apiGwyBehavior);
-    this._cloudFrontDistro.addBehavior('/*/*/static/*', statics3, s3Behavior);
-    this._cloudFrontDistro.addBehavior('/*/*/*.*', statics3, s3Behavior);
+    this._cloudFrontDistro.addBehavior('/*/*/static/*', s3Exports.bucketAppsOrigin, s3Behavior);
+    this._cloudFrontDistro.addBehavior('/*/*/*.*', s3Exports.bucketAppsOrigin, s3Behavior);
     this._cloudFrontDistro.addBehavior('/*/*/', apiGwyOrigin, apiGwyVersionRootBehavior);
 
     //
@@ -145,7 +123,7 @@ export class MicroAppsCF extends cdk.Stack implements IMicroAppsCFExports {
       zone,
     });
     if (shared.isPR) {
-      rrAppsEdge.applyRemovalPolicy(RemovalPolicy.DESTROY);
+      rrAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
   }
 }

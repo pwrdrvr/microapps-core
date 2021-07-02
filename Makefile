@@ -1,5 +1,7 @@
 .PHONY: help
 
+SHELL=/bin/bash
+
 AWS_ACCOUNT_ID ?= $(shell aws sts get-caller-identity --query "Account" --output text)
 REGION ?= us-east-2
 ENV ?= dev
@@ -10,11 +12,17 @@ ROUTER_ECR_REPO ?= microapps-router-${ENV}
 ROUTERZ_ECR_REPO ?= microapps-routerz-${ENV}
 ROUTER_ECR_TAG ?= ${ROUTER_ECR_REPO}:latest
 
-CODEBUILD_SOURCE_VERSION ?= dummy
+# In .github/workflows we set PR_NUMBER based on the Actions payload, if set
+# If running on AWS CodeBuild, then CODEBUILD_SOURCE_VERSION should get
+# passed in as pr/## or main and everything will still work
+PR_NUMBER ?= 
+CODEBUILD_SOURCE_VERSION ?= $(shell if [[ "${PR_NUMBER}" -eq "" ]] ; then echo "dummy"; else echo "pr/${PR_NUMBER}" ; fi )
+# Export our faked-up CODEBUILD_SOURCE_VERSION, if not already set, so the shell sees it
+export CODEBUILD_SOURCE_VERSION
 CODEBUILD_PR_NUMBER := $(shell echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { print $$2 }' )
 CODEBUILD_STACK_SUFFIX := $(shell if [[ ${CODEBUILD_SOURCE_VERSION} = pr/* ]] ; then (echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { printf "-pr-%s", $$2 }') ; else echo "" ; fi )
 CODEBUILD_REPOS_STACK_NAME := microapps-repos-${ENV}${CODEBUILD_STACK_SUFFIX}
-CODEBUILD_CORE_STACK_NAME := microapps-svcs-${ENV}${CODEBUILD_STACK_SUFFIX}
+CODEBUILD_CORE_STACK_NAME := microapps-${ENV}${CODEBUILD_STACK_SUFFIX}
 CODEBUILD_IMAGE_LABEL := latest # $(shell [[ ${CODEBUILD_SOURCE_VERSION} = pr/* ]] && (echo ${CODEBUILD_SOURCE_VERSION} | awk 'BEGIN{FS="/"; } { printf "pr-%s", $$2 }') || echo "latest")
 CODEBUILD_ECR_HOST ?= ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
@@ -84,6 +92,7 @@ codebuild-cdk: ## Deploy only the core CDK stack only
 	@cdk deploy --require-approval never ${CODEBUILD_CORE_STACK_NAME}
 
 codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
+	@echo "CODEBUILD_SOURCE_VERSION: ${CODEBUILD_SOURCE_VERSION}"
 	@echo "CODEBUILD_STACK_SUFFIX: ${CODEBUILD_STACK_SUFFIX}"
 	@echo "CODEBUILD_REPOS_STACK_NAME: ${CODEBUILD_REPOS_STACK_NAME}"
 	@echo "CODEBUILD_CORE_STACK_NAME: ${CODEBUILD_CORE_STACK_NAME}"
@@ -91,10 +100,12 @@ codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@echo "CODEBUILD_PR_NUMBER: ${CODEBUILD_PR_NUMBER}"
 	@echo "CODEBUILD_ROUTER_ECR_TAG: ${CODEBUILD_ROUTER_ECR_TAG}"
 	@echo "CODEBUILD_DEPLOYER_ECR_TAG: ${CODEBUILD_DEPLOYER_ECR_TAG}"
+	@echo "Listing CDK Stacks"
+	@cdk list
 	@echo "Running CDK Diff - Repos"
-	@cdk diff ${CODEBUILD_REPOS_STACK_NAME}
+	cdk diff ${CODEBUILD_REPOS_STACK_NAME}
 	@echo "Running CDK Deploy - Repos"
-	@cdk deploy --require-approval never ${CODEBUILD_REPOS_STACK_NAME}
+	cdk deploy --require-approval never ${CODEBUILD_REPOS_STACK_NAME}
 	@echo "Running Docker Build / Publish - Router"
 	@docker build -f DockerfileRouter -t ${CODEBUILD_ROUTER_ECR_TAG}  .
 	@docker tag ${CODEBUILD_ROUTER_ECR_TAG} ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG}
