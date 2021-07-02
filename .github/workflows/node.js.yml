@@ -57,6 +57,9 @@ jobs:
     - name: Build TypeScript
       run: npm run build --if-present
 
+    - name: Building Router with Rollup
+      run: npm run build:router
+
     - name: Run Node Tests
       run: npm run test
   
