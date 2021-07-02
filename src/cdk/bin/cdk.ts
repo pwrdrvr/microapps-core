@@ -23,12 +23,14 @@ const repos = new MicroAppsRepos(app, `microapps-repos${shared.envSuffix}${share
   env,
   shared,
   local: {
-    ttl: shared.ttlBase.plus(shared.ttlIncrement),
+    ttl: shared.ttlBase.plus(shared.ttlIncrementRepos),
   },
 });
 const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`, {
   env,
-  local: {},
+  local: {
+    ttl: shared.ttlBase,
+  },
   shared,
   reposExports: repos,
 });

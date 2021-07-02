@@ -82,6 +82,17 @@ export class MicroAppsBuilder extends cdk.Stack {
       ],
       userName: nameRoot,
     });
+    userBuilder.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'events:PutRule',
+          'events:DescribeRule',
+          'events:PutTargets',
+          'events:RemoveTargets',
+        ],
+        resources: ['*'],
+      }),
+    );
     const groupBuilder = new iam.Group(this, 'microapps-builder-group-1', {
       groupName: `${nameRoot}-1`,
       managedPolicies: [
