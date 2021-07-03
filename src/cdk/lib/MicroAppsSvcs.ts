@@ -11,14 +11,12 @@ import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as logs from '@aws-cdk/aws-logs';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsCFExports } from './MicroAppsCF';
-import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 import { Code } from '@aws-cdk/aws-lambda';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
-  reposExports: IMicroAppsReposExports;
   cfStackExports: IMicroAppsCFExports;
   s3Exports: IMicroAppsS3Exports;
   local: {

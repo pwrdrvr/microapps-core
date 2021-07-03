@@ -2,7 +2,6 @@
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
-import { IMicroAppsReposExports } from '../lib/MicroAppsRepos';
 import { MicroAppsCF } from '../lib/MicroAppsCF';
 import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
 import { MicroAppsS3 } from '../lib/MicroAppsS3';
@@ -11,7 +10,6 @@ import { Imports } from '../lib/Imports';
 import SharedProps from '../lib/SharedProps';
 
 interface IMicroAppsProps extends cdk.StackProps {
-  reposExports: IMicroAppsReposExports;
   local: {
     ttl: cdk.Duration;
   };
@@ -26,7 +24,7 @@ export class MicroApps extends cdk.Stack {
       throw new Error('props must be set');
     }
 
-    const { shared, reposExports, local } = props;
+    const { shared, local } = props;
     const { ttl } = local;
 
     // Set stack to delete if this is a PR build
@@ -60,7 +58,6 @@ export class MicroApps extends cdk.Stack {
     });
     const svcs = new MicroAppsSvcs(this, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
       cfStackExports: cf,
-      reposExports,
       s3Exports: s3,
       local: {
         domainNameEdge,

@@ -32,7 +32,6 @@ const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`
     ttl: shared.ttlBase,
   },
   shared,
-  reposExports: repos,
 });
 
 // Note: This is only run manually once per env to create build user

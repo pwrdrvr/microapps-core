@@ -57,8 +57,8 @@ jobs:
     - name: Build TypeScript
       run: npm run build --if-present
 
-    - name: Building Router with Rollup
-      run: npm run build:router
+    # - name: Building Router with Rollup
+    #   run: npm run build:router
 
     - name: Run Node Tests
       run: npm run test
@@ -76,17 +76,17 @@ jobs:
     # Pull the latest image to build, and avoid caching pull-only images.
     # (docker pull is faster than caching in most cases.)
     # https://github.com/marketplace/actions/docker-layer-caching
-    - name: Pull Docker Base Images
-      run: docker-compose pull
+    # - name: Pull Docker Base Images
+    #   run: docker-compose pull
     
     # In this step, this action saves a list of existing images,
     # the cache is created without them in the post run.
     # It also restores the cache if it exists.
     # https://github.com/marketplace/actions/docker-layer-caching
-    - name: Restore Docker Layer Cache
-      uses: satackey/action-docker-layer-caching@v0.0.11
-      # Ignore the failure of a step and avoid terminating the job.
-      continue-on-error: true
+    # - name: Restore Docker Layer Cache
+    #   uses: satackey/action-docker-layer-caching@v0.0.11
+    #   # Ignore the failure of a step and avoid terminating the job.
+    #   continue-on-error: true
 
 
     - name: Deploy CDK Stack
