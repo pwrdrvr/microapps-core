@@ -79,18 +79,32 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
 
     // Create Deployer Lambda Function
-    const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+    // const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+    //   functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
+    //   code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
+    //   timeout: cdk.Duration.seconds(60),
+    //   memorySize: 1024,
+    //   logRetention: logs.RetentionDays.ONE_MONTH,
+    //   environment: {
+    //     NODE_ENV: shared.env,
+    //     APIGWY_NAME: apigatewayName,
+    //     DATABASE_TABLE_NAME: table.tableName,
+    //     FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
+    //     FILESTORE_DEST_BUCKET: bucketAppsName,
+    //   },
+    // });
+    const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployerz-func', {
       functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
-      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
-      timeout: cdk.Duration.seconds(60),
-      memorySize: 1024,
+      entry: './src/microapps-deployer/src/index.ts',
+      handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
+      memorySize: 1024,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      awsSdkConnectionReuse: true,
+      timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
-        APIGWY_NAME: apigatewayName,
         DATABASE_TABLE_NAME: table.tableName,
-        FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
-        FILESTORE_DEST_BUCKET: bucketAppsName,
       },
     });
     if (shared.isPR) {
@@ -197,24 +211,24 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
 
     // Create Router Lambda Function - Docker Image Version (aka "slow")
-    const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
-      functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
-      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
-      timeout: cdk.Duration.seconds(15),
-      memorySize: 1024,
-      logRetention: logs.RetentionDays.ONE_MONTH,
-      environment: {
-        NODE_ENV: shared.env,
-        DATABASE_TABLE_NAME: table.tableName,
-      },
-    });
-    if (shared.isPR) {
-      routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
+    // const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
+    //   functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
+    //   code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
+    //   timeout: cdk.Duration.seconds(15),
+    //   memorySize: 1024,
+    //   logRetention: logs.RetentionDays.ONE_MONTH,
+    //   environment: {
+    //     NODE_ENV: shared.env,
+    //     DATABASE_TABLE_NAME: table.tableName,
+    //   },
+    // });
+    // if (shared.isPR) {
+    //   routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    // }
     // Zip version of the function
     // This is *much* faster on cold inits
     const routerzFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-routerz2-func', {
-      functionName: `microapps-routerz2${shared.envSuffix}${shared.prSuffix}`,
+      functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
       entry: './src/microapps-router/src/index.ts',
       handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
@@ -235,7 +249,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       actions: ['s3:GetObject'],
       resources: [`${bucketApps.bucketArn}/*`],
     });
-    for (const router of [routerFunc, routerzFunc]) {
+    for (const router of [routerzFunc]) {
       router.addToRolePolicy(policyReadTarget);
       // Give the Router access to DynamoDB table
       table.grantReadData(router);
