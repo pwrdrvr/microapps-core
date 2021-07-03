@@ -25,8 +25,6 @@ export default class VersionController {
   ): Promise<IDeployVersionPreflightResponse> {
     const { appName, semVer } = request;
 
-    Log.Instance.info('Stinky Poopoo');
-
     // Check if the version exists
     const record = await Version.LoadVersionAsync(Manager.DBDocClient, appName, semVer);
     if (record !== undefined && record.Status !== 'pending') {
