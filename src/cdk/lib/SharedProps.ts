@@ -3,12 +3,8 @@ import { Env } from './Types';
 
 export default class SharedProps {
   private _ttlBase = cdk.Duration.hours(6);
-  private _ttlIncrementRepos = cdk.Duration.minutes(30);
   public get ttlBase(): cdk.Duration {
     return this._ttlBase;
-  }
-  public get ttlIncrementRepos(): cdk.Duration {
-    return this._ttlIncrementRepos;
   }
 
   private _env: Env | '' = 'dev';

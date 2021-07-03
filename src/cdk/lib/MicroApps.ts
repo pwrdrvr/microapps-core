@@ -10,10 +10,23 @@ import { Imports } from '../lib/Imports';
 import SharedProps from '../lib/SharedProps';
 
 interface IMicroAppsProps extends cdk.StackProps {
-  local: {
-    ttl: cdk.Duration;
+  readonly local: {
+    /**
+     * Duration before stack is automatically deleted.
+     * Requires that autoDeleteEverything be set to true.
+     *
+     */
+    readonly ttl?: cdk.Duration;
+
+    /**
+     * Duration before stack is automatically deleted.
+     * Requires that autoDeleteEverything be set to true.
+     *
+     * @default false
+     */
+    readonly autoDeleteEverything?: boolean;
   };
-  shared: SharedProps;
+  readonly shared: SharedProps;
 }
 
 export class MicroApps extends cdk.Stack {
@@ -25,10 +38,13 @@ export class MicroApps extends cdk.Stack {
     }
 
     const { shared, local } = props;
-    const { ttl } = local;
+    const { ttl, autoDeleteEverything: autoDeleteItems = false } = local;
 
     // Set stack to delete if this is a PR build
-    if (shared.isPR) {
+    if (ttl !== undefined) {
+      if (autoDeleteItems === false) {
+        throw new Error('autoDeleteItems must be true when ttl is set');
+      }
       new TimeToLive(this, 'TimeToLive', {
         ttl,
       });
@@ -44,11 +60,12 @@ export class MicroApps extends cdk.Stack {
       local: {},
     });
     const s3 = new MicroAppsS3(this, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
-      local: {},
+      autoDeleteEverything: autoDeleteItems,
       shared,
     });
     const cf = new MicroAppsCF(this, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
       shared,
+      autoDeleteEverything: autoDeleteItems,
       local: {
         cert: imports.certEdge,
         domainNameEdge,
@@ -59,6 +76,7 @@ export class MicroApps extends cdk.Stack {
     const svcs = new MicroAppsSvcs(this, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
       cfStackExports: cf,
       s3Exports: s3,
+      autoDeleteEverything: autoDeleteItems,
       local: {
         domainNameEdge,
         domainNameOrigin,

@@ -10,17 +10,26 @@ import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 
 export interface IMicroAppsCFExports {
-  cloudFrontDistro: cloudfront.Distribution;
+  readonly cloudFrontDistro: cloudfront.Distribution;
 }
 
 interface IMicroAppsCFProps extends cdk.ResourceProps {
-  local: {
-    cert: acm.ICertificate;
-    domainNameEdge: string;
-    domainNameOrigin: string;
+  readonly local: {
+    readonly cert: acm.ICertificate;
+    readonly domainNameEdge: string;
+    readonly domainNameOrigin: string;
   };
-  shared: SharedProps;
-  s3Exports: IMicroAppsS3Exports;
+
+  readonly shared: SharedProps;
+  readonly s3Exports: IMicroAppsS3Exports;
+
+  /**
+   * Duration before stack is automatically deleted.
+   * Requires that autoDeleteEverything be set to true.
+   *
+   * @default false
+   */
+  readonly autoDeleteEverything?: boolean;
 }
 
 export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
@@ -36,7 +45,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       throw new Error('props must be set');
     }
 
-    const { shared, s3Exports } = props;
+    const { shared, s3Exports, autoDeleteEverything: autoDeleteItems } = props;
     const { domainNameEdge } = props.local;
     const { r53ZoneID, r53ZoneName } = shared;
 
