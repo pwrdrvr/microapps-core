@@ -23,14 +23,14 @@ interface IMicroAppsCFProps extends cdk.ResourceProps {
   s3Exports: IMicroAppsS3Exports;
 }
 
-export class MicroAppsCF extends cdk.Resource implements IMicroAppsCFExports {
+export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
   private _cloudFrontDistro: cloudfront.Distribution;
   public get cloudFrontDistro(): cloudfront.Distribution {
     return this._cloudFrontDistro;
   }
 
   constructor(scope: cdk.Construct, id: string, props?: IMicroAppsCFProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     if (props === undefined) {
       throw new Error('props must be set');

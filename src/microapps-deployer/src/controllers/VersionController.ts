@@ -24,6 +24,7 @@ export default class VersionController {
     config: IConfig,
   ): Promise<IDeployVersionPreflightResponse> {
     const { appName, semVer } = request;
+
     // Check if the version exists
     const record = await Version.LoadVersionAsync(Manager.DBDocClient, appName, semVer);
     if (record !== undefined && record.Status !== 'pending') {
