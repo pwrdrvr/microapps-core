@@ -232,7 +232,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Zip version of the function
     // This is *much* faster on cold inits
     const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
-      code: Code.fromAsset('./src/microapps-router/appFrame.html'),
+      code: Code.fromAsset('./src/microapps-router/templates/'),
       compatibleRuntimes: lambda.Runtime.ALL,
     });
     if (shared.isPR) {
