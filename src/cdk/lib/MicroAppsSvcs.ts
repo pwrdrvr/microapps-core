@@ -104,7 +104,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
+        APIGWY_NAME: apigatewayName,
         DATABASE_TABLE_NAME: table.tableName,
+        FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
+        FILESTORE_DEST_BUCKET: bucketAppsName,
       },
     });
     if (shared.isPR) {
