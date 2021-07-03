@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cf from '@aws-cdk/aws-cloudfront';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
-import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 
@@ -73,47 +72,32 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
     // Use Auto-Delete S3Bucket for PRs
     this._bucketAppsName = `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`;
     this._bucketAppsStagingName = `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`;
-    if (!shared.isPR) {
-      //
-      // S3 Bucket for Logging - Usable by many stacks
-      //
-      this._bucketLogs = new s3.Bucket(this, 'microapps-logs', {
-        bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
-      });
 
-      //
-      // S3 Buckets for Apps
-      //
-      this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
-        bucketName: this._bucketAppsName,
-      });
-      this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
-        bucketName: this._bucketAppsStagingName,
-      });
-    } else {
-      //
-      // PR - S3 Bucket for Logging - Usable by many stacks
-      //
-      this._bucketLogs = new DeletableBucket(this, 'microapps-logs', {
-        bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
-        autoDeleteObjects: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-      });
+    const s3RemovalPolicy = shared.isPR ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN;
+    const s3AutoDeleteItems = shared.isPR ? true : false;
 
-      //
-      // PR - S3 Buckets for Apps
-      //
-      this._bucketApps = new DeletableBucket(this, 'microapps-apps', {
-        bucketName: this._bucketAppsName,
-        autoDeleteObjects: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-      });
-      this._bucketAppsStaging = new DeletableBucket(this, 'microapps-apps-staging', {
-        bucketName: this._bucketAppsStagingName,
-        autoDeleteObjects: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-      });
-    }
+    //
+    // S3 Bucket for Logging - Usable by many stacks
+    //
+    this._bucketLogs = new s3.Bucket(this, 'microapps-logs', {
+      bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
+      autoDeleteObjects: s3AutoDeleteItems,
+      removalPolicy: s3RemovalPolicy,
+    });
+
+    //
+    // S3 Buckets for Apps
+    //
+    this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
+      bucketName: this._bucketAppsName,
+      autoDeleteObjects: s3AutoDeleteItems,
+      removalPolicy: s3RemovalPolicy,
+    });
+    this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
+      bucketName: this._bucketAppsStagingName,
+      autoDeleteObjects: s3AutoDeleteItems,
+      removalPolicy: s3RemovalPolicy,
+    });
 
     // Create S3 Origin Identity
     this._bucketAppsOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
