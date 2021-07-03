@@ -2,24 +2,30 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cf from '@aws-cdk/aws-cloudfront';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
+import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 
 export interface IMicroAppsS3Exports {
-  bucketApps: s3.IBucket;
-  bucketAppsName: string;
-  bucketAppsOAI: cf.OriginAccessIdentity;
-  bucketAppsOrigin: cforigins.S3Origin;
-  bucketAppsStaging: s3.IBucket;
-  bucketAppsStagingName: string;
-  bucketLogs: s3.IBucket;
+  readonly bucketApps: s3.IBucket;
+  readonly bucketAppsName: string;
+  readonly bucketAppsOAI: cf.OriginAccessIdentity;
+  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly bucketAppsStaging: s3.IBucket;
+  readonly bucketAppsStagingName: string;
+  readonly bucketLogs: s3.IBucket;
 }
 
 interface IMicroAppsS3Props extends cdk.ResourceProps {
-  local: {
-    // None yet
-  };
-  shared: SharedProps;
+  readonly shared: SharedProps;
+
+  /**
+   * Duration before stack is automatically deleted.
+   * Requires that autoDeleteEverything be set to true.
+   *
+   * @default false
+   */
+  readonly autoDeleteEverything?: boolean;
 }
 
 export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
@@ -79,23 +85,23 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
     //
     // S3 Bucket for Logging - Usable by many stacks
     //
-    this._bucketLogs = new s3.Bucket(this, 'microapps-logs', {
+    this._bucketLogs = new DeletableBucket(this, 'microapps-logs', {
       bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
-      autoDeleteObjects: s3AutoDeleteItems,
+      forceDelete: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
 
     //
     // S3 Buckets for Apps
     //
-    this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
+    this._bucketApps = new DeletableBucket(this, 'microapps-apps', {
       bucketName: this._bucketAppsName,
-      autoDeleteObjects: s3AutoDeleteItems,
+      forceDelete: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
-    this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
+    this._bucketAppsStaging = new DeletableBucket(this, 'microapps-apps-staging', {
       bucketName: this._bucketAppsStagingName,
-      autoDeleteObjects: s3AutoDeleteItems,
+      forceDelete: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
 

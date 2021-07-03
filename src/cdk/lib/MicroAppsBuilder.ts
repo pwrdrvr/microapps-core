@@ -5,10 +5,7 @@ import SharedTags from './SharedTags';
 import { RemovalPolicy } from '@aws-cdk/core';
 
 interface IMicroAppsBuilderStackProps extends cdk.StackProps {
-  local: {
-    // None yet
-  };
-  shared: SharedProps;
+  readonly shared: SharedProps;
 }
 
 export class MicroAppsBuilder extends cdk.Stack {
