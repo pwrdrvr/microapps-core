@@ -15,6 +15,7 @@ import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
+import { Code } from '@aws-cdk/aws-lambda';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
   reposExports: IMicroAppsReposExports;
@@ -230,6 +231,13 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // }
     // Zip version of the function
     // This is *much* faster on cold inits
+    const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
+      code: Code.fromAsset('./src/microapps-router/appFrame.html'),
+      compatibleRuntimes: lambda.Runtime.ALL,
+    });
+    if (shared.isPR) {
+      routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
     const routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
       functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
       entry: './src/microapps-router/src/index.ts',
@@ -243,6 +251,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         NODE_ENV: shared.env,
         DATABASE_TABLE_NAME: table.tableName,
       },
+      layers: [routerDataFiles],
     });
     if (shared.isPR) {
       routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
