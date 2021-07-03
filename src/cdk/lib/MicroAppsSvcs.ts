@@ -17,18 +17,26 @@ import SharedTags from './SharedTags';
 import { Code } from '@aws-cdk/aws-lambda';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
-  cfStackExports: IMicroAppsCFExports;
-  s3Exports: IMicroAppsS3Exports;
-  local: {
-    domainNameEdge: string;
-    domainNameOrigin: string;
-    cert: acm.ICertificate;
+  readonly cfStackExports: IMicroAppsCFExports;
+  readonly s3Exports: IMicroAppsS3Exports;
+  readonly local: {
+    readonly domainNameEdge: string;
+    readonly domainNameOrigin: string;
+    readonly cert: acm.ICertificate;
   };
-  shared: SharedProps;
+  readonly shared: SharedProps;
+
+  /**
+   * Duration before stack is automatically deleted.
+   * Requires that autoDeleteEverything be set to true.
+   *
+   * @default false
+   */
+  readonly autoDeleteEverything?: boolean;
 }
 
 export interface IMicroAppsSvcsExports {
-  dnAppsOrigin: apigwy.DomainName;
+  readonly dnAppsOrigin: apigwy.DomainName;
 }
 
 export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExports {
@@ -47,7 +55,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
     const { cert, domainNameOrigin } = props.local;
-    const { shared } = props;
+    const { shared, autoDeleteEverything: autoDeleteItems } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);

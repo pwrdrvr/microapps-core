@@ -21,16 +21,14 @@ SharedTags.addSharedTags(app);
 const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`, {
   env,
   local: {
-    ttl: shared.ttlBase,
+    ttl: shared.isPR ? shared.ttlBase : undefined,
+    autoDeleteEverything: true,
   },
   shared,
 });
 
 // Note: This is only run manually once per env to create build user
 const builder = new MicroAppsBuilder(app, `microapps-builder${shared.envSuffix}`, {
-  local: {
-    // None yet
-  },
   shared,
   env,
 });

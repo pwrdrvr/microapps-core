@@ -2,18 +2,18 @@ import * as cdk from '@aws-cdk/core';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import SharedProps from './SharedProps';
 
-interface IImportsProps extends cdk.ResourceProps {
-  local: {
+interface IImportsProps {
+  readonly local: {
     // None yet
   };
-  shared: SharedProps;
+  readonly shared: SharedProps;
 }
 export interface IImportsExports {
-  certEdge: acm.ICertificate;
-  certOrigin: acm.ICertificate;
+  readonly certEdge: acm.ICertificate;
+  readonly certOrigin: acm.ICertificate;
 }
 
-export class Imports extends cdk.Resource implements IImportsExports {
+export class Imports extends cdk.Construct implements IImportsExports {
   private _certEdge: acm.ICertificate;
   public get certEdge(): acm.ICertificate {
     return this._certEdge;
@@ -24,7 +24,7 @@ export class Imports extends cdk.Resource implements IImportsExports {
   }
 
   constructor(scope: cdk.Construct, id: string, props?: IImportsProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     if (props === undefined) {
       throw new Error('props must be set');
