@@ -78,20 +78,6 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
 
     // Create Deployer Lambda Function
-    // const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
-    //   functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
-    //   code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
-    //   timeout: cdk.Duration.seconds(60),
-    //   memorySize: 1024,
-    //   logRetention: logs.RetentionDays.ONE_MONTH,
-    //   environment: {
-    //     NODE_ENV: shared.env,
-    //     APIGWY_NAME: apigatewayName,
-    //     DATABASE_TABLE_NAME: table.tableName,
-    //     FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
-    //     FILESTORE_DEST_BUCKET: bucketAppsName,
-    //   },
-    // });
     const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
       functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
       entry: './src/microapps-deployer/src/index.ts',
@@ -212,23 +198,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Router Lambda Function
     //
 
-    // Create Router Lambda Function - Docker Image Version (aka "slow")
-    // const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
-    //   functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
-    //   code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
-    //   timeout: cdk.Duration.seconds(15),
-    //   memorySize: 1024,
-    //   logRetention: logs.RetentionDays.ONE_MONTH,
-    //   environment: {
-    //     NODE_ENV: shared.env,
-    //     DATABASE_TABLE_NAME: table.tableName,
-    //   },
-    // });
-    // if (shared.isPR) {
-    //   routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    // }
-    // Zip version of the function
-    // This is *much* faster on cold inits
+    // Create Router Lambda Function
     const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
       code: Code.fromAsset('./src/microapps-router/templates/'),
     });
