@@ -26,7 +26,7 @@ export default class S3Uploader {
       await fs.copy(config.app.staticAssetsPath, tempUploadPath);
 
       // Do the upload
-      await S3TransferUtility.UploadDir(this._tempDir, bucketName);
+      await S3TransferUtility.UploadDir(this._tempDir, destinationPrefix, bucketName);
     } finally {
       // Delete the directory, now that it's uploaded or if we failed
       await S3Uploader.removeTempDirIfExists();

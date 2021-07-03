@@ -8,6 +8,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import * as s3 from '@aws-sdk/client-s3';
 import pMap from 'p-map';
 import { contentType } from 'mime-types';
+import { fileURLToPath } from 'url';
 
 export default class S3TransferUtility {
   // Recursive getFiles from
@@ -24,11 +25,21 @@ export default class S3TransferUtility {
     return Array.prototype.concat(...files);
   }
 
-  public static async UploadDir(s3Path: string, bucketName: string): Promise<void> {
+  public static async UploadDir(
+    s3Path: string,
+    destPrefixPath: string,
+    bucketName: string,
+  ): Promise<void> {
     const s3Client = new s3.S3Client({});
 
+    console.log(`Uploading files to S3`);
     const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
-    console.log(`Uploading files to S3: ${files}`);
+    const pathWithoutAppAndVer = path.join(s3Path, destPrefixPath);
+    for (const filePath of files) {
+      const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
+      console.log(`  ${relFilePath}`);
+    }
+
     // Use p-map to limit upload parallelism
     await pMap(
       files,
