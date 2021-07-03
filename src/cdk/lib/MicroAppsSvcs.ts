@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
@@ -14,7 +15,6 @@ import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
-import path from 'path';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
   reposExports: IMicroAppsReposExports;
@@ -32,14 +32,14 @@ export interface IMicroAppsSvcsExports {
   dnAppsOrigin: apigwy.DomainName;
 }
 
-export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports {
+export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExports {
   private _dnAppsOrigin: apigwy.DomainName;
   public get dnAppsOrigin(): apigwy.DomainName {
     return this._dnAppsOrigin;
   }
 
   constructor(scope: cdk.Construct, id: string, props?: IMicroAppsSvcsStackProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     if (props === undefined) {
       throw new Error('props cannot be undefined');
@@ -213,17 +213,15 @@ export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports
     }
     // Zip version of the function
     // This is *much* faster on cold inits
-    const routerzFunc = new lambda.Function(this, 'microapps-routerz-func', {
-      functionName: `microapps-routerz${shared.envSuffix}${shared.prSuffix}`,
-      // This is just a dummy placeholder until the real version gets published
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, '..', '..', '..', 'distb', 'microapps-router', 'src'),
-      ),
-      runtime: lambda.Runtime.NODEJS_12_X,
-      handler: 'index.handler',
-      timeout: cdk.Duration.seconds(15),
-      memorySize: 1024,
+    const routerzFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-routerz2-func', {
+      functionName: `microapps-routerz2${shared.envSuffix}${shared.prSuffix}`,
+      entry: './src/microapps-router/src/index.ts',
+      handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
+      memorySize: 1024,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      awsSdkConnectionReuse: true,
+      timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
         DATABASE_TABLE_NAME: table.tableName,
