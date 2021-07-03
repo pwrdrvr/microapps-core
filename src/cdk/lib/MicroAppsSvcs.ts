@@ -17,18 +17,26 @@ import SharedTags from './SharedTags';
 import { Code } from '@aws-cdk/aws-lambda';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
-  cfStackExports: IMicroAppsCFExports;
-  s3Exports: IMicroAppsS3Exports;
-  local: {
-    domainNameEdge: string;
-    domainNameOrigin: string;
-    cert: acm.ICertificate;
+  readonly cfStackExports: IMicroAppsCFExports;
+  readonly s3Exports: IMicroAppsS3Exports;
+  readonly local: {
+    readonly domainNameEdge: string;
+    readonly domainNameOrigin: string;
+    readonly cert: acm.ICertificate;
   };
-  shared: SharedProps;
+  readonly shared: SharedProps;
+
+  /**
+   * Duration before stack is automatically deleted.
+   * Requires that autoDeleteEverything be set to true.
+   *
+   * @default false
+   */
+  readonly autoDeleteEverything?: boolean;
 }
 
 export interface IMicroAppsSvcsExports {
-  dnAppsOrigin: apigwy.DomainName;
+  readonly dnAppsOrigin: apigwy.DomainName;
 }
 
 export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExports {
@@ -47,7 +55,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
     const { cert, domainNameOrigin } = props.local;
-    const { shared } = props;
+    const { shared, autoDeleteEverything: autoDeleteItems } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
@@ -119,6 +127,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         new iam.AccountRootPrincipal(),
         new iam.ArnPrincipal(`arn:aws:iam::${shared.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
+        // Allow the builder user to update the buckets
+        new iam.ArnPrincipal(
+          `arn:aws:iam::${shared.account}:user/${shared.stackName}-builder${shared.envSuffix}`,
+        ),
       ],
       notResources: [
         `${bucketApps.bucketArn}/\${aws:PrincipalTag/microapp-name}/*`,
@@ -128,6 +140,13 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         Null: { 'aws:PrincipalTag/microapp-name': 'false' },
       },
     });
+    if (shared.isPR) {
+      policyDenyPrefixOutsideTag.addCondition(
+        // Allows the DeletableBucket Lambda to delete items in the buckets
+        'StringNotLike',
+        { 'aws:PrincipalTag/application': 'microapps-core*' },
+      );
+    }
     const policyDenyMissingTag = new iam.PolicyStatement({
       sid: 'deny-missing-microapp-name-tag',
       effect: iam.Effect.DENY,
@@ -142,6 +161,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         new iam.ArnPrincipal(
           `arn:aws:sts::${shared.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
         ),
+        // Allow the builder user to update the buckets
+        new iam.ArnPrincipal(
+          `arn:aws:iam::${shared.account}:user/${shared.stackName}-builder${shared.envSuffix}`,
+        ),
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
       conditions: {
@@ -154,6 +177,13 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, shared.account] },
       },
     });
+    if (shared.isPR) {
+      policyDenyMissingTag.addCondition(
+        // Allows the DeletableBucket Lambda to delete items in the buckets
+        'StringNotLike',
+        { 'aws:PrincipalTag/application': 'microapps-core*' },
+      );
+    }
     const policyCloudFrontAccess = new iam.PolicyStatement({
       sid: 'cloudfront-oai-access',
       effect: iam.Effect.ALLOW,

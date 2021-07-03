@@ -8,7 +8,6 @@ import { Upload } from '@aws-sdk/lib-storage';
 import * as s3 from '@aws-sdk/client-s3';
 import pMap from 'p-map';
 import { contentType } from 'mime-types';
-import { fileURLToPath } from 'url';
 
 export default class S3TransferUtility {
   // Recursive getFiles from
