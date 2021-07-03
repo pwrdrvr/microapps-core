@@ -128,6 +128,13 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         Null: { 'aws:PrincipalTag/microapp-name': 'false' },
       },
     });
+    if (shared.isPR) {
+      policyDenyPrefixOutsideTag.addCondition(
+        // Allows the DeletableBucket Lambda to delete items in the buckets
+        'StringNotLike',
+        { 'aws:PrincipalTag/application': 'microapps-core*' },
+      );
+    }
     const policyDenyMissingTag = new iam.PolicyStatement({
       sid: 'deny-missing-microapp-name-tag',
       effect: iam.Effect.DENY,
@@ -154,6 +161,13 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, shared.account] },
       },
     });
+    if (shared.isPR) {
+      policyDenyMissingTag.addCondition(
+        // Allows the DeletableBucket Lambda to delete items in the buckets
+        'StringNotLike',
+        { 'aws:PrincipalTag/application': 'microapps-core*' },
+      );
+    }
     const policyCloudFrontAccess = new iam.PolicyStatement({
       sid: 'cloudfront-oai-access',
       effect: iam.Effect.ALLOW,

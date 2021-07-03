@@ -3,14 +3,14 @@ import { Env } from './Types';
 
 export default class SharedTags {
   public static addSharedTags(construct: cdk.IConstruct, prSuffix = ''): void {
-    cdk.Tags.of(construct).add('Repository', 'https://github.com/pwrdrvr/microapps-core/');
-    cdk.Tags.of(construct).add('Application', `microapps-core${prSuffix}`);
+    cdk.Tags.of(construct).add('repository', 'https://github.com/pwrdrvr/microapps-core/');
+    cdk.Tags.of(construct).add('application', `microapps-core${prSuffix}`);
   }
 
   public static addEnvTag(construct: cdk.IConstruct, env: Env | '', isEphemeral: boolean): void {
     if (env !== '' && env !== undefined) cdk.Tags.of(construct).add('Environment', env);
     if (isEphemeral) {
-      cdk.Tags.of(construct).add('Ephemeral', 'true');
+      cdk.Tags.of(construct).add('ephemeral', 'true');
       // Note: a dynamic timestamp tag causes all dependency stacks
       // to redeploy to update the timestamp tag, which takes forever with
       // CloudFront.  It may be possible to preserve this in `cdk.context.json`
