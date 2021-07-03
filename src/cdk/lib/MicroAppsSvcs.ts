@@ -121,7 +121,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         deployerFunc.grantPrincipal,
         // Allow the builder user to update the buckets
         new iam.ArnPrincipal(
-          `arn:aws:iam::${shared.account}:user/${shared.stackName}-core${shared.envSuffix}`,
+          `arn:aws:iam::${shared.account}:user/${shared.stackName}-builder${shared.envSuffix}`,
         ),
       ],
       notResources: [
@@ -155,7 +155,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         ),
         // Allow the builder user to update the buckets
         new iam.ArnPrincipal(
-          `arn:aws:iam::${shared.account}:user/${shared.stackName}-core${shared.envSuffix}`,
+          `arn:aws:iam::${shared.account}:user/${shared.stackName}-builder${shared.envSuffix}`,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
