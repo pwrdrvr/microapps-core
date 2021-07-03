@@ -23,7 +23,7 @@ interface IMicroAppsS3Props extends cdk.ResourceProps {
   shared: SharedProps;
 }
 
-export class MicroAppsS3 extends cdk.Resource implements IMicroAppsS3Exports {
+export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
   private _bucketApps: s3.IBucket;
   public get bucketApps(): s3.IBucket {
     return this._bucketApps;
@@ -60,7 +60,7 @@ export class MicroAppsS3 extends cdk.Resource implements IMicroAppsS3Exports {
   }
 
   constructor(scope: cdk.Construct, id: string, props?: IMicroAppsS3Props) {
-    super(scope, id, props);
+    super(scope, id);
 
     if (props === undefined) {
       throw new Error('props must be set');
