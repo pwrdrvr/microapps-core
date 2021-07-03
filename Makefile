@@ -102,10 +102,10 @@ codebuild-deploy: ## Perform a CDK / ECR / Lambda Deploy with CodeBuild
 	@echo "CODEBUILD_DEPLOYER_ECR_TAG: ${CODEBUILD_DEPLOYER_ECR_TAG}"
 	@echo "Listing CDK Stacks"
 	@cdk list
-	@echo "Running CDK Diff - Repos"
-	cdk diff ${CODEBUILD_REPOS_STACK_NAME}
-	@echo "Running CDK Deploy - Repos"
-	cdk deploy --require-approval never ${CODEBUILD_REPOS_STACK_NAME}
+	# @echo "Running CDK Diff - Repos"
+	# cdk diff ${CODEBUILD_REPOS_STACK_NAME}
+	# @echo "Running CDK Deploy - Repos"
+	# cdk deploy --require-approval never ${CODEBUILD_REPOS_STACK_NAME}
 	# @echo "Running Docker Build / Publish - Router"
 	# @docker build -f DockerfileRouter -t ${CODEBUILD_ROUTER_ECR_TAG}  .
 	# @docker tag ${CODEBUILD_ROUTER_ECR_TAG} ${CODEBUILD_ECR_HOST}/${CODEBUILD_ROUTER_ECR_TAG}
