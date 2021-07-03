@@ -74,7 +74,7 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
     this._bucketAppsStagingName = `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`;
 
     const s3RemovalPolicy = shared.isPR ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN;
-    const s3AutoDeleteItems = shared.isPR ? true : false;
+    const s3AutoDeleteItems = shared.isPR;
 
     //
     // S3 Bucket for Logging - Usable by many stacks

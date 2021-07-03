@@ -2,8 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { Env } from './Types';
 
 export default class SharedProps {
-  private _ttlBase = cdk.Duration.minutes(20);
-  // private _ttlBase = cdk.Duration.hours(6);
+  private _ttlBase = cdk.Duration.hours(6);
   public get ttlBase(): cdk.Duration {
     return this._ttlBase;
   }
