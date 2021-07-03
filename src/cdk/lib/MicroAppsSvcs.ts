@@ -92,7 +92,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //     FILESTORE_DEST_BUCKET: bucketAppsName,
     //   },
     // });
-    const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployerz-func', {
+    const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
       functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
       entry: './src/microapps-deployer/src/index.ts',
       handler: 'handler',
