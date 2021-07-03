@@ -227,7 +227,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // }
     // Zip version of the function
     // This is *much* faster on cold inits
-    const routerzFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-routerz2-func', {
+    const routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
       functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
       entry: './src/microapps-router/src/index.ts',
       handler: 'handler',
@@ -242,14 +242,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       },
     });
     if (shared.isPR) {
-      routerzFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+      routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     const policyReadTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject'],
       resources: [`${bucketApps.bucketArn}/*`],
     });
-    for (const router of [routerzFunc]) {
+    for (const router of [routerFunc]) {
       router.addToRolePolicy(policyReadTarget);
       // Give the Router access to DynamoDB table
       table.grantReadData(router);
