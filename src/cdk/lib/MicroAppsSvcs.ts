@@ -119,6 +119,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         new iam.AccountRootPrincipal(),
         new iam.ArnPrincipal(`arn:aws:iam::${shared.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
+        // Allow the builder user to update the buckets
+        new iam.ArnPrincipal(
+          `arn:aws:iam::${shared.account}:user/${shared.stackName}-core${shared.envSuffix}`,
+        ),
       ],
       notResources: [
         `${bucketApps.bucketArn}/\${aws:PrincipalTag/microapp-name}/*`,
@@ -148,6 +152,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         deployerFunc.grantPrincipal,
         new iam.ArnPrincipal(
           `arn:aws:sts::${shared.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
+        ),
+        // Allow the builder user to update the buckets
+        new iam.ArnPrincipal(
+          `arn:aws:iam::${shared.account}:user/${shared.stackName}-core${shared.envSuffix}`,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
