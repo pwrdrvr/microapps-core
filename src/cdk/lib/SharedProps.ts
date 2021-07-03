@@ -2,13 +2,10 @@ import * as cdk from '@aws-cdk/core';
 import { Env } from './Types';
 
 export default class SharedProps {
-  private _ttlBase = cdk.Duration.hours(6);
-  private _ttlIncrementRepos = cdk.Duration.minutes(30);
+  private _ttlBase = cdk.Duration.minutes(20);
+  // private _ttlBase = cdk.Duration.hours(6);
   public get ttlBase(): cdk.Duration {
     return this._ttlBase;
-  }
-  public get ttlIncrementRepos(): cdk.Duration {
-    return this._ttlIncrementRepos;
   }
 
   private _env: Env | '' = 'dev';
