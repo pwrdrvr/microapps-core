@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { MicroAppsRepos } from '../lib/MicroAppsRepos';
 import { MicroApps } from '../lib/MicroApps';
 import SharedTags from '../lib/SharedTags';
 import SharedProps from '../lib/SharedProps';
@@ -19,13 +18,6 @@ const env: cdk.Environment = {
 
 SharedTags.addSharedTags(app);
 
-const repos = new MicroAppsRepos(app, `microapps-repos${shared.envSuffix}${shared.prSuffix}`, {
-  env,
-  shared,
-  local: {
-    ttl: shared.ttlBase.plus(shared.ttlIncrementRepos),
-  },
-});
 const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`, {
   env,
   local: {
