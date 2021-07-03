@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import * as iam from '@aws-cdk/aws-iam';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
@@ -10,13 +11,12 @@ import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as logs from '@aws-cdk/aws-logs';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import { IMicroAppsCFExports } from './MicroAppsCF';
-import { IMicroAppsReposExports } from './MicroAppsRepos';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
+import { Code } from '@aws-cdk/aws-lambda';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
-  reposExports: IMicroAppsReposExports;
   cfStackExports: IMicroAppsCFExports;
   s3Exports: IMicroAppsS3Exports;
   local: {
@@ -31,14 +31,14 @@ export interface IMicroAppsSvcsExports {
   dnAppsOrigin: apigwy.DomainName;
 }
 
-export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports {
+export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExports {
   private _dnAppsOrigin: apigwy.DomainName;
   public get dnAppsOrigin(): apigwy.DomainName {
     return this._dnAppsOrigin;
   }
 
   constructor(scope: cdk.Construct, id: string, props?: IMicroAppsSvcsStackProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     if (props === undefined) {
       throw new Error('props cannot be undefined');
@@ -78,12 +78,29 @@ export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports
     //
 
     // Create Deployer Lambda Function
-    const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+    // const deployerFunc = new lambda.DockerImageFunction(this, 'microapps-deployer-func', {
+    //   functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
+    //   code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
+    //   timeout: cdk.Duration.seconds(60),
+    //   memorySize: 1024,
+    //   logRetention: logs.RetentionDays.ONE_MONTH,
+    //   environment: {
+    //     NODE_ENV: shared.env,
+    //     APIGWY_NAME: apigatewayName,
+    //     DATABASE_TABLE_NAME: table.tableName,
+    //     FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
+    //     FILESTORE_DEST_BUCKET: bucketAppsName,
+    //   },
+    // });
+    const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployerz-func', {
       functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
-      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoDeployer),
-      timeout: cdk.Duration.seconds(60),
-      memorySize: 1024,
+      entry: './src/microapps-deployer/src/index.ts',
+      handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
+      memorySize: 1024,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      awsSdkConnectionReuse: true,
+      timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
         APIGWY_NAME: apigatewayName,
@@ -196,47 +213,52 @@ export class MicroAppsSvcs extends cdk.Resource implements IMicroAppsSvcsExports
     //
 
     // Create Router Lambda Function - Docker Image Version (aka "slow")
-    const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
+    // const routerFunc = new lambda.DockerImageFunction(this, 'microapps-router-func', {
+    //   functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
+    //   code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
+    //   timeout: cdk.Duration.seconds(15),
+    //   memorySize: 1024,
+    //   logRetention: logs.RetentionDays.ONE_MONTH,
+    //   environment: {
+    //     NODE_ENV: shared.env,
+    //     DATABASE_TABLE_NAME: table.tableName,
+    //   },
+    // });
+    // if (shared.isPR) {
+    //   routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    // }
+    // Zip version of the function
+    // This is *much* faster on cold inits
+    const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
+      code: Code.fromAsset('./src/microapps-router/templates/'),
+    });
+    if (shared.isPR) {
+      routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+    const routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
       functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
-      code: lambda.DockerImageCode.fromEcr(props.reposExports.repoRouter),
-      timeout: cdk.Duration.seconds(15),
-      memorySize: 1024,
+      entry: './src/microapps-router/src/index.ts',
+      handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
+      memorySize: 1024,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      awsSdkConnectionReuse: true,
+      timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
         DATABASE_TABLE_NAME: table.tableName,
       },
+      layers: [routerDataFiles],
     });
     if (shared.isPR) {
       routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
-    // Zip version of the function
-    // This is *much* faster on cold inits
-    const routerzFunc = new lambda.Function(this, 'microapps-routerz-func', {
-      functionName: `microapps-routerz${shared.envSuffix}${shared.prSuffix}`,
-      // This is just a dummy placeholder until the real version gets published
-      code: lambda.Code.fromInline(
-        "function handler() { return 'cat'; }; exports.handler=handler;",
-      ),
-      runtime: lambda.Runtime.NODEJS_12_X,
-      handler: 'index.handler',
-      timeout: cdk.Duration.seconds(15),
-      memorySize: 1024,
-      logRetention: logs.RetentionDays.ONE_MONTH,
-      environment: {
-        NODE_ENV: shared.env,
-        DATABASE_TABLE_NAME: table.tableName,
-      },
-    });
-    if (shared.isPR) {
-      routerzFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     const policyReadTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject'],
       resources: [`${bucketApps.bucketArn}/*`],
     });
-    for (const router of [routerFunc, routerzFunc]) {
+    for (const router of [routerFunc]) {
       router.addToRolePolicy(policyReadTarget);
       // Give the Router access to DynamoDB table
       table.grantReadData(router);

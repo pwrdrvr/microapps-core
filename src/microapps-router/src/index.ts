@@ -15,17 +15,36 @@ const dynamoClient = process.env.TEST
 let manager: Manager;
 
 function loadAppFrame(): string {
-  try {
-    const stat = fs.statSync(`${__dirname}/appFrame.html`);
-    if (stat.isFile()) {
-      return fs.readFileSync(`${__dirname}/appFrame.html`, 'utf-8');
+  const paths = [__dirname, `${__dirname}/..`, '/opt', '/opt/templates'];
+
+  // Change the logger on each request
+  const log = new LambdaLog({
+    meta: {
+      source: 'microapps-router',
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dynamicMeta: (_message: LogMessage) => {
+      return {
+        timestamp: new Date().toISOString(),
+      };
+    },
+  });
+
+  for (const path of paths) {
+    const fullPath = `${path}/appFrame.html`;
+    try {
+      const stat = fs.statSync(fullPath);
+      if (stat.isFile()) {
+        log.info('found html file', { fullPath });
+        return fs.readFileSync(fullPath, 'utf-8');
+      }
+    } catch {
+      // Don't care - we get here if stat throws because the file does not exist
     }
-  } catch {
-    // Don't care - we get here if stat throws because the file does not exist
   }
 
-  // We are likely in the dist directory
-  return fs.readFileSync(`${__dirname}/../appFrame.html`, 'utf-8');
+  log.error('appFrame.html not found');
+  throw new Error('appFrame.html not found');
 }
 
 const appFrame = loadAppFrame();
