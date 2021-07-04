@@ -5,6 +5,7 @@ import {
   IDeployVersionPreflightResponse,
   IDeployVersionRequestBase,
 } from '../index';
+import crypto from 'crypto';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as iamCDK from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-sdk/client-s3';
@@ -12,8 +13,8 @@ import * as sts from '@aws-sdk/client-sts';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
-import { IConfig } from '../config/Config';
 import Log from '../lib/Log';
+import { IConfig } from '../config/Config';
 
 const lambdaClient = new lambda.LambdaClient({});
 const s3Client = new s3.S3Client({});
@@ -21,6 +22,14 @@ const stsClient = new sts.STSClient({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
+  private static SHA256Hash(input: string): string {
+    return crypto.createHash('sha256').update(input).digest('hex');
+  }
+
+  private static SHA1Hash(input: string): string {
+    return crypto.createHash('sha1').update(input).digest('hex');
+  }
+
   public static async DeployVersionPreflight(
     request: IDeployVersionPreflightRequest,
     config: IConfig,
@@ -52,9 +61,9 @@ export default class VersionController {
       // Assume the upload role with limit S3 permissions
       const stsResult = await stsClient.send(
         new sts.AssumeRoleCommand({
-          RoleArn: '',
+          RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
           DurationSeconds: 60 * 60,
-          RoleSessionName: '',
+          RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
           Policy: iamPolicyDoc.toJSON(),
         }),
       );
