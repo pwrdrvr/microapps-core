@@ -14,6 +14,8 @@ export interface IConfig {
 
   awsAccountID: number;
   awsRegion: string;
+
+  uploadRoleName: string;
 }
 
 @convict.Config({
