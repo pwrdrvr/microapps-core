@@ -66,7 +66,7 @@ export default class VersionController {
           RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
           DurationSeconds: 60 * 60,
           RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
-          Policy: iamPolicyDoc.toJSON(),
+          Policy: encodeURIComponent(iamPolicyDoc.toJSON()),
         }),
       );
 
