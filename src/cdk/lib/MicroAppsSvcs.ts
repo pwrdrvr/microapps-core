@@ -126,7 +126,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
               resources: [bucketAppsStaging.bucketArn],
             }),
             new iam.PolicyStatement({
-              actions: ['s3:PutObject', 's3:AbortMultipartUpload'],
+              actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
               resources: [`${bucketAppsStaging.bucketArn}/*`],
             }),
           ],
