@@ -6,16 +6,18 @@ import {
   IDeployVersionRequestBase,
 } from '../index';
 import * as lambda from '@aws-sdk/client-lambda';
+import * as iamCDK from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-sdk/client-s3';
+import * as sts from '@aws-sdk/client-sts';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
 import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../config/Config';
 import Log from '../lib/Log';
-import { URL } from 'url';
 
 const lambdaClient = new lambda.LambdaClient({});
 const s3Client = new s3.S3Client({});
+const stsClient = new sts.STSClient({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
@@ -32,11 +34,42 @@ export default class VersionController {
       return { statusCode: 200 };
     } else {
       Log.Instance.info('App/Version does not exist', { appName, semVer });
+
+      // Generate a temp policy for staging bucket app prefix
+      const iamPolicyDoc = new iamCDK.PolicyDocument({
+        statements: [
+          new iamCDK.PolicyStatement({
+            actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
+            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+          }),
+          new iamCDK.PolicyStatement({
+            actions: ['s3:ListBucket'],
+            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
+          }),
+        ],
+      });
+
+      // Assume the upload role with limit S3 permissions
+      const stsResult = await stsClient.send(
+        new sts.AssumeRoleCommand({
+          RoleArn: '',
+          DurationSeconds: 60 * 60,
+          RoleSessionName: '',
+          Policy: iamPolicyDoc.toJSON(),
+        }),
+      );
+
       return {
         statusCode: 404,
         s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
           request,
         )}`,
+
+        awsCredentials: {
+          accessKeyId: stsResult.Credentials?.AccessKeyId as string,
+          secretAccessKey: stsResult.Credentials?.SecretAccessKey as string,
+          sessionToken: stsResult.Credentials?.SessionToken as string,
+        },
       };
     }
   }

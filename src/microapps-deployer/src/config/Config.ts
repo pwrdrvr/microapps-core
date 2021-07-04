@@ -97,4 +97,11 @@ export class Config implements IConfig {
     env: 'AWS_REGION',
   })
   public awsRegion!: string;
+
+  @convict.Property({
+    doc: 'Role name to be used for temp STS upload tokens',
+    default: 'microapps-deployer-upload-dev',
+    env: 'UPLOAD_ROLE_NAME',
+  })
+  public uploadRoleName!: string;
 }
