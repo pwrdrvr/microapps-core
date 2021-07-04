@@ -86,8 +86,9 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
 
     // Create Deployer Lambda Function
+    const iamRoleUploadName = `microapps-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
     const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
-      functionName: `microapps-deployer${shared.envSuffix}${shared.prSuffix}`,
+      functionName: iamRoleUploadName,
       entry: './src/microapps-deployer/src/index.ts',
       handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
@@ -101,6 +102,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         DATABASE_TABLE_NAME: table.tableName,
         FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
         FILESTORE_DEST_BUCKET: bucketAppsName,
+        UPLOAD_ROLE_NAME: iamRoleUploadName,
       },
     });
     if (shared.isPR) {
@@ -109,6 +111,28 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Give the Deployer access to DynamoDB table
     table.grantReadWriteData(deployerFunc);
     table.grant(deployerFunc, 'dynamodb:DescribeTable');
+
+    //
+    // Deloyer upload temp role
+    //
+    const iamRoleUpload = new iam.Role(this, 'microapps-deployer-upload-role', {
+      roleName: iamRoleUploadName,
+      inlinePolicies: {
+        uploadPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ['s3:ListBucket'],
+              resources: [bucketAppsStaging.bucketArn],
+            }),
+            new iam.PolicyStatement({
+              actions: ['s3:PutObject', 's3:AbortMultipartUpload'],
+              resources: [`${bucketAppsStaging.bucketArn}/*`],
+            }),
+          ],
+        }),
+      },
+      assumedBy: deployerFunc.grantPrincipal,
+    });
 
     //
     // Update S3 permissions
@@ -211,6 +235,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Allow the Lambda to read from the staging bucket
     const policyReadListStaging = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
+      // FIXME: Allow Deployer to delete from Staging bucket
       actions: ['s3:GetObject', 's3:ListBucket'],
       resources: [`${bucketAppsStaging.bucketArn}/*`, bucketAppsStaging.bucketArn],
     });
