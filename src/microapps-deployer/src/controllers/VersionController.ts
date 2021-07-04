@@ -60,7 +60,7 @@ export default class VersionController {
         ],
       });
 
-      Log.Instance.info('Temp IAM Policy', { policy: iamPolicyDoc.toJSON() });
+      Log.Instance.info('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
 
       // Assume the upload role with limit S3 permissions
       const stsResult = await stsClient.send(
@@ -68,7 +68,7 @@ export default class VersionController {
           RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
           DurationSeconds: 60 * 60,
           RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
-          Policy: iamPolicyDoc.toJSON(),
+          Policy: JSON.stringify(iamPolicyDoc.toJSON()),
         }),
       );
 
