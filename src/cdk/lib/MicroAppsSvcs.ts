@@ -87,8 +87,9 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
 
     // Create Deployer Lambda Function
     const iamRoleUploadName = `microapps-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
+    const deployerFuncName = `microapps-deployer${shared.envSuffix}${shared.prSuffix}`;
     const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
-      functionName: iamRoleUploadName,
+      functionName: deployerFuncName,
       entry: './src/microapps-deployer/src/index.ts',
       handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,
