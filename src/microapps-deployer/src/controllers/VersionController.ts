@@ -48,10 +48,12 @@ export default class VersionController {
       const iamPolicyDoc = new iamCDK.PolicyDocument({
         statements: [
           new iamCDK.PolicyStatement({
+            effect: iamCDK.Effect.ALLOW,
             actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
             resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
           }),
           new iamCDK.PolicyStatement({
+            effect: iamCDK.Effect.ALLOW,
             actions: ['s3:ListBucket'],
             resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
           }),
@@ -66,7 +68,7 @@ export default class VersionController {
           RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
           DurationSeconds: 60 * 60,
           RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
-          Policy: encodeURIComponent(iamPolicyDoc.toJSON()),
+          Policy: iamPolicyDoc.toJSON(),
         }),
       );
 
