@@ -258,6 +258,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     });
     deployerFunc.addToRolePolicy(policyGetSTSToken);
 
+    // Allow the deployer to assume the upload role
+    const policyAssumeUpload = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['sts:AssumeRole'],
+      resources: [iamRoleUpload.roleArn],
+    });
+    deployerFunc.addToRolePolicy(policyAssumeUpload);
+
     //
     // Router Lambda Function
     //
