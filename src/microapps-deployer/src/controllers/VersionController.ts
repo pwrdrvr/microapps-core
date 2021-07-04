@@ -58,6 +58,8 @@ export default class VersionController {
         ],
       });
 
+      Log.Instance.info('Temp IAM Policy', { policy: iamPolicyDoc.toJSON() });
+
       // Assume the upload role with limit S3 permissions
       const stsResult = await stsClient.send(
         new sts.AssumeRoleCommand({
