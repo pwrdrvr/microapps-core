@@ -1,3 +1,4 @@
+import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { IConfig } from './config/Config';
 import S3TransferUtility from './S3TransferUtility';
 import path from 'path';
@@ -6,7 +7,11 @@ import fs from 'fs-extra';
 export default class S3Uploader {
   private static readonly _tempDir = './deploytool-temp';
 
-  public static async Upload(config: IConfig, s3UploadPath: string): Promise<void> {
+  public static async Upload(
+    config: IConfig,
+    s3UploadPath: string,
+    preflightResponse: IDeployVersionPreflightResponse,
+  ): Promise<void> {
     try {
       //const destinationPrefix = `${config.app.name}/${config.app.semVer}`;
 
@@ -26,7 +31,12 @@ export default class S3Uploader {
       await fs.copy(config.app.staticAssetsPath, tempUploadPath);
 
       // Do the upload
-      await S3TransferUtility.UploadDir(this._tempDir, destinationPrefix, bucketName);
+      await S3TransferUtility.UploadDir(
+        this._tempDir,
+        destinationPrefix,
+        bucketName,
+        preflightResponse,
+      );
     } finally {
       // Delete the directory, now that it's uploaded or if we failed
       await S3Uploader.removeTempDirIfExists();

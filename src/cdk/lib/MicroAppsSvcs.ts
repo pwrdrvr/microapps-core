@@ -249,6 +249,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     });
     deployerFunc.addToRolePolicy(policyReadWriteListTarget);
 
+    // Allow the deployer to get a temporary STS token
+    const policyGetSTSToken = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['sts:GetFederationToken'],
+      resources: ['*'],
+    });
+    deployerFunc.addToRolePolicy(policyGetSTSToken);
+
     //
     // Router Lambda Function
     //
