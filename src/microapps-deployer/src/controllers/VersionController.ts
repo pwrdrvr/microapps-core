@@ -50,7 +50,7 @@ export default class VersionController {
           new iamCDK.PolicyStatement({
             effect: iamCDK.Effect.ALLOW,
             actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
-            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}fake/*`],
           }),
           new iamCDK.PolicyStatement({
             effect: iamCDK.Effect.ALLOW,
