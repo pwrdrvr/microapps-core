@@ -50,6 +50,11 @@ export interface IDeployerResponse {
 
 export interface IDeployVersionPreflightResponse extends IDeployerResponse {
   s3UploadUrl?: string;
+  awsCredentials?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+  };
 }
 
 export async function handler(

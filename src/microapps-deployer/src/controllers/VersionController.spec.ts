@@ -1,6 +1,7 @@
 import { describe, it } from 'mocha';
 import * as chai from 'chai';
 import * as s3 from '@aws-sdk/client-s3';
+import * as sts from '@aws-sdk/client-sts';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
@@ -25,6 +26,7 @@ chai.use(chaiAsPromised);
 const { expect } = chai;
 
 let s3Client: AwsClientStub<s3.S3Client>;
+let stsClient: AwsClientStub<sts.STSClient>;
 let apigwyClient: AwsClientStub<apigwy.ApiGatewayV2Client>;
 let lambdaClient: AwsClientStub<lambda.LambdaClient>;
 
@@ -54,6 +56,7 @@ describe('VersionController', () => {
 
     sandbox = sinon.createSandbox();
     s3Client = mockClient(s3.S3Client);
+    stsClient = mockClient(sts.STSClient);
     apigwyClient = mockClient(apigwy.ApiGatewayV2Client);
     lambdaClient = mockClient(lambda.LambdaClient);
   });
@@ -68,6 +71,15 @@ describe('VersionController', () => {
 
   describe('deployVersionPreflight', () => {
     it('should return 404 for version that does not exist', async () => {
+      stsClient.on(sts.AssumeRoleCommand).resolves({
+        Credentials: {
+          AccessKeyId: 'cat',
+          SecretAccessKey: 'dog',
+          SessionToken: 'frog',
+          Expiration: new Date(),
+        },
+      });
+
       const response = await handler(
         {
           appName: 'NewApp',
@@ -80,6 +92,15 @@ describe('VersionController', () => {
     });
 
     it('should return 200 for version that exists', async () => {
+      stsClient.on(sts.AssumeRoleCommand).resolves({
+        Credentials: {
+          AccessKeyId: 'cat',
+          SecretAccessKey: 'dog',
+          SessionToken: 'frog',
+          Expiration: new Date(),
+        },
+      });
+
       const version = new Version({
         AppName: 'NewApp',
         DefaultFile: '',
