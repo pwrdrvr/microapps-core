@@ -178,7 +178,11 @@ class PublishTool {
 
       // Upload Files to S3 Staging AppName/Version Prefix
       console.log('Copying S3 assets');
-      await S3Uploader.Upload(config, preflightResponse.response.s3UploadUrl);
+      await S3Uploader.Upload(
+        config,
+        preflightResponse.response.s3UploadUrl,
+        preflightResponse.response,
+      );
 
       // Call Deployer to Create App if Not Exists
       console.log(`Creating MicroApp Application: ${config.app.name}`);

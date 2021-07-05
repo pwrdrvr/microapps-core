@@ -2,6 +2,7 @@
 // From: https://stackoverflow.com/a/65862128/878903
 //
 
+import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
 import { Upload } from '@aws-sdk/lib-storage';
@@ -28,8 +29,16 @@ export default class S3TransferUtility {
     s3Path: string,
     destPrefixPath: string,
     bucketName: string,
+    preflightResponse: IDeployVersionPreflightResponse,
   ): Promise<void> {
-    const s3Client = new s3.S3Client({});
+    // Use temp credentials for S3
+    const s3Client = new s3.S3Client({
+      credentials: {
+        accessKeyId: preflightResponse.awsCredentials.accessKeyId,
+        secretAccessKey: preflightResponse.awsCredentials.secretAccessKey,
+        sessionToken: preflightResponse.awsCredentials.sessionToken,
+      },
+    });
 
     console.log(`Uploading files to S3`);
     const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
