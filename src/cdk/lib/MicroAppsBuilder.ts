@@ -24,7 +24,7 @@ export class MicroAppsBuilder extends cdk.Stack {
     // This stack is deployed manually once per env, it's never a temp stack
     SharedTags.addEnvTag(this, shared.env, false);
 
-    const nameRoot = `microapps-builder${shared.envSuffix}`;
+    const nameRoot = `${shared.stackName}-builder${shared.envSuffix}`;
 
     //
     // Create a policy that grants permissions needed to deploy the stack
