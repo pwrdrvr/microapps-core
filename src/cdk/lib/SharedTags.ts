@@ -1,14 +1,23 @@
 import * as cdk from '@aws-cdk/core';
+import SharedProps from './SharedProps';
 import { Env } from './Types';
 
+interface SharedTagsProps {
+  shared: SharedProps;
+}
+
 export default class SharedTags {
-  public static addSharedTags(construct: cdk.IConstruct, prSuffix = ''): void {
+  public static addSharedTags(construct: cdk.IConstruct, props: SharedTagsProps): void {
+    const { shared } = props;
     cdk.Tags.of(construct).add('repository', 'https://github.com/pwrdrvr/microapps-core/');
-    cdk.Tags.of(construct).add('application', `microapps-core${prSuffix}`);
+    cdk.Tags.of(construct).add(
+      'application',
+      `${shared.stackName}-core${shared.envSuffix}${shared.prSuffix}`,
+    );
   }
 
   public static addEnvTag(construct: cdk.IConstruct, env: Env | '', isEphemeral: boolean): void {
-    if (env !== '' && env !== undefined) cdk.Tags.of(construct).add('Environment', env);
+    if (env !== '' && env !== undefined) cdk.Tags.of(construct).add('environment', env);
     if (isEphemeral) {
       cdk.Tags.of(construct).add('ephemeral', 'true');
       // Note: a dynamic timestamp tag causes all dependency stacks

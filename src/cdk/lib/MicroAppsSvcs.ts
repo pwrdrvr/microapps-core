@@ -55,18 +55,18 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
     const { cert, domainNameOrigin } = props.local;
-    const { shared, autoDeleteEverything: autoDeleteItems } = props;
+    const { shared, autoDeleteEverything } = props;
     const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
 
     SharedTags.addEnvTag(this, shared.env, shared.isPR);
 
-    const apigatewayName = `microapps${shared.envSuffix}${shared.prSuffix}`;
+    const apigatewayName = `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`;
 
     //
     // DynamoDB Table
     //
     const table = new dynamodb.Table(this, 'microapps-router-table', {
-      tableName: `microapps${shared.envSuffix}${shared.prSuffix}`,
+      tableName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',
@@ -86,8 +86,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
 
     // Create Deployer Lambda Function
-    const iamRoleUploadName = `microapps-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
-    const deployerFuncName = `microapps-deployer${shared.envSuffix}${shared.prSuffix}`;
+    const iamRoleUploadName = `${shared.stackName}-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
+    const deployerFuncName = `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`;
     const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
       functionName: deployerFuncName,
       entry: './src/microapps-deployer/src/index.ts',
@@ -169,7 +169,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       policyDenyPrefixOutsideTag.addCondition(
         // Allows the DeletableBucket Lambda to delete items in the buckets
         'StringNotLike',
-        { 'aws:PrincipalTag/application': 'microapps-core*' },
+        { 'aws:PrincipalTag/application': `${shared.stackName}-core*` },
       );
     }
     const policyDenyMissingTag = new iam.PolicyStatement({
@@ -206,7 +206,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       policyDenyMissingTag.addCondition(
         // Allows the DeletableBucket Lambda to delete items in the buckets
         'StringNotLike',
-        { 'aws:PrincipalTag/application': 'microapps-core*' },
+        { 'aws:PrincipalTag/application': `${shared.stackName}-core*` },
       );
     }
     const policyCloudFrontAccess = new iam.PolicyStatement({
@@ -278,7 +278,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     const routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
-      functionName: `microapps-router${shared.envSuffix}${shared.prSuffix}`,
+      functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
       entry: './src/microapps-router/src/index.ts',
       handler: 'handler',
       logRetention: logs.RetentionDays.ONE_MONTH,

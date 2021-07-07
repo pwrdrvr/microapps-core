@@ -16,7 +16,7 @@ const env: cdk.Environment = {
   account: shared.account,
 };
 
-SharedTags.addSharedTags(app);
+SharedTags.addSharedTags(app, { shared });
 
 const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`, {
   env,
