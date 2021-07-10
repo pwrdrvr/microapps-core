@@ -5,6 +5,9 @@
       "path": "./src/cdk/"
     },
     {
+      "path": "./src/common/microapps-cdk/"
+    },
+    {
       "path": "./src/common/microapps-datalib/"
     },
     {
