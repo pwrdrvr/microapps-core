@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { Env } from './Types';
 
-export default class SharedProps {
+export class SharedProps {
   // input like 'example.com.' will return as 'com.example'
   private static reverseDomain(domain: string): string {
     let parts = domain.split('.').reverse();

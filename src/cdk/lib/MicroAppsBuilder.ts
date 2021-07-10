@@ -1,7 +1,7 @@
 import * as iam from '@aws-cdk/aws-iam';
 import * as cdk from '@aws-cdk/core';
-import SharedProps from './SharedProps';
-import SharedTags from './SharedTags';
+import { SharedProps } from './SharedProps';
+import { SharedTags } from './SharedTags';
 
 interface IMicroAppsBuilderStackProps extends cdk.StackProps {
   readonly shared: SharedProps;
