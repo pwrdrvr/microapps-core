@@ -319,6 +319,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
         entry: './src/microapps-router/src/index.ts',
         handler: 'handler',
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
         ...routerFuncProps,
       });
     }
