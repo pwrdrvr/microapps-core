@@ -124,8 +124,16 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       },
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-deployer/index.js`)) {
+      // This is for local dev
       deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
         code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-deployer/`),
+        handler: 'index.handler',
+        ...deployerFuncProps,
+      });
+    } else if (existsSync(`${path.resolve(__dirname)}/lib/microapps-deployer/index.js`)) {
+      // This is for built apps packaged with the CDK construct
+      deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/lib/microapps-deployer/`),
         handler: 'index.handler',
         ...deployerFuncProps,
       });
@@ -329,8 +337,16 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       layers: [routerDataFiles],
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
+      // This is for local dev
       routerFunc = new lambda.Function(this, 'microapps-router-func', {
         code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
+        handler: 'index.handler',
+        ...routerFuncProps,
+      });
+    } else if (existsSync(`${path.resolve(__dirname)}/lib/microapps-router/index.js`)) {
+      // This is for built apps packaged with the CDK construct
+      routerFunc = new lambda.Function(this, 'microapps-router-func', {
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/lib/microapps-router/`),
         handler: 'index.handler',
         ...routerFuncProps,
       });
