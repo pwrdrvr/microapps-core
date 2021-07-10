@@ -1,6 +1,6 @@
 import * as lambda from '@aws-sdk/client-lambda';
 
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
 import {
   IDeployVersionPreflightRequest,
   IDeployVersionPreflightResponse,

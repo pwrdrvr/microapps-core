@@ -6,7 +6,7 @@ import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
 import * as s3 from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
 import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { contentType } from 'mime-types';
 import pMap from 'p-map';
