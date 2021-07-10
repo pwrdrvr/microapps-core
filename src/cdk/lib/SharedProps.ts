@@ -105,11 +105,15 @@ export default class SharedProps {
     this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') || 'microapps';
 
     // Determine if we have a PR number
-    const prPrefix = 'pr/';
-    const sourceVersion = process.env['CODEBUILD_SOURCE_VERSION'];
-    const isPR = sourceVersion?.indexOf(prPrefix) === 0;
-    if (isPR) {
-      this._pr = sourceVersion?.slice(prPrefix.length) as string;
+    if (process.env.CODEBUILD_SOURCE_VERSION !== undefined) {
+      const prPrefix = 'pr/';
+      const sourceVersion = process.env['CODEBUILD_SOURCE_VERSION'];
+      const isPR = sourceVersion?.indexOf(prPrefix) === 0;
+      if (isPR) {
+        this._pr = sourceVersion?.slice(prPrefix.length) as string;
+      }
+    } else if (process.env.PR_NUMBER !== undefined) {
+      this._pr = process.env.PR_NUMBER;
     }
 
     // Determine the env from NODE_ENV

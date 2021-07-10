@@ -18,8 +18,9 @@ const env: cdk.Environment = {
 
 SharedTags.addSharedTags(app, { shared });
 
-const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`, {
+const apps = new MicroApps(app, 'microapps', {
   env,
+  stackName: `microapps${shared.envSuffix}${shared.prSuffix}`,
   local: {
     ttl: shared.isPR ? shared.ttlBase : undefined,
     autoDeleteEverything: true,
@@ -28,7 +29,8 @@ const apps = new MicroApps(app, `microapps${shared.envSuffix}${shared.prSuffix}`
 });
 
 // Note: This is only run manually once per env to create build user
-const builder = new MicroAppsBuilder(app, `microapps-builder${shared.envSuffix}`, {
+const builder = new MicroAppsBuilder(app, 'microapps-builder', {
+  stackName: `microapps-builder${shared.envSuffix}`,
   shared,
   env,
 });
