@@ -14,7 +14,7 @@ export interface MicroAppsProps extends cdk.StackProps {
 
   readonly appEnv: string;
 
-  readonly assetNameRoot?: string;
+  readonly assetNameRoot: string;
   readonly assetNameSuffix?: string;
 
   readonly reverseDomainName: string;
@@ -57,7 +57,7 @@ export class MicroApps extends cdk.Stack {
       microapps: props,
       s3Exports: s3,
     });
-    const svcs = new MicroAppsSvcs(this, 'microapps-svcs', {
+    new MicroAppsSvcs(this, 'microapps-svcs', {
       microapps: props,
       cfStackExports: cf,
       s3Exports: s3,
