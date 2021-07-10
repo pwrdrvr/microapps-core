@@ -1,5 +1,6 @@
 import * as lambda from '@aws-sdk/client-lambda';
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import {
   IDeployVersionPreflightRequest,
   IDeployVersionPreflightResponse,

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { Application } from '@pwrdrvr/microapps-datalib';
 import { ICreateApplicationRequest, IDeployerResponse } from '../index';
 

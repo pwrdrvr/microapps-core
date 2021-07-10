@@ -2,11 +2,12 @@ import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { Version } from '@pwrdrvr/microapps-datalib';
+// eslint-disable-next-line import/no-unresolved
 import type * as lambdaTypes from 'aws-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
 import * as chai from 'chai';
-import { config } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { describe, it } from 'mocha';
 import sinon from 'sinon';

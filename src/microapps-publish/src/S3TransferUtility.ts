@@ -6,25 +6,12 @@ import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
 import * as s3 from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { contentType } from 'mime-types';
 import pMap from 'p-map';
 
 export default class S3TransferUtility {
-  // Recursive getFiles from
-  // https://stackoverflow.com/a/45130990/831465
-
-  private static async GetFiles(dir: string): Promise<string | string[]> {
-    const dirents = await fs.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(
-      dirents.map((dirent) => {
-        const res = path.resolve(dir, dirent.name);
-        return dirent.isDirectory() ? S3TransferUtility.GetFiles(res) : res;
-      }),
-    );
-    return Array.prototype.concat(...files);
-  }
-
   public static async UploadDir(
     s3Path: string,
     destPrefixPath: string,
@@ -78,5 +65,18 @@ export default class S3TransferUtility {
       //     CacheControl: 'max-age=86400; public',
       //   }),
     );
+  }
+  // Recursive getFiles from
+  // https://stackoverflow.com/a/45130990/831465
+
+  private static async GetFiles(dir: string): Promise<string | string[]> {
+    const dirents = await fs.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      dirents.map((dirent) => {
+        const res = path.resolve(dir, dirent.name);
+        return dirent.isDirectory() ? S3TransferUtility.GetFiles(res) : res;
+      }),
+    );
+    return Array.prototype.concat(...files);
   }
 }

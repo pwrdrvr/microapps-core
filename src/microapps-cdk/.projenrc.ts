@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } from 'projen';
 const project = new AwsCdkConstructLibrary({
   author: 'Harold Hunt',

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import * as dynamodb from '@aws-sdk/client-dynamodb';

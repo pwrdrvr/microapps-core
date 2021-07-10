@@ -1,6 +1,6 @@
-import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { MicroApps } from '@pwrdrvr/microapps-cdk';
 import { Imports } from './Imports';
 import { SharedProps } from './SharedProps';
