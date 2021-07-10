@@ -41,10 +41,23 @@ const project = new AwsCdkConstructLibrary({
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
-  devDeps: [],
+  devDeps: ['esbuild'],
 
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */
   // release: undefined,                /* Add release management to this project. */
 });
+
+// Move the parent node_modules back into place now that jsii is done
+project.compileTask.exec(
+  'if [[ -d ../../node_modules_hide ]]; then mv ../../node_modules_hide ../../node_modules; fi',
+);
+
+project.compileTask.exec(
+  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
+);
+project.compileTask.exec(
+  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-router/index.js',
+);
+
 project.synth();
