@@ -45,7 +45,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       throw new Error('props must be set');
     }
 
-    const { shared, s3Exports, autoDeleteEverything: autoDeleteItems } = props;
+    const { shared, s3Exports, autoDeleteEverything } = props;
     const { domainNameEdge } = props.local;
     const { r53ZoneID, r53ZoneName } = shared;
 

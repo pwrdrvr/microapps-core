@@ -34,7 +34,7 @@ export default class SharedProps {
     return true;
   }
 
-  private _stackName = 'microapps';
+  private _stackName: string;
   public get stackName(): string {
     return this._stackName;
   }
@@ -102,6 +102,7 @@ export default class SharedProps {
     this._s3PolicyBypassAROA = scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROA');
     this._account = scope.node.tryGetContext('@pwrdrvr/microapps:account');
     this._region = scope.node.tryGetContext('@pwrdrvr/microapps:region');
+    this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') || 'microapps';
 
     // Determine if we have a PR number
     const prPrefix = 'pr/';

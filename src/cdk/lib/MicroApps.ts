@@ -50,8 +50,6 @@ export class MicroApps extends cdk.Stack {
       });
     }
 
-    SharedTags.addSharedTags(this);
-
     const domainNameEdge = `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
     const domainNameOrigin = `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
 
