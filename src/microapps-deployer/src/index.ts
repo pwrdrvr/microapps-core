@@ -1,4 +1,5 @@
 // Used by ts-convict
+import 'source-map-support/register';
 import 'reflect-metadata';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';

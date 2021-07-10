@@ -32,6 +32,7 @@
     "js-yaml": "^4.1.0",
     "lambda-log": "^2.4.0",
     "reflect-metadata": "^0.1.13",
+    "source-map-support": "^0.5.19",
     "ts-convict": "^1.1.0",
     "tslib": "^2.1.0"
   },
@@ -45,6 +46,7 @@
     "@types/lambda-log": "^2.2.0",
     "@types/sinon": "^10.0.0",
     "@types/sinon-chai": "^3.2.5",
+    "@types/source-map-support": "^0.5.4",
     "aws-sdk-client-mock": "^0.3.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
