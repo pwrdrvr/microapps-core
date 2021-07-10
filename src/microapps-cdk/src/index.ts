@@ -1,3 +1,3 @@
-import { MicroApps } from './MicroApps';
+import { MicroApps, MicroAppsProps } from './MicroApps';
 
-export { MicroApps };
+export { MicroApps, MicroAppsProps };

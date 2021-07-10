@@ -1,11 +1,8 @@
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as cdk from '@aws-cdk/core';
-import SharedProps from './SharedProps';
+import { SharedProps } from './SharedProps';
 
-interface IImportsProps {
-  readonly local: {
-    // None yet
-  };
+interface ImportsProps {
   readonly shared: SharedProps;
 }
 export interface IImportsExports {
@@ -23,7 +20,7 @@ export class Imports extends cdk.Construct implements IImportsExports {
     return this._certOrigin;
   }
 
-  constructor(scope: cdk.Construct, id: string, props?: IImportsProps) {
+  constructor(scope: cdk.Construct, id: string, props?: ImportsProps) {
     super(scope, id);
 
     if (props === undefined) {

@@ -1,7 +1,9 @@
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { MicroApps } from '@pwrdrvr/microapps-cdk';
 import { Imports } from './Imports';
+import { SharedProps } from './SharedProps';
 
 export interface MicroAppsStackProps extends cdk.StackProps {
   /**
@@ -18,29 +20,10 @@ export interface MicroAppsStackProps extends cdk.StackProps {
    */
   readonly autoDeleteEverything?: boolean;
 
-  // readonly env: string;
+  readonly domainNameEdge: string;
+  readonly domainNameOrigin: string;
 
-  readonly assetRootName?: string;
-
-  readonly reverseDomainName: string;
-
-  readonly domainName: string;
-
-  readonly r53ZoneName: string;
-
-  readonly r53ZoneID: string;
-
-  readonly certARNEdge: string;
-
-  readonly certARNOrigin: string;
-
-  readonly s3PolicyBypassRoleName: string;
-
-  readonly s3PolicyBypassAROA: string;
-
-  readonly account: string;
-
-  readonly region: string;
+  readonly shared: SharedProps;
 }
 
 export class MicroAppsStack extends cdk.Stack {
@@ -51,7 +34,7 @@ export class MicroAppsStack extends cdk.Stack {
       throw new Error('props must be set');
     }
 
-    const { ttl, autoDeleteEverything = false } = props;
+    const { ttl, autoDeleteEverything = false, shared } = props;
 
     // Set stack to delete if this is a PR build
     if (ttl !== undefined) {
@@ -63,34 +46,25 @@ export class MicroAppsStack extends cdk.Stack {
       });
     }
 
-    const domainNameEdge = `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
-    const domainNameOrigin = `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
+    const imports = new Imports(this, 'microapps-imports', {
+      shared,
+    });
 
-    const imports = new Imports(this, `microapps-imports${shared.envSuffix}${shared.prSuffix}`, {
-      microapps: props,
-    });
-    const s3 = new MicroAppsS3(this, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
-      microapps: props,
-    });
-    const cf = new MicroAppsCF(this, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
-      microapps: props,
-      local: {
-        cert: imports.certEdge,
-        domainNameEdge,
-        domainNameOrigin,
-      },
-      s3Exports: s3,
-    });
-    const svcs = new MicroAppsSvcs(this, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
-      microapps: props,
-      cfStackExports: cf,
-      s3Exports: s3,
-      autoDeleteEverything,
-      local: {
-        domainNameEdge,
-        domainNameOrigin,
-        cert: imports.certOrigin,
-      },
+    new MicroApps(this, 'microapps', {
+      account: shared.account,
+      region: shared.region,
+      appEnv: shared.env,
+      assetNameRoot: `${shared.stackName}`,
+      assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
+      domainNameEdge: props.domainNameEdge,
+      domainNameOrigin: props.domainNameOrigin,
+      certEdge: imports.certEdge,
+      certOrigin: imports.certOrigin,
+      domainName: shared.domainName,
+      r53ZoneID: shared.r53ZoneID,
+      r53ZoneName: shared.r53ZoneName,
+      s3PolicyBypassAROA: shared.s3PolicyBypassAROA,
+      s3PolicyBypassRoleName: shared.s3PolicyBypassRoleName,
     });
   }
 }

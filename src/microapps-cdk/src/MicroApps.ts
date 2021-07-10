@@ -4,7 +4,7 @@ import { MicroAppsCF } from './MicroAppsCF';
 import { MicroAppsS3 } from './MicroAppsS3';
 import { MicroAppsSvcs } from './MicroAppsSvcs';
 
-export interface MicroAppsProps extends cdk.StackProps {
+export interface MicroAppsProps {
   /**
    * Automatically destroy all assets when stack is deleted
    *
@@ -16,8 +16,6 @@ export interface MicroAppsProps extends cdk.StackProps {
 
   readonly assetNameRoot: string;
   readonly assetNameSuffix?: string;
-
-  readonly reverseDomainName: string;
 
   readonly domainName: string;
 
@@ -42,25 +40,79 @@ export interface MicroAppsProps extends cdk.StackProps {
   readonly domainNameOrigin: string;
 }
 
-export class MicroApps extends cdk.Stack {
+export class MicroApps extends cdk.Construct {
+  // input like 'example.com.' will return as 'com.example'
+  private static reverseDomain(domain: string): string {
+    let parts = domain.split('.').reverse();
+    if (parts[0] === '') {
+      parts = parts.slice(1);
+    }
+    return parts.join('.');
+  }
+
   constructor(scope: cdk.Construct, id: string, props?: MicroAppsProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     if (props === undefined) {
       throw new Error('props must be set');
     }
 
+    const {
+      domainName,
+      domainNameEdge,
+      domainNameOrigin,
+      assetNameRoot,
+      assetNameSuffix = '',
+      autoDeleteEverything = false,
+      r53ZoneID,
+      r53ZoneName,
+      certEdge,
+      account,
+      region,
+      appEnv,
+      certOrigin,
+      s3PolicyBypassAROA,
+      s3PolicyBypassRoleName,
+    } = props;
+    const reverseDomainName = MicroApps.reverseDomain(domainName);
+
     const s3 = new MicroAppsS3(this, 'microapps-s3', {
-      microapps: props,
+      reverseDomainName,
+      assetNameRoot,
+      assetNameSuffix,
     });
     const cf = new MicroAppsCF(this, 'microapps-cloudfront', {
-      microapps: props,
       s3Exports: s3,
+      assetNameRoot,
+      assetNameSuffix,
+      domainName,
+      reverseDomainName,
+      domainNameEdge,
+      domainNameOrigin,
+      autoDeleteEverything,
+      r53ZoneID,
+      r53ZoneName,
+      certEdge,
     });
     new MicroAppsSvcs(this, 'microapps-svcs', {
-      microapps: props,
       cfStackExports: cf,
       s3Exports: s3,
+      assetNameRoot,
+      assetNameSuffix,
+      domainName,
+      reverseDomainName,
+      domainNameEdge,
+      domainNameOrigin,
+      autoDeleteEverything,
+      r53ZoneID,
+      r53ZoneName,
+      certEdge,
+      account,
+      region,
+      appEnv,
+      certOrigin,
+      s3PolicyBypassAROA,
+      s3PolicyBypassRoleName,
     });
   }
 }

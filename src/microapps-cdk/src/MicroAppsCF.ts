@@ -1,9 +1,9 @@
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as cf from '@aws-cdk/aws-cloudfront';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as cdk from '@aws-cdk/core';
-import { MicroAppsProps } from './MicroApps';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 
 export interface IMicroAppsCFExports {
@@ -11,8 +11,20 @@ export interface IMicroAppsCFExports {
 }
 
 interface MicroAppsCFProps extends cdk.ResourceProps {
-  readonly microapps: MicroAppsProps;
+  readonly autoDeleteEverything: boolean;
   readonly s3Exports: IMicroAppsS3Exports;
+  readonly reverseDomainName: string;
+  readonly domainName: string;
+  readonly domainNameEdge: string;
+  readonly domainNameOrigin: string;
+
+  readonly assetNameRoot: string;
+  readonly assetNameSuffix: string;
+
+  readonly certEdge: acm.ICertificate;
+
+  readonly r53ZoneName: string;
+  readonly r53ZoneID: string;
 }
 
 export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
@@ -28,8 +40,18 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       throw new Error('props must be set');
     }
 
-    const { microapps, s3Exports } = props;
-    const { domainNameEdge, domainNameOrigin } = microapps;
+    const {
+      s3Exports,
+      domainNameEdge,
+      domainNameOrigin,
+      reverseDomainName,
+      autoDeleteEverything,
+      certEdge,
+      assetNameRoot,
+      assetNameSuffix,
+      r53ZoneName,
+      r53ZoneID,
+    } = props;
 
     //
     // CloudFront Distro
@@ -39,9 +61,9 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
     this._cloudFrontDistro = new cf.Distribution(this, 'microapps-cloudfront', {
-      comment: `${microapps.assetNameRoot}${microapps.assetNameSuffix}`,
-      domainNames: [microapps.domainNameEdge],
-      certificate: microapps.certEdge,
+      comment: `${assetNameRoot}${assetNameSuffix}`,
+      domainNames: [domainNameEdge],
+      certificate: certEdge,
       httpVersion: cf.HttpVersion.HTTP2,
       defaultBehavior: {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
@@ -55,9 +77,9 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       priceClass: cf.PriceClass.PRICE_CLASS_100,
       enableLogging: true,
       logBucket: props.s3Exports.bucketLogs,
-      logFilePrefix: `${microapps.reverseDomainName}/cloudfront-raw/`,
+      logFilePrefix: `${reverseDomainName}/cloudfront-raw/`,
     });
-    if (props.microapps.autoDeleteEverything) {
+    if (autoDeleteEverything) {
       this._cloudFrontDistro.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
@@ -101,8 +123,8 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
     //
 
     const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
-      zoneName: microapps.r53ZoneName,
-      hostedZoneId: microapps.r53ZoneID,
+      zoneName: r53ZoneName,
+      hostedZoneId: r53ZoneID,
     });
 
     const rrAppsEdge = new r53.RecordSet(this, 'microapps-edge-arecord', {
@@ -111,7 +133,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(this._cloudFrontDistro)),
       zone,
     });
-    if (microapps.autoDeleteEverything) {
+    if (autoDeleteEverything) {
       rrAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
   }
