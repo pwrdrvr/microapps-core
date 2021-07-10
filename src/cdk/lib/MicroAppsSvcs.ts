@@ -92,6 +92,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const deployerFuncName = `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`;
     let deployerFunc: lambda.Function;
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
+      functionName: deployerFuncName,
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
@@ -108,14 +109,12 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-deployer/index.js`)) {
       deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
-        functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
         code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-deployer/`),
         handler: 'index.handler',
         ...deployerFuncProps,
       });
     } else {
       deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
-        functionName: deployerFuncName,
         entry: './src/microapps-deployer/src/index.ts',
         handler: 'handler',
         bundling: {
@@ -300,6 +299,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     }
     let routerFunc: lambda.Function;
     const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
+      functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
@@ -313,14 +313,12 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
       routerFunc = new lambda.Function(this, 'microapps-router-func', {
-        functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
         code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
         handler: 'index.handler',
         ...routerFuncProps,
       });
     } else {
       routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
-        functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
         entry: './src/microapps-router/src/index.ts',
         handler: 'handler',
         bundling: {
