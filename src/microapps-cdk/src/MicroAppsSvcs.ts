@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import path from 'path';
+import * as path from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
