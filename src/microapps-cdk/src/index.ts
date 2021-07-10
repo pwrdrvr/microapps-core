@@ -1,5 +1,3 @@
-export class Hello {
-  public sayHello() {
-    return 'hello, world!';
-  }
-}
+import { MicroApps } from './MicroApps';
+
+export { MicroApps };

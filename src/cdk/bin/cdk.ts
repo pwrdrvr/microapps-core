@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { MicroApps } from '../lib/MicroApps';
-import SharedTags from '../lib/SharedTags';
-import SharedProps from '../lib/SharedProps';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
+import SharedProps from '../lib/SharedProps';
+import SharedTags from '../lib/SharedTags';
+import { MicroApps } from '../lib/MicroApps';
 
 const app = new cdk.App();
 

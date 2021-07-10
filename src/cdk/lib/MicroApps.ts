@@ -1,49 +1,62 @@
-#!/usr/bin/env node
-import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
-import { MicroAppsCF } from '../lib/MicroAppsCF';
-import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
-import { MicroAppsS3 } from '../lib/MicroAppsS3';
-import SharedTags from '../lib/SharedTags';
-import { Imports } from '../lib/Imports';
-import SharedProps from '../lib/SharedProps';
+import { MicroApps } from '@pwrdrvr/microapps-cdk';
+import { Imports } from './Imports';
 
-interface IMicroAppsProps extends cdk.StackProps {
-  readonly local: {
-    /**
-     * Duration before stack is automatically deleted.
-     * Requires that autoDeleteEverything be set to true.
-     *
-     */
-    readonly ttl?: cdk.Duration;
+export interface MicroAppsStackProps extends cdk.StackProps {
+  /**
+   * Duration before stack is automatically deleted.
+   * Requires that autoDeleteEverything be set to true.
+   *
+   */
+  readonly ttl?: cdk.Duration;
 
-    /**
-     * Duration before stack is automatically deleted.
-     * Requires that autoDeleteEverything be set to true.
-     *
-     * @default false
-     */
-    readonly autoDeleteEverything?: boolean;
-  };
-  readonly shared: SharedProps;
+  /**
+   * Automatically destroy all assets when stack is deleted
+   *
+   * @default false
+   */
+  readonly autoDeleteEverything?: boolean;
+
+  // readonly env: string;
+
+  readonly assetRootName?: string;
+
+  readonly reverseDomainName: string;
+
+  readonly domainName: string;
+
+  readonly r53ZoneName: string;
+
+  readonly r53ZoneID: string;
+
+  readonly certARNEdge: string;
+
+  readonly certARNOrigin: string;
+
+  readonly s3PolicyBypassRoleName: string;
+
+  readonly s3PolicyBypassAROA: string;
+
+  readonly account: string;
+
+  readonly region: string;
 }
 
-export class MicroApps extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsProps) {
+export class MicroAppsStack extends cdk.Stack {
+  constructor(scope: cdk.Construct, id: string, props?: MicroAppsStackProps) {
     super(scope, id, props);
 
     if (props === undefined) {
       throw new Error('props must be set');
     }
 
-    const { shared, local } = props;
-    const { ttl, autoDeleteEverything: autoDeleteItems = false } = local;
+    const { ttl, autoDeleteEverything = false } = props;
 
     // Set stack to delete if this is a PR build
     if (ttl !== undefined) {
-      if (autoDeleteItems === false) {
-        throw new Error('autoDeleteItems must be true when ttl is set');
+      if (autoDeleteEverything === false) {
+        throw new Error('autoDeleteEverything must be true when ttl is set');
       }
       new TimeToLive(this, 'TimeToLive', {
         ttl,
@@ -54,16 +67,13 @@ export class MicroApps extends cdk.Stack {
     const domainNameOrigin = `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
 
     const imports = new Imports(this, `microapps-imports${shared.envSuffix}${shared.prSuffix}`, {
-      shared,
-      local: {},
+      microapps: props,
     });
     const s3 = new MicroAppsS3(this, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
-      autoDeleteEverything: autoDeleteItems,
-      shared,
+      microapps: props,
     });
     const cf = new MicroAppsCF(this, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
-      shared,
-      autoDeleteEverything: autoDeleteItems,
+      microapps: props,
       local: {
         cert: imports.certEdge,
         domainNameEdge,
@@ -72,15 +82,15 @@ export class MicroApps extends cdk.Stack {
       s3Exports: s3,
     });
     const svcs = new MicroAppsSvcs(this, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
+      microapps: props,
       cfStackExports: cf,
       s3Exports: s3,
-      autoDeleteEverything: autoDeleteItems,
+      autoDeleteEverything,
       local: {
         domainNameEdge,
         domainNameOrigin,
         cert: imports.certOrigin,
       },
-      shared,
     });
   }
 }

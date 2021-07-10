@@ -1,5 +1,5 @@
-import * as cdk from '@aws-cdk/core';
 import * as acm from '@aws-cdk/aws-certificatemanager';
+import * as cdk from '@aws-cdk/core';
 import SharedProps from './SharedProps';
 
 interface IImportsProps {

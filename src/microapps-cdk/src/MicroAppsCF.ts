@@ -1,67 +1,47 @@
-import * as cdk from '@aws-cdk/core';
-import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as cf from '@aws-cdk/aws-cloudfront';
+import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
-import * as acm from '@aws-cdk/aws-certificatemanager';
+import * as cdk from '@aws-cdk/core';
+import { MicroAppsProps } from './MicroApps';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
-import SharedProps from './SharedProps';
-import SharedTags from './SharedTags';
 
 export interface IMicroAppsCFExports {
-  readonly cloudFrontDistro: cloudfront.Distribution;
+  readonly cloudFrontDistro: cf.Distribution;
 }
 
-interface IMicroAppsCFProps extends cdk.ResourceProps {
-  readonly local: {
-    readonly cert: acm.ICertificate;
-    readonly domainNameEdge: string;
-    readonly domainNameOrigin: string;
-  };
-
-  readonly shared: SharedProps;
+interface MicroAppsCFProps extends cdk.ResourceProps {
+  readonly microapps: MicroAppsProps;
   readonly s3Exports: IMicroAppsS3Exports;
-
-  /**
-   * Duration before stack is automatically deleted.
-   * Requires that autoDeleteEverything be set to true.
-   *
-   * @default false
-   */
-  readonly autoDeleteEverything?: boolean;
 }
 
 export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
-  private _cloudFrontDistro: cloudfront.Distribution;
-  public get cloudFrontDistro(): cloudfront.Distribution {
+  private _cloudFrontDistro: cf.Distribution;
+  public get cloudFrontDistro(): cf.Distribution {
     return this._cloudFrontDistro;
   }
 
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsCFProps) {
+  constructor(scope: cdk.Construct, id: string, props?: MicroAppsCFProps) {
     super(scope, id);
 
     if (props === undefined) {
       throw new Error('props must be set');
     }
 
-    const { shared, s3Exports, autoDeleteEverything } = props;
-    const { domainNameEdge } = props.local;
-    const { r53ZoneID, r53ZoneName } = shared;
-
-    SharedTags.addEnvTag(this, shared.env, shared.isPR);
+    const { microapps, s3Exports } = props;
+    const { domainNameEdge, domainNameOrigin } = microapps;
 
     //
     // CloudFront Distro
     //
-    const apiGwyOrigin = new cforigins.HttpOrigin(props.local.domainNameOrigin, {
+    const apiGwyOrigin = new cforigins.HttpOrigin(domainNameOrigin, {
       protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
     this._cloudFrontDistro = new cf.Distribution(this, 'microapps-cloudfront', {
-      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
-      domainNames: [props.local.domainNameEdge],
-      certificate: props.local.cert,
+      comment: `${microapps.assetNameRoot}${microapps.assetNameSuffix}`,
+      domainNames: [microapps.domainNameEdge],
+      certificate: microapps.certEdge,
       httpVersion: cf.HttpVersion.HTTP2,
       defaultBehavior: {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
@@ -75,9 +55,9 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       priceClass: cf.PriceClass.PRICE_CLASS_100,
       enableLogging: true,
       logBucket: props.s3Exports.bucketLogs,
-      logFilePrefix: `${props.local.domainNameEdge.split('.').reverse().join('.')}/cloudfront-raw/`,
+      logFilePrefix: `${microapps.reverseDomainName}/cloudfront-raw/`,
     });
-    if (shared.isPR) {
+    if (props.microapps.autoDeleteEverything) {
       this._cloudFrontDistro.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
@@ -121,8 +101,8 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
     //
 
     const zone = r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
-      zoneName: r53ZoneName,
-      hostedZoneId: r53ZoneID,
+      zoneName: microapps.r53ZoneName,
+      hostedZoneId: microapps.r53ZoneID,
     });
 
     const rrAppsEdge = new r53.RecordSet(this, 'microapps-edge-arecord', {
@@ -131,7 +111,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
       target: r53.RecordTarget.fromAlias(new r53targets.CloudFrontTarget(this._cloudFrontDistro)),
       zone,
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       rrAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
   }
