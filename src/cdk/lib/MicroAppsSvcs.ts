@@ -15,6 +15,8 @@ import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 import { Code } from '@aws-cdk/aws-lambda';
+import { existsSync } from 'fs';
+import path from 'path';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
   readonly cfStackExports: IMicroAppsCFExports;
@@ -88,14 +90,12 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Create Deployer Lambda Function
     const iamRoleUploadName = `${shared.stackName}-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
     const deployerFuncName = `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`;
-    const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
+    let deployerFunc: lambda.Function;
+    const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
-      entry: './src/microapps-deployer/src/index.ts',
-      handler: 'handler',
-      logRetention: logs.RetentionDays.ONE_MONTH,
       memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
-      awsSdkConnectionReuse: true,
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
@@ -104,8 +104,26 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
         FILESTORE_DEST_BUCKET: bucketAppsName,
         UPLOAD_ROLE_NAME: iamRoleUploadName,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
-    });
+    };
+    if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-deployer/index.js`)) {
+      deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
+        code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-deployer/`),
+        handler: 'index.handler',
+        ...deployerFuncProps,
+      });
+    } else {
+      deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
+        entry: './src/microapps-deployer/src/index.ts',
+        handler: 'handler',
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
+        ...deployerFuncProps,
+      });
+    }
     if (shared.isPR) {
       deployerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
@@ -279,21 +297,37 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     if (shared.isPR) {
       routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
-    const routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
+    let routerFunc: lambda.Function;
+    const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
-      entry: './src/microapps-router/src/index.ts',
-      handler: 'handler',
-      logRetention: logs.RetentionDays.ONE_MONTH,
       memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
-      awsSdkConnectionReuse: true,
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
         DATABASE_TABLE_NAME: table.tableName,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
       layers: [routerDataFiles],
-    });
+    };
+    if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
+      routerFunc = new lambda.Function(this, 'microapps-router-func', {
+        code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
+        handler: 'index.handler',
+        ...routerFuncProps,
+      });
+    } else {
+      routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
+        entry: './src/microapps-router/src/index.ts',
+        handler: 'handler',
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
+        ...routerFuncProps,
+      });
+    }
     if (shared.isPR) {
       routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
