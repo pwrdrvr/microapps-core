@@ -2,13 +2,13 @@
 // From: https://stackoverflow.com/a/65862128/878903
 //
 
-import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
-import { Upload } from '@aws-sdk/lib-storage';
 import * as s3 from '@aws-sdk/client-s3';
-import pMap from 'p-map';
+import { Upload } from '@aws-sdk/lib-storage';
+import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { contentType } from 'mime-types';
+import pMap from 'p-map';
 
 export default class S3TransferUtility {
   // Recursive getFiles from
@@ -40,7 +40,7 @@ export default class S3TransferUtility {
       },
     });
 
-    console.log(`Uploading files to S3`);
+    console.log('Uploading files to S3');
     const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
     const pathWithoutAppAndVer = path.join(s3Path, destPrefixPath);
     for (const filePath of files) {

@@ -1,3 +1,11 @@
+import crypto from 'crypto';
+import * as iamCDK from '@aws-cdk/aws-iam';
+import * as apigwy from '@aws-sdk/client-apigatewayv2';
+import * as lambda from '@aws-sdk/client-lambda';
+import * as s3 from '@aws-sdk/client-s3';
+import * as sts from '@aws-sdk/client-sts';
+import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { IConfig } from '../config/Config';
 import {
   IDeployVersionRequest,
   IDeployVersionPreflightRequest,
@@ -5,16 +13,8 @@ import {
   IDeployVersionPreflightResponse,
   IDeployVersionRequestBase,
 } from '../index';
-import crypto from 'crypto';
-import * as lambda from '@aws-sdk/client-lambda';
-import * as iamCDK from '@aws-cdk/aws-iam';
-import * as s3 from '@aws-sdk/client-s3';
-import * as sts from '@aws-sdk/client-sts';
-import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import GatewayInfo from '../lib/GatewayInfo';
-import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
 import Log from '../lib/Log';
-import { IConfig } from '../config/Config';
 
 const lambdaClient = new lambda.LambdaClient({});
 const s3Client = new s3.S3Client({});
@@ -91,7 +91,7 @@ export default class VersionController {
     request: IDeployVersionRequest,
     config: IConfig,
   ): Promise<IDeployerResponse> {
-    Log.Instance.debug(`Got Body:`, request);
+    Log.Instance.debug('Got Body:', request);
 
     const destinationPrefix = VersionController.GetBucketPrefix(request);
 
@@ -314,8 +314,8 @@ export default class VersionController {
       const optionals =
         list?.NextContinuationToken !== undefined
           ? {
-              ContinuationToken: list.NextContinuationToken,
-            }
+            ContinuationToken: list.NextContinuationToken,
+          }
           : ({} as s3.ListObjectsV2CommandInput);
       list = await s3Client.send(
         new s3.ListObjectsV2Command({

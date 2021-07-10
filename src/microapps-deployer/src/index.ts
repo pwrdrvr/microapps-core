@@ -4,11 +4,11 @@ import 'reflect-metadata';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
-import Log from './lib/Log';
 import { LambdaLog, LogMessage } from 'lambda-log';
+import { Config } from './config/Config';
 import AppController from './controllers/AppController';
 import VersionController from './controllers/VersionController';
-import { Config } from './config/Config';
+import Log from './lib/Log';
 
 const localTesting = process.env.DEBUG ? true : false;
 

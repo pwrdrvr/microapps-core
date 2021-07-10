@@ -1,8 +1,8 @@
+import path from 'path';
 import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
+import fs from 'fs-extra';
 import { IConfig } from './config/Config';
 import S3TransferUtility from './S3TransferUtility';
-import path from 'path';
-import fs from 'fs-extra';
 
 export default class S3Uploader {
   private static readonly _tempDir = './deploytool-temp';

@@ -1,11 +1,11 @@
-import * as convict from 'ts-convict';
-import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
-import { FilesExist } from '../lib/FilesExist';
-import { FileStoreConfig, IFileStoreRename } from './FileStore';
-import { DeployerConfig, IDeployerConfig } from './Deployer';
-import { ApplicationConfig, IApplicationConfig } from './Application';
+import * as yaml from 'js-yaml';
+import * as convict from 'ts-convict';
 import { TSConvict } from 'ts-convict';
+import { FilesExist } from '../lib/FilesExist';
+import { ApplicationConfig, IApplicationConfig } from './Application';
+import { DeployerConfig, IDeployerConfig } from './Deployer';
+import { FileStoreConfig, IFileStoreRename } from './FileStore';
 
 export interface IConfig {
   deployer: IDeployerConfig;

@@ -1,9 +1,9 @@
-import { describe, it } from 'mocha';
-import { expect } from 'chai';
-import { handler, ICreateApplicationRequest } from '../index';
 import Manager, { Application } from '@pwrdrvr/microapps-datalib';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
 import type * as lambda from 'aws-lambda';
+import { expect } from 'chai';
+import { describe, it } from 'mocha';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
+import { handler, ICreateApplicationRequest } from '../index';
 
 describe('AppController', () => {
   before(async () => {

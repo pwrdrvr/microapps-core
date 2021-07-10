@@ -1,24 +1,24 @@
-import { describe, it } from 'mocha';
-import * as chai from 'chai';
-import * as s3 from '@aws-sdk/client-s3';
-import * as sts from '@aws-sdk/client-sts';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
+import * as s3 from '@aws-sdk/client-s3';
+import * as sts from '@aws-sdk/client-sts';
+import Manager, { Version } from '@pwrdrvr/microapps-datalib';
+import type * as lambdaTypes from 'aws-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
+import * as chai from 'chai';
+import { config } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { describe, it } from 'mocha';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
+import { Config } from '../config/Config';
 import {
   handler,
   IDeployVersionPreflightRequest,
   ICreateApplicationRequest,
   IDeployVersionRequest,
 } from '../index';
-import Manager, { Version } from '@pwrdrvr/microapps-datalib';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
-import type * as lambdaTypes from 'aws-lambda';
-import { Config } from '../config/Config';
-import { config } from 'chai';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
