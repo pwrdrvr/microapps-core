@@ -60,14 +60,20 @@ jobs:
     - name: Run Node Tests
       run: npm run test
   
+    - name: Move modules out of the way
+      run: mv node_modules node_modules_hide
+    
+    - name: Build CDK Construct
+      run: cd src/microapps-cdk && npm run build
+    
     - name: Smoke Check CDK
       run: cdk list
 
-    - name: Bundle Deployer
-      run: npm run esbuild:deployer
+    # - name: Bundle Deployer
+    #   run: npm run esbuild:deployer
 
-    - name: Bundle Router
-      run: npm run esbuild:router
+    # - name: Bundle Router
+    #   run: npm run esbuild:router
 
     - name: Deploy CDK Stack
       run: cdk deploy --require-approval never microapps-core
