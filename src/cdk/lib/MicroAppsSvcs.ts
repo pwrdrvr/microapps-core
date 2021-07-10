@@ -106,10 +106,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
     };
-    if (existsSync(`${path.resolve(__dirname)}/dist/microapps-deployer/index.js`)) {
+    if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-deployer/index.js`)) {
       deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
         functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
-        code: Code.fromAsset(`${path.resolve(__dirname)}/dist/microapps-deployer/`),
+        code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-deployer/`),
         handler: 'index.handler',
         ...deployerFuncProps,
       });
@@ -118,6 +118,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         functionName: deployerFuncName,
         entry: './src/microapps-deployer/src/index.ts',
         handler: 'handler',
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
         ...deployerFuncProps,
       });
     }
@@ -307,10 +311,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       },
       layers: [routerDataFiles],
     };
-    if (existsSync(`${path.resolve(__dirname)}/dist/microapps-router/index.js`)) {
+    if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
       routerFunc = new lambda.Function(this, 'microapps-router-func', {
         functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
-        code: Code.fromAsset(`${path.resolve(__dirname)}/dist/microapps-router/`),
+        code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
         handler: 'index.handler',
         ...routerFuncProps,
       });
