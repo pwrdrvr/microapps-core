@@ -2,6 +2,15 @@ import * as cdk from '@aws-cdk/core';
 import { Env } from './Types';
 
 export default class SharedProps {
+  // input like 'example.com.' will return as 'com.example'
+  private static reverseDomain(domain: string): string {
+    let parts = domain.split('.').reverse();
+    if (parts[0] === '') {
+      parts = parts.slice(1);
+    }
+    return parts.join('.');
+  }
+
   private _ttlBase = cdk.Duration.hours(6);
   public get ttlBase(): cdk.Duration {
     return this._ttlBase;
@@ -107,7 +116,7 @@ export default class SharedProps {
     // Determine if we have a PR number
     if (process.env.CODEBUILD_SOURCE_VERSION !== undefined) {
       const prPrefix = 'pr/';
-      const sourceVersion = process.env['CODEBUILD_SOURCE_VERSION'];
+      const sourceVersion = process.env.CODEBUILD_SOURCE_VERSION;
       const isPR = sourceVersion?.indexOf(prPrefix) === 0;
       if (isPR) {
         this._pr = sourceVersion?.slice(prPrefix.length) as string;
@@ -117,7 +126,7 @@ export default class SharedProps {
     }
 
     // Determine the env from NODE_ENV
-    const env = process.env['NODE_ENV'];
+    const env = process.env.NODE_ENV;
     if (env !== undefined && env !== '') {
       if (env.startsWith('prod')) {
         this._env = 'prod';
@@ -125,14 +134,5 @@ export default class SharedProps {
         this._env = 'qa';
       }
     }
-  }
-
-  // input like 'example.com.' will return as 'com.example'
-  private static reverseDomain(domain: string): string {
-    let parts = domain.split('.').reverse();
-    if (parts[0] === '') {
-      parts = parts.slice(1);
-    }
-    return parts.join('.');
   }
 }

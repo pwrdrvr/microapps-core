@@ -1,40 +1,24 @@
-import * as cdk from '@aws-cdk/core';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
-import * as iam from '@aws-cdk/aws-iam';
-import * as apigwy from '@aws-cdk/aws-apigatewayv2';
-import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as r53 from '@aws-cdk/aws-route53';
-import * as r53targets from '@aws-cdk/aws-route53-targets';
-import * as logs from '@aws-cdk/aws-logs';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import { IMicroAppsCFExports } from './MicroAppsCF';
-import { IMicroAppsS3Exports } from './MicroAppsS3';
-import SharedProps from './SharedProps';
-import SharedTags from './SharedTags';
-import { Code } from '@aws-cdk/aws-lambda';
 import { existsSync } from 'fs';
 import path from 'path';
+import * as apigwy from '@aws-cdk/aws-apigatewayv2';
+import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
+import * as logs from '@aws-cdk/aws-logs';
+import * as r53 from '@aws-cdk/aws-route53';
+import * as r53targets from '@aws-cdk/aws-route53-targets';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from '@aws-cdk/core';
+import { MicroAppsProps } from './MicroApps';
+import { IMicroAppsCFExports } from './MicroAppsCF';
+import { IMicroAppsS3Exports } from './MicroAppsS3';
 
-interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
+interface MicroAppsSvcsStackProps extends cdk.ResourceProps {
   readonly cfStackExports: IMicroAppsCFExports;
   readonly s3Exports: IMicroAppsS3Exports;
-  readonly local: {
-    readonly domainNameEdge: string;
-    readonly domainNameOrigin: string;
-    readonly cert: acm.ICertificate;
-  };
-  readonly shared: SharedProps;
-
-  /**
-   * Duration before stack is automatically deleted.
-   * Requires that autoDeleteEverything be set to true.
-   *
-   * @default false
-   */
-  readonly autoDeleteEverything?: boolean;
+  readonly microapps: MicroAppsProps;
 }
 
 export interface IMicroAppsSvcsExports {
@@ -47,7 +31,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     return this._dnAppsOrigin;
   }
 
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsSvcsStackProps) {
+  constructor(scope: cdk.Construct, id: string, props?: MicroAppsSvcsStackProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -56,19 +40,22 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
 
     const { bucketApps, bucketAppsName, bucketAppsOAI, bucketAppsStaging, bucketAppsStagingName } =
       props.s3Exports;
-    const { cert, domainNameOrigin } = props.local;
-    const { shared, autoDeleteEverything } = props;
-    const { r53ZoneID, r53ZoneName, s3PolicyBypassAROA, s3PolicyBypassRoleName } = shared;
+    const { microapps } = props;
+    const {
+      r53ZoneID,
+      r53ZoneName,
+      s3PolicyBypassAROA,
+      s3PolicyBypassRoleName,
+      autoDeleteEverything,
+    } = microapps;
 
-    SharedTags.addEnvTag(this, shared.env, shared.isPR);
-
-    const apigatewayName = `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`;
+    const apigatewayName = microapps.assetNameRoot;
 
     //
     // DynamoDB Table
     //
     const table = new dynamodb.Table(this, 'microapps-router-table', {
-      tableName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+      tableName: microapps.assetNameRoot,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',
@@ -79,7 +66,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         type: dynamodb.AttributeType.STRING,
       },
     });
-    if (shared.isPR) {
+    if (autoDeleteEverything) {
       table.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
@@ -88,8 +75,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
 
     // Create Deployer Lambda Function
-    const iamRoleUploadName = `${shared.stackName}-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
-    const deployerFuncName = `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`;
+    const iamRoleUploadName = `${microapps.assetNameRoot}-deployer-upload${microapps.assetNameSuffix}`;
+    const deployerFuncName = `${microapps.assetNameRoot}-deployer${microapps.assetNameSuffix}`;
     let deployerFunc: lambda.Function;
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
@@ -98,7 +85,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       runtime: lambda.Runtime.NODEJS_14_X,
       timeout: cdk.Duration.seconds(15),
       environment: {
-        NODE_ENV: shared.env,
+        NODE_ENV: microapps.appEnv,
         APIGWY_NAME: apigatewayName,
         DATABASE_TABLE_NAME: table.tableName,
         FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
@@ -109,7 +96,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-deployer/index.js`)) {
       deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
-        code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-deployer/`),
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-deployer/`),
         handler: 'index.handler',
         ...deployerFuncProps,
       });
@@ -124,7 +111,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         ...deployerFuncProps,
       });
     }
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       deployerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     // Give the Deployer access to DynamoDB table
@@ -170,11 +157,11 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${shared.account}:role/${s3PolicyBypassRoleName}`),
+        new iam.ArnPrincipal(`arn:aws:iam::${microapps.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
         // Allow the builder user to update the buckets
         new iam.ArnPrincipal(
-          `arn:aws:iam::${shared.account}:user/${shared.stackName}-builder${shared.envSuffix}`,
+          `arn:aws:iam::${microapps.account}:user/${microapps.assetNameRoot}-builder${microapps.assetNameSuffix}`,
         ),
       ],
       notResources: [
@@ -185,11 +172,11 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         Null: { 'aws:PrincipalTag/microapp-name': 'false' },
       },
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       policyDenyPrefixOutsideTag.addCondition(
         // Allows the DeletableBucket Lambda to delete items in the buckets
         'StringNotLike',
-        { 'aws:PrincipalTag/application': `${shared.stackName}-core*` },
+        { 'aws:PrincipalTag/application': `${microapps.assetNameRoot}-core*` },
       );
     }
     const policyDenyMissingTag = new iam.PolicyStatement({
@@ -201,14 +188,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${shared.account}:role/${s3PolicyBypassRoleName}`),
+        new iam.ArnPrincipal(`arn:aws:iam::${microapps.account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
         new iam.ArnPrincipal(
-          `arn:aws:sts::${shared.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
+          `arn:aws:sts::${microapps.account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
         ),
         // Allow the builder user to update the buckets
         new iam.ArnPrincipal(
-          `arn:aws:iam::${shared.account}:user/${shared.stackName}-builder${shared.envSuffix}`,
+          `arn:aws:iam::${microapps.account}:user/${microapps.assetNameRoot}-builder${microapps.assetNameSuffix}`,
         ),
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
@@ -219,14 +206,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         // The notPrincipals will only match the role name exactly and will not match
         // any session that has assumed the role since notPrincipals does not allow
         // wildcard matches and does not do them implicitly either.
-        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, shared.account] },
+        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, microapps.account] },
       },
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       policyDenyMissingTag.addCondition(
         // Allows the DeletableBucket Lambda to delete items in the buckets
         'StringNotLike',
-        { 'aws:PrincipalTag/application': `${shared.stackName}-core*` },
+        { 'aws:PrincipalTag/application': `${microapps.assetNameRoot}-core*` },
       );
     }
     const policyCloudFrontAccess = new iam.PolicyStatement({
@@ -290,22 +277,23 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Router Lambda Function
     //
 
-    // Create Router Lambda Function
+    // Create Router Lambda Layer
     const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
-      code: Code.fromAsset('./src/microapps-router/templates/'),
+      code: lambda.Code.fromAsset('./src/microapps-router/templates/'),
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
+    // Create Router Lambda Function
     let routerFunc: lambda.Function;
     const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
-      functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
+      functionName: `${microapps.assetNameRoot}-router${microapps.assetNameSuffix}`,
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
       timeout: cdk.Duration.seconds(15),
       environment: {
-        NODE_ENV: shared.env,
+        NODE_ENV: microapps.appEnv,
         DATABASE_TABLE_NAME: table.tableName,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
@@ -313,7 +301,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
       routerFunc = new lambda.Function(this, 'microapps-router-func', {
-        code: Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
         handler: 'index.handler',
         ...routerFuncProps,
       });
@@ -328,7 +316,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         ...routerFuncProps,
       });
     }
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     const policyReadTarget = new iam.PolicyStatement({
@@ -354,17 +342,17 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
 
     // Create Custom Domains for API Gateway
     const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
-      domainName: props.local.domainNameEdge,
-      certificate: cert,
+      domainName: microapps.domainNameEdge,
+      certificate: microapps.certEdge,
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       dnAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
-      domainName: props.local.domainNameOrigin,
-      certificate: cert,
+      domainName: microapps.domainNameOrigin,
+      certificate: microapps.certOrigin,
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       this._dnAppsOrigin.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
@@ -383,7 +371,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       defaultIntegration: intRouter,
       apiName: apigatewayName,
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       httpApi.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
@@ -398,7 +386,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       domainName: this.dnAppsOrigin,
     });
     mappingAppsApis.node.addDependency(this.dnAppsOrigin);
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       mappingAppsApis.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
@@ -411,7 +399,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const policyAPIList = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['apigateway:GET'],
-      resources: [`arn:aws:apigateway:${shared.region}::/apis`],
+      resources: [`arn:aws:apigateway:${microapps.region}::/apis`],
     });
     deployerFunc.addToRolePolicy(policyAPIList);
     // Grant full control over the API we created
@@ -419,9 +407,9 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       effect: iam.Effect.ALLOW,
       actions: ['apigateway:*'],
       resources: [
-        `arn:aws:apigateway:${shared.region}:${shared.account}:${httpApi.httpApiId}/*`,
-        `arn:aws:apigateway:${shared.region}::/apis/${httpApi.httpApiId}/integrations`,
-        `arn:aws:apigateway:${shared.region}::/apis/${httpApi.httpApiId}/routes`,
+        `arn:aws:apigateway:${microapps.region}:${microapps.account}:${httpApi.httpApiId}/*`,
+        `arn:aws:apigateway:${microapps.region}::/apis/${httpApi.httpApiId}/integrations`,
+        `arn:aws:apigateway:${microapps.region}::/apis/${httpApi.httpApiId}/routes`,
       ],
     });
     deployerFunc.addToRolePolicy(policyAPIManage);
@@ -430,8 +418,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       effect: iam.Effect.ALLOW,
       actions: ['lambda:*'],
       resources: [
-        `arn:aws:lambda:${shared.region}:${shared.account}:function:*`,
-        `arn:aws:lambda:${shared.region}:${shared.account}:function:*:*`,
+        `arn:aws:lambda:${microapps.region}:${microapps.account}:function:*`,
+        `arn:aws:lambda:${microapps.region}:${microapps.account}:function:*:*`,
       ],
       conditions: {
         StringEqualsIfExists: { 'aws:ResourceTag/microapp-managed': 'true' },
@@ -450,7 +438,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
 
     const rrAppsOrigin = new r53.ARecord(this, 'microapps-origin-arecord', {
       zone: zone,
-      recordName: domainNameOrigin,
+      recordName: microapps.domainNameOrigin,
       target: r53.RecordTarget.fromAlias(
         new r53targets.ApiGatewayv2DomainProperties(
           this._dnAppsOrigin.regionalDomainName,
@@ -458,7 +446,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         ),
       ),
     });
-    if (shared.isPR) {
+    if (microapps.autoDeleteEverything) {
       rrAppsOrigin.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
   }

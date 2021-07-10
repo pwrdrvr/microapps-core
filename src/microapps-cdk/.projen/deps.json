@@ -78,11 +78,6 @@
       "type": "build"
     },
     {
-      "name": "@aws-cdk/assert",
-      "version": "^1.95.2",
-      "type": "peer"
-    },
-    {
       "name": "@aws-cdk/aws-apigatewayv2-integrations",
       "version": "^1.95.2",
       "type": "peer"
@@ -133,6 +128,11 @@
       "type": "peer"
     },
     {
+      "name": "@aws-cdk/aws-logs",
+      "version": "^1.95.2",
+      "type": "peer"
+    },
+    {
       "name": "@aws-cdk/aws-route53-targets",
       "version": "^1.95.2",
       "type": "peer"
@@ -150,6 +150,10 @@
     {
       "name": "@aws-cdk/core",
       "version": "^1.95.2",
+      "type": "peer"
+    },
+    {
+      "name": "@cloudcomponents/cdk-deletable-bucket",
       "type": "peer"
     },
     {
@@ -158,11 +162,6 @@
       "type": "peer"
     },
     {
-      "name": "@aws-cdk/assert",
-      "version": "^1.95.2",
-      "type": "runtime"
-    },
-    {
       "name": "@aws-cdk/aws-apigatewayv2-integrations",
       "version": "^1.95.2",
       "type": "runtime"
@@ -213,6 +212,11 @@
       "type": "runtime"
     },
     {
+      "name": "@aws-cdk/aws-logs",
+      "version": "^1.95.2",
+      "type": "runtime"
+    },
+    {
       "name": "@aws-cdk/aws-route53-targets",
       "version": "^1.95.2",
       "type": "runtime"
@@ -233,15 +237,7 @@
       "type": "runtime"
     },
     {
-      "name": "@cloudcomponents/cdk-container-registry",
-      "type": "runtime"
-    },
-    {
       "name": "@cloudcomponents/cdk-deletable-bucket",
-      "type": "runtime"
-    },
-    {
-      "name": "@cloudcomponents/cdk-temp-stack",
       "type": "runtime"
     }
   ],
