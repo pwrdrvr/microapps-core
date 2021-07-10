@@ -90,14 +90,11 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Create Deployer Lambda Function
     const iamRoleUploadName = `${shared.stackName}-deployer-upload${shared.envSuffix}${shared.prSuffix}`;
     const deployerFuncName = `${shared.stackName}-deployer${shared.envSuffix}${shared.prSuffix}`;
-    const deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
-      functionName: deployerFuncName,
-      entry: './src/microapps-deployer/src/index.ts',
-      handler: 'handler',
-      logRetention: logs.RetentionDays.ONE_MONTH,
+    let deployerFunc: lambda.Function;
+    const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
-      awsSdkConnectionReuse: true,
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
@@ -106,8 +103,24 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
         FILESTORE_DEST_BUCKET: bucketAppsName,
         UPLOAD_ROLE_NAME: iamRoleUploadName,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
-    });
+    };
+    if (existsSync(`${path.resolve(__dirname)}/dist/microapps-deployer/index.js`)) {
+      deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
+        functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
+        code: Code.fromAsset(`${path.resolve(__dirname)}/dist/microapps-deployer/`),
+        handler: 'index.handler',
+        ...deployerFuncProps,
+      });
+    } else {
+      deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
+        functionName: deployerFuncName,
+        entry: './src/microapps-deployer/src/index.ts',
+        handler: 'handler',
+        ...deployerFuncProps,
+      });
+    }
     if (shared.isPR) {
       deployerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
@@ -294,10 +307,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       },
       layers: [routerDataFiles],
     };
-    if (existsSync(`${path.resolve(__dirname)}/dist/microapps-deployer/index.js`)) {
+    if (existsSync(`${path.resolve(__dirname)}/dist/microapps-router/index.js`)) {
       routerFunc = new lambda.Function(this, 'microapps-router-func', {
         functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
-        code: Code.fromAsset(`${path.resolve(__dirname)}/dist/microapps-deployer/`),
+        code: Code.fromAsset(`${path.resolve(__dirname)}/dist/microapps-router/`),
         handler: 'index.handler',
         ...routerFuncProps,
       });
