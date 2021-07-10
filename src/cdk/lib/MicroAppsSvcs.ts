@@ -115,6 +115,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
 
     //
     // Deloyer upload temp role
+    // Deployer assumes this role with a limited policy to generate
+    // an STS temp token to return to microapps-publish for the upload.
     //
     const iamRoleUpload = new iam.Role(this, 'microapps-deployer-upload-role', {
       roleName: iamRoleUploadName,
