@@ -1,8 +1,8 @@
-import { describe, it } from 'mocha';
 import { expect } from 'chai';
+import { describe, it } from 'mocha';
 import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
-import Rules from './rules';
 import Manager from '../index';
+import Rules from './rules';
 
 describe('rules records', () => {
   before(async () => {

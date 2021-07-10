@@ -1,8 +1,8 @@
-import { describe, it } from 'mocha';
 import { expect } from 'chai';
+import { describe, it } from 'mocha';
 import { dynamoClient, DropTable, InitializeTable, TEST_TABLE_NAME } from '../../../fixtures';
-import Application from './application';
 import Manager from '../index';
+import Application from './application';
 
 describe('application records', () => {
   before(async () => {

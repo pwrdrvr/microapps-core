@@ -1,10 +1,10 @@
+import { ChildProcess } from 'child_process';
+import { promisify } from 'util';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
-import * as dynamodbLocal from 'dynamodb-local';
-import { promisify } from 'util';
 import Manager from '@pwrdrvr/microapps-datalib';
+import * as dynamodbLocal from 'dynamodb-local';
 import fetch from 'node-fetch';
-import { ChildProcess } from 'child_process';
 const asyncSleep = promisify(setTimeout);
 
 export const TEST_TABLE_NAME = 'MicroAppsLocalTest';

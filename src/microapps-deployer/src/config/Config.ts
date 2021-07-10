@@ -1,11 +1,11 @@
-import * as convict from 'ts-convict';
-import { Database, IDatabase } from './Database';
-import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
+import * as yaml from 'js-yaml';
+import * as convict from 'ts-convict';
+import { TSConvict } from 'ts-convict';
 import { FilesExist } from '../lib/FilesExist';
 import { APIGateway, IAPIGateway } from './APIGateway';
+import { Database, IDatabase } from './Database';
 import { FileStore, IFileStore } from './FileStore';
-import { TSConvict } from 'ts-convict';
 
 export interface IConfig {
   db: IDatabase;

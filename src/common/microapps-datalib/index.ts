@@ -1,10 +1,10 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
-import Application from './models/application';
-import Version from './models/version';
-import Rules from './models/rules';
 import { Config } from './config';
+import Application from './models/application';
+import Rules from './models/rules';
+import Version from './models/version';
 
 export { Application, Version, Rules };
 

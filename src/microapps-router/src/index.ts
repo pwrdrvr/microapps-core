@@ -1,10 +1,10 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
+import fs from 'fs';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
-import fs from 'fs';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
 
@@ -154,7 +154,7 @@ async function RouteApp(
   //     80% to 1.1.0, 20% to default (1.0.3)
   //
 
-  const defaultVersion = versionsAndRules.Rules?.RuleSet['default']?.SemVer;
+  const defaultVersion = versionsAndRules.Rules?.RuleSet.default?.SemVer;
 
   if (defaultVersion == null) {
     log.error(`could not find app ${appName}, for path ${request.rawPath} - returning 404`, {

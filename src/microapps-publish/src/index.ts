@@ -4,16 +4,16 @@
 import 'source-map-support/register';
 // Used by ts-convict
 import 'reflect-metadata';
-import * as lambda from '@aws-sdk/client-lambda';
-import commander from 'commander';
-import * as util from 'util';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
-import S3Uploader from './S3Uploader';
-import DeployClient from './DeployClient';
+import * as util from 'util';
+import * as lambda from '@aws-sdk/client-lambda';
+import * as sts from '@aws-sdk/client-sts';
+import commander from 'commander';
 import pkg from '../package.json';
 import { Config, IConfig } from './config/Config';
-import * as sts from '@aws-sdk/client-sts';
+import DeployClient from './DeployClient';
+import S3Uploader from './S3Uploader';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -290,7 +290,7 @@ class PublishTool {
 
   private async deployToLambda(config: IConfig, versions: IVersions): Promise<void> {
     // Create Lambda version
-    console.log(`Updating Lambda code to point to new Docker image`);
+    console.log('Updating Lambda code to point to new Docker image');
     const resultUpdate = await lambdaClient.send(
       new lambda.UpdateFunctionCodeCommand({
         FunctionName: config.app.lambdaName,
