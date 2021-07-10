@@ -11,6 +11,7 @@
   "workspaces": [
     "./src/cdk/",
     "./src/common/*",
+    "./src/microapps-cdk/",
     "./src/microapps-deployer/",
     "./src/microapps-publish/",
     "./src/microapps-router/"
