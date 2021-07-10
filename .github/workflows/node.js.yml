@@ -63,6 +63,12 @@ jobs:
     - name: Smoke Check CDK
       run: cdk list
 
+    - name: Bundle Deployer
+      run: npm run esbuild:deployer
+
+    - name: Bundle Router
+      run: npm run esbuild:router
+
     - name: Deploy CDK Stack
       run: cdk deploy --require-approval never microapps
       env:
