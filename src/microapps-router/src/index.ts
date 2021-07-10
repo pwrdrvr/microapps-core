@@ -3,7 +3,9 @@ import 'source-map-support/register';
 import 'reflect-metadata';
 import fs from 'fs';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
+// eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
@@ -213,7 +215,7 @@ async function RouteApp(
 // Run the function locally for testing
 if (localTesting) {
   const payload = JSON.parse(fs.readFileSync('../../test/json/router-release-app.json', 'utf-8'));
-  Promise.all([
+  void Promise.all([
     handler(
       payload as lambda.APIGatewayProxyEventV2,
       { awsRequestId: 'local-testing' } as lambda.Context,

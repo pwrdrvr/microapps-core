@@ -36,6 +36,11 @@ interface IVersions {
 }
 
 class PublishTool {
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+  private static escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  }
+
   private VersionAndAlias: IVersions;
   private IMAGE_TAG = '';
   private IMAGE_URI = '';
@@ -47,11 +52,6 @@ class PublishTool {
 
   constructor() {
     this.restoreFiles = this.restoreFiles.bind(this);
-  }
-
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
-  private static escapeRegExp(value: string): string {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
   }
 
   public async UpdateVersion(): Promise<void> {
@@ -134,7 +134,7 @@ class PublishTool {
         throw new Error('StaticAssetsPath must be specified in the config file');
       }
 
-      this.loginToECR(config);
+      await this.loginToECR(config);
 
       // Confirm the Version Does Not Exist in Published State
       console.log(
@@ -339,4 +339,4 @@ class PublishTool {
 }
 
 const publishTool = new PublishTool();
-publishTool.UpdateVersion();
+void publishTool.UpdateVersion();

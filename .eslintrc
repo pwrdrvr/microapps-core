@@ -26,6 +26,7 @@
   "ignorePatterns": [
     "*.js",
     "!.projenrc.js",
+    "!.projenrc.ts",
     "*.d.ts",
     "node_modules/",
     "*.generated.ts",
@@ -86,7 +87,7 @@
     "import/no-extraneous-dependencies": [
       "error",
       {
-        "devDependencies": ["**/test/**", "**/build-tools/**"],
+        "devDependencies": ["**/test/**", "**/build-tools/**", "**/*.spec.ts"],
         "optionalDependencies": false,
         "peerDependencies": true
       }
@@ -145,7 +146,7 @@
   },
   "overrides": [
     {
-      "files": [".projenrc.js"],
+      "files": [".projenrc.ts"],
       "rules": {
         "@typescript-eslint/no-require-imports": "off",
         "import/no-extraneous-dependencies": "off"

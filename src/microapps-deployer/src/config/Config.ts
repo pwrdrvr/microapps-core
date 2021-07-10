@@ -38,6 +38,16 @@ export interface IConfig {
   },
 })
 export class Config implements IConfig {
+  public static configFiles(): string[] {
+    const possibleFiles = [
+      './configs/config.yaml',
+      './configs/config.yml',
+      `./configs/config-${Config.envLevel}.yaml`,
+      `./configs/config-${Config.envLevel}.yml`,
+    ];
+    return FilesExist.getExistingFilesSync(possibleFiles);
+  }
+
   private static _instance: IConfig;
   public static get instance(): IConfig {
     if (Config._instance === undefined) {
@@ -57,16 +67,6 @@ export class Config implements IConfig {
       return 'local';
     }
     return 'dev';
-  }
-
-  public static configFiles(): string[] {
-    const possibleFiles = [
-      './configs/config.yaml',
-      './configs/config.yml',
-      `./configs/config-${Config.envLevel}.yaml`,
-      `./configs/config-${Config.envLevel}.yml`,
-    ];
-    return FilesExist.getExistingFilesSync(possibleFiles);
   }
 
   // ts-convict will use the Typescript type if no format given

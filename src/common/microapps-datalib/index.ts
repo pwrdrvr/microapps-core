@@ -14,29 +14,6 @@ export interface IVersionsAndRules {
 }
 
 export default class Manager {
-  private static _client: DynamoDB;
-  private static _ddbDocClient: DynamoDBDocument;
-
-  public constructor(args: { dynamoDB: DynamoDB; tableName: string }) {
-    const { dynamoDB, tableName } = args;
-    if (Manager._client === undefined) {
-      Config.TableName = tableName;
-      Manager._client = dynamoDB;
-      Manager._ddbDocClient = DynamoDBDocument.from(Manager._client);
-    }
-  }
-
-  public static get TableName(): string {
-    return Config.TableName;
-  }
-
-  public static get DBClient(): DynamoDB {
-    return Manager._client;
-  }
-  public static get DBDocClient(): DynamoDBDocument {
-    return Manager._ddbDocClient;
-  }
-
   public static async UpdateDefaultRule(appName: string, semVer: string): Promise<void> {
     const rules = await Rules.LoadAsync(Manager._ddbDocClient, appName);
 
@@ -60,5 +37,28 @@ export default class Manager {
       Versions: await versionTask,
       Rules: await rulesTask,
     };
+  }
+
+  private static _client: DynamoDB;
+  private static _ddbDocClient: DynamoDBDocument;
+
+  public constructor(args: { dynamoDB: DynamoDB; tableName: string }) {
+    const { dynamoDB, tableName } = args;
+    if (Manager._client === undefined) {
+      Config.TableName = tableName;
+      Manager._client = dynamoDB;
+      Manager._ddbDocClient = DynamoDBDocument.from(Manager._client);
+    }
+  }
+
+  public static get TableName(): string {
+    return Config.TableName;
+  }
+
+  public static get DBClient(): DynamoDB {
+    return Manager._client;
+  }
+  public static get DBDocClient(): DynamoDBDocument {
+    return Manager._ddbDocClient;
   }
 }

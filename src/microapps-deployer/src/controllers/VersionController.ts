@@ -4,6 +4,7 @@ import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../config/Config';
 import {
@@ -22,14 +23,6 @@ const stsClient = new sts.STSClient({});
 const apigwyClient = new apigwy.ApiGatewayV2Client({});
 
 export default class VersionController {
-  private static SHA256Hash(input: string): string {
-    return crypto.createHash('sha256').update(input).digest('hex');
-  }
-
-  private static SHA1Hash(input: string): string {
-    return crypto.createHash('sha1').update(input).digest('hex');
-  }
-
   public static async DeployVersionPreflight(
     request: IDeployVersionPreflightRequest,
     config: IConfig,
@@ -277,6 +270,14 @@ export default class VersionController {
     return { statusCode: 201 };
   }
 
+  private static SHA256Hash(input: string): string {
+    return crypto.createHash('sha256').update(input).digest('hex');
+  }
+
+  private static SHA1Hash(input: string): string {
+    return crypto.createHash('sha1').update(input).digest('hex');
+  }
+
   private static async CopyFilesInList(
     list: s3.ListObjectsV2CommandOutput,
     stagingBucket: string,
@@ -313,9 +314,7 @@ export default class VersionController {
     do {
       const optionals =
         list?.NextContinuationToken !== undefined
-          ? {
-            ContinuationToken: list.NextContinuationToken,
-          }
+          ? { ContinuationToken: list.NextContinuationToken }
           : ({} as s3.ListObjectsV2CommandInput);
       list = await s3Client.send(
         new s3.ListObjectsV2Command({
