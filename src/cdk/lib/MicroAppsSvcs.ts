@@ -15,6 +15,8 @@ import { IMicroAppsS3Exports } from './MicroAppsS3';
 import SharedProps from './SharedProps';
 import SharedTags from './SharedTags';
 import { Code } from '@aws-cdk/aws-lambda';
+import { existsSync } from 'fs';
+import path from 'path';
 
 interface IMicroAppsSvcsStackProps extends cdk.ResourceProps {
   readonly cfStackExports: IMicroAppsCFExports;
@@ -279,21 +281,34 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     if (shared.isPR) {
       routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
-    const routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
-      functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
-      entry: './src/microapps-router/src/index.ts',
-      handler: 'handler',
-      logRetention: logs.RetentionDays.ONE_MONTH,
+    let routerFunc: lambda.Function;
+    const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
-      awsSdkConnectionReuse: true,
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: shared.env,
         DATABASE_TABLE_NAME: table.tableName,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
       layers: [routerDataFiles],
-    });
+    };
+    if (existsSync(`${path.resolve(__dirname)}/dist/microapps-deployer/index.js`)) {
+      routerFunc = new lambda.Function(this, 'microapps-router-func', {
+        functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
+        code: Code.fromAsset(`${path.resolve(__dirname)}/dist/microapps-deployer/`),
+        handler: 'index.handler',
+        ...routerFuncProps,
+      });
+    } else {
+      routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
+        functionName: `${shared.stackName}-router${shared.envSuffix}${shared.prSuffix}`,
+        entry: './src/microapps-router/src/index.ts',
+        handler: 'handler',
+        ...routerFuncProps,
+      });
+    }
     if (shared.isPR) {
       routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
