@@ -1,5 +1,5 @@
 import path from 'path';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
 import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import fs from 'fs-extra';
 import { IConfig } from './config/Config';
