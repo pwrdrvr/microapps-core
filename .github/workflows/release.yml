@@ -64,10 +64,10 @@ jobs:
           name: dist
           path: src/microapps/cdk/dist
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16:latest
+      image: ghcr.io/pwrdrvr/jsii-node-16
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+
   release_npm:
     name: Release to npm
     needs: release
@@ -87,7 +87,6 @@ jobs:
           NPM_REGISTRY: npm.pkg.github.com/@pwrdrvr/microapps-cdk
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16:latest
+      image: ghcr.io/pwrdrvr/jsii-node-16
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
