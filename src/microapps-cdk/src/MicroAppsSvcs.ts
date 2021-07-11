@@ -29,7 +29,6 @@ interface MicroAppsSvcsStackProps extends cdk.ResourceProps {
   readonly assetNameRoot: string;
   readonly assetNameSuffix: string;
 
-  readonly certEdge: acm.ICertificate;
   readonly certOrigin: acm.ICertificate;
 
   readonly r53ZoneName: string;
@@ -70,7 +69,6 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       appEnv,
       domainNameEdge,
       domainNameOrigin,
-      certEdge,
       certOrigin,
       account,
       region,
@@ -388,7 +386,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Create Custom Domains for API Gateway
     const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
       domainName: domainNameEdge,
-      certificate: certEdge,
+      certificate: certOrigin,
     });
     if (autoDeleteEverything) {
       dnAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
