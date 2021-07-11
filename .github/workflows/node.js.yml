@@ -55,7 +55,7 @@ jobs:
       run: mv node_modules node_modules_hide
     
     - name: Build CDK Construct
-      run: cd src/microapps-cdk && npm run build
+      run: cd src/microapps-cdk && npm ci && npm run build
     
     - name: Build TypeScript
       run: npm run build --if-present
