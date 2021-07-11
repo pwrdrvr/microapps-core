@@ -36,7 +36,7 @@ jobs:
         run: ls -la && cd src/microapps-publish/ && ls -la
 
       - name: Make npm ci work
-        run: npm run preinstall
+        run: sudo npm run preinstall
 
       - name: Install dependencies
         run: npm ci
