@@ -65,6 +65,7 @@ export class MicroAppsStack extends cdk.Stack {
       r53ZoneName: shared.r53ZoneName,
       s3PolicyBypassAROA: shared.s3PolicyBypassAROA,
       s3PolicyBypassRoleName: shared.s3PolicyBypassRoleName,
+      autoDeleteEverything,
     });
   }
 }
