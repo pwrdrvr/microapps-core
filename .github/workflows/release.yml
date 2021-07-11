@@ -31,6 +31,9 @@ jobs:
 
       - name: Print node version
         run: node --version
+      
+      - name: Diag
+        run: ls -la && cd src/microapps-publish/ && ls -la
 
       - name: Make npm ci work
         run: npm run preinstall
