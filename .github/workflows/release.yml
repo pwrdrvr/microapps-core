@@ -65,6 +65,9 @@ jobs:
           path: src/microapps/cdk/dist
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.ghcr_token }}
   release_npm:
     name: Release to npm
     needs: release
@@ -85,3 +88,6 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.ghcr_token }}
