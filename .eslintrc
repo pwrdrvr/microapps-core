@@ -146,7 +146,7 @@
   },
   "overrides": [
     {
-      "files": [".projenrc.ts"],
+      "files": [".projenrc.ts", ".projenrc.js"],
       "rules": {
         "@typescript-eslint/no-require-imports": "off",
         "import/no-extraneous-dependencies": "off"

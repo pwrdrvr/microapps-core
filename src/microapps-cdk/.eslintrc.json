@@ -37,8 +37,7 @@
     "*.d.ts",
     "node_modules/",
     "*.generated.ts",
-    "coverage",
-    "!.projenrc.ts"
+    "coverage"
   ],
   "rules": {
     "indent": [
@@ -145,8 +144,7 @@
       {
         "devDependencies": [
           "**/test/**",
-          "**/build-tools/**",
-          ".projenrc.ts"
+          "**/build-tools/**"
         ],
         "optionalDependencies": false,
         "peerDependencies": true

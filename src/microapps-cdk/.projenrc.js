@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } from 'projen';
+const { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } = require('projen');
 const project = new AwsCdkConstructLibrary({
   author: 'Harold Hunt',
   authorAddress: 'harold@pwrdrvr.com',
@@ -11,7 +11,10 @@ const project = new AwsCdkConstructLibrary({
   name: '@pwrdrvr/microapps-cdk',
   npmAccess: NpmAccess.PUBLIC,
   packageManager: NodePackageManager.NPM,
-  projenrcTs: true,
+  // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
+  // the generated (but .gitignore'd) is deleted before running
+  // `npx projen` - It's just not worth the trouble
+  projenrcTs: false,
   repositoryUrl: 'git@github.com:pwrdrvr/microapps-core.git',
   jest: false,
 

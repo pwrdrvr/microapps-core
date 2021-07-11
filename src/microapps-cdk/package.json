@@ -14,10 +14,10 @@
     "unbump": "npx projen unbump",
     "upgrade-dependencies": "npx projen upgrade-dependencies",
     "upgrade-projen": "npx projen upgrade-projen",
+    "default": "npx projen default",
     "watch": "npx projen watch",
     "package": "npx projen package",
     "eslint": "npx projen eslint",
-    "default": "npx projen default",
     "compat": "npx projen compat",
     "publish:npm": "npx projen publish:npm",
     "docgen": "npx projen docgen",
@@ -48,7 +48,6 @@
     "npm-check-updates": "^11",
     "projen": "^0.26.3",
     "standard-version": "^9",
-    "ts-node": "^9",
     "typescript": "^4.3.5"
   },
   "peerDependencies": {
