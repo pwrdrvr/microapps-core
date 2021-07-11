@@ -15,7 +15,41 @@ interface IApplicationRecord {
 }
 
 export default class Application implements IApplicationRecord {
+  public static async LoadAsync(
+    ddbDocClient: DynamoDBDocument,
+    appName: string,
+  ): Promise<Application> {
+    const { Item } = await ddbDocClient.get({
+      TableName: Config.TableName,
+      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'application' },
+    });
+    const record = plainToClass<Application, unknown>(Application, Item);
+    return record;
+  }
+
+  public static async LoadAllAppsAsync(ddbDocClient: DynamoDBDocument): Promise<Application[]> {
+    const { Items } = await ddbDocClient.query({
+      TableName: Config.TableName,
+      KeyConditionExpression: 'PK = :pkval',
+      ExpressionAttributeValues: {
+        ':pkval': 'applications',
+      },
+    });
+
+    const records = [] as Application[];
+    if (Items !== undefined) {
+      for (const item of Items) {
+        const record = plainToClass<Application, unknown>(Application, item);
+        records.push(record);
+      }
+    }
+
+    return records;
+  }
+
   private _keyBy: SaveBy;
+  private _appName: string | undefined;
+  private _displayName: string | undefined;
 
   public constructor(init?: Partial<IApplicationRecord>) {
     Object.assign(this, init);
@@ -55,38 +89,6 @@ export default class Application implements IApplicationRecord {
     await taskByApplications;
   }
 
-  public static async LoadAsync(
-    ddbDocClient: DynamoDBDocument,
-    appName: string,
-  ): Promise<Application> {
-    const { Item } = await ddbDocClient.get({
-      TableName: Config.TableName,
-      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'application' },
-    });
-    const record = plainToClass<Application, unknown>(Application, Item);
-    return record;
-  }
-
-  public static async LoadAllAppsAsync(ddbDocClient: DynamoDBDocument): Promise<Application[]> {
-    const { Items } = await ddbDocClient.query({
-      TableName: Config.TableName,
-      KeyConditionExpression: 'PK = :pkval',
-      ExpressionAttributeValues: {
-        ':pkval': 'applications',
-      },
-    });
-
-    const records = [] as Application[];
-    if (Items !== undefined) {
-      for (const item of Items) {
-        const record = plainToClass<Application, unknown>(Application, item);
-        records.push(record);
-      }
-    }
-
-    return records;
-  }
-
   public get PK(): string {
     switch (this._keyBy) {
       case SaveBy.Applications:
@@ -109,7 +111,6 @@ export default class Application implements IApplicationRecord {
     }
   }
 
-  private _appName: string | undefined;
   public get AppName(): string {
     return this._appName as string;
   }
@@ -117,7 +118,6 @@ export default class Application implements IApplicationRecord {
     this._appName = value.toLowerCase();
   }
 
-  private _displayName: string | undefined;
   public get DisplayName(): string {
     return this._displayName as string;
   }

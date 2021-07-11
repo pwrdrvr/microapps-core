@@ -2,29 +2,16 @@
 // From: https://stackoverflow.com/a/65862128/878903
 //
 
-import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
-import { Upload } from '@aws-sdk/lib-storage';
 import * as s3 from '@aws-sdk/client-s3';
-import pMap from 'p-map';
+import { Upload } from '@aws-sdk/lib-storage';
+// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
+import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
 import { contentType } from 'mime-types';
+import pMap from 'p-map';
 
 export default class S3TransferUtility {
-  // Recursive getFiles from
-  // https://stackoverflow.com/a/45130990/831465
-
-  private static async GetFiles(dir: string): Promise<string | string[]> {
-    const dirents = await fs.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(
-      dirents.map((dirent) => {
-        const res = path.resolve(dir, dirent.name);
-        return dirent.isDirectory() ? S3TransferUtility.GetFiles(res) : res;
-      }),
-    );
-    return Array.prototype.concat(...files);
-  }
-
   public static async UploadDir(
     s3Path: string,
     destPrefixPath: string,
@@ -40,7 +27,7 @@ export default class S3TransferUtility {
       },
     });
 
-    console.log(`Uploading files to S3`);
+    console.log('Uploading files to S3');
     const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
     const pathWithoutAppAndVer = path.join(s3Path, destPrefixPath);
     for (const filePath of files) {
@@ -78,5 +65,18 @@ export default class S3TransferUtility {
       //     CacheControl: 'max-age=86400; public',
       //   }),
     );
+  }
+  // Recursive getFiles from
+  // https://stackoverflow.com/a/45130990/831465
+
+  private static async GetFiles(dir: string): Promise<string | string[]> {
+    const dirents = await fs.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(
+      dirents.map((dirent) => {
+        const res = path.resolve(dir, dirent.name);
+        return dirent.isDirectory() ? S3TransferUtility.GetFiles(res) : res;
+      }),
+    );
+    return Array.prototype.concat(...files);
   }
 }

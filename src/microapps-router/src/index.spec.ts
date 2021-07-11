@@ -1,9 +1,13 @@
-import { describe, it } from 'mocha';
-import { expect } from 'chai';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
-import { handler } from './index';
+// eslint-disable-next-line import/no-unresolved
 import * as lambda from 'aws-lambda';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { expect } from 'chai';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { describe, it } from 'mocha';
 import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../fixtures';
+import { handler } from './index';
 
 describe('router', () => {
   before(async () => {

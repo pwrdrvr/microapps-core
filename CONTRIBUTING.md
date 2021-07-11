@@ -25,3 +25,13 @@ npm ERR! enoent ENOENT: no such file or directory, chmod '/Users/myusername/pwrd
 npm ERR! enoent This is related to npm not being able to find a file.
 npm ERR! enoent
 ```
+
+# Bootstrapping Projen Templates
+
+Note: `npm` has a problem with `jest` as CDK wants version 26 and `projen` installs version 27. This works with `yarn` but causes `npm` to complain.
+
+```
+npm i -g projen
+
+npx projen new awscdk-construct --no-git --name @pwrdrvr/microapps-cdk --author "Harold Hunt" --package-manager npm --license MIT --npm-access public --copyright-owner "PwrDrvr LLC" --copyright-period 2020 --projenrc-ts --no-jest
+```

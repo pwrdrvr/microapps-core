@@ -1,10 +1,12 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
-import type * as lambda from 'aws-lambda';
 import fs from 'fs';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
+// eslint-disable-next-line import/no-unresolved
+import type * as lambda from 'aws-lambda';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
 
@@ -154,7 +156,7 @@ async function RouteApp(
   //     80% to 1.1.0, 20% to default (1.0.3)
   //
 
-  const defaultVersion = versionsAndRules.Rules?.RuleSet['default']?.SemVer;
+  const defaultVersion = versionsAndRules.Rules?.RuleSet.default?.SemVer;
 
   if (defaultVersion == null) {
     log.error(`could not find app ${appName}, for path ${request.rawPath} - returning 404`, {
@@ -213,7 +215,7 @@ async function RouteApp(
 // Run the function locally for testing
 if (localTesting) {
   const payload = JSON.parse(fs.readFileSync('../../test/json/router-release-app.json', 'utf-8'));
-  Promise.all([
+  void Promise.all([
     handler(
       payload as lambda.APIGatewayProxyEventV2,
       { awsRequestId: 'local-testing' } as lambda.Context,

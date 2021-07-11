@@ -1,6 +1,6 @@
 *.zip
 
-node_modules/
+node_modules*/
 CDK-dotnet/
 
 # TypeScript output

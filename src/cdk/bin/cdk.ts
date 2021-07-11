@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { MicroApps } from '../lib/MicroApps';
-import SharedTags from '../lib/SharedTags';
-import SharedProps from '../lib/SharedProps';
+import { Imports } from '../lib/Imports';
+import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
+import { SharedProps } from '../lib/SharedProps';
+import { SharedTags } from '../lib/SharedTags';
 
 const app = new cdk.App();
 
@@ -18,13 +19,13 @@ const env: cdk.Environment = {
 
 SharedTags.addSharedTags(app, { shared });
 
-const apps = new MicroApps(app, 'microapps', {
+const apps = new MicroAppsStack(app, 'microapps-core', {
   env,
   stackName: `microapps${shared.envSuffix}${shared.prSuffix}`,
-  local: {
-    ttl: shared.isPR ? shared.ttlBase : undefined,
-    autoDeleteEverything: true,
-  },
+  ttl: shared.isPR ? shared.ttlBase : undefined,
+  autoDeleteEverything: true,
+  domainNameEdge: `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
+  domainNameOrigin: `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
   shared,
 });
 

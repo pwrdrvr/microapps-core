@@ -1,11 +1,11 @@
-import * as convict from 'ts-convict';
-import * as yaml from 'js-yaml';
 import { url, ipaddress } from 'convict-format-with-validator';
-import { FilesExist } from '../lib/FilesExist';
-import { FileStoreConfig, IFileStoreRename } from './FileStore';
-import { DeployerConfig, IDeployerConfig } from './Deployer';
-import { ApplicationConfig, IApplicationConfig } from './Application';
+import * as yaml from 'js-yaml';
+import * as convict from 'ts-convict';
 import { TSConvict } from 'ts-convict';
+import { FilesExist } from '../lib/FilesExist';
+import { ApplicationConfig, IApplicationConfig } from './Application';
+import { DeployerConfig, IDeployerConfig } from './Deployer';
+import { FileStoreConfig, IFileStoreRename } from './FileStore';
 
 export interface IConfig {
   deployer: IDeployerConfig;
@@ -32,6 +32,16 @@ export interface IConfig {
   },
 })
 export class Config implements IConfig {
+  public static configFiles(): string[] {
+    const possibleFiles = [
+      './microapps.yaml',
+      './microapps.yml',
+      `./microapps-${Config.envLevel}.yaml`,
+      `./microapps-${Config.envLevel}.yml`,
+    ];
+    return FilesExist.getExistingFilesSync(possibleFiles);
+  }
+
   private static _instance: IConfig;
   public static get instance(): IConfig {
     if (Config._instance === undefined) {
@@ -51,16 +61,6 @@ export class Config implements IConfig {
       return 'local';
     }
     return 'dev';
-  }
-
-  public static configFiles(): string[] {
-    const possibleFiles = [
-      './microapps.yaml',
-      './microapps.yml',
-      `./microapps-${Config.envLevel}.yaml`,
-      `./microapps-${Config.envLevel}.yml`,
-    ];
-    return FilesExist.getExistingFilesSync(possibleFiles);
   }
 
   // ts-convict will use the Typescript type if no format given

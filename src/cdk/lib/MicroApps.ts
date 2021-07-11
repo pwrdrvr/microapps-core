@@ -1,86 +1,71 @@
-#!/usr/bin/env node
-import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
-import { MicroAppsCF } from '../lib/MicroAppsCF';
-import { MicroAppsSvcs } from '../lib/MicroAppsSvcs';
-import { MicroAppsS3 } from '../lib/MicroAppsS3';
-import SharedTags from '../lib/SharedTags';
-import { Imports } from '../lib/Imports';
-import SharedProps from '../lib/SharedProps';
+// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
+import { MicroApps } from '@pwrdrvr/microapps-cdk';
+import { Imports } from './Imports';
+import { SharedProps } from './SharedProps';
 
-interface IMicroAppsProps extends cdk.StackProps {
-  readonly local: {
-    /**
-     * Duration before stack is automatically deleted.
-     * Requires that autoDeleteEverything be set to true.
-     *
-     */
-    readonly ttl?: cdk.Duration;
+export interface MicroAppsStackProps extends cdk.StackProps {
+  /**
+   * Duration before stack is automatically deleted.
+   * Requires that autoDeleteEverything be set to true.
+   *
+   */
+  readonly ttl?: cdk.Duration;
 
-    /**
-     * Duration before stack is automatically deleted.
-     * Requires that autoDeleteEverything be set to true.
-     *
-     * @default false
-     */
-    readonly autoDeleteEverything?: boolean;
-  };
+  /**
+   * Automatically destroy all assets when stack is deleted
+   *
+   * @default false
+   */
+  readonly autoDeleteEverything?: boolean;
+
+  readonly domainNameEdge: string;
+  readonly domainNameOrigin: string;
+
   readonly shared: SharedProps;
 }
 
-export class MicroApps extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsProps) {
+export class MicroAppsStack extends cdk.Stack {
+  constructor(scope: cdk.Construct, id: string, props?: MicroAppsStackProps) {
     super(scope, id, props);
 
     if (props === undefined) {
       throw new Error('props must be set');
     }
 
-    const { shared, local } = props;
-    const { ttl, autoDeleteEverything: autoDeleteItems = false } = local;
+    const { ttl, autoDeleteEverything = false, shared } = props;
 
     // Set stack to delete if this is a PR build
     if (ttl !== undefined) {
-      if (autoDeleteItems === false) {
-        throw new Error('autoDeleteItems must be true when ttl is set');
+      if (autoDeleteEverything === false) {
+        throw new Error('autoDeleteEverything must be true when ttl is set');
       }
       new TimeToLive(this, 'TimeToLive', {
         ttl,
       });
     }
 
-    const domainNameEdge = `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
-    const domainNameOrigin = `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`;
+    const imports = new Imports(this, 'microapps-imports', {
+      shared,
+    });
 
-    const imports = new Imports(this, `microapps-imports${shared.envSuffix}${shared.prSuffix}`, {
-      shared,
-      local: {},
-    });
-    const s3 = new MicroAppsS3(this, `microapps-s3${shared.envSuffix}${shared.prSuffix}`, {
-      autoDeleteEverything: autoDeleteItems,
-      shared,
-    });
-    const cf = new MicroAppsCF(this, `microapps-cloudfront${shared.envSuffix}${shared.prSuffix}`, {
-      shared,
-      autoDeleteEverything: autoDeleteItems,
-      local: {
-        cert: imports.certEdge,
-        domainNameEdge,
-        domainNameOrigin,
-      },
-      s3Exports: s3,
-    });
-    const svcs = new MicroAppsSvcs(this, `microapps-svcs${shared.envSuffix}${shared.prSuffix}`, {
-      cfStackExports: cf,
-      s3Exports: s3,
-      autoDeleteEverything: autoDeleteItems,
-      local: {
-        domainNameEdge,
-        domainNameOrigin,
-        cert: imports.certOrigin,
-      },
-      shared,
+    new MicroApps(this, 'microapps', {
+      account: shared.account,
+      region: shared.region,
+      appEnv: shared.env,
+      assetNameRoot: `${shared.stackName}`,
+      assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
+      domainNameEdge: props.domainNameEdge,
+      domainNameOrigin: props.domainNameOrigin,
+      certEdge: imports.certEdge,
+      certOrigin: imports.certOrigin,
+      domainName: shared.domainName,
+      r53ZoneID: shared.r53ZoneID,
+      r53ZoneName: shared.r53ZoneName,
+      s3PolicyBypassAROA: shared.s3PolicyBypassAROA,
+      s3PolicyBypassRoleName: shared.s3PolicyBypassRoleName,
+      autoDeleteEverything,
     });
   }
 }

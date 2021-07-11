@@ -1,7 +1,7 @@
-import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import Manager, { Application, Version, Rules } from './index';
+import { describe, it } from 'mocha';
 import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../fixtures';
+import Manager, { Application, Version, Rules } from './index';
 
 describe('database manager', () => {
   before(async () => {

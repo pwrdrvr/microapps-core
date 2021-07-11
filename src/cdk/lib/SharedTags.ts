@@ -1,12 +1,12 @@
 import * as cdk from '@aws-cdk/core';
-import SharedProps from './SharedProps';
+import { SharedProps } from './SharedProps';
 import { Env } from './Types';
 
 interface SharedTagsProps {
   shared: SharedProps;
 }
 
-export default class SharedTags {
+export class SharedTags {
   public static addSharedTags(construct: cdk.IConstruct, props: SharedTagsProps): void {
     const { shared } = props;
     cdk.Tags.of(construct).add('repository', 'https://github.com/pwrdrvr/microapps-core/');
