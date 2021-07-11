@@ -6,10 +6,11 @@
 name: Node.js CI
 
 on:
+  # Disabling for now
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
