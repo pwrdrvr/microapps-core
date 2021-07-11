@@ -50,6 +50,22 @@ const project = new AwsCdkConstructLibrary({
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */
   // release: undefined,                /* Add release management to this project. */
+
+  publishToMaven: {
+    javaPackage: 'com.pwrdrvr.microapps.cdk',
+    mavenArtifactId: 'pwrdrvrmicroappscdk',
+    mavenGroupId: 'com.pwrdrvr.microapps.cdk',
+    serverId: 'github',
+    repositoryUrl: 'https://maven.pkg.github.com/pwrdrvr/microapps.cdk',
+  },
+  publishToNuget: {
+    dotNetNamespace: 'PwrDrvr.MicroApps.CDK',
+    packageId: 'PwrDrvr.MicroApps.CDK',
+  },
+  publishToPypi: {
+    distName: 'pwrdrvr.microapps.cdk',
+    module: 'pwrdrvr.microapps.cdk',
+  },
 });
 
 // Move the parent node_modules back into place now that jsii is done
