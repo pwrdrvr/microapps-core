@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: read
     env:
       CI: "true"
     steps:
@@ -65,9 +66,6 @@ jobs:
           path: src/microapps/cdk/dist
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
 
   release_npm:
     name: Release to npm
@@ -75,6 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v2
@@ -90,5 +89,5 @@ jobs:
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
       credentials:
-        username: ${{ github.actor }}
+        username: ${{ github.repo }}
         password: ${{ secrets.GITHUB_TOKEN }}
