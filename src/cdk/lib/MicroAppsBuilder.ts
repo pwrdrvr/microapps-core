@@ -1,8 +1,7 @@
-import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import SharedProps from './SharedProps';
-import SharedTags from './SharedTags';
-import { RemovalPolicy } from '@aws-cdk/core';
+import * as cdk from '@aws-cdk/core';
+import { SharedProps } from './SharedProps';
+import { SharedTags } from './SharedTags';
 
 interface IMicroAppsBuilderStackProps extends cdk.StackProps {
   readonly shared: SharedProps;
@@ -83,6 +82,7 @@ export class MicroAppsBuilder extends cdk.Stack {
       new iam.PolicyStatement({
         actions: [
           'events:PutRule',
+          'events:DeleteRule',
           'events:DescribeRule',
           'events:PutTargets',
           'events:RemoveTargets',
@@ -100,7 +100,7 @@ export class MicroAppsBuilder extends cdk.Stack {
     userBuilder.addToGroup(groupBuilder);
     // Always destroy this user if the stack is destroyed
     // This user is not critical and if we destroy the stack we should rotate the keys
-    userBuilder.applyRemovalPolicy(RemovalPolicy.DESTROY);
-    groupBuilder.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    userBuilder.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    groupBuilder.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
   }
 }

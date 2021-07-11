@@ -2,13 +2,15 @@
 import 'source-map-support/register';
 import 'reflect-metadata';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Manager from '@pwrdrvr/microapps-datalib';
+// eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
-import Log from './lib/Log';
 import { LambdaLog, LogMessage } from 'lambda-log';
+import { Config } from './config/Config';
 import AppController from './controllers/AppController';
 import VersionController from './controllers/VersionController';
-import { Config } from './config/Config';
+import Log from './lib/Log';
 
 const localTesting = process.env.DEBUG ? true : false;
 
@@ -123,7 +125,7 @@ export async function handler(
 // Run the function locally for testing
 if (localTesting) {
   const payload = { appName: 'test-app' } as ICreateApplicationRequest;
-  Promise.all([
+  void Promise.all([
     handler(payload as IRequestBase, { awsRequestId: 'local-testing' } as lambda.Context),
   ]);
 }

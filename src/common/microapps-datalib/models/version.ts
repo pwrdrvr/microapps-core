@@ -26,37 +26,6 @@ export interface IVersionRecord {
 }
 
 export default class Version implements IVersionRecord {
-  private _keyBy: SaveBy;
-
-  public constructor(init?: Partial<IVersionRecord>) {
-    Object.assign(this, init);
-    this._keyBy = SaveBy.AppName;
-  }
-
-  public get DbStruct(): IVersionRecord {
-    return {
-      PK: this.PK,
-      SK: this.SK,
-      AppName: this.AppName,
-      SemVer: this.SemVer,
-      Type: this.Type,
-      Status: this.Status,
-      DefaultFile: this.DefaultFile,
-      IntegrationID: this.IntegrationID,
-    };
-  }
-
-  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
-    // TODO: Validate that all the fields needed are present
-
-    // Save under specific AppName key
-    this._keyBy = SaveBy.AppName;
-    await ddbDocClient.put({
-      TableName: Config.TableName,
-      Item: this.DbStruct,
-    });
-  }
-
   public static async LoadVersionsAsync(
     ddbDocClient: DynamoDBDocument,
     appName: string,
@@ -105,6 +74,43 @@ export default class Version implements IVersionRecord {
     }
   }
 
+  private _keyBy: SaveBy;
+  private _appName: string | undefined;
+  private _semVer: string | undefined;
+  private _type: string | undefined;
+  private _status: VersionStatus | undefined;
+  private _defaultFile: string | undefined;
+  private _integrationID: string | undefined;
+
+  public constructor(init?: Partial<IVersionRecord>) {
+    Object.assign(this, init);
+    this._keyBy = SaveBy.AppName;
+  }
+
+  public get DbStruct(): IVersionRecord {
+    return {
+      PK: this.PK,
+      SK: this.SK,
+      AppName: this.AppName,
+      SemVer: this.SemVer,
+      Type: this.Type,
+      Status: this.Status,
+      DefaultFile: this.DefaultFile,
+      IntegrationID: this.IntegrationID,
+    };
+  }
+
+  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
+    // TODO: Validate that all the fields needed are present
+
+    // Save under specific AppName key
+    this._keyBy = SaveBy.AppName;
+    await ddbDocClient.put({
+      TableName: Config.TableName,
+      Item: this.DbStruct,
+    });
+  }
+
   public get SK(): string {
     switch (this._keyBy) {
       case SaveBy.AppName:
@@ -114,7 +120,6 @@ export default class Version implements IVersionRecord {
     }
   }
 
-  private _appName: string | undefined;
   public get AppName(): string {
     return this._appName as string;
   }
@@ -122,7 +127,6 @@ export default class Version implements IVersionRecord {
     this._appName = value.toLowerCase();
   }
 
-  private _semVer: string | undefined;
   public get SemVer(): string {
     return this._semVer as string;
   }
@@ -130,7 +134,6 @@ export default class Version implements IVersionRecord {
     this._semVer = value;
   }
 
-  private _type: string | undefined;
   public get Type(): string {
     return this._type as string;
   }
@@ -138,7 +141,6 @@ export default class Version implements IVersionRecord {
     this._type = value;
   }
 
-  private _status: VersionStatus | undefined;
   public get Status(): VersionStatus {
     return this._status;
   }
@@ -146,7 +148,6 @@ export default class Version implements IVersionRecord {
     this._status = value;
   }
 
-  private _defaultFile: string | undefined;
   public get DefaultFile(): string {
     return this._defaultFile as string;
   }
@@ -154,7 +155,6 @@ export default class Version implements IVersionRecord {
     this._defaultFile = value;
   }
 
-  private _integrationID: string | undefined;
   public get IntegrationID(): string {
     return this._integrationID as string;
   }

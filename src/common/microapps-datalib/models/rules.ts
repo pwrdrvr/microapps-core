@@ -19,6 +19,19 @@ export interface IRulesRecord {
 }
 
 export default class Rules implements IRulesRecord {
+  public static async LoadAsync(ddbDocClient: DynamoDBDocument, appName: string): Promise<Rules> {
+    const { Item } = await ddbDocClient.get({
+      TableName: Config.TableName,
+      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'rules' },
+    });
+    const record = plainToClass<Rules, unknown>(Rules, Item);
+    return record;
+  }
+
+  private _appName: string | undefined;
+  private _ruleSet: RuleSet | undefined;
+  private _version: number | undefined;
+
   public constructor(init?: Partial<IRulesRecord>) {
     Object.assign(this, init);
     if (init === undefined) {
@@ -58,15 +71,6 @@ export default class Rules implements IRulesRecord {
     await taskByApplications;
   }
 
-  public static async LoadAsync(ddbDocClient: DynamoDBDocument, appName: string): Promise<Rules> {
-    const { Item } = await ddbDocClient.get({
-      TableName: Config.TableName,
-      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'rules' },
-    });
-    const record = plainToClass<Rules, unknown>(Rules, Item);
-    return record;
-  }
-
   public get PK(): string {
     return `appName#${this.AppName}`.toLowerCase();
   }
@@ -75,7 +79,6 @@ export default class Rules implements IRulesRecord {
     return 'rules';
   }
 
-  private _appName: string | undefined;
   public get AppName(): string {
     return this._appName as string;
   }
@@ -83,7 +86,6 @@ export default class Rules implements IRulesRecord {
     this._appName = value.toLowerCase();
   }
 
-  private _ruleSet: RuleSet | undefined;
   public get RuleSet(): RuleSet {
     return this._ruleSet as RuleSet;
   }
@@ -91,7 +93,6 @@ export default class Rules implements IRulesRecord {
     this._ruleSet = value;
   }
 
-  private _version: number | undefined;
   public get Version(): number {
     return this._version as number;
   }

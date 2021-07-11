@@ -1,10 +1,8 @@
-import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as cf from '@aws-cdk/aws-cloudfront';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as cdk from '@aws-cdk/core';
 import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
-import SharedProps from './SharedProps';
-import SharedTags from './SharedTags';
 
 export interface IMicroAppsS3Exports {
   readonly bucketApps: s3.IBucket;
@@ -16,9 +14,7 @@ export interface IMicroAppsS3Exports {
   readonly bucketLogs: s3.IBucket;
 }
 
-interface IMicroAppsS3Props extends cdk.ResourceProps {
-  readonly shared: SharedProps;
-
+interface MicroAppsS3Props extends cdk.ResourceProps {
   /**
    * Duration before stack is automatically deleted.
    * Requires that autoDeleteEverything be set to true.
@@ -26,6 +22,11 @@ interface IMicroAppsS3Props extends cdk.ResourceProps {
    * @default false
    */
   readonly autoDeleteEverything?: boolean;
+
+  readonly reverseDomainName: string;
+
+  readonly assetNameRoot: string;
+  readonly assetNameSuffix: string;
 }
 
 export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
@@ -64,29 +65,34 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
     return this._bucketLogs;
   }
 
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsS3Props) {
+  constructor(scope: cdk.Construct, id: string, props?: MicroAppsS3Props) {
     super(scope, id);
 
     if (props === undefined) {
       throw new Error('props must be set');
     }
 
-    const { shared } = props;
-
-    SharedTags.addEnvTag(this, shared.env, shared.isPR);
+    const {
+      autoDeleteEverything = false,
+      reverseDomainName,
+      assetNameRoot,
+      assetNameSuffix,
+    } = props;
 
     // Use Auto-Delete S3Bucket for PRs
-    this._bucketAppsName = `${shared.reverseDomainName}-${shared.stackName}${shared.envSuffix}${shared.prSuffix}`;
-    this._bucketAppsStagingName = `${shared.reverseDomainName}-${shared.stackName}-staging${shared.envSuffix}${shared.prSuffix}`;
+    this._bucketAppsName = `${reverseDomainName}-${assetNameRoot}${assetNameSuffix}`;
+    this._bucketAppsStagingName = `${reverseDomainName}-${assetNameRoot}-staging${assetNameSuffix}`;
 
-    const s3RemovalPolicy = shared.isPR ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN;
-    const s3AutoDeleteItems = shared.isPR;
+    const s3RemovalPolicy = autoDeleteEverything
+      ? cdk.RemovalPolicy.DESTROY
+      : cdk.RemovalPolicy.RETAIN;
+    const s3AutoDeleteItems = autoDeleteEverything;
 
     //
     // S3 Bucket for Logging - Usable by many stacks
     //
     this._bucketLogs = new DeletableBucket(this, 'microapps-logs', {
-      bucketName: `${shared.reverseDomainName}-${shared.stackName}-logs${shared.envSuffix}${shared.prSuffix}`,
+      bucketName: `${reverseDomainName}-${assetNameRoot}-logs${assetNameSuffix}`,
       forceDelete: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
@@ -107,9 +113,9 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
 
     // Create S3 Origin Identity
     this._bucketAppsOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
-      comment: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+      comment: `${assetNameRoot}${assetNameSuffix}`,
     });
-    if (shared.isPR) {
+    if (autoDeleteEverything) {
       this._bucketAppsOAI.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 

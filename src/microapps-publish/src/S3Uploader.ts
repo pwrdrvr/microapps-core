@@ -1,12 +1,11 @@
+import path from 'path';
+// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
 import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
+import fs from 'fs-extra';
 import { IConfig } from './config/Config';
 import S3TransferUtility from './S3TransferUtility';
-import path from 'path';
-import fs from 'fs-extra';
 
 export default class S3Uploader {
-  private static readonly _tempDir = './deploytool-temp';
-
   public static async Upload(
     config: IConfig,
     s3UploadPath: string,
@@ -55,4 +54,6 @@ export default class S3Uploader {
       // Since we want the directory deleted this is ok
     }
   }
+
+  private static readonly _tempDir = './deploytool-temp';
 }
