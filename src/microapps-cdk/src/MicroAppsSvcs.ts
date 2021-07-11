@@ -195,7 +195,9 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         new iam.ArnPrincipal(`arn:aws:iam::${account}:role/${s3PolicyBypassRoleName}`),
         deployerFunc.grantPrincipal,
         // Allow the builder user to update the buckets
-        new iam.ArnPrincipal(`arn:aws:iam::${account}:user/${assetNameRoot}-builder`),
+        new iam.ArnPrincipal(
+          `arn:aws:iam::${account}:user/${assetNameRoot}-builder-${props.appEnv}`,
+        ),
       ],
       notResources: [
         `${bucketApps.bucketArn}/\${aws:PrincipalTag/microapp-name}/*`,
@@ -203,6 +205,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       ],
       conditions: {
         Null: { 'aws:PrincipalTag/microapp-name': 'false' },
+        // StringNotLike: {'aws:'}
       },
     });
     if (autoDeleteEverything) {
@@ -227,7 +230,9 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
           `arn:aws:sts::${account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
         ),
         // Allow the builder user to update the buckets
-        new iam.ArnPrincipal(`arn:aws:iam::${account}:user/${assetNameRoot}-builder`),
+        new iam.ArnPrincipal(
+          `arn:aws:iam::${account}:user/${assetNameRoot}-builder-${props.appEnv}`,
+        ),
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
       conditions: {
@@ -237,6 +242,16 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         // The notPrincipals will only match the role name exactly and will not match
         // any session that has assumed the role since notPrincipals does not allow
         // wildcard matches and does not do them implicitly either.
+        // The AROA must be uased because there are only 3 Principal variables:
+        //  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+        //  aws:username, aws:userid, aws:PrincipalTag
+        // For an assumed role, aws:username is blank, aws:userid is:
+        //  [unique id AKA AROA for Role]:[session name]
+        // Table of unique ID prefixes such as AROA:
+        //  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
+        // The name of the role is simply not available and if it was
+        // we'd need to write a complicated comparison to make sure
+        // that we didn't exclude the Deny tag from roles in other accounts.
         StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, account] },
       },
     });
