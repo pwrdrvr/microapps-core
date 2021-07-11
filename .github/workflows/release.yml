@@ -27,6 +27,10 @@ jobs:
         run: |-
           git config user.name "Automation"
           git config user.email "github-actions@github.com"
+
+      - name: Print node version
+        run: node --version
+
       - name: Install dependencies
         run: npm ci
 
@@ -42,18 +46,21 @@ jobs:
         id: git_remote
         run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{
           github.ref }} | cut -f1)"
+
       - name: Create release
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        run: gh release create v$(cat dist/version.txt) -F dist/changelog.md -t v$(cat
+        run: cd src/microapps-cdk && gh release create v$(cat dist/version.txt) -F dist/changelog.md -t v$(cat
           dist/version.txt)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
       - name: Upload artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2.1.1
         with:
           name: dist
-          path: dist
+          path: src/microapps/cdk/dist
     container:
       image: jsii/superchain
   release_npm:
@@ -67,7 +74,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: dist
-          path: dist
+          path: src/microapps-cdk/dist
       - name: Release
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
         env:
