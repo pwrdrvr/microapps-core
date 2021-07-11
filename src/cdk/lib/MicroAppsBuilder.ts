@@ -82,6 +82,7 @@ export class MicroAppsBuilder extends cdk.Stack {
       new iam.PolicyStatement({
         actions: [
           'events:PutRule',
+          'events:DeleteRule',
           'events:DescribeRule',
           'events:PutTargets',
           'events:RemoveTargets',

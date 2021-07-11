@@ -106,7 +106,6 @@ export class MicroApps extends cdk.Construct {
       autoDeleteEverything,
       r53ZoneID,
       r53ZoneName,
-      certEdge,
       account,
       region,
       appEnv,
