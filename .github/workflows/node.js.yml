@@ -46,7 +46,7 @@ jobs:
           ${{ runner.OS }}-
     
     - name: Install CDK
-      run: npm i -g aws-cdk
+      run: npm i -g aws-cdk ts-node projen
 
     - name: Install Node Modules
       run: npm ci
