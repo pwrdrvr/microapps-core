@@ -82,7 +82,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // DynamoDB Table
     //
     const table = new dynamodb.Table(this, 'microapps-router-table', {
-      tableName: assetNameRoot,
+      tableName: `${assetNameRoot}${assetNameSuffix}`,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',
