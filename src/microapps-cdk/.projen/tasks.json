@@ -43,7 +43,7 @@
           "spawn": "docgen"
         },
         {
-          "exec": "if [[ -d ../../node_modules_hide ]]; then mv ../../node_modules_hide ../../node_modules; fi"
+          "exec": "if [ -d ../../node_modules_hide ] ; then mv ../../node_modules_hide ../../node_modules; fi"
         },
         {
           "exec": "esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-deployer/index.js"
