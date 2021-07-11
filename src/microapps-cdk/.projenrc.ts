@@ -51,7 +51,7 @@ const project = new AwsCdkConstructLibrary({
 
 // Move the parent node_modules back into place now that jsii is done
 project.compileTask.exec(
-  'if [[ -d ../../node_modules_hide ]]; then mv ../../node_modules_hide ../../node_modules; fi',
+  'if [ -d ../../node_modules_hide ] ; then mv ../../node_modules_hide ../../node_modules; fi',
 );
 
 project.compileTask.exec(
