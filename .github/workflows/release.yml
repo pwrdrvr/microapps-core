@@ -64,7 +64,7 @@ jobs:
           name: dist
           path: src/microapps/cdk/dist
     container:
-      image: jsii/superchain
+      image: jsii/superchain:node14
   release_npm:
     name: Release to npm
     needs: release
@@ -84,4 +84,4 @@ jobs:
           NPM_REGISTRY: npm.pkg.github.com/@pwrdrvr/microapps-cdk
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     container:
-      image: jsii/superchain
+      image: jsii/superchain:node14
