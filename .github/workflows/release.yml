@@ -67,7 +67,7 @@ jobs:
       image: ghcr.io/pwrdrvr/jsii-node-16:latest
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.ghcr_token }}
+        password: ${{ secrets.GITHUB_TOKEN }}
   release_npm:
     name: Release to npm
     needs: release
@@ -90,4 +90,4 @@ jobs:
       image: ghcr.io/pwrdrvr/jsii-node-16:latest
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.ghcr_token }}
+        password: ${{ secrets.GITHUB_TOKEN }}
