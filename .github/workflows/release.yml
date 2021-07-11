@@ -3,7 +3,7 @@
 
 name: release
 env:
-  NVM_USE_VERSION: v16
+  NVM_USE_VERSION: 14
 on:
   push:
     branches:
