@@ -77,6 +77,7 @@ export class MicroApps extends cdk.Construct {
     const reverseDomainName = MicroApps.reverseDomain(domainName);
 
     const s3 = new MicroAppsS3(this, 'microapps-s3', {
+      autoDeleteEverything,
       reverseDomainName,
       assetNameRoot,
       assetNameSuffix,
