@@ -37,7 +37,7 @@ jobs:
         run: whoami && ls -la && cd src/microapps-publish/ && ls -la
 
       - name: Set npm unsafe
-        run: npm config set unsafe-perm true
+        run: npm config set unsafe-perm false
 
       - name: Make npm ci happy
         run: npm run preinstall
