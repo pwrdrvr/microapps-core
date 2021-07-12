@@ -36,8 +36,11 @@ jobs:
       - name: Diag
         run: whoami && ls -la && cd src/microapps-publish/ && ls -la
 
-      - name: Make npm ci work
-        run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js
+      - name: Set npm unsafe
+        run: npm config set unsafe-perm true
+
+      - name: Make npm ci happy
+        run: npm run preinstall
 
       - name: Install dependencies
         run: npm ci
