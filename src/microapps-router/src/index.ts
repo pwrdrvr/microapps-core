@@ -18,7 +18,7 @@ const dynamoClient = process.env.TEST
 let manager: Manager;
 
 function loadAppFrame(): string {
-  const paths = [__dirname, `${__dirname}/..`, '/opt', '/opt/templates'];
+  const paths = [__dirname, `${__dirname}/..`, `${__dirname}/templates`, '/opt', '/opt/templates'];
 
   // Change the logger on each request
   const log = new LambdaLog({
