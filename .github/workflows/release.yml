@@ -33,12 +33,6 @@ jobs:
       - name: Print node version
         run: node --version
       
-      - name: Diag
-        run: whoami && ls -la && cd src/microapps-publish/ && ls -la
-
-      - name: Set npm unsafe
-        run: npm config set unsafe-perm false
-
       - name: Make npm ci happy
         run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js
 
