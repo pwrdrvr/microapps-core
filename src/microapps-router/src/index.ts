@@ -1,7 +1,7 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
-import fs from 'fs';
+import { pathExistsSync, readFileSync } from 'fs-extra';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
@@ -36,10 +36,9 @@ function loadAppFrame(): string {
   for (const path of paths) {
     const fullPath = `${path}/appFrame.html`;
     try {
-      const stat = fs.statSync(fullPath);
-      if (stat.isFile()) {
+      if (pathExistsSync(fullPath)) {
         log.info('found html file', { fullPath });
-        return fs.readFileSync(fullPath, 'utf-8');
+        return readFileSync(fullPath, 'utf-8');
       }
     } catch {
       // Don't care - we get here if stat throws because the file does not exist
@@ -214,7 +213,7 @@ async function RouteApp(
 
 // Run the function locally for testing
 if (localTesting) {
-  const payload = JSON.parse(fs.readFileSync('../../test/json/router-release-app.json', 'utf-8'));
+  const payload = JSON.parse(readFileSync('../../test/json/router-release-app.json', 'utf-8'));
   void Promise.all([
     handler(
       payload as lambda.APIGatewayProxyEventV2,
