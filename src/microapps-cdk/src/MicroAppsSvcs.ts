@@ -128,10 +128,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         handler: 'index.handler',
         ...deployerFuncProps,
       });
-    } else if (existsSync(`${path.resolve(__dirname)}/lib/microapps-deployer/index.js`)) {
+    } else if (existsSync(`${path.resolve(__dirname)}/microapps-deployer/index.js`)) {
       // This is for built apps packaged with the CDK construct
       deployerFunc = new lambda.Function(this, 'microapps-deployer-func', {
-        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/lib/microapps-deployer/`),
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/microapps-deployer/`),
         handler: 'index.handler',
         ...deployerFuncProps,
       });
@@ -323,13 +323,6 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     // Router Lambda Function
     //
 
-    // Create Router Lambda Layer
-    const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
-      code: lambda.Code.fromAsset('./src/microapps-router/templates/'),
-    });
-    if (autoDeleteEverything) {
-      routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
     // Create Router Lambda Function
     let routerFunc: lambda.Function;
     const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
@@ -343,7 +336,6 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         DATABASE_TABLE_NAME: table.tableName,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
-      layers: [routerDataFiles],
     };
     if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
       // This is for local dev
@@ -352,14 +344,22 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         handler: 'index.handler',
         ...routerFuncProps,
       });
-    } else if (existsSync(`${path.resolve(__dirname)}/lib/microapps-router/index.js`)) {
+    } else if (existsSync(`${path.resolve(__dirname)}/microapps-router/index.js`)) {
       // This is for built apps packaged with the CDK construct
       routerFunc = new lambda.Function(this, 'microapps-router-func', {
-        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/lib/microapps-router/`),
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/microapps-router/`),
         handler: 'index.handler',
         ...routerFuncProps,
       });
     } else {
+      // Create Router Lambda Layer
+      const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
+        code: lambda.Code.fromAsset('./src/microapps-router/templates/'),
+      });
+      if (autoDeleteEverything) {
+        routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+      }
+
       routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
         entry: './src/microapps-router/src/index.ts',
         handler: 'handler',
@@ -367,6 +367,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
           minify: true,
           sourceMap: true,
         },
+        layers: [routerDataFiles],
         ...routerFuncProps,
       });
     }
