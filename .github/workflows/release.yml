@@ -7,8 +7,8 @@ on:
     branches:
       - main
   # Building on pull request is only temporary
-  pull_request:
-    branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
 
   workflow_dispatch: {}
 
