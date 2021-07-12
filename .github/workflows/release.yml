@@ -61,7 +61,8 @@ jobs:
 
 
       - name: Upload artifact
-        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        # FIXME: Skipping check while building on PRs, this needs to be re-enabled
+        # if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2.1.1
         with:
           name: dist
