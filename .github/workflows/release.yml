@@ -90,6 +90,3 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
-      credentials:
-        username: ${{ github.repo }}
-        password: ${{ secrets.GITHUB_TOKEN }}
