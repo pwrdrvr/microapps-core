@@ -29,9 +29,6 @@ jobs:
         run: |-
           git config user.name "Automation"
           git config user.email "github-actions@github.com"
-
-      - name: Print node version
-        run: node --version
       
       - name: Make npm ci happy
         run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js
