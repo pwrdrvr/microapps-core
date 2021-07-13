@@ -101,7 +101,7 @@ jobs:
       - name: Release NuGet
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
         env:
-          NUGET_SERVER: npm.pkg.github.com/pwrdrvr/microapps-core
+          NUGET_SERVER: https://npm.pkg.github.com/pwrdrvr/microapps-core
           NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
