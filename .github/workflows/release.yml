@@ -88,7 +88,13 @@ jobs:
         with:
           name: dist
           path: src/microapps-cdk/dist
-      
+
+      - name: Release NuGet
+        run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
+        env:
+          NUGET_SERVER: https://npm.pkg.github.com/pwrdrvr
+          NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+
       # Docs for different release steps and params
       # https://www.npmjs.com/package/jsii-release
       - name: Release NPM
@@ -98,10 +104,5 @@ jobs:
           NPM_REGISTRY: npm.pkg.github.com
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Release NuGet
-        run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
-        env:
-          NUGET_SERVER: https://npm.pkg.github.com/pwrdrvr/microapps-core
-          NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
