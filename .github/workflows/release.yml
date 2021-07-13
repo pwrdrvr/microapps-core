@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main
-  Building on pull request is only temporary
+  # Building on pull request is only temporary
   pull_request:
     branches: [ main ]
 
