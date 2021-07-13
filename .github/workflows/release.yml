@@ -6,9 +6,9 @@ on:
   push:
     branches:
       - main
-  # Building on pull request is only temporary
-  # pull_request:
-  #   branches: [ main ]
+  Building on pull request is only temporary
+  pull_request:
+    branches: [ main ]
 
   workflow_dispatch: {}
 
@@ -88,11 +88,20 @@ jobs:
         with:
           name: dist
           path: src/microapps-cdk/dist
-      - name: Release
+      
+      # Docs for different release steps and params
+      # https://www.npmjs.com/package/jsii-release
+      - name: Release NPM
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: npm.pkg.github.com
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release NuGet
+        run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
+        env:
+          NUGET_SERVER: npm.pkg.github.com/pwrdrvr/microapps-core
+          NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
