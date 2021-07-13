@@ -118,7 +118,7 @@ export interface MicroAppsProps {
 }
 
 /**
- * MicroApps applicatoin deployment and runtime environment.
+ * Application deployment and runtime environment.
  */
 export class MicroApps extends cdk.Construct {
   // input like 'example.com.' will return as 'com.example'
