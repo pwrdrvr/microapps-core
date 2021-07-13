@@ -92,7 +92,7 @@ jobs:
       - name: Release NuGet
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
         env:
-          NUGET_SERVER: https://npm.pkg.github.com/pwrdrvr/index.json
+          NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
           NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
 
       # Docs for different release steps and params
