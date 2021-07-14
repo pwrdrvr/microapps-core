@@ -5,7 +5,7 @@ import { MicroAppsS3 } from './MicroAppsS3';
 import { MicroAppsSvcs } from './MicroAppsSvcs';
 
 /**
- * Props for MicroApps.
+ * Props for MicroApps
  *
  */
 export interface MicroAppsProps {
