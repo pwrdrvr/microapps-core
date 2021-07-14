@@ -89,14 +89,32 @@ jobs:
           name: dist
           path: src/microapps-cdk/dist
 
+      # Docs for GitHub Nuget
+      # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
+      # Docs for jsii-release-nuget
+      # https://github.com/cdklabs/jsii-release#nuget
       - name: Release NuGet
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
         env:
           NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
           NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
 
+      # Docs for GitHub Maven
+      # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
+      # Docs for jsii-release-maven
+      # https://github.com/cdklabs/jsii-release#maven
+      - name: Release Maven
+        run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-maven
+        env:
+          MAVEN_SERVER_ID: github
+          MAVEN_REPOSITORY_URL: https://maven.pkg.github.com/pwrdrvr/microapps-core
+          MAVEN_USERNAME: ${{ github.actor }}
+          MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
       # Docs for different release steps and params
       # https://www.npmjs.com/package/jsii-release
+      # Docs for jsii-release-npm
+      # https://github.com/cdklabs/jsii-release#npm
       - name: Release NPM
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
         env:
