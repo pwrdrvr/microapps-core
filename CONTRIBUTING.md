@@ -32,6 +32,18 @@ Note: `npm` has a problem with `jest` as CDK wants version 26 and `projen` insta
 
 ```
 npm i -g projen
+```
 
+Note: Do not use `--projenrc-ts` as it causess `projen` runs to fail after `npm run build` is run (which creates a `tsconfig.json` file which interferes with `ts-node`).
+
+## Projen CDK Project
+
+```
 npx projen new awscdk-construct --no-git --name @pwrdrvr/microapps-cdk --author "Harold Hunt" --package-manager npm --license MIT --npm-access public --copyright-owner "PwrDrvr LLC" --copyright-period 2020 --projenrc-ts --no-jest
+```
+
+## Projen Node Project
+
+```
+npx projen new node --no-git --name @pwrdrvr/microapps-publish --author "Harold Hunt" --package-manager npm --license MIT --npm-access public --copyright-owner "PwrDrvr LLC" --copyright-period 2020 --no-jest
 ```
