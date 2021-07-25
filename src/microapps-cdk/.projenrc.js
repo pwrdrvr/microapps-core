@@ -9,6 +9,7 @@ const project = new AwsCdkConstructLibrary({
   defaultReleaseBranch: 'main',
   license: 'MIT',
   name: '@pwrdrvr/microapps-cdk',
+  description: 'Publish tool for deploying apps and updates',
   npmAccess: NpmAccess.PUBLIC,
   packageManager: NodePackageManager.NPM,
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
@@ -17,6 +18,8 @@ const project = new AwsCdkConstructLibrary({
   projenrcTs: false,
   repositoryUrl: 'git@github.com:pwrdrvr/microapps-core.git',
   jest: false,
+  minNodeVersion: '>= 10.0.0',
+  entrypoint: 'src/index.ts',
 
   // cdkDependencies: undefined,        /* Which AWS CDK modules (those that start with "@aws-cdk/") does this library require when consumed? */
   cdkDependencies: [

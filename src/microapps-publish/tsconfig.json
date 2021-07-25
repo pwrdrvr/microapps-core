@@ -1,11 +1,10 @@
 {
   "extends": "../../tsconfig.packages.json",
   "compilerOptions": {
-    "rootDir": ".",
-    "outDir": "dist",
+    "rootDir": "src",
+    "outDir": "lib",
     "strict": false,
     "resolveJsonModule": true
   },
-  "include": ["package.json", "src/**/*.ts"],
-  "exclude": ["**/*.spec.ts", "dist"]
+  "include": ["src/**/*.ts"]
 }

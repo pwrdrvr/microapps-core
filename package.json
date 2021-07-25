@@ -18,9 +18,9 @@
   ],
   "private": true,
   "scripts": {
-    "fixinstall": "mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js",
+    "fixinstall": "mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/lib/index.js",
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
-    "start:publish": "node src/microapps-publish/dist/src/index.js",
+    "start:publish": "node src/microapps-publish/lib/index.js",
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
     "build": "tsc --build tsconfig.json",
     "esbuild:deployer": "esbuild src/microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=src/cdk/dist/microapps-deployer/index.js",

@@ -6,11 +6,12 @@ import 'source-map-support/register';
 import 'reflect-metadata';
 import { exec } from 'child_process';
 import * as fs from 'fs/promises';
+import path from 'path';
 import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as sts from '@aws-sdk/client-sts';
 import commander from 'commander';
-import pkg from '../package.json';
+import { readFileSync } from 'fs-extra';
 import { Config, IConfig } from './config/Config';
 import DeployClient from './DeployClient';
 import S3Uploader from './S3Uploader';
@@ -18,6 +19,10 @@ const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
 const program = new commander.Command();
+
+const packagePath = path.join(path.resolve(__dirname), '..', 'package.json');
+type packageJson = { version: string };
+const pkg = JSON.parse(readFileSync(packagePath, 'utf-8')) as packageJson;
 
 program
   .version(pkg.version)

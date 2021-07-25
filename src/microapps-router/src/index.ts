@@ -1,12 +1,12 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
-import { pathExistsSync, readFileSync } from 'fs-extra';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 // eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
+import { pathExistsSync, readFileSync } from 'fs-extra';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
 

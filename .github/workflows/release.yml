@@ -34,7 +34,7 @@ jobs:
         run: node --version
       
       - name: Make npm ci happy
-        run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js
+        run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/lib/index.js
 
       - name: Cache Node.js modules
         uses: actions/cache@v2
@@ -53,8 +53,11 @@ jobs:
       - name: Build CDK Construct
         run: cd src/microapps-cdk && npm ci
 
-      - name: Release
+      - name: Release CDK Construct
         run: cd src/microapps-cdk && npx projen release
+
+      - name: Release Publish Tool
+        run: cd src/microapps-publish && npx projen release
 
       - name: Check for new commits
         id: git_remote
