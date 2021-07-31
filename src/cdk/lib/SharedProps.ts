@@ -68,14 +68,15 @@ export class SharedProps {
     return this._r53ZoneID;
   }
 
-  private _certARNEdge;
+  private _certIDEdge: string;
   public get certARNEdge(): string {
-    return this._certARNEdge;
+    // CloudFront cert is always us-east-1
+    return `arn:aws:acm:us-east-1:${this._account}:certificate/${this._certIDEdge}`;
   }
 
-  private _certARNOrigin;
+  private _certIDOrigin: string;
   public get certARNOrigin(): string {
-    return this._certARNOrigin;
+    return `arn:aws:acm:${this._region}:${this._account}:certificate/${this._certIDOrigin}`;
   }
 
   private _s3PolicyBypassRoleName;
@@ -103,14 +104,16 @@ export class SharedProps {
     this._reverseDomainName = SharedProps.reverseDomain(this._r53ZoneName);
     this._domainName = SharedProps.reverseDomain(this._reverseDomainName);
     this._r53ZoneID = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneID');
-    this._certARNEdge = scope.node.tryGetContext('@pwrdrvr/microapps:certARNEdge');
-    this._certARNOrigin = scope.node.tryGetContext('@pwrdrvr/microapps:certARNOrigin');
+    this._certIDEdge = scope.node.tryGetContext('@pwrdrvr/microapps:certIDEdge');
+    this._certIDOrigin = scope.node.tryGetContext('@pwrdrvr/microapps:certIDOrigin');
     this._s3PolicyBypassRoleName = scope.node.tryGetContext(
       '@pwrdrvr/microapps:s3PolicyBypassRoleName',
     );
     this._s3PolicyBypassAROA = scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROA');
-    this._account = scope.node.tryGetContext('@pwrdrvr/microapps:account');
-    this._region = scope.node.tryGetContext('@pwrdrvr/microapps:region');
+    this._account =
+      scope.node.tryGetContext('@pwrdrvr/microapps:account') || process.env.CDK_DEFAULT_ACCOUNT;
+    this._region =
+      scope.node.tryGetContext('@pwrdrvr/microapps:region') || process.env.CDK_DEFAULT_REGION;
     this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') || 'microapps';
 
     // Determine if we have a PR number
