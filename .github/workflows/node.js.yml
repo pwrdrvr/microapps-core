@@ -8,9 +8,9 @@ name: deploy-cdk
 on:
   # Disabling for now - master doesn't exist
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
