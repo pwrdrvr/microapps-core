@@ -20,6 +20,9 @@
     "eslint": "npx projen eslint",
     "compat": "npx projen compat",
     "publish:npm": "npx projen publish:npm",
+    "publish:maven": "npx projen publish:maven",
+    "publish:pypi": "npx projen publish:pypi",
+    "publish:nuget": "npx projen publish:nuget",
     "docgen": "npx projen docgen",
     "release": "npx projen release",
     "projen": "npx projen",
@@ -66,7 +69,6 @@
     "@aws-cdk/aws-route53-targets": "^1.95.2",
     "@aws-cdk/aws-s3": "^1.95.2",
     "@aws-cdk/core": "^1.95.2",
-    "@cloudcomponents/cdk-deletable-bucket": "^1.37.0",
     "constructs": "^3.2.27"
   },
   "dependencies": {
@@ -87,7 +89,9 @@
     "@aws-cdk/core": "^1.95.2",
     "@cloudcomponents/cdk-deletable-bucket": "^1.37.0"
   },
-  "bundledDependencies": [],
+  "bundledDependencies": [
+    "@cloudcomponents/cdk-deletable-bucket"
+  ],
   "keywords": [
     "cdk"
   ],
@@ -101,7 +105,23 @@
   "stability": "stable",
   "jsii": {
     "outdir": "dist",
-    "targets": {},
+    "targets": {
+      "java": {
+        "package": "com.pwrdrvr.microapps.cdk",
+        "maven": {
+          "groupId": "com.pwrdrvr.microapps.cdk",
+          "artifactId": "pwrdrvrmicroappscdk"
+        }
+      },
+      "python": {
+        "distName": "pwrdrvr.microapps.cdk",
+        "module": "pwrdrvr.microapps.cdk"
+      },
+      "dotnet": {
+        "namespace": "PwrDrvr.MicroApps.CDK",
+        "packageId": "PwrDrvr.MicroApps.CDK"
+      }
+    },
     "tsc": {
       "outDir": "lib",
       "rootDir": "src"
