@@ -2,9 +2,12 @@
 
 name: build
 
-# on:
-#   pull_request: {}
-#   workflow_dispatch: {}
+on:
+  # Disabling for now - master doesn't exist
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
