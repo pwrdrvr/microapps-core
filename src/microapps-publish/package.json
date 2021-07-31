@@ -1,6 +1,6 @@
 {
   "name": "@pwrdrvr/microapps-publish",
-  "version": "0.9.4",
+  "version": "0.9.1",
   "description": "Publish tool for deploying apps and updates",
   "main": "dist/src/index.js",
   "source": "src/index.ts",
