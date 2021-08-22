@@ -52,6 +52,13 @@ Note: this _has_ to be run in the root of the project on a clean tree (no change
 
 Example output: `v0.9.3`
 
+## Apply Version to Package.json
+
+Note: this can accept the `v`-prefixed version retrieved from `npm version from-git --allow-same-version`
+
+- `cd src/microapps-publish`
+- `npm version v0.9.3 --no-git-tag-version`
+
 # Cleaning Git History
 
 ## Example `filter.txt`
