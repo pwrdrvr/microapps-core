@@ -46,7 +46,7 @@ Below are tips, tricks, and commands used to build and release `microapps-publis
 
 Note: this _has_ to be run in the root of the project on a clean tree (no changed files).
 
-`npm version from-git --allow-same-version`
+`npm version from-git --allow-same-version --no-git-tag-version`
 
 Example output: `v0.9.3`
 
