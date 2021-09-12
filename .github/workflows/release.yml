@@ -79,6 +79,8 @@ jobs:
       image: ghcr.io/pwrdrvr/jsii-node-16
 
   build-publish-tool:
+    name: Build Publish Tool
+    needs: build-cdk-construct
     defaults:
       run:
         shell: bash
@@ -125,9 +127,9 @@ jobs:
         name: publish-tool-dist
         path: src/microapps-publish/dist
 
-  release_npm:
-    name: Release to npm
-    needs: release
+  release-cdk-construct:
+    name: Release CDK Constructs
+    needs: build-publish-tool
     runs-on: ubuntu-latest
     permissions:
       contents: read
