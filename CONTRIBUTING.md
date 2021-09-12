@@ -52,7 +52,7 @@ Note: this _has_ to be done with `npm 7.18.1` in `node 16` as a fix from April, 
 
 Example output: `v0.9.3`
 
-## Apply Version to Package.json
+## Apply Version to microapps-publish Package.json
 
 Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version --no-git-tag-version`
 
