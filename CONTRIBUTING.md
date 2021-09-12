@@ -46,13 +46,15 @@ Below are tips, tricks, and commands used to build and release `microapps-publis
 
 Note: this _has_ to be run in the root of the project on a clean tree (no changed files).
 
+Note: this _has_ to be done with `npm 7.18.1` in `node 16` as a fix from April, 2021 is required in some cases: https://github.com/npm/libnpmversion/pull/12
+
 `npm version from-git --allow-same-version --no-git-tag-version`
 
 Example output: `v0.9.3`
 
 ## Apply Version to Package.json
 
-Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version`
+Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version --no-git-tag-version`
 
 - `cd src/microapps-publish`
 - `npm version v0.9.3 --no-git-tag-version`
