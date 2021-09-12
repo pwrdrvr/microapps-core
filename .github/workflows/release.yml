@@ -130,7 +130,7 @@ jobs:
 
   release-cdk-construct:
     name: Release CDK Constructs
-    needs: build-publish-tool
+    needs: [ build-cdk-construct, build-publish-tool ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
