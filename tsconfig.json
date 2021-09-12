@@ -2,9 +2,6 @@
   "files": [],
   "references": [
     {
-      "path": "./src/cdk/"
-    },
-    {
       "path": "./src/common/microapps-datalib/"
     },
     {
@@ -12,6 +9,12 @@
     },
     {
       "path": "./src/microapps-router/"
+    },
+    {
+      "path": "./src/microapps-cdk/"
+    },
+    {
+      "path": "./src/cdk/"
     },
     {
       "path": "./src/microapps-publish/"

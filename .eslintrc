@@ -12,17 +12,6 @@
     "project": "./tsconfig.eslint.json"
   },
   "extends": ["plugin:import/typescript"],
-  "settings": {
-    "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".tsx"]
-    },
-    "import/resolver": {
-      "node": {},
-      "typescript": {
-        "project": "./tsconfig.eslint.json"
-      }
-    }
-  },
   "ignorePatterns": [
     "*.js",
     "!.projenrc.js",
