@@ -26,8 +26,6 @@ npm ERR! enoent This is related to npm not being able to find a file.
 npm ERR! enoent
 ```
 
-# Replacing
-
 # Bootstrapping Projen Templates
 
 Note: `npm` has a problem with `jest` as CDK wants version 26 and `projen` installs version 27. This works with `yarn` but causes `npm` to complain.
@@ -54,7 +52,7 @@ Example output: `v0.9.3`
 
 ## Apply Version to Package.json
 
-Note: this can accept the `v`-prefixed version retrieved from `npm version from-git --allow-same-version`
+Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version`
 
 - `cd src/microapps-publish`
 - `npm version v0.9.3 --no-git-tag-version`
