@@ -13,7 +13,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  release:
+  build-cdk-construct:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -45,15 +45,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      # - name: Build TypeScript
-      #   run: npm run build --if-present
-
-      # - name: Lint
-      #   run: npm run lint
-
-      # - name: Test
-      #   run: npm run test
-
       - name: Move root NPM modules out of the way
         run: mv node_modules node_modules_hide
 
@@ -63,8 +54,8 @@ jobs:
       - name: Release CDK Construct
         run: cd src/microapps-cdk && npx projen release
 
-      - name: Apply Version to Publish Tool
-        run: cd src/microapps-publish && npm version v$(cat ../microapps-cdk/dist/version.txt) --no-git-tag-version
+      - name: Apply Version to Everything
+        run: npm version v$(cat src/microapps-cdk/dist/version.txt) --no-git-tag-version
 
       - name: Check for new commits
         id: git_remote
@@ -84,21 +75,55 @@ jobs:
         with:
           name: cdk-construct-dist
           path: src/microapps-cdk/dist
-
-      - name: Install modules again
-        run: npm ci
-
-      - name: Build publish tool
-        run: npm run build
-
-      - name: Upload publish tool artifact
-        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        uses: actions/upload-artifact@v2.1.1
-        with:
-          name: publish-tool-dist
-          path: src/microapps-publish/dist
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
+
+  build-publish-tool:
+    defaults:
+      run:
+        shell: bash
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js 16
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16
+
+    - run: npm run fixinstall
+
+    - name: Cache Node.js modules
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.OS }}-node-
+          ${{ runner.OS }}-
+    
+    - name: Install CDK
+      run: npm i -g aws-cdk ts-node projen
+
+    - name: Install Node Modules
+      run: npm ci
+  
+    - name: Build TypeScript
+      run: npm run build --if-present
+
+    - name: Run Lint
+      run: npm run lint
+
+    - name: Run Node Tests
+      run: npm run test
+
+    - name: Upload publish tool artifact
+      if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+      uses: actions/upload-artifact@v2.1.1
+      with:
+        name: publish-tool-dist
+        path: src/microapps-publish/dist
 
   release_npm:
     name: Release to npm
