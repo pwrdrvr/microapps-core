@@ -44,14 +44,23 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+      
+      - name: Lint
+        run: npm run lint
 
-      - name: Move modules out of the way
+      - name: Test
+        run: npm run test
+
+      - name: Move root NPM modules out of the way
         run: mv node_modules node_modules_hide
-      - name: Build CDK Construct
+      - name: Install CDK Construct Deps
         run: cd src/microapps-cdk && npm ci
 
-      - name: Release
+      - name: Release CDK Construct
         run: cd src/microapps-cdk && npx projen release
+
+      - name: Apply Version to Publish Tool
+        run: cd src/microapps-publish && npm version v$(cat ../microapps-cdk/dist/version.txt) --no-git-tag-version
 
       - name: Check for new commits
         id: git_remote
@@ -65,13 +74,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-      - name: Upload artifact
+      - name: Upload CDK Construct Artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2.1.1
         with:
-          name: dist
+          name: cdk-construct-dist
           path: src/microapps-cdk/dist
+
+      - name: Move root NPM modules back into place
+        run: mv node_modules_hide node_modules
+
+      - name: Build publish tool
+        run: npm run build
+
+      - name: Upload publish tool artifact
+        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        uses: actions/upload-artifact@v2.1.1
+        with:
+          name: publish-tool-dist
+          path: src/microapps-publish/dist
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
 
@@ -83,11 +104,17 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Download build artifacts
+      - name: Download CDK Construct build artifacts
         uses: actions/download-artifact@v2
         with:
-          name: dist
+          name: cdk-construct-dist
           path: src/microapps-cdk/dist
+
+      - name: Download Publish tool build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: publish-tool-dist
+          path: src/microapps-publish/dist
 
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry

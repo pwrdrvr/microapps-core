@@ -35,3 +35,32 @@ npm i -g projen
 
 npx projen new awscdk-construct --no-git --name @pwrdrvr/microapps-cdk --author "Harold Hunt" --package-manager npm --license MIT --npm-access public --copyright-owner "PwrDrvr LLC" --copyright-period 2020 --projenrc-ts --no-jest
 ```
+
+# Releasing NPM Packages
+
+Challenge: `projen` does not support monorepos well, so it can build, tag, version, and release the CDK Construct library in `src/microapps-cdk` but it cannot be invoked to release `src/microapps-publish` and, because it doesn't support monorepos well, it cannot build and publish both in one invocation.
+
+Below are tips, tricks, and commands used to build and release `microapps-publish` to NPM after `microapps-cdk` is done being published by `projen`.
+
+## Get the Version that Projen Tagged
+
+Note: this _has_ to be run in the root of the project on a clean tree (no changed files).
+
+Note: this _has_ to be done with `npm 7.18.1` in `node 16` as a fix from April, 2021 is required in some cases: https://github.com/npm/libnpmversion/pull/12
+
+`npm version from-git --allow-same-version --no-git-tag-version`
+
+Example output: `v0.9.3`
+
+## Apply Version to microapps-publish Package.json
+
+Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version --no-git-tag-version`
+
+- `cd src/microapps-publish`
+- `npm version v0.9.3 --no-git-tag-version`
+
+# Cleaning Git History
+
+## Example `filter.txt`
+
+`literal:something_to_replace`
