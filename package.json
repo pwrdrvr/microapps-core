@@ -23,6 +23,7 @@
     "start:publish": "node src/microapps-publish/dist/src/index.js",
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
     "build": "tsc --build tsconfig.json",
+    "build:publish": "tsc --build tsconfig.publish.json",
     "esbuild:deployer": "esbuild src/microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=src/cdk/dist/microapps-deployer/index.js",
     "esbuild:router": "esbuild src/microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=src/cdk/dist/microapps-router/index.js",
     "build:deployer": "rollup --config rollup.deployer.js",

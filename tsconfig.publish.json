@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./src/common/microapps-datalib/"
+    },
+    {
+      "path": "./src/microapps-publish/"
+    }
+  ]
+}

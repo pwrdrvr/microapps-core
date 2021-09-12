@@ -113,7 +113,7 @@ jobs:
       run: npm ci
   
     - name: Build TypeScript
-      run: npm run build --if-present
+      run: npm run build:publish --if-present
 
     - name: Run Lint
       run: npm run lint
