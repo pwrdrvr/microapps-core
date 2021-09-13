@@ -152,7 +152,7 @@ jobs:
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
       # Docs for jsii-release-nuget
       # https://github.com/cdklabs/jsii-release#nuget
-      - name: Release NuGet
+      - name: Release CDK Construct - NuGet
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
         env:
           NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
@@ -162,7 +162,7 @@ jobs:
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
       # Docs for jsii-release-maven
       # https://github.com/cdklabs/jsii-release#maven
-      - name: Release Maven
+      - name: Release CDK Construct - Maven
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-maven
         env:
           MAVEN_SERVER_ID: github
@@ -174,12 +174,23 @@ jobs:
       # https://www.npmjs.com/package/jsii-release
       # Docs for jsii-release-npm
       # https://github.com/cdklabs/jsii-release#npm
-      - name: Release NPM
+      - name: Release CDK Construct - NPM
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: npm.pkg.github.com
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Publish Tool - NPM
+        run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Github package registry authentication
+      #   run: npm set //npm.pkg.github.com/:_authToken ${{ secrets.GPR_TOKEN }}
+      # - name: Npm registry authentication
+      #   run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+      # - name: Publish package to Github and Npm package registries
+      #   run: npm publish
 
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
