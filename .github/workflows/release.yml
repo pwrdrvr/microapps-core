@@ -59,7 +59,7 @@ jobs:
         run: cd src/microapps-cdk && npx projen release
 
       - name: Apply Version to Everything (Deployer / Datalib)
-        run: npm version v$(cat src/microapps-cdk/dist/version.txt) --no-git-tag-version
+        run: npm version v$(cat src/microapps-cdk/dist/version.txt) --no-git-tag-version --workspaces
 
       - name: Check for new commits
         id: git_remote
@@ -134,7 +134,7 @@ jobs:
           path: dist/version.txt
 
       - name: Apply Version to Everything
-        run: cat dist/version.txt && npm version v$(cat dist/version.txt) --no-git-tag-version
+        run: cat dist/version.txt && npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
 
       - name: Install Node Modules
         run: npm ci

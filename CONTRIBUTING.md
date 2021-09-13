@@ -56,8 +56,7 @@ Example output: `v0.9.3`
 
 Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version --no-git-tag-version`
 
-- `cd src/microapps-publish`
-- `npm version v0.9.3 --no-git-tag-version`
+- `npm version v0.9.3 --no-git-tag-version --workspaces`
 
 # Cleaning Git History
 
