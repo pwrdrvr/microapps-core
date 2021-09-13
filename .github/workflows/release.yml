@@ -13,6 +13,9 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  #
+  # CDK Construct
+  #
   build-cdk-construct:
     name: Build CDK Construct
     runs-on: ubuntu-latest
@@ -55,13 +58,20 @@ jobs:
       - name: Release CDK Construct
         run: cd src/microapps-cdk && npx projen release
 
-      - name: Apply Version to Everything
+      - name: Apply Version to Everything (Deployer / Datalib)
         run: npm version v$(cat src/microapps-cdk/dist/version.txt) --no-git-tag-version
 
       - name: Check for new commits
         id: git_remote
         run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{
           github.ref }} | cut -f1)"
+
+      - name: Upload version.txt
+        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        uses: actions/upload-artifact@v2.1.1
+        with:
+          name: version-txt
+          path: src/microapps-cdk/dist/version.txt
 
       - name: Create release
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
@@ -79,6 +89,9 @@ jobs:
     container:
       image: ghcr.io/pwrdrvr/jsii-node-16
 
+  #
+  # Publish Tool
+  #
   build-publish-tool:
     name: Build Publish Tool
     needs: build-cdk-construct
@@ -89,45 +102,62 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js 16
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16
+      - uses: actions/checkout@v2
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
 
-    - run: npm run fixinstall
+      - run: npm run fixinstall
 
-    - name: Cache Node.js modules
-      uses: actions/cache@v2
-      with:
-        path: ~/.npm
-        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.OS }}-node-
-          ${{ runner.OS }}-
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      
+      - name: Install CDK
+        run: npm i -g aws-cdk ts-node projen
+
+      - name: Check for new commits
+        id: git_remote
+        run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{
+          github.ref }} | cut -f1)"
+
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: version-txt
+          path: dist/version.txt
+
+      - name: Apply Version to Everything
+        run: cat dist/version.txt && npm version v$(cat dist/version.txt) --no-git-tag-version
+
+      - name: Install Node Modules
+        run: npm ci
     
-    - name: Install CDK
-      run: npm i -g aws-cdk ts-node projen
+      - name: Build TypeScript
+        run: npm run build:publish --if-present
 
-    - name: Install Node Modules
-      run: npm ci
-  
-    - name: Build TypeScript
-      run: npm run build:publish --if-present
+      - name: Run Lint
+        run: npm run lint
 
-    - name: Run Lint
-      run: npm run lint
+      - name: Run Node Tests
+        run: npm run test
 
-    - name: Run Node Tests
-      run: npm run test
+      - name: Upload publish tool artifact
+        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        uses: actions/upload-artifact@v2.1.1
+        with:
+          name: publish-tool-dist
+          path: src/microapps-publish/dist
 
-    - name: Upload publish tool artifact
-      #if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-      uses: actions/upload-artifact@v2.1.1
-      with:
-        name: publish-tool-dist
-        path: src/microapps-publish/dist
-
+  #
+  # Release Assets
+  #
   release-cdk-construct:
     name: Release CDK Constructs
     needs: [ build-cdk-construct, build-publish-tool ]

@@ -1,6 +1,6 @@
 {
   "name": "@pwrdrvr/microapps-datalib",
-  "version": "0.9.6",
+  "version": "0.0.0",
   "description": "Data library for the microapps framework",
   "types": "dist/index.d.ts",
   "module": "true",
