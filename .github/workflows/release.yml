@@ -182,7 +182,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release Publish Tool - NPM
-        run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish && npm publish
+        run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish/dist && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # - name: Github package registry authentication
