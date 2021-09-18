@@ -2,7 +2,7 @@
   "name": "@pwrdrvr/microapps-publish",
   "version": "0.0.0",
   "description": "Publish tool for deploying apps and updates",
-  "main": "dist/src/index.js",
+  "main": "src/index.js",
   "source": "src/index.ts",
   "bin": {
     "microapps-publish": "dist/src/index.js"
@@ -54,6 +54,7 @@
     "@types/fs-extra": "^9.0.11",
     "@types/js-yaml": "^4.0.1",
     "@types/mime-types": "^2.1.0",
-    "@types/source-map-support": "^0.5.4"
+    "@types/source-map-support": "^0.5.4",
+    "typescript-cp": "^0.1.4"
   }
 }

@@ -147,6 +147,12 @@ jobs:
       - name: Build All TypeScript
         run: npm run build:publish --if-present
 
+      - name: Copy other files for publishing - microapps-publish
+        run: cd src/microapps-publish && npx tscp
+
+      - name: Copy other files for publishing - microapps-datalib
+        run: cd src/common/microapps-datalib && npx tscp
+
       - name: Run Lint
         run: npm run lint
 
