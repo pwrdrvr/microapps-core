@@ -58,7 +58,7 @@ const project = new AwsCdkConstructLibrary({
 
   publishToMaven: {
     javaPackage: 'com.pwrdrvr.microapps.cdk',
-    mavenArtifactId: 'pwrdrvrmicroappscdk',
+    mavenArtifactId: 'microapps-cdk',
     mavenGroupId: 'com.pwrdrvr.microapps.cdk',
     serverId: 'github',
     repositoryUrl: 'https://maven.pkg.github.com/pwrdrvr/microapps.cdk',
