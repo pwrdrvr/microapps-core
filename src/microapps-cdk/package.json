@@ -110,7 +110,7 @@
         "package": "com.pwrdrvr.microapps.cdk",
         "maven": {
           "groupId": "com.pwrdrvr.microapps.cdk",
-          "artifactId": "pwrdrvrmicroappscdk"
+          "artifactId": "microapps-cdk"
         }
       },
       "python": {
