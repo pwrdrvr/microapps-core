@@ -139,8 +139,13 @@ jobs:
       - name: Install Node Modules
         run: npm ci
     
-      - name: Build TypeScript
-        run: npm run build:publish --if-present
+      # This will allow us to just build all TypeScript without having to exclude the CDK dir
+      - name: Spoof the JSII tsconfig.json
+        run: cp ./src/microapps-cdk/tsconfig.eslint.json ./src/microapps-cdk/tsconfig.json
+
+      - name: Build All TypeScript
+        run: npm run build
+        # run: npm run build:publish --if-present
 
       - name: Run Lint
         run: npm run lint
@@ -148,12 +153,19 @@ jobs:
       - name: Run Node Tests
         run: npm run test
 
-      - name: Upload publish tool artifact
+      - name: Upload Publish Tool artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2.1.1
         with:
           name: publish-tool-dist
           path: src/microapps-publish/dist
+
+      - name: Upload Datalib artifact
+        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        uses: actions/upload-artifact@v2.1.1
+        with:
+          name: datalib-dist
+          path: src/common/microapps-datalib/dist
 
   #
   # Release Assets
@@ -172,11 +184,17 @@ jobs:
           name: cdk-construct-dist
           path: src/microapps-cdk/dist
 
-      - name: Download Publish tool build artifacts
+      - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v2
         with:
           name: publish-tool-dist
           path: src/microapps-publish/dist
+
+      - name: Download Datalib build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: datalib-dist
+          path: src/common/microapps-datalib/dist
 
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
@@ -211,10 +229,19 @@ jobs:
           NPM_REGISTRY: npm.pkg.github.com
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      #
+      # Publish other non-JSII Artifacts
+      #
       - name: Release Publish Tool - NPM
         run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish/dist && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release DataLib - NPM
+        run: npm config set registry https://npm.pkg.github.com && cd src/common/microapps-datalib/dist && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # - name: Github package registry authentication
       #   run: npm set //npm.pkg.github.com/:_authToken ${{ secrets.GPR_TOKEN }}
       # - name: Npm registry authentication
