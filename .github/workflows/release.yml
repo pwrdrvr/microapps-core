@@ -235,11 +235,10 @@ jobs:
       #     NPM_REGISTRY: npm.pkg.github.com
       #     NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: NPM registry authentication
-        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
-
       - name: Release CDK Construct - npmjs.org
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPMJSORG_PUBLISH_TOKEN }} # jsii-release requires NPM_TOKEN as an env var
 
       #
       # Publish other non-JSII Artifacts to GitHub Packages
@@ -257,6 +256,9 @@ jobs:
       #
       # Publish other non-JSII Artifacts to NPM
       #
+      - name: NPM registry authentication
+        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
+
       - name: Release Publish Tool - NPM
         run: cd src/microapps-publish/dist && npm publish
 

@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "description": "Data library for the microapps framework",
   "types": "index.d.ts",
-  "module": "true",
   "main": "index.js",
   "publishConfig": {
     "access": "public"
