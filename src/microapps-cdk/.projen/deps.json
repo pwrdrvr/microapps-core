@@ -77,10 +77,6 @@
       "type": "build"
     },
     {
-      "name": "@cloudcomponents/cdk-deletable-bucket",
-      "type": "bundled"
-    },
-    {
       "name": "@aws-cdk/aws-apigatewayv2-integrations",
       "version": "^1.95.2",
       "type": "peer"

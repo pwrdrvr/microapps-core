@@ -90,9 +90,7 @@
     "@aws-cdk/core": "^1.95.2",
     "@cloudcomponents/cdk-deletable-bucket": "^1.37.0"
   },
-  "bundledDependencies": [
-    "@cloudcomponents/cdk-deletable-bucket"
-  ],
+  "bundledDependencies": [],
   "keywords": [
     "cdk"
   ],
