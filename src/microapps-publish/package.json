@@ -4,6 +4,9 @@
   "description": "Publish tool for deploying apps and updates",
   "main": "src/index.js",
   "source": "src/index.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "microapps-publish": "dist/src/index.js"
   },

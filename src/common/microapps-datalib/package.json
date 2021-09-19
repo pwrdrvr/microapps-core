@@ -5,11 +5,11 @@
   "types": "index.d.ts",
   "module": "true",
   "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/pwrdrvr"
   },
   "engine": {
     "node": ">= 10.0.0"
