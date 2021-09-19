@@ -209,11 +209,16 @@ jobs:
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
       # Docs for jsii-release-nuget
       # https://github.com/cdklabs/jsii-release#nuget
-      - name: Release CDK Construct - NuGet
+      # - name: Release CDK Construct - GitHub NuGet
+      #   run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
+      #   env:
+      #     NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
+      #     NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release CDK Construct - NuGet.org
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
         env:
-          NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
-          NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+          NUGET_API_KEY: ${{ secrets.NUGET_MICROAPPS }}
 
       # Docs for GitHub Maven
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
