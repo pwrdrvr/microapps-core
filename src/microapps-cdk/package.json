@@ -1,5 +1,6 @@
 {
   "name": "@pwrdrvr/microapps-cdk",
+  "description": "MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.",
   "repository": {
     "type": "git",
     "url": "git@github.com:pwrdrvr/microapps-core.git"
@@ -109,8 +110,8 @@
       "java": {
         "package": "com.pwrdrvr.microapps.cdk",
         "maven": {
-          "groupId": "com.pwrdrvr.microapps.cdk",
-          "artifactId": "microapps-cdk"
+          "groupId": "com.pwrdrvr.microapps",
+          "artifactId": "cdk"
         }
       },
       "python": {

@@ -236,17 +236,29 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       #
-      # Publish other non-JSII Artifacts
+      # Publish other non-JSII Artifacts to GitHub Packages
       #
+      # - name: Release Publish Tool - NPM
+      #   run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish/dist && npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Release DataLib - NPM
+      #   run: npm config set registry https://npm.pkg.github.com && cd src/common/microapps-datalib/dist && npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #
+      # Publish other non-JSII Artifacts to NPM
+      #
+      - name: NPM registry authentication
+        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
+
       - name: Release Publish Tool - NPM
-        run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish/dist && npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cd src/microapps-publish/dist && npm publish
 
       - name: Release DataLib - NPM
-        run: npm config set registry https://npm.pkg.github.com && cd src/common/microapps-datalib/dist && npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cd src/common/microapps-datalib/dist && npm publish
 
       # - name: Github package registry authentication
       #   run: npm set //npm.pkg.github.com/:_authToken ${{ secrets.GPR_TOKEN }}

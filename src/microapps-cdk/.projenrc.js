@@ -3,6 +3,7 @@ const { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } = require('proje
 const project = new AwsCdkConstructLibrary({
   author: 'Harold Hunt',
   authorAddress: 'harold@pwrdrvr.com',
+  description: 'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
   cdkVersion: '1.95.2',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
@@ -58,8 +59,8 @@ const project = new AwsCdkConstructLibrary({
 
   publishToMaven: {
     javaPackage: 'com.pwrdrvr.microapps.cdk',
-    mavenArtifactId: 'microapps-cdk',
-    mavenGroupId: 'com.pwrdrvr.microapps.cdk',
+    mavenArtifactId: 'cdk',
+    mavenGroupId: 'com.pwrdrvr.microapps',
     serverId: 'github',
     repositoryUrl: 'https://maven.pkg.github.com/pwrdrvr/microapps.cdk',
   },
