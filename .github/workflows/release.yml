@@ -228,22 +228,28 @@ jobs:
       # https://www.npmjs.com/package/jsii-release
       # Docs for jsii-release-npm
       # https://github.com/cdklabs/jsii-release#npm
-      - name: Release CDK Construct - NPM
+      # - name: Release CDK Construct - GitHub NPM
+      #   run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
+      #   env:
+      #     NPM_DIST_TAG: latest
+      #     NPM_REGISTRY: npm.pkg.github.com
+      #     NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: NPM registry authentication
+        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
+
+      - name: Release CDK Construct - npmjs.org
         run: cd src/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
-        env:
-          NPM_DIST_TAG: latest
-          NPM_REGISTRY: npm.pkg.github.com
-          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       #
       # Publish other non-JSII Artifacts to GitHub Packages
       #
-      # - name: Release Publish Tool - NPM
+      # - name: Release Publish Tool - GitHub NPM
       #   run: npm config set registry https://npm.pkg.github.com && cd src/microapps-publish/dist && npm publish
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Release DataLib - NPM
+      # - name: Release DataLib - GitHub NPM
       #   run: npm config set registry https://npm.pkg.github.com && cd src/common/microapps-datalib/dist && npm publish
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -251,9 +257,6 @@ jobs:
       #
       # Publish other non-JSII Artifacts to NPM
       #
-      - name: NPM registry authentication
-        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
-
       - name: Release Publish Tool - NPM
         run: cd src/microapps-publish/dist && npm publish
 

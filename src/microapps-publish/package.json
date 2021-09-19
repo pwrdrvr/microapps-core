@@ -8,7 +8,7 @@
     "access": "public"
   },
   "bin": {
-    "microapps-publish": "dist/src/index.js"
+    "microapps-publish": "src/index.js"
   },
   "engineStrict": true,
   "engine": {
