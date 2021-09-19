@@ -43,7 +43,7 @@ const project = new AwsCdkConstructLibrary({
   // deps: [],                          /* Runtime dependencies of this module. */
   deps: ['@cloudcomponents/cdk-deletable-bucket'],
 
-  //peerDeps: ['@cloudcomponents/cdk-deletable-bucket'],
+  peerDeps: ['@cloudcomponents/cdk-deletable-bucket'],
 
   // bundledDeps: [
   //   '@cloudcomponents/cdk-deletable-bucket',

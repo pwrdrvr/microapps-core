@@ -70,6 +70,7 @@
     "@aws-cdk/aws-route53-targets": "^1.95.2",
     "@aws-cdk/aws-s3": "^1.95.2",
     "@aws-cdk/core": "^1.95.2",
+    "@cloudcomponents/cdk-deletable-bucket": "^1.37.0",
     "constructs": "^3.2.27"
   },
   "dependencies": {
