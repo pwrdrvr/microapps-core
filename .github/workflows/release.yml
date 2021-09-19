@@ -37,6 +37,9 @@ jobs:
       - name: Make npm ci happy
         run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js
 
+      - name: Print NPM Cache Location
+        run: npm config get cache
+
       - name: Cache Node.js modules
         uses: actions/cache@v2
         with:
@@ -109,8 +112,6 @@ jobs:
           node-version: 16
 
       - run: npm run fixinstall
-
-      - run: npm config get cache
 
       - name: Cache Node.js modules
         uses: actions/cache@v2
