@@ -104,7 +104,7 @@ export class ApplicationConfig implements IApplicationConfig {
 
   @convict.Property({
     doc: 'Path to the serverless-nextjs-router index.js file',
-    default: './node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js',
+    default: './node_modules/@pwrdrvr/serverless-nextjs-router/lib/index.js',
     env: 'SERVERLESS_NEXTJS_ROUTER_INDEX_JS',
   })
   public serverlessNextRouterPath: string;
