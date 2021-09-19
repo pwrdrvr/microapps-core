@@ -110,6 +110,8 @@ jobs:
 
       - run: npm run fixinstall
 
+      - run: npm config get cache
+
       - name: Cache Node.js modules
         uses: actions/cache@v2
         with:
