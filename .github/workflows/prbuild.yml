@@ -23,59 +23,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js 16
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16
+      - uses: actions/checkout@v2
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
 
-    - run: npm run fixinstall
+      - run: npm run fixinstall
 
-    - name: Cache Node.js modules
-      uses: actions/cache@v2
-      with:
-        path: ~/.npm
-        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.OS }}-node-
-          ${{ runner.OS }}-
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      
+      - name: Install CDK
+        run: npm i -g aws-cdk ts-node projen
+
+      - name: Install Node Modules
+        run: npm ci
     
-    - name: Install CDK
-      run: npm i -g aws-cdk ts-node projen
-
-    - name: Install Node Modules
-      run: npm ci
-  
-    - name: Move root modules out of the way for CDK Construct build
-      run: mv node_modules node_modules_hide
+      - name: Move root modules out of the way for CDK Construct build
+        run: mv node_modules node_modules_hide
+      
+      - name: Build CDK Construct
+        run: cd src/microapps-cdk && npm ci && npm run build
     
-    - name: Build CDK Construct
-      run: cd src/microapps-cdk && npm ci && npm run build
-  
-    - name: Modify microapps-cdk tsconfig.json
-      run: 'mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json && jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json'
+      - name: Modify microapps-cdk tsconfig.json
+        run: 'mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json && jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json'
 
-    - name: Build All TypeScript
-      run: npm run build --if-present
+      - name: Build All TypeScript
+        run: npm run build --if-present
 
-    - name: Run Lint
-      run: npm run lint
+      - name: Run Lint
+        run: npm run lint
 
-    - name: Run Node Tests
-      run: npm run test
+      - name: Run Node Tests
+        run: npm run test
 
-    - name: Smoke Check CDK
-      run: cdk list
+      - name: Smoke Check CDK
+        run: cdk list
 
-    # - name: Bundle Deployer
-    #   run: npm run esbuild:deployer
+      # - name: Bundle Deployer
+      #   run: npm run esbuild:deployer
 
-    # - name: Bundle Router
-    #   run: npm run esbuild:router
+      # - name: Bundle Router
+      #   run: npm run esbuild:router
 
-    - name: Deploy CDK Stack
-      run: cdk deploy --require-approval never microapps-core
-      env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+      - name: Deploy CDK Stack
+        run: cdk deploy --require-approval never microapps-core
+        env:
+            AWS_REGION: ${{ secrets.AWS_REGION }}
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
