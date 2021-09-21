@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "node-terminal",
+      "name": "JavaScript Debug Terminal",
+      "nodeVersionHint": 16,
+      "request": "launch",
+      "cwd": "${workspaceFolder}"
+    },
+    {
       "name": "Debug microapps-publish",
       "type": "pwa-node",
       "request": "launch",

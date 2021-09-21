@@ -41,13 +41,6 @@ const project = new AwsCdkConstructLibrary({
 
   // cdkTestDependencies: undefined,    /* AWS CDK modules required for testing. */
   // deps: [],                          /* Runtime dependencies of this module. */
-  deps: ['@cloudcomponents/cdk-deletable-bucket'],
-
-  peerDeps: ['@cloudcomponents/cdk-deletable-bucket'],
-
-  // bundledDeps: [
-  //   '@cloudcomponents/cdk-deletable-bucket',
-  // ],
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
