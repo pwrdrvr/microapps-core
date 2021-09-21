@@ -34,7 +34,8 @@ jobs:
           git config user.name "Automation"
           git config user.email "github-actions@github.com"
       
-      - run: npm run fixinstall
+      - name: Make npm ci happy
+        run: mkdir -p ./src/microapps-publish/src/ && touch ./src/microapps-publish/src/index.js
 
       - name: Print NPM Cache Location
         run: npm config get cache
