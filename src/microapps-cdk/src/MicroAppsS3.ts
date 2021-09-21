@@ -2,7 +2,6 @@ import * as cf from '@aws-cdk/aws-cloudfront';
 import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
-import { DeletableBucket } from '@cloudcomponents/cdk-deletable-bucket';
 
 export interface IMicroAppsS3Exports {
   readonly bucketApps: s3.IBucket;
@@ -91,23 +90,23 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
     //
     // S3 Bucket for Logging - Usable by many stacks
     //
-    this._bucketLogs = new DeletableBucket(this, 'microapps-logs', {
+    this._bucketLogs = new s3.Bucket(this, 'microapps-logs', {
       bucketName: `${reverseDomainName}-${assetNameRoot}-logs${assetNameSuffix}`,
-      forceDelete: s3AutoDeleteItems,
+      autoDeleteObjects: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
 
     //
     // S3 Buckets for Apps
     //
-    this._bucketApps = new DeletableBucket(this, 'microapps-apps', {
+    this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
       bucketName: this._bucketAppsName,
-      forceDelete: s3AutoDeleteItems,
+      autoDeleteObjects: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
-    this._bucketAppsStaging = new DeletableBucket(this, 'microapps-apps-staging', {
+    this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
       bucketName: this._bucketAppsStagingName,
-      forceDelete: s3AutoDeleteItems,
+      autoDeleteObjects: s3AutoDeleteItems,
       removalPolicy: s3RemovalPolicy,
     });
 
