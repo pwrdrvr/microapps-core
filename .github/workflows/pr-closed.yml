@@ -1,0 +1,26 @@
+name: Cleanup Merged PR
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  NODE_ENV: dev
+jobs:
+  cleanup-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Destroy CDK Stack
+        run: |
+          aws cloudformation delete-stack --stack-name "microapps-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-${NODE_ENV}-pr-${PR_NUMBER}"
+        env:
+            AWS_REGION: ${{ secrets.AWS_REGION }}
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
