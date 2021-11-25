@@ -54,15 +54,32 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
+      - name: Generate Projen Files
+        run: |
+          cd src/microapps-cdk/
+          npm run projen
+
+      - name: Modify microapps-cdk tsconfig.json
+        run: |
+          mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json
+          jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json
+
+      - name: Build All TypeScript
+        run: npm run build --if-present
+
       - name: Move root NPM modules out of the way
         run: mv node_modules node_modules_hide
 
       - name: Install CDK Construct Deps
-        run: cd src/microapps-cdk && npm ci
+        run: |
+          cd src/microapps-cdk
+          npm ci
 
-      - name: Release CDK Construct
-        run: cd src/microapps-cdk && npx projen release
+      - name: Build CDK Construct
+        run: |
+          cd src/microapps-cdk
+          npx projen release
 
       - name: Apply Version to Everything (Deployer / Datalib)
         run: npm version v$(cat src/microapps-cdk/dist/version.txt) --no-git-tag-version --workspaces
