@@ -36,6 +36,8 @@ jobs:
       
       - name: Fix Install for microapps-publish
         run: |
+          chown -R root ./
+          chmod -R 777 ./
           npm run fixinstall
 
       - name: Print NPM Cache Location
