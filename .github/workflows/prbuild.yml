@@ -47,10 +47,14 @@ jobs:
         run: npm ci
 
       - name: Generate Projen Files
-        run: npx -w @pwrdrvr/microapps-cdk projen
+        run: |
+          cd src/microapps/cdk/
+          npm run projen
 
       - name: Modify microapps-cdk tsconfig.json
-        run: 'mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json && jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json'
+        run: |
+          mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json
+          jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json
 
       - name: Build All TypeScript
         run: npm run build --if-present
@@ -59,8 +63,10 @@ jobs:
         run: mv node_modules node_modules_hide
       
       - name: Build CDK Construct
-        run: cd src/microapps-cdk && npm ci && npm run build
-    
+        run: |
+          cd src/microapps-cdk
+          npm ci
+          npm run build
 
       - name: Run Lint
         run: npm run lint
