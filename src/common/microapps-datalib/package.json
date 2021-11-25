@@ -40,5 +40,11 @@
     "mocha": "^8.3.0",
     "node-fetch": "^2.6.1",
     "typescript-cp": "^0.1.4"
-  }
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "LICENSE"
+  ]
 }

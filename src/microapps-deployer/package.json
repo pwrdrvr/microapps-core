@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Deployer svc for the microapps framework",
-  "source": "index.ts",
+  "source": "src/index.ts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
