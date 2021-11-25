@@ -12,6 +12,7 @@ const project = new AwsCdkConstructLibrary({
   name: '@pwrdrvr/microapps-cdk',
   npmAccess: NpmAccess.PUBLIC,
   packageManager: NodePackageManager.NPM,
+  minNodeVersion: '12.0.0',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
   // running `npx projen` - It's just not worth the trouble to try to
@@ -19,6 +20,7 @@ const project = new AwsCdkConstructLibrary({
   projenrcTs: false,
   repositoryUrl: 'git@github.com:pwrdrvr/microapps-core.git',
   jest: false,
+  projenVersion: '0.34.20',
 
   // Which AWS CDK modules (those that start with "@aws-cdk/") does this library require when consumed?
   cdkDependencies: [
