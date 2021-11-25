@@ -60,11 +60,6 @@ jobs:
           cd src/microapps-cdk/
           npm run projen
 
-      - name: Modify microapps-cdk tsconfig.json
-        run: |
-          mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json
-          jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json
-
       - name: Build All TypeScript
         run: npm run build --if-present
 
