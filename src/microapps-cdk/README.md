@@ -73,7 +73,7 @@ The Router and Deployer services are very small (0.5 MB) after tree shaking, min
 
 ## Router
 
-For best demo performance (and real user performance), the memory for the Router Lambda should be set to 1024 MB as this gives the fasted cold start at the lowest cost. The cost per warm request is actually lower at 1024 MB than at 128 MB, so 1024 MB is just the ideal size.
+For best demo performance (and real user performance), the memory for the Router Lambda should be set to 1024 MB as this gives the fastest cold start at the lowest cost. The cost per warm request is actually lower at 1024 MB than at 128 MB, so 1024 MB is just the ideal size.
 
 For supremely optimum demo performance the Router Lambda should be deployed as a .zip file as that saves about 50% of the cold start time, or about 200 ms, but once it's the cold start has happened they are equally as fast as each other.
 

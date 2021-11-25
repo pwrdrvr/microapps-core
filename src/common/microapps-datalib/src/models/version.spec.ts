@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
+import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../../fixtures';
 import Manager from '../index';
 import Version from './version';
 
@@ -22,7 +22,7 @@ describe('version records', () => {
     const version = new Version();
     version.AppName = 'Cat';
     version.SemVer = '1.2.3-Beta4';
-    version.Status = 'status';
+    version.Status = 'pending';
     version.Type = 'type';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
@@ -37,7 +37,7 @@ describe('version records', () => {
     expect(Item.SK).equal('version#1.2.3-beta4');
     expect(Item.AppName).equal('cat');
     expect(Item.SemVer).equal('1.2.3-Beta4');
-    expect(Item.Status).equal('status');
+    expect(Item.Status).equal('pending');
     expect(Item.Type).equal('type');
     expect(Item.DefaultFile).equal('index.html');
     expect(Item.IntegrationID).equal('abcd');
@@ -47,7 +47,7 @@ describe('version records', () => {
     let version = new Version();
     version.AppName = 'Dog';
     version.SemVer = '1.2.3-Beta5';
-    version.Status = 'status';
+    version.Status = 'pending';
     version.Type = 'type';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
@@ -57,7 +57,7 @@ describe('version records', () => {
     version = new Version();
     version.AppName = 'Dog';
     version.SemVer = '1.2.3-Beta6';
-    version.Status = 'status';
+    version.Status = 'pending';
     version.Type = 'type';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
@@ -89,7 +89,7 @@ describe('version records', () => {
     let version = new Version();
     version.AppName = 'Frog';
     version.SemVer = '2.2.3-Beta5';
-    version.Status = 'status';
+    version.Status = 'pending';
     version.Type = 'type';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
@@ -99,7 +99,7 @@ describe('version records', () => {
     version = new Version();
     version.AppName = 'Frog';
     version.SemVer = '2.2.3-Beta6';
-    version.Status = 'status';
+    version.Status = 'pending';
     version.Type = 'type';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';

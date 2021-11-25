@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { dynamoClient, DropTable, InitializeTable, TEST_TABLE_NAME } from '../../../fixtures';
+import { dynamoClient, DropTable, InitializeTable, TEST_TABLE_NAME } from '../../../../fixtures';
 import Manager from '../index';
 import Application from './application';
 
