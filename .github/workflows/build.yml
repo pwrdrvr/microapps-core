@@ -25,8 +25,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
-      - name: Make npm ci happy
-        run: mkdir -p ./src/microapps-publish/dist/src/ && touch ./src/microapps-publish/dist/src/index.js
+      - name: Fix Install for microapps-publish
+        run: |
+          npm run fixinstall
 
       - name: Cache Node.js modules
         uses: actions/cache@v2
@@ -36,10 +37,6 @@ jobs:
           restore-keys: |
             ${{ runner.OS }}-node-
             ${{ runner.OS }}-
-
-      - name: Fix Install for microapps-publish
-        run: |
-          npm run fixinstall
 
       - name: Install dependencies
         run: npm ci

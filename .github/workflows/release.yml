@@ -111,7 +111,9 @@ jobs:
         with:
           node-version: 16
 
-      - run: npm run fixinstall
+      - name: Fix Install for microapps-publish
+        run: |
+          npm run fixinstall
 
       - name: Cache Node.js modules
         uses: actions/cache@v2
