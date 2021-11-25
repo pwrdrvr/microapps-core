@@ -18,7 +18,10 @@
   ],
   "private": true,
   "scripts": {
-    "fixinstall": "touch ./src/microapps-publish/src/index.js",
+    "clean": "npm run clean:dist && npm run clean:modules",
+    "clean:dist": "npm exec --workspaces -- npx rimraf dist && npx rimraf dist",
+    "clean:modules": "npm exec --workspaces -- npx rimraf node_modules && npx rimraf node_modules",
+    "fixinstall": "mkdir -p ./src/microapps-publish/dist/ && touch ./src/microapps-publish/dist/index.js",
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
     "start:publish": "node src/microapps-publish/dist/src/index.js",
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
@@ -52,6 +55,7 @@
     "eslint-plugin-prettier": "^3.2.0",
     "mocha": "^8.3.0",
     "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
     "rollup": "^2.39.0",
     "rollup-plugin-node-externals": "^2.2.0",
     "rollup-plugin-terser": "^7.0.2",
@@ -60,6 +64,6 @@
     "strip-json-comments-cli": "^1.0.1",
     "ts-mocha": "^8.0.0",
     "ts-node": "^9.1.1",
-    "typescript": "^4.1.2"
+    "typescript": "4.3.5"
   }
 }

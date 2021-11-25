@@ -2,17 +2,17 @@
   "name": "@pwrdrvr/microapps-publish",
   "version": "0.0.0",
   "description": "Publish tool for deploying apps and updates",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "source": "src/index.ts",
   "publishConfig": {
     "access": "public"
   },
   "bin": {
-    "microapps-publish": "src/index.js"
+    "microapps-publish": "dist/index.js"
   },
   "engineStrict": true,
   "engine": {
-    "node": ">= 10.0.0"
+    "node": ">= 12.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
