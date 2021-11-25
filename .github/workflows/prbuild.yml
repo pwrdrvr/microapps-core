@@ -48,7 +48,7 @@ jobs:
 
       - name: Generate Projen Files
         run: |
-          cd src/microapps/cdk/
+          cd src/microapps-cdk/
           npm run projen
 
       - name: Modify microapps-cdk tsconfig.json
