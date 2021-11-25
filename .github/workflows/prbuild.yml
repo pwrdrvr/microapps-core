@@ -53,6 +53,7 @@ jobs:
 
       - name: Modify microapps-cdk tsconfig.json
         run: |
+          find ./src/microapps-cdk/
           mv ./src/microapps-cdk/tsconfig.json ./src/microapps-cdk/tsconfig.jsii.json
           jq ".compilerOptions += { \"skipLibCheck\": true }" ./src/microapps-cdk/tsconfig.jsii.json > ./src/microapps-cdk/tsconfig.json
 
