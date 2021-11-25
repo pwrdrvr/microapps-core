@@ -168,12 +168,13 @@
     "publish:maven": {
       "name": "publish:maven",
       "description": "Publish this package to Maven Central",
+      "env": {
+        "MAVEN_SERVER_ID": "github",
+        "MAVEN_REPOSITORY_URL": "https://maven.pkg.github.com/pwrdrvr/microapps.cdk"
+      },
       "requiredEnv": [
-        "MAVEN_GPG_PRIVATE_KEY",
-        "MAVEN_GPG_PRIVATE_KEY_PASSPHRASE",
         "MAVEN_PASSWORD",
-        "MAVEN_USERNAME",
-        "MAVEN_STAGING_PROFILE_ID"
+        "MAVEN_USERNAME"
       ],
       "steps": [
         {

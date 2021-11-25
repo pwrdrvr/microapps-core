@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - name: Set git identity
         run: |-
           git config user.name "Automation"
@@ -204,6 +205,11 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Download CDK Construct build artifacts
         uses: actions/download-artifact@v2
         with:
@@ -285,10 +291,14 @@ jobs:
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
 
       - name: Release Publish Tool - NPM
-        run: cd src/microapps-publish/dist && npm publish
+        run: |
+          cd src/microapps-publish
+          npm publish
 
       - name: Release DataLib - NPM
-        run: cd src/common/microapps-datalib/dist && npm publish
+        run: |
+          cd src/common/microapps-datalib
+          npm publish
 
       # - name: Github package registry authentication
       #   run: npm set //npm.pkg.github.com/:_authToken ${{ secrets.GPR_TOKEN }}

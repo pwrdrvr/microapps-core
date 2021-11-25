@@ -109,11 +109,7 @@
     "outdir": "dist",
     "targets": {
       "java": {
-        "package": "com.pwrdrvr.microapps.cdk",
-        "maven": {
-          "groupId": "com.pwrdrvr.microapps",
-          "artifactId": "cdk"
-        }
+        "maven": {}
       },
       "python": {
         "distName": "pwrdrvr.microapps.cdk",
