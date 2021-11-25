@@ -19,5 +19,10 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false
   },
+  "references": [
+    {
+      "path": "../microapps-cdk/"
+    }
+  ],
   "exclude": ["cdk.out", "dist"]
 }
