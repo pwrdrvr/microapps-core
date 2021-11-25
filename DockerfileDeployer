@@ -9,7 +9,8 @@ COPY tsconfig.*json .npmrc* .eslint* .prettier* package*.json rollup.*.js ./
 COPY ./src/microapps-deployer/package*.json .npmrc* ./src/microapps-deployer/
 COPY ./src/common/microapps-datalib/package*.json .npmrc* ./src/common/microapps-datalib/
 
-# RUN mv tsconfig.json tsconfig.orig.json \
+# RUN npm i strip-json-comments-cli \
+#   && mv tsconfig.json tsconfig.orig.json \
 #   && npx strip-json-comments-cli ./tsconfig.orig.json \
 #   | jq 'del(.references[] | select(.path != "./src/microapps-deployer/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json
 
