@@ -20,6 +20,7 @@ export default class S3TransferUtility {
   ): Promise<void> {
     // Use temp credentials for S3
     const s3Client = new s3.S3Client({
+      maxAttempts: 16,
       credentials: {
         accessKeyId: preflightResponse.awsCredentials.accessKeyId,
         secretAccessKey: preflightResponse.awsCredentials.secretAccessKey,

@@ -11,7 +11,9 @@ import {
 import { IConfig } from './config/Config';
 
 export default class DeployClient {
-  static readonly _client = new lambda.LambdaClient({});
+  static readonly _client = new lambda.LambdaClient({
+    maxAttempts: 8,
+  });
   static readonly _decoder = new TextDecoder('utf-8');
 
   public static async CreateApp(config: IConfig): Promise<void> {
