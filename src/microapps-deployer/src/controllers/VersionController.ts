@@ -17,10 +17,18 @@ import {
 import GatewayInfo from '../lib/GatewayInfo';
 import Log from '../lib/Log';
 
-const lambdaClient = new lambda.LambdaClient({});
-const s3Client = new s3.S3Client({});
-const stsClient = new sts.STSClient({});
-const apigwyClient = new apigwy.ApiGatewayV2Client({});
+const lambdaClient = new lambda.LambdaClient({
+  maxAttempts: 8,
+});
+const s3Client = new s3.S3Client({
+  maxAttempts: 16,
+});
+const stsClient = new sts.STSClient({
+  maxAttempts: 8,
+});
+const apigwyClient = new apigwy.ApiGatewayV2Client({
+  maxAttempts: 8,
+});
 
 export default class VersionController {
   public static async DeployVersionPreflight(

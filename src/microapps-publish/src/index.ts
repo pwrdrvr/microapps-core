@@ -31,7 +31,9 @@ program
   .option('--repo-name [name]', 'Name (not URI) of the Docker repo for the app')
   .parse(process.argv);
 
-const lambdaClient = new lambda.LambdaClient({});
+const lambdaClient = new lambda.LambdaClient({
+  maxAttempts: 8,
+});
 
 interface IVersions {
   version: string;
@@ -82,7 +84,9 @@ class PublishTool {
     // Get the account ID and region from STS
     // TODO: Move this to the right place
     if (config.app.awsAccountID === 0 || config.app.awsRegion === '') {
-      const stsClient = new sts.STSClient({});
+      const stsClient = new sts.STSClient({
+        maxAttempts: 8,
+      });
       const stsResponse = await stsClient.send(new sts.GetCallerIdentityCommand({}));
       if (config.app.awsAccountID === 0) {
         config.app.awsAccountID = parseInt(stsResponse.Account, 10);
