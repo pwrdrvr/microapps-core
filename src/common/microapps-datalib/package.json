@@ -2,8 +2,9 @@
   "name": "@pwrdrvr/microapps-datalib",
   "version": "0.0.0",
   "description": "Data library for the microapps framework",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
+  "types": "src/index.d.ts",
+  "main": "src/index.js",
+  "source": "src/index.ts",
   "publishConfig": {
     "access": "public"
   },

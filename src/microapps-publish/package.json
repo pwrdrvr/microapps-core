@@ -2,13 +2,14 @@
   "name": "@pwrdrvr/microapps-publish",
   "version": "0.0.0",
   "description": "Publish tool for deploying apps and updates",
-  "main": "dist/index.js",
+  "types": "src/index.d.ts",
+  "main": "src/index.js",
   "source": "src/index.ts",
   "publishConfig": {
     "access": "public"
   },
   "bin": {
-    "microapps-publish": "dist/index.js"
+    "microapps-publish": "src/index.js"
   },
   "engineStrict": true,
   "engine": {

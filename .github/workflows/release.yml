@@ -205,11 +205,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
       - name: Download CDK Construct build artifacts
         uses: actions/download-artifact@v2
         with:
@@ -292,12 +287,12 @@ jobs:
 
       - name: Release Publish Tool - NPM
         run: |
-          cd src/microapps-publish
+          cd src/microapps-publish/dist
           npm publish
 
       - name: Release DataLib - NPM
         run: |
-          cd src/common/microapps-datalib
+          cd src/common/microapps-datalib/dist
           npm publish
 
       # - name: Github package registry authentication

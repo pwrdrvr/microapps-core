@@ -21,7 +21,7 @@
     "clean": "npm run clean:dist && npm run clean:modules",
     "clean:dist": "npm exec --workspaces -- npx rimraf dist && npx rimraf dist",
     "clean:modules": "npm exec --workspaces -- npx rimraf node_modules && npx rimraf node_modules",
-    "fixinstall": "mkdir -p ./src/microapps-publish/dist/ && touch ./src/microapps-publish/dist/index.js",
+    "fixinstall": "touch ./src/microapps-publish/src/index.js",
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
     "start:publish": "node src/microapps-publish/dist/src/index.js",
     "start:publish:debug": "ts-node --inspect=5858 --debug-brk --ignore false src/microapps-publish/src/index.ts",
