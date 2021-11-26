@@ -87,7 +87,7 @@ jobs:
 
       - name: Upload version.txt
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        uses: actions/upload-artifact@v2.1.1
+        uses: actions/upload-artifact@v2
         with:
           name: version-txt
           path: src/microapps-cdk/dist/version.txt
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload CDK Construct Artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        uses: actions/upload-artifact@v2.1.1
+        uses: actions/upload-artifact@v2
         with:
           name: cdk-construct-dist
           path: src/microapps-cdk/dist
@@ -182,17 +182,21 @@ jobs:
 
       - name: Upload Publish Tool artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        uses: actions/upload-artifact@v2.1.1
+        uses: actions/upload-artifact@v2
         with:
           name: publish-tool-dist
-          path: src/microapps-publish/dist
+          path: |
+            src/microapps-publish/
+            !src/microapps-publish/node_modules/
 
       - name: Upload Datalib artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        uses: actions/upload-artifact@v2.1.1
+        uses: actions/upload-artifact@v2
         with:
           name: datalib-dist
-          path: src/common/microapps-datalib/dist
+          path: |
+            src/microapps-datalib/
+            !src/microapps-datalib/node_modules/
 
   #
   # Release Assets
@@ -220,13 +224,13 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: publish-tool-dist
-          path: src/microapps-publish/dist
+          path: src/microapps-publish
 
       - name: Download Datalib build artifacts
         uses: actions/download-artifact@v2
         with:
           name: datalib-dist
-          path: src/common/microapps-datalib/dist
+          path: src/common/microapps-datalib
 
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
