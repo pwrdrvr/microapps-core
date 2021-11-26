@@ -9,8 +9,11 @@ import { join as pathJoin } from 'path';
 import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as sts from '@aws-sdk/client-sts';
-import commander from 'commander';
+import { Command, flags as flagsParser } from '@oclif/command';
+import { IConfig as OCLIFIConfig } from '@oclif/config';
+import { handle as errorHandler } from '@oclif/errors';
 import { promises as fs, readJsonSync } from 'fs-extra';
+import { Listr, ListrErrorTypes, ListrTask, ListrTaskObject } from 'listr2';
 import type { PackageJson } from 'type-fest';
 import { Config, IConfig } from './config/Config';
 import DeployClient from './DeployClient';
@@ -18,18 +21,7 @@ import S3Uploader from './S3Uploader';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
-const program = new commander.Command();
-
-const pkg: PackageJson = readJsonSync(pathJoin(__dirname, '..', 'package.json'));
-
-program
-  .version(pkg.version)
-  .option('-n, --new-version [version]', 'New version to apply')
-  .option('-l, --leave', 'Leave a copy of the modifed files as .modified')
-  .option('--deployer-lambda-name [name]', 'Name of the deployer lambda function')
-  .option('--staging-bucket-name [name]', 'Name (not URI) of the S3 staging bucket')
-  .option('--repo-name [name]', 'Name (not URI) of the Docker repo for the app')
-  .parse(process.argv);
+// const pkg: PackageJson = readJsonSync(pathJoin(__dirname, '..', 'package.json'));
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
@@ -40,7 +32,44 @@ interface IVersions {
   alias?: string;
 }
 
-class PublishTool {
+class PublishTool extends Command {
+  static flags = {
+    version: flagsParser.version({
+      char: 'v',
+    }),
+    help: flagsParser.help(),
+    deployerLambdaName: flagsParser.string({
+      char: 'd',
+      multiple: false,
+      required: true,
+      description: 'Name of the deployer lambda function',
+    }),
+    newVersion: flagsParser.string({
+      char: 'n',
+      multiple: false,
+      required: true,
+      description: 'New semantic version to apply',
+    }),
+    s3Bucket: flagsParser.string({
+      char: 's',
+      multiple: false,
+      required: true,
+      description: 'Name (not URI) of the S3 staging bucket',
+    }),
+    repoName: flagsParser.string({
+      char: 'r',
+      multiple: false,
+      required: true,
+      description: 'Name (not URI) of the Docker repo for the app',
+    }),
+    leaveCopy: flagsParser.boolean({
+      char: 'l',
+      default: false,
+      required: false,
+      description: 'Leave a copy of the modifed files as .modified',
+    }),
+  };
+
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
   private static escapeRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -55,26 +84,17 @@ class PublishTool {
   }[];
   private _restoreFilesStarted = false;
 
-  constructor() {
+  constructor(argv: string[], config: OCLIFIConfig) {
+    super(argv, config);
     this.restoreFiles = this.restoreFiles.bind(this);
   }
 
-  public async UpdateVersion(): Promise<void> {
-    const options = program.opts();
-    const version = options.newVersion as string;
-    const leaveFiles = options.leave as boolean;
-    const lambdaName = options.deployerLambdaName as string;
-    const ecrRepo = options.repoName as string;
-
-    if (lambdaName === undefined) {
-      console.log('--deployer-lambda-name [lambdaName] is a required parameter');
-      process.exit(1);
-    }
-
-    if (version === undefined) {
-      console.log('--new-version [version] is a required parameter');
-      process.exit(1);
-    }
+  async run(): Promise<void> {
+    const { flags: parsedFlags } = this.parse(PublishTool);
+    const version = parsedFlags.newVersion;
+    const leaveFiles = parsedFlags.leaveCopy;
+    const lambdaName = parsedFlags.deployerLambdaName;
+    const ecrRepo = parsedFlags.repoName;
 
     // Override the config value
     const config = Config.instance;
@@ -345,5 +365,7 @@ class PublishTool {
   }
 }
 
-const publishTool = new PublishTool();
-void publishTool.UpdateVersion();
+// @ts-expect-error catch is actually defined
+PublishTool.run().catch(errorHandler);
+
+export default PublishTool;
