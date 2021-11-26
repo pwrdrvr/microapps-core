@@ -38,8 +38,7 @@
     "chai": "^4.3.4",
     "dynamodb-local": "^0.0.31",
     "mocha": "^8.3.0",
-    "node-fetch": "^2.6.1",
-    "typescript-cp": "^0.1.4"
+    "node-fetch": "^2.6.1"
   },
   "files": [
     "dist",
