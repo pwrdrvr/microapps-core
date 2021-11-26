@@ -3,7 +3,7 @@
 
 # Workflow syntax reference:
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
-name: pr-build
+name: PR Build
 
 on:
   # push:
