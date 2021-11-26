@@ -3,9 +3,7 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "strict": false,
-    "resolveJsonModule": true
+    "strict": false
   },
-  "include": ["package.json", "src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "dist"]
 }

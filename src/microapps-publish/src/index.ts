@@ -5,12 +5,13 @@ import 'source-map-support/register';
 // Used by ts-convict
 import 'reflect-metadata';
 import { exec } from 'child_process';
-import * as fs from 'fs/promises';
+import { join as pathJoin } from 'path';
 import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as sts from '@aws-sdk/client-sts';
 import commander from 'commander';
-import pkg from '../package.json';
+import { promises as fs, readJsonSync } from 'fs-extra';
+import type { PackageJson } from 'type-fest';
 import { Config, IConfig } from './config/Config';
 import DeployClient from './DeployClient';
 import S3Uploader from './S3Uploader';
@@ -18,6 +19,8 @@ const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
 const program = new commander.Command();
+
+const pkg: PackageJson = readJsonSync(pathJoin(__dirname, '..', 'package.json'));
 
 program
   .version(pkg.version)
