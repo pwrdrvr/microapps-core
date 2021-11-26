@@ -195,8 +195,8 @@ jobs:
         with:
           name: datalib-dist
           path: |
-            src/microapps-datalib/
-            !src/microapps-datalib/node_modules/
+            src/common/microapps-datalib/
+            !src/common/microapps-datalib/node_modules/
 
   #
   # Release Assets
