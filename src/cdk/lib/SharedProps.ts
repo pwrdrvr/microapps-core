@@ -124,7 +124,7 @@ export class SharedProps {
       if (isPR) {
         this._pr = sourceVersion?.slice(prPrefix.length) as string;
       }
-    } else if (process.env.PR_NUMBER !== undefined) {
+    } else if (process.env.PR_NUMBER !== undefined && process.env.PR_NUMBER !== '') {
       this._pr = process.env.PR_NUMBER;
     }
 
