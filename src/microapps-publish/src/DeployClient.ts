@@ -10,6 +10,11 @@ import {
 } from '@pwrdrvr/microapps-deployer';
 import { IConfig } from './config/Config';
 
+export interface IDeployVersionPreflightResult {
+  exists: boolean;
+  response: IDeployVersionPreflightResponse;
+}
+
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({
     maxAttempts: 8,
@@ -43,7 +48,7 @@ export default class DeployClient {
 
   public static async DeployVersionPreflight(
     config: IConfig,
-  ): Promise<{ exists: boolean; response: IDeployVersionPreflightResponse }> {
+  ): Promise<IDeployVersionPreflightResult> {
     const request = {
       type: 'deployVersionPreflight',
       appName: config.app.name,

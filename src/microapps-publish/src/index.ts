@@ -5,23 +5,23 @@ import 'source-map-support/register';
 // Used by ts-convict
 import 'reflect-metadata';
 import { exec } from 'child_process';
-import { join as pathJoin } from 'path';
 import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
 import { IConfig as OCLIFIConfig } from '@oclif/config';
 import { handle as errorHandler } from '@oclif/errors';
-import { promises as fs, readJsonSync } from 'fs-extra';
+import chalk from 'chalk';
+import { promises as fs, pathExists } from 'fs-extra';
 import { Listr, ListrErrorTypes, ListrTask, ListrTaskObject } from 'listr2';
-import type { PackageJson } from 'type-fest';
 import { Config, IConfig } from './config/Config';
-import DeployClient from './DeployClient';
+import DeployClient, { IDeployVersionPreflightResult } from './DeployClient';
 import S3Uploader from './S3Uploader';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
-// const pkg: PackageJson = readJsonSync(pathJoin(__dirname, '..', 'package.json'));
+const RUNNING_TEXT = ' RUNS ';
+const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
@@ -30,6 +30,10 @@ const lambdaClient = new lambda.LambdaClient({
 interface IVersions {
   version: string;
   alias?: string;
+}
+
+interface IContext {
+  preflightResult: IDeployVersionPreflightResult;
 }
 
 class PublishTool extends Command {
@@ -49,12 +53,6 @@ class PublishTool extends Command {
       multiple: false,
       required: true,
       description: 'New semantic version to apply',
-    }),
-    s3Bucket: flagsParser.string({
-      char: 's',
-      multiple: false,
-      required: true,
-      description: 'Name (not URI) of the S3 staging bucket',
     }),
     repoName: flagsParser.string({
       char: 'r',
@@ -145,80 +143,166 @@ class PublishTool extends Command {
       await this.restoreFiles();
     });
 
+    if (config === undefined) {
+      this.error('Failed to load the config file');
+    }
+    if (config.app.staticAssetsPath === undefined) {
+      this.error('StaticAssetsPath must be specified in the config file');
+    }
+
+    //
+    // TODO: Setup Tasks
+    //
+
+    const tasks = new Listr<IContext>([
+      {
+        title: 'Logging into ECR',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          await this.loginToECR(config);
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Modifying Config Files',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Modify the existing files with the new version
+          for (const fileToModify of this.FILES_TO_MODIFY) {
+            task.output = `Patching version (${this.VersionAndAlias.version}) into ${fileToModify.path}`;
+            if (
+              !(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))
+            ) {
+              task.output = `Failed modifying file: ${fileToModify.path}`;
+            }
+          }
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Preflight Version Check',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Confirm the Version Does Not Exist in Published State
+          task.output = `Checking if deployed app/version already exists for ${config.app.name}/${version}`;
+          ctx.preflightResult = await DeployClient.DeployVersionPreflight(config);
+          if (ctx.preflightResult.exists) {
+            task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+          }
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Serverless Next.js Build',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          task.output = `Invoking serverless next.js build for ${config.app.name}/${version}`;
+
+          // Run the serverless next.js build
+          await asyncExec('serverless');
+
+          if (config.app.serverlessNextRouterPath !== undefined) {
+            task.output = 'Copying Serverless Next.js router to build output directory';
+            await fs.copyFile(config.app.serverlessNextRouterPath, './.serverless_nextjs/index.js');
+          }
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Publish to ECR',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Docker, build, tag, push to ECR
+          // Note: Need to already have AWS env vars set
+          await this.publishToECR(config);
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Deploy to Lambda',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Update the Lambda function
+          await this.deployToLambda(config, this.VersionAndAlias);
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Confirm Static Assets Folder Exists',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Check that Static Assets Folder exists
+          if (!(await pathExists(config.app.staticAssetsPath))) {
+            this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
+          }
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: 'Upload Files to S3 Staging AppName/Version Prefix',
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Upload Files to S3 Staging AppName/Version Prefix
+          await S3Uploader.Upload(
+            config,
+            ctx.preflightResult.response.s3UploadUrl,
+            ctx.preflightResult.response,
+          );
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: `Creating MicroApp Application: ${config.app.name}`,
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Call Deployer to Create App if Not Exists
+          await DeployClient.CreateApp(config);
+
+          task.title = origTitle;
+        },
+      },
+      {
+        title: `Creating MicroApp Version: ${config.app.semVer}`,
+        task: async (ctx, task) => {
+          const origTitle = task.title;
+          task.title = RUNNING + origTitle;
+
+          // Call Deployer to Deploy AppName/Version
+          await DeployClient.DeployVersion(config);
+
+          task.title = origTitle;
+        },
+      },
+    ]);
+
     try {
-      // Modify the existing files with the new version
-      for (const fileToModify of this.FILES_TO_MODIFY) {
-        console.log(`Patching version (${this.VersionAndAlias.version}) into ${fileToModify.path}`);
-        if (!(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))) {
-          console.log(`Failed modifying file: ${fileToModify.path}`);
-        }
-      }
-
-      if (config === undefined) {
-        throw new Error('Failed to load the config file');
-      }
-      if (config.app.staticAssetsPath === undefined) {
-        throw new Error('StaticAssetsPath must be specified in the config file');
-      }
-
-      await this.loginToECR(config);
-
-      // Confirm the Version Does Not Exist in Published State
-      console.log(
-        `Checking if deployed app/version already exists for ${config.app.name}/${version}`,
-      );
-      const preflightResponse = await DeployClient.DeployVersionPreflight(config);
-      if (preflightResponse.exists) {
-        console.log(`Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`);
-      }
-
-      console.log(`Invoking serverless next.js build for ${config.app.name}/${version}`);
-
-      // Run the serverless next.js build
-      await asyncExec('serverless');
-
-      if (config.app.serverlessNextRouterPath !== undefined) {
-        console.log('Copying Serverless Next.js router to build output directory');
-        await fs.copyFile(config.app.serverlessNextRouterPath, './.serverless_nextjs/index.js');
-      }
-
-      // Docker, build, tag, push to ECR
-      // Note: Need to already have AWS env vars set
-      await this.publishToECR(config);
-
-      // Update the Lambda function
-      await this.deployToLambda(config, this.VersionAndAlias);
-
-      //
-      // Tasks that used to be in DeployTool
-      //
-
-      // Check that Static Assets Folder exists
-      try {
-        const staticAssetsStats = await fs.stat(config.app.staticAssetsPath);
-        if (!staticAssetsStats.isDirectory()) {
-          throw new Error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
-        }
-      } catch {
-        throw new Error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
-      }
-
-      // Upload Files to S3 Staging AppName/Version Prefix
-      console.log('Copying S3 assets');
-      await S3Uploader.Upload(
-        config,
-        preflightResponse.response.s3UploadUrl,
-        preflightResponse.response,
-      );
-
-      // Call Deployer to Create App if Not Exists
-      console.log(`Creating MicroApp Application: ${config.app.name}`);
-      await DeployClient.CreateApp(config);
-
-      // Call Deployer to Deploy AppName/Version
-      console.log(`Creating MicroApp Version: ${config.app.semVer}`);
-      await DeployClient.DeployVersion(config);
-
+      await tasks.run();
       console.log(`Published: ${config.app.name}/${config.app.semVer}`);
     } catch (error) {
       console.log(`Caught exception: ${error.message}`);
@@ -295,7 +379,6 @@ class PublishTool extends Command {
     this.IMAGE_TAG = `${config.app.ecrRepoName}:${this.VersionAndAlias.version}`;
     this.IMAGE_URI = `${config.app.ecrHost}/${this.IMAGE_TAG}`;
 
-    console.log('Logging into ECR');
     try {
       await asyncExec(
         `aws ecr get-login-password --region ${config.app.awsRegion} | docker login --username AWS --password-stdin ${config.app.ecrHost}`,
