@@ -1,10 +1,14 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager, { Application } from '@pwrdrvr/microapps-datalib';
+import { Application, DBManager } from '@pwrdrvr/microapps-datalib';
 import { ICreateApplicationRequest, IDeployerResponse } from '../index';
 
 export default class AppController {
-  public static async CreateApp(app: ICreateApplicationRequest): Promise<IDeployerResponse> {
-    const response = await Application.LoadAsync(Manager.DBDocClient, app.appName);
+  public static async CreateApp(opts: {
+    dbManager: DBManager;
+    app: ICreateApplicationRequest;
+  }): Promise<IDeployerResponse> {
+    const { dbManager, app } = opts;
+
+    const response = await Application.Load({ dbManager, key: { AppName: app.appName } });
 
     if (response !== undefined) {
       // Indicate that record already existed
@@ -16,7 +20,7 @@ export default class AppController {
       AppName: app.appName,
       DisplayName: app.displayName,
     });
-    await item.SaveAsync(Manager.DBDocClient);
+    await item.Save(dbManager);
 
     // Indicate that record was created
     return { statusCode: 201 };

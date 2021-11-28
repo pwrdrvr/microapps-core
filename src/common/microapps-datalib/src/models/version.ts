@@ -1,6 +1,5 @@
-import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { Config } from '../config';
+import { DBManager } from '..';
 
 enum SaveBy {
   AppName,
@@ -25,16 +24,23 @@ export interface IVersionRecord {
   IntegrationID: string;
 }
 
-export default class Version implements IVersionRecord {
-  public static async LoadVersionsAsync(
-    ddbDocClient: DynamoDBDocument,
-    appName: string,
-  ): Promise<Version[]> {
-    const { Items } = await ddbDocClient.query({
-      TableName: Config.TableName,
+export type IVersionRecordNoKeysLoose = Partial<
+  Omit<IVersionRecord, 'PK' | 'SK' | 'AppName' | 'SemVer'>
+> &
+  Pick<IVersionRecord, 'AppName' | 'SemVer'>;
+
+export class Version implements IVersionRecord {
+  public static async LoadVersions(opts: {
+    dbManager: DBManager;
+    key: Pick<IVersionRecord, 'AppName'>;
+  }): Promise<Version[]> {
+    const { dbManager, key } = opts;
+
+    const { Items } = await dbManager.ddbDocClient.query({
+      TableName: dbManager.tableName,
       KeyConditionExpression: 'PK = :pkval and begins_with(SK, :skval)',
       ExpressionAttributeValues: {
-        ':pkval': `appName#${appName}`.toLowerCase(),
+        ':pkval': `appName#${key.AppName}`.toLowerCase(),
         ':skval': 'version',
       },
     });
@@ -49,16 +55,17 @@ export default class Version implements IVersionRecord {
     return records;
   }
 
-  public static async LoadVersionAsync(
-    ddbDocClient: DynamoDBDocument,
-    appName: string,
-    semVer: string,
-  ): Promise<Version> {
-    const { Item } = await ddbDocClient.get({
-      TableName: Config.TableName,
+  public static async LoadVersion(opts: {
+    dbManager: DBManager;
+    key: Pick<IVersionRecord, 'AppName' | 'SemVer'>;
+  }): Promise<Version> {
+    const { dbManager, key } = opts;
+
+    const { Item } = await dbManager.ddbDocClient.get({
+      TableName: dbManager.tableName,
       Key: {
-        PK: `appName#${appName}`.toLowerCase(),
-        SK: `version#${semVer}`.toLowerCase(),
+        PK: `appName#${key.AppName}`.toLowerCase(),
+        SK: `version#${key.SemVer}`.toLowerCase(),
       },
     });
     const record = plainToClass<Version, unknown>(Version, Item);
@@ -78,13 +85,18 @@ export default class Version implements IVersionRecord {
   private _appName: string | undefined;
   private _semVer: string | undefined;
   private _type: string | undefined;
-  private _status: VersionStatus | undefined;
-  private _defaultFile: string | undefined;
-  private _integrationID: string | undefined;
+  private _status: VersionStatus;
+  private _defaultFile: string;
+  private _integrationID: string;
 
-  public constructor(init?: Partial<IVersionRecord>) {
-    Object.assign(this, init);
+  public constructor(init?: Partial<IVersionRecordNoKeysLoose>) {
     this._keyBy = SaveBy.AppName;
+    this._status = 'pending';
+    this._defaultFile = '';
+    this._integrationID = '';
+
+    // Save any passed in values over the defaults
+    Object.assign(this, init);
   }
 
   public get DbStruct(): IVersionRecord {
@@ -100,13 +112,13 @@ export default class Version implements IVersionRecord {
     };
   }
 
-  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
+  public async Save(dbManager: DBManager): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
-    await ddbDocClient.put({
-      TableName: Config.TableName,
+    await dbManager.ddbDocClient.put({
+      TableName: dbManager.tableName,
       Item: this.DbStruct,
     });
   }

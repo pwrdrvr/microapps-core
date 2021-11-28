@@ -1,6 +1,6 @@
-import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { Config } from '../config';
+import { DBManager } from '..';
+import { IVersionRecord } from './version';
 
 export interface IRule {
   SemVer: string;
@@ -18,11 +18,16 @@ export interface IRulesRecord {
   Version: number;
 }
 
-export default class Rules implements IRulesRecord {
-  public static async LoadAsync(ddbDocClient: DynamoDBDocument, appName: string): Promise<Rules> {
-    const { Item } = await ddbDocClient.get({
-      TableName: Config.TableName,
-      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'rules' },
+export class Rules implements IRulesRecord {
+  public static async Load(opts: {
+    dbManager: DBManager;
+    key: Pick<IVersionRecord, 'AppName'>;
+  }): Promise<Rules> {
+    const { dbManager, key } = opts;
+
+    const { Item } = await dbManager.ddbDocClient.get({
+      TableName: dbManager.tableName,
+      Key: { PK: `appName#${key.AppName}`.toLowerCase(), SK: 'rules' },
     });
     const record = plainToClass<Rules, unknown>(Rules, Item);
     return record;
@@ -49,18 +54,18 @@ export default class Rules implements IRulesRecord {
     };
   }
 
-  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
+  public async Save(dbManager: DBManager): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
     // Save under specific AppName key
-    const taskByName = ddbDocClient.put({
-      TableName: Config.TableName,
+    const taskByName = dbManager.ddbDocClient.put({
+      TableName: dbManager.tableName,
       Item: this.DbStruct,
     });
 
     // Save under all Applications key
-    const taskByApplications = ddbDocClient.put({
-      TableName: Config.TableName,
+    const taskByApplications = dbManager.ddbDocClient.put({
+      TableName: dbManager.tableName,
       Item: this.DbStruct,
     });
 

@@ -1,31 +1,16 @@
-FROM node:15 as base
+FROM node:16 as base
 
 WORKDIR /app
 
-# JRE is needed for DynamoDB emulator
-RUN apt-get update -y && apt-get -y install default-jre jq
-
-COPY tsconfig.*json .npmrc* .eslint* .prettier* package*.json rollup.*.js ./
-COPY ./src/microapps-deployer/package*.json .npmrc* ./src/microapps-deployer/
-COPY ./src/common/microapps-datalib/package*.json .npmrc* ./src/common/microapps-datalib/
-
-# RUN npm i strip-json-comments-cli \
-#   && mv tsconfig.json tsconfig.orig.json \
-#   && npx strip-json-comments-cli ./tsconfig.orig.json \
-#   | jq 'del(.references[] | select(.path != "./src/microapps-deployer/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json
-
-# FROM base AS prodimages
-# # Remove the build packages
-# RUN npm ci --only=production
-# RUN cd ./src/microapps-deployer/ && npm ci --only=production
+COPY ./ ./
 
 
 FROM base AS build
+
 # Add the rest of the images needed
 RUN npm ci
 
-COPY ./src/ ./src/
-
+RUN npm run build
 RUN npm run lint
 RUN npm run test
 RUN npm run build:deployer

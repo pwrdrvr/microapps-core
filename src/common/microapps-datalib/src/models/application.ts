@@ -1,10 +1,16 @@
-import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { plainToClass } from 'class-transformer';
-import { Config } from '../config';
+import { DBManager } from '../manager';
+import { Rules } from './rules';
+import { Version, IVersionRecord } from './version';
 
 enum SaveBy {
   AppName,
   Applications,
+}
+
+export interface IVersionsAndRules {
+  Versions: Version[];
+  Rules: Rules;
 }
 
 interface IApplicationRecord {
@@ -14,22 +20,59 @@ interface IApplicationRecord {
   DisplayName: string;
 }
 
-export default class Application implements IApplicationRecord {
-  public static async LoadAsync(
-    ddbDocClient: DynamoDBDocument,
-    appName: string,
-  ): Promise<Application> {
-    const { Item } = await ddbDocClient.get({
-      TableName: Config.TableName,
-      Key: { PK: `appName#${appName}`.toLowerCase(), SK: 'application' },
+export class Application implements IApplicationRecord {
+  public static async UpdateDefaultRule(opts: {
+    dbManager: DBManager;
+    key: Pick<IVersionRecord, 'AppName' | 'SemVer'>;
+  }): Promise<void> {
+    const { dbManager, key } = opts;
+
+    const rules = await Rules.Load({ dbManager, key });
+
+    const defaultRule = rules.RuleSet.default;
+    defaultRule.SemVer = key.SemVer;
+
+    await rules.Save(dbManager);
+  }
+
+  public static async GetVersionsAndRules(opts: {
+    dbManager: DBManager;
+    key: Pick<IApplicationRecord, 'AppName'>;
+  }): Promise<IVersionsAndRules> {
+    const { key, dbManager } = opts;
+
+    // Get all versions and rules for an app
+    // Note: versions are moved out of this key as they become inactive
+    // There should be less than, say, 100 versions per app
+
+    const versionTask = Version.LoadVersions({ dbManager, key });
+    const rulesTask = Rules.Load({ dbManager, key });
+
+    await Promise.all([versionTask, rulesTask]);
+
+    return {
+      Versions: await versionTask,
+      Rules: await rulesTask,
+    };
+  }
+
+  public static async Load(opts: {
+    dbManager: DBManager;
+    key: Pick<IApplicationRecord, 'AppName'>;
+  }): Promise<Application> {
+    const { key, dbManager } = opts;
+
+    const { Item } = await dbManager.ddbDocClient.get({
+      TableName: dbManager.tableName,
+      Key: { PK: `appName#${key.AppName}`.toLowerCase(), SK: 'application' },
     });
     const record = plainToClass<Application, unknown>(Application, Item);
     return record;
   }
 
-  public static async LoadAllAppsAsync(ddbDocClient: DynamoDBDocument): Promise<Application[]> {
-    const { Items } = await ddbDocClient.query({
-      TableName: Config.TableName,
+  public static async LoadAllApps(dbManager: DBManager): Promise<Application[]> {
+    const { Items } = await dbManager.ddbDocClient.query({
+      TableName: dbManager.tableName,
       KeyConditionExpression: 'PK = :pkval',
       ExpressionAttributeValues: {
         ':pkval': 'applications',
@@ -65,20 +108,20 @@ export default class Application implements IApplicationRecord {
     };
   }
 
-  public async SaveAsync(ddbDocClient: DynamoDBDocument): Promise<void> {
+  public async Save(dbManager: DBManager): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
     // Save under specific AppName key
     this._keyBy = SaveBy.AppName;
-    const taskByName = ddbDocClient.put({
-      TableName: Config.TableName,
+    const taskByName = dbManager.ddbDocClient.put({
+      TableName: dbManager.tableName,
       Item: this.DbStruct,
     });
 
     // Save under all Applications key
     this._keyBy = SaveBy.Applications;
-    const taskByApplications = ddbDocClient.put({
-      TableName: Config.TableName,
+    const taskByApplications = dbManager.ddbDocClient.put({
+      TableName: dbManager.tableName,
       Item: this.DbStruct,
     });
 

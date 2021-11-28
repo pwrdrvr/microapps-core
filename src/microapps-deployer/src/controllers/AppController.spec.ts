@@ -1,24 +1,27 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager, { Application } from '@pwrdrvr/microapps-datalib';
-// eslint-disable-next-line import/no-unresolved
+import 'jest-dynalite/withDb';
+import { DBManager, Application } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
-import { handler, ICreateApplicationRequest } from '../index';
+import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { handler, ICreateApplicationRequest, overrideDBManager } from '../index';
+
+let dynamoClient: dynamodb.DynamoDBClient;
+let dbManager: DBManager;
+
+const TEST_TABLE_NAME = 'microapps';
 
 describe('AppController', () => {
-  before(async () => {
-    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
+  beforeAll(() => {
+    dynamoClient = new dynamodb.DynamoDBClient({
+      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+      tls: false,
+      region: 'local',
+    });
+
+    dbManager = new DBManager({ dynamoClient, tableName: TEST_TABLE_NAME });
   });
 
-  beforeEach(async () => {
-    // Create the table
-    await InitializeTable();
-  });
-
-  afterEach(async () => {
-    await DropTable();
+  beforeEach(() => {
+    overrideDBManager({ dbManager, dynamoClient });
   });
 
   it('should create new app that does not exist', async () => {
@@ -30,12 +33,12 @@ describe('AppController', () => {
       } as ICreateApplicationRequest,
       { awsRequestId: '123' } as lambda.Context,
     );
-    expect(response.statusCode).to.equal(201);
+    expect(response.statusCode).toBe(201);
 
-    const record = await Application.LoadAsync(dynamoClient.ddbDocClient, 'NewApp');
-    expect(record).to.not.equal(undefined);
-    expect(record.AppName).to.equal('newapp');
-    expect(record.DisplayName).to.equal('NewDisplayName');
+    const record = await Application.Load({ dbManager, key: { AppName: 'NewApp' } });
+    expect(record).toBeDefined();
+    expect(record.AppName).toBe('newapp');
+    expect(record.DisplayName).toBe('NewDisplayName');
   });
 
   it('should not create app that exists', async () => {
@@ -48,7 +51,7 @@ describe('AppController', () => {
       } as ICreateApplicationRequest,
       { awsRequestId: '123' } as lambda.Context,
     );
-    expect(response.statusCode).to.equal(201);
+    expect(response.statusCode).toBe(201);
 
     // Try to create second time
     response = await handler(
@@ -59,11 +62,11 @@ describe('AppController', () => {
       } as ICreateApplicationRequest,
       { awsRequestId: '123' } as lambda.Context,
     );
-    expect(response.statusCode).to.equal(200);
+    expect(response.statusCode).toBe(200);
 
-    const record = await Application.LoadAsync(dynamoClient.ddbDocClient, 'NewApp');
-    expect(record).to.not.equal(undefined);
-    expect(record.AppName).to.equal('newapp');
-    expect(record.DisplayName).to.equal('NewDisplayName');
+    const record = await Application.Load({ dbManager, key: { AppName: 'NewApp' } });
+    expect(record).toBeDefined();
+    expect(record.AppName).toBe('newapp');
+    expect(record.DisplayName).toBe('NewDisplayName');
   });
 });

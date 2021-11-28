@@ -1,10 +1,8 @@
-// Used by ts-convict
 import 'source-map-support/register';
+// Used by ts-convict
 import 'reflect-metadata';
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager from '@pwrdrvr/microapps-datalib';
-// eslint-disable-next-line import/no-unresolved
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DBManager } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
@@ -14,11 +12,19 @@ import Log from './lib/Log';
 
 const localTesting = process.env.DEBUG ? true : false;
 
-const dynamoClient = process.env.TEST
-  ? new DynamoDB({ endpoint: 'http://localhost:8000' })
-  : new DynamoDB({});
+let dbManager: DBManager;
+let dynamoClient = new DynamoDBClient({
+  maxAttempts: 8,
+});
 
-let manager: Manager;
+export function overrideDBManager(opts: {
+  dbManager: DBManager;
+  dynamoClient: DynamoDBClient;
+}): void {
+  dbManager = opts.dbManager;
+  dynamoClient = opts.dynamoClient;
+}
+dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
 
 const config = Config.instance;
 
@@ -64,9 +70,9 @@ export async function handler(
   event: IRequestBase,
   context: lambda.Context,
 ): Promise<IDeployerResponse> {
-  if (manager === undefined) {
-    manager = new Manager({
-      dynamoDB: dynamoClient,
+  if (dbManager === undefined) {
+    dbManager = new DBManager({
+      dynamoClient,
       tableName: Config.instance.db.tableName,
     });
   }
@@ -102,17 +108,17 @@ export async function handler(
     switch (event.type) {
       case 'createApp': {
         const request = event as ICreateApplicationRequest;
-        return await AppController.CreateApp(request);
+        return await AppController.CreateApp({ dbManager, app: request });
       }
 
       case 'deployVersionPreflight': {
         const request = event as IDeployVersionPreflightRequest;
-        return await VersionController.DeployVersionPreflight(request, config);
+        return await VersionController.DeployVersionPreflight({ dbManager, request, config });
       }
 
       case 'deployVersion': {
         const request = event as IDeployVersionRequest;
-        return await VersionController.DeployVersion(request, config);
+        return await VersionController.DeployVersion({ dbManager, request, config });
       }
     }
   } catch (err) {
