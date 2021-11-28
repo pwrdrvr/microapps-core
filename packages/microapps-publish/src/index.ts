@@ -406,6 +406,7 @@ class PublishTool extends Command {
     } catch (error) {
       this.log(`Caught exception: ${error.message}`);
     } finally {
+      await S3Uploader.removeTempDirIfExists();
       await this.restoreFiles();
     }
   }
