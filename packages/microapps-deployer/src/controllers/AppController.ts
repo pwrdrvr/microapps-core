@@ -1,5 +1,5 @@
 import { Application, DBManager } from '@pwrdrvr/microapps-datalib';
-import { ICreateApplicationRequest, IDeployerResponse } from '../index';
+import { ICreateApplicationRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
 
 export default class AppController {
   public static async CreateApp(opts: {

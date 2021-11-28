@@ -12,7 +12,7 @@ import {
   IDeployerResponse,
   IDeployVersionPreflightResponse,
   IDeployVersionRequestBase,
-} from '../index';
+} from '@pwrdrvr/microapps-deployer-lib';
 import GatewayInfo from '../lib/GatewayInfo';
 import Log from '../lib/Log';
 

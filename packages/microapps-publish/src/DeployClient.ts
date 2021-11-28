@@ -1,13 +1,15 @@
 import * as lambda from '@aws-sdk/client-lambda';
-
+import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
+import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
 import {
   IDeployVersionPreflightRequest,
   IDeployVersionPreflightResponse,
   ICreateApplicationRequest,
   IDeployerResponse,
   IDeployVersionRequest,
-} from '@pwrdrvr/microapps-deployer';
+} from '@pwrdrvr/microapps-deployer-lib';
 import { IConfig } from './config/Config';
+import { IContext } from './index';
 
 export interface IDeployVersionPreflightResult {
   exists: boolean;
@@ -47,6 +49,7 @@ export default class DeployClient {
 
   public static async DeployVersionPreflight(
     config: IConfig,
+    task: TaskWrapper<IContext, typeof DefaultRenderer>,
   ): Promise<IDeployVersionPreflightResult> {
     const request = {
       type: 'deployVersionPreflight',
@@ -65,7 +68,7 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployVersionPreflightResponse;
       if (dResponse.statusCode === 404) {
-        console.log(`App/Version do not exist: ${config.app.name}/${config.app.semVer}`);
+        task.output = `App/Version do not exist: ${config.app.name}/${config.app.semVer}`;
         return { exists: false, response: dResponse };
       } else {
         return { exists: true, response: dResponse };
@@ -75,7 +78,10 @@ export default class DeployClient {
     }
   }
 
-  public static async DeployVersion(config: IConfig): Promise<void> {
+  public static async DeployVersion(
+    config: IConfig,
+    task: TaskWrapper<IContext, typeof DefaultRenderer>,
+  ): Promise<void> {
     const request = {
       type: 'deployVersion',
       appName: config.app.name,
@@ -95,9 +101,9 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
-        console.log(`Deploy succeeded: ${config.app.name}/${config.app.semVer}`);
+        task.output = `Deploy succeeded: ${config.app.name}/${config.app.semVer}`;
       } else {
-        console.log(`Deploy failed with: ${dResponse.statusCode}`);
+        task.output = `Deploy failed with: ${dResponse.statusCode}`;
       }
     } else {
       throw new Error(`Lambda call to DeployVersion failed: ${JSON.stringify(response)}`);

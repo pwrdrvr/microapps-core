@@ -7,18 +7,17 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 
+import {
+  IDeployVersionPreflightRequest,
+  ICreateApplicationRequest,
+  IDeployVersionRequest,
+} from '@pwrdrvr/microapps-deployer-lib';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
 import sinon from 'sinon';
 import { Config } from '../config/Config';
-import {
-  handler,
-  IDeployVersionPreflightRequest,
-  ICreateApplicationRequest,
-  IDeployVersionRequest,
-  overrideDBManager,
-} from '../index';
+import { handler, overrideDBManager } from '../index';
 
 let s3Client: AwsClientStub<s3.S3Client>;
 let stsClient: AwsClientStub<sts.STSClient>;

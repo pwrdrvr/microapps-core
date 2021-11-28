@@ -1,5 +1,5 @@
 import path from 'path';
-import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer';
+import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer-lib';
 import fs from 'fs-extra';
 import { IConfig } from './config/Config';
 import S3TransferUtility from './S3TransferUtility';
@@ -38,6 +38,7 @@ export default class S3Uploader {
 
   /**
    * Upload files to S3
+   * @deprecated 2021-11-27
    * @param config
    * @param s3UploadPath
    * @param preflightResponse
