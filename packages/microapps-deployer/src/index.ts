@@ -37,7 +37,7 @@ const config = Config.instance;
 
 export async function handler(
   event: IRequestBase,
-  context: lambda.Context,
+  context?: lambda.Context,
 ): Promise<IDeployerResponse> {
   if (dbManager === undefined) {
     dbManager = new DBManager({
@@ -61,7 +61,7 @@ export async function handler(
     debug: localTesting,
     meta: {
       source: 'microapps-deployer',
-      awsRequestId: context.awsRequestId,
+      awsRequestId: context?.awsRequestId,
       requestType: event.type,
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -89,18 +89,13 @@ export async function handler(
         const request = event as IDeployVersionRequest;
         return await VersionController.DeployVersion({ dbManager, request, config });
       }
+
+      default:
+        return { statusCode: 400 };
     }
   } catch (err) {
     Log.Instance.error('Caught unexpected exception in handler');
     Log.Instance.error(err);
     return { statusCode: 500 };
   }
-}
-
-// Run the function locally for testing
-if (localTesting) {
-  const payload = { appName: 'test-app' } as ICreateApplicationRequest;
-  void Promise.all([
-    handler(payload as IRequestBase, { awsRequestId: 'local-testing' } as lambda.Context),
-  ]);
 }

@@ -78,6 +78,14 @@ export default class DeployClient {
     }
   }
 
+  /**
+   * Copy S3 static assets from staging to live bucket.
+   * Create API Gateway Integration for app (if needed).
+   * Give API Gateway permission to call the Lambda.
+   * Create API Gateway routes for this specific version.
+   * @param config
+   * @param task
+   */
   public static async DeployVersion(
     config: IConfig,
     task: TaskWrapper<IContext, typeof DefaultRenderer>,
@@ -104,6 +112,7 @@ export default class DeployClient {
         task.output = `Deploy succeeded: ${config.app.name}/${config.app.semVer}`;
       } else {
         task.output = `Deploy failed with: ${dResponse.statusCode}`;
+        throw new Error(`Lambda call to DeployVersionfailed with: ${dResponse.statusCode}`);
       }
     } else {
       throw new Error(`Lambda call to DeployVersion failed: ${JSON.stringify(response)}`);

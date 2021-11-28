@@ -369,5 +369,106 @@ describe('VersionController', () => {
       );
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 401 for deploying version with lack of apigwy permission', async () => {
+      const fakeAPIID = '123';
+      const fakeIntegrationID = 'abc123integrationID';
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
+      s3Client
+        // Mock S3 get for staging bucket - return one file name
+        .on(s3.ListObjectsV2Command, {
+          Bucket: 'pwrdrvr-apps-staging',
+          Prefix: `${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: false,
+          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+        })
+        // Mock S3 copy to prod bucket
+        .on(s3.CopyObjectCommand, {
+          Bucket: 'pwrdrvr-apps',
+          CopySource: `pwrdrvr-apps-staging/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({});
+      apigwyClient
+        // Mock Lambda Get request to return success for ARN
+        .on(apigwy.GetApisCommand, {
+          MaxResults: '100',
+        })
+        .resolves({
+          Items: [
+            {
+              Name: 'microapps-apis',
+              ApiId: fakeAPIID,
+              ProtocolType: 'HTTP',
+            } as apigwy.Api,
+          ],
+        });
+      lambdaClient
+        // Mock permission removes - these can fail
+        .on(lambda.RemovePermissionCommand)
+        .rejects()
+        // Mock permission add for version root
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version-root',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock permission add for version/*
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{proxy+}`,
+        })
+        .resolves({});
+
+      apigwyClient
+        // Mock API Gateway Integration Create for Version
+        .on(apigwy.CreateIntegrationCommand, {
+          ApiId: fakeAPIID,
+          IntegrationType: apigwy.IntegrationType.AWS_PROXY,
+          IntegrationMethod: 'POST',
+          PayloadFormatVersion: '2.0',
+          IntegrationUri: fakeLambdaARN,
+        })
+        .rejects({
+          name: 'AccessDeniedException',
+          message: `User: arn:aws:sts::1234567890123:assumed-role/some-role-name/microapps-deployer-dev is not authorized to perform: apigateway:POST on resource: arn:aws:apigateway:us-east-2::/apis/${fakeAPIID}/integrations`,
+        })
+        // Mock create route - this might fail
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: fakeAPIID,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock create route for /*
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: fakeAPIID,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
+        })
+        .resolves({});
+
+      const response = await handler(
+        {
+          appName: 'NewApp',
+          semVer: '0.0.0',
+          defaultFile: 'index.html',
+          lambdaARN: fakeLambdaARN,
+          type: 'deployVersion',
+        } as IDeployVersionRequest,
+        { awsRequestId: '123' } as lambdaTypes.Context,
+      );
+      expect(response.statusCode).toBe(401);
+    });
   });
 });
