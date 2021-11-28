@@ -16,7 +16,6 @@ Object.defineProperty(Config, 'instance', {
       },
       apigwy: {
         apiId: '123',
-        name: 'microapps-test',
       },
       filestore: {
         stagingBucket: 'microapps-test-staging',

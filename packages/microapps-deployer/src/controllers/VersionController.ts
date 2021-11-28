@@ -13,9 +13,7 @@ import {
   IDeployVersionPreflightResponse,
   IDeployVersionRequestBase,
 } from '@pwrdrvr/microapps-deployer-lib';
-import GatewayInfo from '../lib/GatewayInfo';
 import Log from '../lib/Log';
-import { Config } from 'ts-convict';
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
