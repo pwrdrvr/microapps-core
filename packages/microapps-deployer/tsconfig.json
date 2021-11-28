@@ -7,7 +7,7 @@
   },
   "references": [
     {
-      "path": "../common/microapps-datalib/"
+      "path": "../microapps-datalib/"
     }
   ],
   "exclude": ["**/*.spec.ts", "dist"]

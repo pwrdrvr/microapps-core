@@ -19,9 +19,9 @@ npm run preinstall
 ```log
 npm ERR! code ENOENT
 npm ERR! syscall chmod
-npm ERR! path /Users/myusername/pwrdrvr/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/src/index.js
+npm ERR! path /Users/myusername/pwrdrvr/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/index.js
 npm ERR! errno -2
-npm ERR! enoent ENOENT: no such file or directory, chmod '/Users/myusername/pwrdrvr/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/src/index.js'
+npm ERR! enoent ENOENT: no such file or directory, chmod '/Users/myusername/pwrdrvr/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/index.js'
 npm ERR! enoent This is related to npm not being able to find a file.
 npm ERR! enoent
 ```
@@ -38,7 +38,7 @@ npx projen new awscdk-construct --no-git --name @pwrdrvr/microapps-cdk --author 
 
 # Releasing NPM Packages
 
-Challenge: `projen` does not support monorepos well, so it can build, tag, version, and release the CDK Construct library in `src/microapps-cdk` but it cannot be invoked to release `src/microapps-publish` and, because it doesn't support monorepos well, it cannot build and publish both in one invocation.
+Challenge: `projen` does not support monorepos well, so it can build, tag, version, and release the CDK Construct library in `packages/microapps-cdk` but it cannot be invoked to release `packages/microapps-publish` and, because it doesn't support monorepos well, it cannot build and publish both in one invocation.
 
 Below are tips, tricks, and commands used to build and release `microapps-publish` to NPM after `microapps-cdk` is done being published by `projen`.
 

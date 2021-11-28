@@ -2,13 +2,13 @@
   "files": [],
   "references": [
     {
-      "path": "./src/common/microapps-datalib/"
+      "path": "packages/microapps-datalib/"
     },
     {
-      "path": "./src/microapps-deployer/"
+      "path": "packages/microapps-deployer/"
     },
     {
-      "path": "./src/microapps-publish/"
+      "path": "packages/microapps-publish/"
     }
   ]
 }
