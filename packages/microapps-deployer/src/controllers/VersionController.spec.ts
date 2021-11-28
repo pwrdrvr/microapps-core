@@ -1,6 +1,30 @@
 /// <reference types="jest" />
-import 'jest-dynalite/withDb';
 import 'reflect-metadata';
+import 'jest-dynalite/withDb';
+import { Config, IConfig } from '../config/Config';
+jest.mock('../config/Config');
+Object.defineProperty(Config, 'instance', {
+  configurable: false,
+  enumerable: false,
+  get: jest.fn((): IConfig => {
+    return {
+      awsAccountID: 123456789,
+      awsRegion: 'mock',
+      db: {
+        tableName: 'microapps',
+      },
+      apigwy: {
+        apiId: '123',
+        name: 'microapps-test',
+      },
+      filestore: {
+        stagingBucket: 'microapps-test-staging',
+        destinationBucket: 'microapps-test-destination',
+      },
+      uploadRoleName: 'microapps-upload-test-role',
+    };
+  }),
+});
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import * as lambda from '@aws-sdk/client-lambda';
@@ -16,7 +40,6 @@ import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
 import sinon from 'sinon';
-import { Config } from '../config/Config';
 import { handler, overrideDBManager } from '../index';
 
 let s3Client: AwsClientStub<s3.S3Client>;
@@ -29,6 +52,7 @@ let dbManager: DBManager;
 const TEST_TABLE_NAME = 'microapps';
 
 describe('VersionController', () => {
+  const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
 
   beforeAll(() => {
@@ -131,7 +155,6 @@ describe('VersionController', () => {
     const fakeLambdaARN = 'arn:aws:lambda:us-east-2:123456789:function:new-app-function';
 
     it('should return 201 for deploying version that does not exist', async () => {
-      const fakeAPIID = '123';
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -139,7 +162,7 @@ describe('VersionController', () => {
       s3Client
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
-          Bucket: 'pwrdrvr-apps-staging',
+          Bucket: config.filestore.stagingBucket,
           Prefix: `${appName}/${semVer}/`,
         })
         .resolves({
@@ -148,8 +171,8 @@ describe('VersionController', () => {
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
-          Bucket: 'pwrdrvr-apps',
-          CopySource: `pwrdrvr-apps-staging/${appName}/${semVer}/index.html`,
+          Bucket: config.filestore.destinationBucket,
+          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
@@ -162,7 +185,7 @@ describe('VersionController', () => {
           Items: [
             {
               Name: 'microapps-apis',
-              ApiId: fakeAPIID,
+              ApiId: config.apigwy.apiId,
               ProtocolType: 'HTTP',
             } as apigwy.Api,
           ],
@@ -177,7 +200,7 @@ describe('VersionController', () => {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
         })
         .resolves({})
         // Mock permission add for version/*
@@ -186,14 +209,14 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
       apigwyClient
         // Mock API Gateway Integration Create for Version
         .on(apigwy.CreateIntegrationCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           IntegrationType: apigwy.IntegrationType.AWS_PROXY,
           IntegrationMethod: 'POST',
           PayloadFormatVersion: '2.0',
@@ -204,14 +227,14 @@ describe('VersionController', () => {
         })
         // Mock create route - this might fail
         .on(apigwy.CreateRouteCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}`,
         })
         .resolves({})
         // Mock create route for /*
         .on(apigwy.CreateRouteCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
         })
@@ -231,7 +254,6 @@ describe('VersionController', () => {
     });
 
     it('should return 201 for deploying version that does not exist, with continuations', async () => {
-      const fakeAPIID = '123';
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -239,7 +261,7 @@ describe('VersionController', () => {
       s3Client
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
-          Bucket: 'pwrdrvr-apps-staging',
+          Bucket: config.filestore.stagingBucket,
           Prefix: `${appName}/${semVer}/`,
         })
         .resolves({
@@ -248,7 +270,7 @@ describe('VersionController', () => {
         })
         .on(s3.ListObjectsV2Command, {
           ContinuationToken: 'nothing-to-see-here-yet',
-          Bucket: 'pwrdrvr-apps-staging',
+          Bucket: config.filestore.stagingBucket,
           Prefix: `${appName}/${semVer}/`,
         })
         .resolves({
@@ -257,8 +279,8 @@ describe('VersionController', () => {
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
-          Bucket: 'pwrdrvr-apps',
-          CopySource: `pwrdrvr-apps-staging/${appName}/${semVer}/index.html`,
+          Bucket: config.filestore.destinationBucket,
+          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
@@ -278,7 +300,7 @@ describe('VersionController', () => {
           Items: [
             {
               Name: 'microapps-apis',
-              ApiId: fakeAPIID,
+              ApiId: config.apigwy.apiId,
               ProtocolType: 'HTTP',
             } as apigwy.Api,
           ],
@@ -293,7 +315,7 @@ describe('VersionController', () => {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
         })
         .resolves({})
         // Mock permission add for version/*
@@ -302,14 +324,14 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
       apigwyClient
         // Mock API Gateway Integration Create for Version
         .on(apigwy.CreateIntegrationCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           IntegrationType: apigwy.IntegrationType.AWS_PROXY,
           IntegrationMethod: 'POST',
           PayloadFormatVersion: '2.0',
@@ -320,14 +342,14 @@ describe('VersionController', () => {
         })
         // Mock create route - this might fail
         .on(apigwy.CreateRouteCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}`,
         })
         .resolves({})
         // Mock create route for /*
         .on(apigwy.CreateRouteCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
         })
@@ -371,7 +393,6 @@ describe('VersionController', () => {
     });
 
     it('should return 401 for deploying version with lack of apigwy permission', async () => {
-      const fakeAPIID = '123';
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -379,7 +400,7 @@ describe('VersionController', () => {
       s3Client
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
-          Bucket: 'pwrdrvr-apps-staging',
+          Bucket: config.filestore.stagingBucket,
           Prefix: `${appName}/${semVer}/`,
         })
         .resolves({
@@ -388,8 +409,8 @@ describe('VersionController', () => {
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
-          Bucket: 'pwrdrvr-apps',
-          CopySource: `pwrdrvr-apps-staging/${appName}/${semVer}/index.html`,
+          Bucket: config.filestore.destinationBucket,
+          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
@@ -402,7 +423,7 @@ describe('VersionController', () => {
           Items: [
             {
               Name: 'microapps-apis',
-              ApiId: fakeAPIID,
+              ApiId: config.apigwy.apiId,
               ProtocolType: 'HTTP',
             } as apigwy.Api,
           ],
@@ -417,7 +438,7 @@ describe('VersionController', () => {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
         })
         .resolves({})
         // Mock permission add for version/*
@@ -426,14 +447,14 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${fakeAPIID}/*/*/${appName}/${semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
       apigwyClient
         // Mock API Gateway Integration Create for Version
         .on(apigwy.CreateIntegrationCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           IntegrationType: apigwy.IntegrationType.AWS_PROXY,
           IntegrationMethod: 'POST',
           PayloadFormatVersion: '2.0',
@@ -441,18 +462,18 @@ describe('VersionController', () => {
         })
         .rejects({
           name: 'AccessDeniedException',
-          message: `User: arn:aws:sts::1234567890123:assumed-role/some-role-name/microapps-deployer-dev is not authorized to perform: apigateway:POST on resource: arn:aws:apigateway:us-east-2::/apis/${fakeAPIID}/integrations`,
+          message: `User: arn:aws:sts::1234567890123:assumed-role/some-role-name/microapps-deployer-dev is not authorized to perform: apigateway:POST on resource: arn:aws:apigateway:us-east-2::/apis/${config.apigwy.apiId}/integrations`,
         })
         // Mock create route - this might fail
         .on(apigwy.CreateRouteCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}`,
         })
         .resolves({})
         // Mock create route for /*
         .on(apigwy.CreateRouteCommand, {
-          ApiId: fakeAPIID,
+          ApiId: config.apigwy.apiId,
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
         })

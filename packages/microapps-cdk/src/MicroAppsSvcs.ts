@@ -76,7 +76,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       assetNameSuffix,
     } = props;
 
-    const apigatewayName = assetNameRoot;
+    const apigatewayName = `${assetNameRoot}${assetNameSuffix}`;
 
     //
     // DynamoDB Table
@@ -98,6 +98,138 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     }
 
     //
+    // Router Lambda Function
+    //
+
+    // Create Router Lambda Function
+    let routerFunc: lambda.Function;
+    const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
+      functionName: `${assetNameRoot}-router${assetNameSuffix}`,
+      memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_MONTH,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      timeout: cdk.Duration.seconds(15),
+      environment: {
+        NODE_ENV: appEnv,
+        DATABASE_TABLE_NAME: table.tableName,
+        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      },
+    };
+    if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
+      // This is for local dev
+      routerFunc = new lambda.Function(this, 'microapps-router-func', {
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
+        handler: 'index.handler',
+        ...routerFuncProps,
+      });
+    } else if (existsSync(`${path.resolve(__dirname)}/microapps-router/index.js`)) {
+      // This is for built apps packaged with the CDK construct
+      routerFunc = new lambda.Function(this, 'microapps-router-func', {
+        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/microapps-router/`),
+        handler: 'index.handler',
+        ...routerFuncProps,
+      });
+    } else {
+      // Create Router Lambda Layer
+      const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
+        code: lambda.Code.fromAsset('./packages/microapps-router/templates/'),
+      });
+      if (autoDeleteEverything) {
+        routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+      }
+
+      routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
+        entry: './packages/microapps-router/src/index.ts',
+        handler: 'handler',
+        bundling: {
+          minify: true,
+          sourceMap: true,
+        },
+        layers: [routerDataFiles],
+        ...routerFuncProps,
+      });
+    }
+    if (autoDeleteEverything) {
+      routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+    const policyReadTarget = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['s3:GetObject'],
+      resources: [`${bucketApps.bucketArn}/*`],
+    });
+    for (const router of [routerFunc]) {
+      router.addToRolePolicy(policyReadTarget);
+      // Give the Router access to DynamoDB table
+      table.grantReadData(router);
+      table.grant(router, 'dynamodb:DescribeTable');
+    }
+
+    // TODO: Add Last Route for /*/{proxy+}
+    // Note: That might not work, may need a Behavior in CloudFront
+    //       or a Lambda @ Edge function that detects these and routes
+    //       to origin Lambda Router function.
+
+    //
+    // APIGateway domain names for CloudFront and origin
+    //
+
+    // Create Custom Domains for API Gateway
+    const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
+      domainName: domainNameEdge,
+      certificate: certOrigin,
+    });
+    if (autoDeleteEverything) {
+      dnAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+    this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
+      domainName: domainNameOrigin,
+      certificate: certOrigin,
+    });
+    if (autoDeleteEverything) {
+      this._dnAppsOrigin.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+
+    // Create an integration for the Router
+    // Do this here since it's the default route
+    const intRouter = new apigwyint.LambdaProxyIntegration({
+      handler: routerFunc,
+    });
+
+    // Create APIGateway for the Edge name
+    const httpApiDomainMapping: apigwy.DomainMappingOptions = {
+      domainName: dnAppsEdge,
+    };
+    const httpApi = new apigwy.HttpApi(this, 'microapps-api', {
+      defaultDomainMapping: httpApiDomainMapping,
+      defaultIntegration: intRouter,
+      apiName: apigatewayName,
+    });
+    if (autoDeleteEverything) {
+      httpApi.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+
+    // Add default route on API Gateway to point to the router
+    // httpApi.addRoutes({
+    //   path: '$default',
+    //   integration: intRouter,
+    // });
+
+    //
+    // Let API Gateway accept requests using domainNameOrigin
+    // That is the origin URI that CloudFront uses for this gateway.
+    // The gateway will refuse the traffic if it doesn't have the
+    // domain name registered.
+    //
+    const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-api-mapping-origin', {
+      api: httpApi,
+      domainName: this.dnAppsOrigin,
+    });
+    mappingAppsApis.node.addDependency(this.dnAppsOrigin);
+    if (autoDeleteEverything) {
+      mappingAppsApis.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+
+    //
     // Deployer Lambda Function
     //
 
@@ -113,7 +245,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: appEnv,
-        APIGWY_NAME: apigatewayName,
+        APIGWY_ID: httpApi.httpApiId,
         DATABASE_TABLE_NAME: table.tableName,
         FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
         FILESTORE_DEST_BUCKET: bucketAppsName,
@@ -318,132 +450,6 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       resources: [iamRoleUpload.roleArn],
     });
     deployerFunc.addToRolePolicy(policyAssumeUpload);
-
-    //
-    // Router Lambda Function
-    //
-
-    // Create Router Lambda Function
-    let routerFunc: lambda.Function;
-    const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
-      functionName: `${assetNameRoot}-router${assetNameSuffix}`,
-      memorySize: 1024,
-      logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_14_X,
-      timeout: cdk.Duration.seconds(15),
-      environment: {
-        NODE_ENV: appEnv,
-        DATABASE_TABLE_NAME: table.tableName,
-        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
-      },
-    };
-    if (existsSync(`${path.resolve(__dirname)}/../dist/microapps-router/index.js`)) {
-      // This is for local dev
-      routerFunc = new lambda.Function(this, 'microapps-router-func', {
-        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/../dist/microapps-router/`),
-        handler: 'index.handler',
-        ...routerFuncProps,
-      });
-    } else if (existsSync(`${path.resolve(__dirname)}/microapps-router/index.js`)) {
-      // This is for built apps packaged with the CDK construct
-      routerFunc = new lambda.Function(this, 'microapps-router-func', {
-        code: lambda.Code.fromAsset(`${path.resolve(__dirname)}/microapps-router/`),
-        handler: 'index.handler',
-        ...routerFuncProps,
-      });
-    } else {
-      // Create Router Lambda Layer
-      const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
-        code: lambda.Code.fromAsset('./packages/microapps-router/templates/'),
-      });
-      if (autoDeleteEverything) {
-        routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-      }
-
-      routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
-        entry: './packages/microapps-router/src/index.ts',
-        handler: 'handler',
-        bundling: {
-          minify: true,
-          sourceMap: true,
-        },
-        layers: [routerDataFiles],
-        ...routerFuncProps,
-      });
-    }
-    if (autoDeleteEverything) {
-      routerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
-    const policyReadTarget = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject'],
-      resources: [`${bucketApps.bucketArn}/*`],
-    });
-    for (const router of [routerFunc]) {
-      router.addToRolePolicy(policyReadTarget);
-      // Give the Router access to DynamoDB table
-      table.grantReadData(router);
-      table.grant(router, 'dynamodb:DescribeTable');
-    }
-
-    // TODO: Add Last Route for /*/{proxy+}
-    // Note: That might not work, may need a Behavior in CloudFront
-    //       or a Lambda @ Edge function that detects these and routes
-    //       to origin Lambda Router function.
-
-    //
-    // APIGateway domain names for CloudFront and origin
-    //
-
-    // Create Custom Domains for API Gateway
-    const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
-      domainName: domainNameEdge,
-      certificate: certOrigin,
-    });
-    if (autoDeleteEverything) {
-      dnAppsEdge.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
-    this._dnAppsOrigin = new apigwy.DomainName(this, 'microapps-apps-origin-dn', {
-      domainName: domainNameOrigin,
-      certificate: certOrigin,
-    });
-    if (autoDeleteEverything) {
-      this._dnAppsOrigin.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
-
-    // Create an integration for the Router
-    // Do this here since it's the default route
-    const intRouter = new apigwyint.LambdaProxyIntegration({
-      handler: routerFunc,
-    });
-
-    // Create APIGateway for the Edge name
-    const httpApiDomainMapping: apigwy.DomainMappingOptions = {
-      domainName: dnAppsEdge,
-    };
-    const httpApi = new apigwy.HttpApi(this, 'microapps-api', {
-      defaultDomainMapping: httpApiDomainMapping,
-      defaultIntegration: intRouter,
-      apiName: apigatewayName,
-    });
-    if (autoDeleteEverything) {
-      httpApi.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
-
-    //
-    // Let API Gateway accept requests using domainNameOrigin
-    // That is the origin URI that CloudFront uses for this gateway.
-    // The gateway will refuse the traffic if it doesn't have the
-    // domain name registered.
-    //
-    const mappingAppsApis = new apigwy.ApiMapping(this, 'microapps-api-mapping-origin', {
-      api: httpApi,
-      domainName: this.dnAppsOrigin,
-    });
-    mappingAppsApis.node.addDependency(this.dnAppsOrigin);
-    if (autoDeleteEverything) {
-      mappingAppsApis.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    }
 
     //
     // Give Deployer permissions to create routes and integrations

@@ -15,6 +15,7 @@ import {
 } from '@pwrdrvr/microapps-deployer-lib';
 import GatewayInfo from '../lib/GatewayInfo';
 import Log from '../lib/Log';
+import { Config } from 'ts-convict';
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
@@ -163,7 +164,8 @@ export default class VersionController {
     // TODO: Confirm the Lambda Function exists
 
     // Get the API Gateway
-    const api = await GatewayInfo.GetAPI(apigwyClient);
+    // const api = await GatewayInfo.GetAPI({ apigwyClient, apiName: config.apigwy.name });
+    const apiId = config.apigwy.apiId;
 
     if (record.Status === 'assets-copied') {
       // Get the account ID and region for API Gateway to Lambda permissions
@@ -197,7 +199,7 @@ export default class VersionController {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api?.ApiId}/*/*/${request.appName}/${request.semVer}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}`,
         }),
       );
       await lambdaClient.send(
@@ -206,7 +208,7 @@ export default class VersionController {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api?.ApiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
         }),
       );
       record.Status = 'permissioned';
@@ -222,7 +224,7 @@ export default class VersionController {
         try {
           const integration = await apigwyClient.send(
             new apigwy.CreateIntegrationCommand({
-              ApiId: api?.ApiId,
+              ApiId: apiId,
               IntegrationType: apigwy.IntegrationType.AWS_PROXY,
               IntegrationMethod: 'POST',
               PayloadFormatVersion: '2.0',
@@ -254,7 +256,7 @@ export default class VersionController {
       try {
         await apigwyClient.send(
           new apigwy.CreateRouteCommand({
-            ApiId: api?.ApiId,
+            ApiId: apiId,
             Target: `integrations/${integrationId}`,
             RouteKey: `ANY /${request.appName}/${request.semVer}`,
           }),
@@ -272,7 +274,7 @@ export default class VersionController {
       try {
         await apigwyClient.send(
           new apigwy.CreateRouteCommand({
-            ApiId: api?.ApiId,
+            ApiId: apiId,
             Target: `integrations/${integrationId}`,
             RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
           }),

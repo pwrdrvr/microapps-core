@@ -15,6 +15,7 @@ Object.defineProperty(Config, 'instance', {
         tableName: 'microapps',
       },
       apigwy: {
+        apiId: '123',
         name: 'microapps-test',
       },
       filestore: {
