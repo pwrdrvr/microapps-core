@@ -1,21 +1,23 @@
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
-import { Config } from '../config/Config';
 
 export default class GatewayInfo {
-  // public static async GetAPIID(apigwyClient: apigwy.ApiGatewayV2Client): Promise<string> {
-  //   return (await GatewayInfo.GetAPI(apigwyClient))?.ApiId as string;
-  // }
-
-  public static async GetAPI(
-    apigwyClient: apigwy.ApiGatewayV2Client,
-  ): Promise<apigwy.Api | undefined> {
+  /**
+   * Find first API by name - This is not reliable
+   * @deprecated 2021-11-28 - Do NOT use as this will return first matching name, which can have duplicates
+   * @param apigwyClient
+   * @returns
+   */
+  public static async GetAPI(opts: {
+    apigwyClient: apigwy.ApiGatewayV2Client;
+    apiName: string;
+  }): Promise<apigwy.Api | undefined> {
     let apis: apigwy.GetApisCommandOutput | undefined;
     do {
       const optionals =
         apis?.NextToken !== undefined
           ? { NextToken: apis.NextToken }
           : ({} as apigwy.GetApisCommandInput);
-      apis = await apigwyClient.send(
+      apis = await opts.apigwyClient.send(
         new apigwy.GetApisCommand({
           MaxResults: '100',
           ...optionals,
@@ -31,7 +33,7 @@ export default class GatewayInfo {
 
       // Loop through and find our item, it it is here
       for (const api of apis.Items) {
-        if (api.Name === Config.instance.apigwy.name) {
+        if (api.Name === opts.apiName) {
           return api;
         }
       }

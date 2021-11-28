@@ -15,6 +15,7 @@ import {
 } from '@pwrdrvr/microapps-deployer-lib';
 import GatewayInfo from '../lib/GatewayInfo';
 import Log from '../lib/Log';
+import { Config } from 'ts-convict';
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
@@ -30,6 +31,12 @@ const apigwyClient = new apigwy.ApiGatewayV2Client({
 });
 
 export default class VersionController {
+  /**
+   * Return temp S3 IAM credentials for static asset uploads
+   * when a version does not exist.
+   * @param opts
+   * @returns
+   */
   public static async DeployVersionPreflight(opts: {
     dbManager: DBManager;
     request: IDeployVersionPreflightRequest;
@@ -65,7 +72,7 @@ export default class VersionController {
         ],
       });
 
-      Log.Instance.info('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
+      Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
 
       // Assume the upload role with limit S3 permissions
       const stsResult = await stsClient.send(
@@ -92,6 +99,11 @@ export default class VersionController {
     }
   }
 
+  /**
+   * Deploy a version route to API Gateway
+   * @param opts
+   * @returns
+   */
   public static async DeployVersion(opts: {
     dbManager: DBManager;
     request: IDeployVersionRequest;
@@ -152,7 +164,8 @@ export default class VersionController {
     // TODO: Confirm the Lambda Function exists
 
     // Get the API Gateway
-    const api = await GatewayInfo.GetAPI(apigwyClient);
+    // const api = await GatewayInfo.GetAPI({ apigwyClient, apiName: config.apigwy.name });
+    const apiId = config.apigwy.apiId;
 
     if (record.Status === 'assets-copied') {
       // Get the account ID and region for API Gateway to Lambda permissions
@@ -186,7 +199,7 @@ export default class VersionController {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api?.ApiId}/*/*/${request.appName}/${request.semVer}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}`,
         }),
       );
       await lambdaClient.send(
@@ -195,7 +208,7 @@ export default class VersionController {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${api?.ApiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
         }),
       );
       record.Status = 'permissioned';
@@ -208,22 +221,31 @@ export default class VersionController {
       if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
         integrationId = record.IntegrationID;
       } else {
-        const integration = await apigwyClient.send(
-          new apigwy.CreateIntegrationCommand({
-            ApiId: api?.ApiId,
-            IntegrationType: apigwy.IntegrationType.AWS_PROXY,
-            IntegrationMethod: 'POST',
-            PayloadFormatVersion: '2.0',
-            // For a Lambda function the IntegrationUri is the full
-            // ARN of the Lambda function
-            IntegrationUri: request.lambdaARN,
-          }),
-        );
+        try {
+          const integration = await apigwyClient.send(
+            new apigwy.CreateIntegrationCommand({
+              ApiId: apiId,
+              IntegrationType: apigwy.IntegrationType.AWS_PROXY,
+              IntegrationMethod: 'POST',
+              PayloadFormatVersion: '2.0',
+              // For a Lambda function the IntegrationUri is the full
+              // ARN of the Lambda function
+              IntegrationUri: request.lambdaARN,
+            }),
+          );
 
-        integrationId = integration.IntegrationId as string;
+          integrationId = integration.IntegrationId as string;
+        } catch (error) {
+          if (error.name === 'AccessDeniedException') {
+            Log.Instance.error('AccessDeniedException adding integration to API Gateway', {
+              error,
+            });
+            return { statusCode: 401 };
+          }
+        }
 
         // Save the created IntegrationID
-        record.IntegrationID = integration.IntegrationId as string;
+        record.IntegrationID = integrationId;
         record.Status = 'integrated';
         await record.Save(dbManager);
       }
@@ -234,12 +256,17 @@ export default class VersionController {
       try {
         await apigwyClient.send(
           new apigwy.CreateRouteCommand({
-            ApiId: api?.ApiId,
+            ApiId: apiId,
             Target: `integrations/${integrationId}`,
             RouteKey: `ANY /${request.appName}/${request.semVer}`,
           }),
         );
       } catch (err) {
+        if (err.name === 'AccessDeniedException') {
+          Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
+          return { statusCode: 401 };
+        }
+
         // Don't care
         Log.Instance.error('Caught unexpected error on app/ver route add');
         Log.Instance.error(err);
@@ -247,12 +274,17 @@ export default class VersionController {
       try {
         await apigwyClient.send(
           new apigwy.CreateRouteCommand({
-            ApiId: api?.ApiId,
+            ApiId: apiId,
             Target: `integrations/${integrationId}`,
             RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
           }),
         );
       } catch (err) {
+        if (err.name === 'AccessDeniedException') {
+          Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
+          return { statusCode: 401 };
+        }
+
         // Don't care
         Log.Instance.error('Caught unexpected error on {proxy+} route add');
         Log.Instance.error(err);
