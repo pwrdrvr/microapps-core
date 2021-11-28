@@ -3,12 +3,10 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "resolveJsonModule": true
+    "strict": false
   },
-  "references": [
-    {
-      "path": "../common/microapps-datalib/"
-    }
-  ],
+  // 2021-11-25 - This is required to allow microapps-deployer
+  // to reference this project
+  "references": [{}],
   "exclude": ["**/*.spec.ts", "dist"]
 }

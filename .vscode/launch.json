@@ -15,35 +15,39 @@
       "name": "Debug microapps-publish",
       "type": "pwa-node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/src/microapps-publish/",
+      "cwd": "${workspaceFolder}/packages/microapps-publish/",
       // "cwd": "/Users/huntharo/pwrdrvr/microapps-app-release/",
-      "skipFiles": ["${workspaceFolder}/src/microapps-publish/<node_internals>/**"],
+      "skipFiles": ["${workspaceFolder}/packages/microapps-publish/<node_internals>/**"],
       "runtimeVersion": "15.3.0",
       "envFile": "${workspaceFolder}/.env",
-      // "outFiles": ["${workspaceFolder}/src/microapps-publish/dist/**/*.js"],
+      // "outFiles": ["${workspaceFolder}/packages/microapps-publish/dist/**/*.js"],
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-      "args": ["${workspaceFolder}/src/microapps-publish/src/index.ts", "--new-version", "0.1.5"]
+      "args": [
+        "${workspaceFolder}/packages/microapps-publish/src/index.ts",
+        "--new-version",
+        "0.1.5"
+      ]
     },
     {
       "name": "Debug TS Router",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/src/microapps-router/",
-      "skipFiles": ["${workspaceFolder}/src/microapps-router/<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/microapps-router/",
+      "skipFiles": ["${workspaceFolder}/packages/microapps-router/<node_internals>/**"],
       "runtimeVersion": "15.3.0",
       "env": {
         "DEBUG": "true"
       },
       "envFile": "${workspaceFolder}/.env",
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-      "args": ["${workspaceFolder}/src/microapps-router/src/index.ts"]
+      "args": ["${workspaceFolder}/packages/microapps-router/src/index.ts"]
     },
     {
       "name": "Debug TS Deployer",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/src/microapps-deployer/",
-      "skipFiles": ["${workspaceFolder}/src/microapps-deployer/<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/microapps-deployer/",
+      "skipFiles": ["${workspaceFolder}/packages/microapps-deployer/<node_internals>/**"],
       "runtimeVersion": "15.3.0",
       "env": {
         "DEBUG": "true",
@@ -52,7 +56,7 @@
       },
       "envFile": "${workspaceFolder}/.env",
       "runtimeArgs": ["-r", "ts-node/register/transpile-only"],
-      "args": ["${workspaceFolder}/src/microapps-deployer/src/index.ts"]
+      "args": ["${workspaceFolder}/packages/microapps-deployer/src/index.ts"]
     },
     {
       "type": "node",
@@ -76,12 +80,10 @@
         "-p",
         "tsconfig.json",
         "--ignore",
-        "\"./src/**/node_modules/**/*.spec.ts\"",
+        "\"./packages/**/node_modules/**/*.spec.ts\"",
         "--retries",
         "2",
-        "--require",
-        "./src/fixtures.ts",
-        "\"./src/**/*.spec.ts\""
+        "\"./packages/**/*.spec.ts\""
       ],
       "cwd": "${workspaceFolder}/",
       "console": "integratedTerminal",

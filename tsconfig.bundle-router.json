@@ -15,5 +15,5 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
   },
-  "include": ["./src/microapps-router/src/index.ts"]
+  "include": ["packages/microapps-router/src/index.ts"]
 }

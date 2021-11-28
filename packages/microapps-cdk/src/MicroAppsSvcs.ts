@@ -137,7 +137,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       });
     } else {
       deployerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-deployer-func', {
-        entry: './src/microapps-deployer/src/index.ts',
+        entry: './packages/microapps-deployer/src/index.ts',
         handler: 'handler',
         bundling: {
           minify: true,
@@ -354,14 +354,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     } else {
       // Create Router Lambda Layer
       const routerDataFiles = new lambda.LayerVersion(this, 'microapps-router-layer', {
-        code: lambda.Code.fromAsset('./src/microapps-router/templates/'),
+        code: lambda.Code.fromAsset('./packages/microapps-router/templates/'),
       });
       if (autoDeleteEverything) {
         routerDataFiles.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
       }
 
       routerFunc = new lambdaNodejs.NodejsFunction(this, 'microapps-router-func', {
-        entry: './src/microapps-router/src/index.ts',
+        entry: './packages/microapps-router/src/index.ts',
         handler: 'handler',
         bundling: {
           minify: true,
