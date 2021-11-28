@@ -69,7 +69,12 @@ export default class S3TransferUtility {
   // Recursive getFiles from
   // https://stackoverflow.com/a/45130990/831465
 
-  private static async GetFiles(dir: string): Promise<string | string[]> {
+  /**
+   * Resursively enumerate the files to be uploaded
+   * @param dir
+   * @returns
+   */
+  public static async GetFiles(dir: string): Promise<string | string[]> {
     const dirents = await fs.readdir(dir, { withFileTypes: true });
     const files = await Promise.all(
       dirents.map((dirent) => {

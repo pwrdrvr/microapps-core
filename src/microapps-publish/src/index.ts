@@ -7,16 +7,21 @@ import 'reflect-metadata';
 import { exec } from 'child_process';
 import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
+import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
 import { IConfig as OCLIFIConfig } from '@oclif/config';
 import { handle as errorHandler } from '@oclif/errors';
 import chalk from 'chalk';
-import { promises as fs, pathExists } from 'fs-extra';
+import path from 'path';
+import { promises as fs, pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrErrorTypes, ListrTask, ListrTaskObject } from 'listr2';
 import { Config, IConfig } from './config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from './DeployClient';
 import S3Uploader from './S3Uploader';
+import S3TransferUtility from './S3TransferUtility';
+import { Upload } from '@aws-sdk/lib-storage';
+import { contentType } from 'mime-types';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -34,6 +39,7 @@ interface IVersions {
 
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;
+  files: string[];
 }
 
 class PublishTool extends Command {
@@ -132,19 +138,17 @@ class PublishTool extends Command {
     ] as { path: string; versions: IVersions }[];
 
     // Install handler to ensure that we restore files
-    process.on(
-      'SIGINT',
-      void (async () => {
-        if (this._restoreFilesStarted) {
-          return;
-        } else {
-          this._restoreFilesStarted = true;
-        }
-        console.log('Caught Ctrl-C, restoring files');
-        await S3Uploader.removeTempDirIfExists();
-        await this.restoreFiles();
-      })(),
-    );
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    process.on('SIGINT', async () => {
+      if (this._restoreFilesStarted) {
+        return;
+      } else {
+        this._restoreFilesStarted = true;
+      }
+      this.log('Caught Ctrl-C, restoring files');
+      await S3Uploader.removeTempDirIfExists();
+      await this.restoreFiles();
+    });
 
     if (config === undefined) {
       this.error('Failed to load the config file');
@@ -154,161 +158,253 @@ class PublishTool extends Command {
     }
 
     //
-    // TODO: Setup Tasks
+    // Setup Tasks
     //
 
-    const tasks = new Listr<IContext>([
-      {
-        title: 'Logging into ECR',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
+    const tasks = new Listr<IContext>(
+      [
+        {
+          title: 'Logging into ECR',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
 
-          await this.loginToECR(config);
+            await this.loginToECR(config);
 
-          task.title = origTitle;
+            task.title = origTitle;
+          },
         },
-      },
-      {
-        title: 'Modifying Config Files',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
+        {
+          title: 'Modifying Config Files',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
 
-          // Modify the existing files with the new version
-          for (const fileToModify of this.FILES_TO_MODIFY) {
-            task.output = `Patching version (${this.VersionAndAlias.version}) into ${fileToModify.path}`;
-            if (
-              !(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))
-            ) {
-              task.output = `Failed modifying file: ${fileToModify.path}`;
+            // Modify the existing files with the new version
+            for (const fileToModify of this.FILES_TO_MODIFY) {
+              task.output = `Patching version (${this.VersionAndAlias.version}) into ${fileToModify.path}`;
+              if (
+                !(await this.writeNewVersions(fileToModify.path, fileToModify.versions, leaveFiles))
+              ) {
+                task.output = `Failed modifying file: ${fileToModify.path}`;
+              }
             }
-          }
 
-          task.title = origTitle;
+            task.title = origTitle;
+          },
         },
-      },
+        {
+          title: 'Preflight Version Check',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Confirm the Version Does Not Exist in Published State
+            task.output = `Checking if deployed app/version already exists for ${config.app.name}/${version}`;
+            ctx.preflightResult = await DeployClient.DeployVersionPreflight(config);
+            if (ctx.preflightResult.exists) {
+              task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+            }
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: 'Serverless Next.js Build',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            task.output = `Invoking serverless next.js build for ${config.app.name}/${version}`;
+
+            // Run the serverless next.js build
+            await asyncExec('serverless');
+
+            if (config.app.serverlessNextRouterPath !== undefined) {
+              task.output = 'Copying Serverless Next.js router to build output directory';
+              await fs.copyFile(
+                config.app.serverlessNextRouterPath,
+                './.serverless_nextjs/index.js',
+              );
+            }
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: 'Publish to ECR',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Docker, build, tag, push to ECR
+            // Note: Need to already have AWS env vars set
+            await this.publishToECR(config);
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: 'Deploy to Lambda',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Update the Lambda function
+            await this.deployToLambda(config, this.VersionAndAlias);
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: 'Confirm Static Assets Folder Exists',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Check that Static Assets Folder exists
+            if (!(await pathExists(config.app.staticAssetsPath))) {
+              this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
+            }
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: 'Copy Static Files to Local Upload Dir',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Copy files to local dir to be uploaded
+            await S3Uploader.CopyToUploadDir(config, ctx.preflightResult.response.s3UploadUrl);
+
+            task.title = origTitle;
+          },
+        },
+        // {
+        //   title: 'Upload Files to S3 Staging AppName/Version Prefix',
+        //   task: async (ctx, task) => {
+        //     const origTitle = task.title;
+        //     task.title = RUNNING + origTitle;
+
+        //     const { destinationPrefix, bucketName } = S3Uploader.ParseUploadPath(
+        //       ctx.preflightResult.response.s3UploadUrl,
+        //     );
+
+        //     // Upload Files to S3 Staging AppName/Version Prefix
+        //     await S3TransferUtility.UploadDir(
+        //       S3Uploader.TempDir,
+        //       destinationPrefix,
+        //       bucketName,
+        //       ctx.preflightResult.response,
+        //     );
+
+        //     task.title = origTitle;
+        //   },
+        // },
+        {
+          title: 'Enumerate Files to Upload to S3',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            ctx.files = (await S3TransferUtility.GetFiles(S3Uploader.TempDir)) as string[];
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: 'Upload Static Files to S3',
+          task: (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            const { bucketName } = S3Uploader.ParseUploadPath(
+              ctx.preflightResult.response.s3UploadUrl,
+            );
+
+            // Use temp credentials for S3
+            const s3Client = new s3.S3Client({
+              maxAttempts: 16,
+              credentials: {
+                accessKeyId: ctx.preflightResult.response.awsCredentials.accessKeyId,
+                secretAccessKey: ctx.preflightResult.response.awsCredentials.secretAccessKey,
+                sessionToken: ctx.preflightResult.response.awsCredentials.sessionToken,
+              },
+            });
+
+            const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
+              task: async (ctx: IContext, subtask) => {
+                const origTitle = subtask.title;
+                subtask.title = RUNNING + origTitle;
+
+                const upload = new Upload({
+                  client: s3Client,
+                  leavePartsOnError: false,
+                  params: {
+                    Bucket: bucketName,
+                    Key: path.relative(S3Uploader.TempDir, filePath),
+                    Body: createReadStream(filePath),
+                    ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
+                    CacheControl: 'max-age=86400; public',
+                  },
+                });
+                await upload.done();
+
+                subtask.title = origTitle;
+              },
+            }));
+
+            task.title = origTitle;
+
+            return task.newListr(tasks, {
+              concurrent: 8,
+              rendererOptions: {
+                clearOutput: false,
+                showErrorMessage: true,
+                showTimer: true,
+              },
+            });
+          },
+        },
+        {
+          title: `Creating MicroApp Application: ${config.app.name}`,
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Call Deployer to Create App if Not Exists
+            await DeployClient.CreateApp(config);
+
+            task.title = origTitle;
+          },
+        },
+        {
+          title: `Creating MicroApp Version: ${config.app.semVer}`,
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Call Deployer to Deploy AppName/Version
+            await DeployClient.DeployVersion(config);
+
+            task.title = origTitle;
+          },
+        },
+      ],
       {
-        title: 'Preflight Version Check',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Confirm the Version Does Not Exist in Published State
-          task.output = `Checking if deployed app/version already exists for ${config.app.name}/${version}`;
-          ctx.preflightResult = await DeployClient.DeployVersionPreflight(config);
-          if (ctx.preflightResult.exists) {
-            task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
-          }
-
-          task.title = origTitle;
+        rendererOptions: {
+          showTimer: true,
         },
       },
-      {
-        title: 'Serverless Next.js Build',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          task.output = `Invoking serverless next.js build for ${config.app.name}/${version}`;
-
-          // Run the serverless next.js build
-          await asyncExec('serverless');
-
-          if (config.app.serverlessNextRouterPath !== undefined) {
-            task.output = 'Copying Serverless Next.js router to build output directory';
-            await fs.copyFile(config.app.serverlessNextRouterPath, './.serverless_nextjs/index.js');
-          }
-
-          task.title = origTitle;
-        },
-      },
-      {
-        title: 'Publish to ECR',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Docker, build, tag, push to ECR
-          // Note: Need to already have AWS env vars set
-          await this.publishToECR(config);
-
-          task.title = origTitle;
-        },
-      },
-      {
-        title: 'Deploy to Lambda',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Update the Lambda function
-          await this.deployToLambda(config, this.VersionAndAlias);
-
-          task.title = origTitle;
-        },
-      },
-      {
-        title: 'Confirm Static Assets Folder Exists',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Check that Static Assets Folder exists
-          if (!(await pathExists(config.app.staticAssetsPath))) {
-            this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
-          }
-
-          task.title = origTitle;
-        },
-      },
-      {
-        title: 'Upload Files to S3 Staging AppName/Version Prefix',
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Upload Files to S3 Staging AppName/Version Prefix
-          await S3Uploader.Upload(
-            config,
-            ctx.preflightResult.response.s3UploadUrl,
-            ctx.preflightResult.response,
-          );
-
-          task.title = origTitle;
-        },
-      },
-      {
-        title: `Creating MicroApp Application: ${config.app.name}`,
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Call Deployer to Create App if Not Exists
-          await DeployClient.CreateApp(config);
-
-          task.title = origTitle;
-        },
-      },
-      {
-        title: `Creating MicroApp Version: ${config.app.semVer}`,
-        task: async (ctx, task) => {
-          const origTitle = task.title;
-          task.title = RUNNING + origTitle;
-
-          // Call Deployer to Deploy AppName/Version
-          await DeployClient.DeployVersion(config);
-
-          task.title = origTitle;
-        },
-      },
-    ]);
+    );
 
     try {
       await tasks.run();
-      console.log(`Published: ${config.app.name}/${config.app.semVer}`);
+      this.log(`Published: ${config.app.name}/${config.app.semVer}`);
     } catch (error) {
-      console.log(`Caught exception: ${error.message}`);
+      this.log(`Caught exception: ${error.message}`);
     } finally {
       await this.restoreFiles();
     }
@@ -394,16 +490,16 @@ class PublishTool extends Command {
   }
 
   private async publishToECR(config: IConfig): Promise<void> {
-    console.log('Starting Docker build');
+    // console.log('Starting Docker build');
     await asyncExec(`docker build -f Dockerfile -t ${this.IMAGE_TAG}  .`);
     await asyncExec(`docker tag ${this.IMAGE_TAG} ${config.app.ecrHost}/${this.IMAGE_TAG}`);
-    console.log('Starting Docker push to ECR');
+    // console.log('Starting Docker push to ECR');
     await asyncExec(`docker push ${config.app.ecrHost}/${this.IMAGE_TAG}`);
   }
 
   private async deployToLambda(config: IConfig, versions: IVersions): Promise<void> {
     // Create Lambda version
-    console.log('Updating Lambda code to point to new Docker image');
+    // console.log('Updating Lambda code to point to new Docker image');
     const resultUpdate = await lambdaClient.send(
       new lambda.UpdateFunctionCodeCommand({
         FunctionName: config.app.lambdaName,
@@ -412,7 +508,7 @@ class PublishTool extends Command {
       }),
     );
     const lambdaVersion = resultUpdate.Version;
-    console.log('Lambda version created: ', resultUpdate.Version);
+    // console.log('Lambda version created: ', resultUpdate.Version);
 
     let lastUpdateStatus = resultUpdate.LastUpdateStatus;
     for (let i = 0; i < 5; i++) {
@@ -420,7 +516,7 @@ class PublishTool extends Command {
       // and we have to wait until it's done creating
       // before we can point an alias to it
       if (lastUpdateStatus === 'Successful') {
-        console.log(`Lambda function updated, version: ${lambdaVersion}`);
+        // console.log(`Lambda function updated, version: ${lambdaVersion}`);
         break;
       }
 
@@ -439,7 +535,7 @@ class PublishTool extends Command {
     }
 
     // Create Lambda alias point
-    console.log(`Creating the lambda alias for the new version: ${lambdaVersion}`);
+    // console.log(`Creating the lambda alias for the new version: ${lambdaVersion}`);
     const resultLambdaAlias = await lambdaClient.send(
       new lambda.CreateAliasCommand({
         FunctionName: config.app.lambdaName,
@@ -447,7 +543,7 @@ class PublishTool extends Command {
         FunctionVersion: lambdaVersion,
       }),
     );
-    console.log(`Lambda alias created, name: ${resultLambdaAlias.Name}`);
+    // console.log(`Lambda alias created, name: ${resultLambdaAlias.Name}`);
   }
 }
 
