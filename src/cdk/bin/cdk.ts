@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { Imports } from '../lib/Imports';
 import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 import { SharedProps } from '../lib/SharedProps';
@@ -19,7 +18,7 @@ const env: cdk.Environment = {
 
 SharedTags.addSharedTags(app, { shared });
 
-const apps = new MicroAppsStack(app, 'microapps-core', {
+new MicroAppsStack(app, 'microapps-core', {
   env,
   stackName: `microapps${shared.envSuffix}${shared.prSuffix}`,
   ttl: shared.isPR ? shared.ttlBase : undefined,
@@ -30,7 +29,7 @@ const apps = new MicroAppsStack(app, 'microapps-core', {
 });
 
 // Note: This is only run manually once per env to create build user
-const builder = new MicroAppsBuilder(app, 'microapps-builder', {
+new MicroAppsBuilder(app, 'microapps-builder', {
   stackName: `microapps-builder${shared.envSuffix}`,
   shared,
   env,

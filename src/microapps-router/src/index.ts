@@ -1,10 +1,8 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager, { IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
-// eslint-disable-next-line import/no-unresolved
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { Application, DBManager, IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import { pathExistsSync, readFileSync } from 'fs-extra';
 import { LambdaLog, LogMessage } from 'lambda-log';
@@ -12,10 +10,19 @@ import { Config } from './config/Config';
 
 const localTesting = process.env.DEBUG ? true : false;
 
-const dynamoClient = process.env.TEST
-  ? new DynamoDB({ endpoint: 'http://localhost:8000' })
-  : new DynamoDB({});
-let manager: Manager;
+let dbManager: DBManager;
+let dynamoClient = new DynamoDBClient({
+  maxAttempts: 8,
+});
+
+export function overrideDBManager(opts: {
+  dbManager: DBManager;
+  dynamoClient: DynamoDBClient;
+}): void {
+  dbManager = opts.dbManager;
+  dynamoClient = opts.dynamoClient;
+}
+dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
 
 function loadAppFrame(): string {
   const paths = [__dirname, `${__dirname}/..`, `${__dirname}/templates`, '/opt', '/opt/templates'];
@@ -55,8 +62,8 @@ export async function handler(
   event: lambda.APIGatewayProxyEventV2,
   context: lambda.Context,
 ): Promise<lambda.APIGatewayProxyStructuredResultV2> {
-  if (manager === undefined) {
-    manager = new Manager({ dynamoDB: dynamoClient, tableName: Config.instance.db.tableName });
+  if (dbManager === undefined) {
+    dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
   }
   const response = {
     statusCode: 200,
@@ -126,7 +133,10 @@ async function RouteApp(
   }
 
   try {
-    versionsAndRules = await Manager.GetVersionsAndRules(appName);
+    versionsAndRules = await Application.GetVersionsAndRules({
+      dbManager,
+      key: { AppName: appName },
+    });
   } catch (error) {
     // 2021-03-10 - NOTE: This isn't clean - DocumentClient.get throws if the item is not found
     // It's not easily detectable either.  When the lib is updated we can improve this

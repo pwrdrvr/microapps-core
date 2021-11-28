@@ -1,38 +1,17 @@
-FROM node:15 as base
+FROM node:16 as base
 
 WORKDIR /app
 
-# JRE is needed for DynamoDB emulator
-RUN apt-get update -y && apt-get -y install default-jre jq
-
-COPY tsconfig.*json .npmrc* .eslint* .prettier* package*.json rollup.*.js ./
-COPY ./src/microapps-router/package*.json .npmrc* ./src/microapps-router/
-COPY ./src/common/microapps-datalib/package*.json .npmrc* ./src/common/microapps-datalib/
-
-# npm ci works in order - If the deployer directory appears above router
-# and if the deployer directory is missing, then npm ci will bail out before
-# installing router deps.
-RUN npm i strip-json-comments-cli \
-  && mv tsconfig.json tsconfig.orig.json \
-  && npx strip-json-comments-cli ./tsconfig.orig.json \
-  | jq 'del(.references[] | select(.path != "./src/microapps-router/" and .path != "./src/common/microapps-datalib/"))' > tsconfig.json \
-  && mv package.json package.orig.json \
-  && cat package.orig.json | jq 'del(.workspaces[] | select(. != "./src/microapps-router/" and . != "./src/common/*"))' > package.json  
-
-# FROM base AS prodimages
-# # Remove the build packages
-# RUN npm ci --only=production
-# RUN cd ./src/microapps-router/ && npm ci --only=production
+COPY ./ ./
 
 
 FROM base AS build
+
 # Add the rest of the images needed
 RUN npm ci
 
-COPY ./src/ ./src/
-
+RUN npm run build
 RUN npm run lint
-RUN rm -rf ./src/microapps-deployer/
 RUN npm run test
 RUN npm run build:router
 RUN rm distb/microapps-router/src/index.max.js

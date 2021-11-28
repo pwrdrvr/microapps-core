@@ -1,6 +1,6 @@
 # Overview
 
-The MicroApps project...
+The MicroApps project....
 
 # Project Layout
 

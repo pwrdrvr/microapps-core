@@ -1,22 +1,28 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../../fixtures';
-import Manager from '../index';
-import Version from './version';
+import 'jest-dynalite/withDb';
+import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DBManager } from '../manager';
+import { Version } from './version';
+
+let dynamoClient: dynamodb.DynamoDBClient;
+let dbManager: DBManager;
+
+const TEST_TABLE_NAME = 'microapps';
 
 describe('version records', () => {
-  before(async () => {
-    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
+  beforeAll(() => {
+    dynamoClient = new dynamodb.DynamoDBClient({
+      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+      tls: false,
+      region: 'local',
+    });
+
+    // Init the DB manager to point it at the right table
+    dbManager = new DBManager({ dynamoClient, tableName: TEST_TABLE_NAME });
   });
 
-  beforeEach(async () => {
-    // Create the table
-    await InitializeTable();
-  });
-
-  afterEach(async () => {
-    await DropTable();
-  });
+  afterAll(() => {
+    dynamoClient.destroy();
+  }, 20000);
 
   it('saving a version should create one record', async () => {
     const version = new Version();
@@ -27,20 +33,21 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
-    const { Item } = await dynamoClient.ddbDocClient.get({
-      TableName: Manager.TableName,
+    const { Item } = await dbManager.ddbDocClient.get({
+      TableName: dbManager.tableName,
       Key: { PK: 'appname#cat', SK: 'version#1.2.3-beta4' },
     });
-    expect(Item.PK).equal('appname#cat');
-    expect(Item.SK).equal('version#1.2.3-beta4');
-    expect(Item.AppName).equal('cat');
-    expect(Item.SemVer).equal('1.2.3-Beta4');
-    expect(Item.Status).equal('pending');
-    expect(Item.Type).equal('type');
-    expect(Item.DefaultFile).equal('index.html');
-    expect(Item.IntegrationID).equal('abcd');
+    expect(Item).toBeDefined();
+    expect(Item?.PK).toBe('appname#cat');
+    expect(Item?.SK).toBe('version#1.2.3-beta4');
+    expect(Item?.AppName).toBe('cat');
+    expect(Item?.SemVer).toBe('1.2.3-Beta4');
+    expect(Item?.Status).toBe('pending');
+    expect(Item?.Type).toBe('type');
+    expect(Item?.DefaultFile).toBe('index.html');
+    expect(Item?.IntegrationID).toBe('abcd');
   });
 
   it('load 1 version should load 1 version', async () => {
@@ -52,7 +59,7 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     version = new Version();
     version.AppName = 'Dog';
@@ -62,27 +69,28 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
-    const version1 = await Version.LoadVersionAsync(
-      dynamoClient.ddbDocClient,
-      'Dog',
-      '1.2.3-Beta5',
-    );
+    const version1 = await Version.LoadVersion({
+      dbManager,
+      key: {
+        AppName: 'Dog',
+        SemVer: '1.2.3-Beta5',
+      },
+    });
 
-    expect(version1.AppName).to.equal('dog');
-    expect(version1.SK).to.equal('version#1.2.3-beta5');
-    expect(version1.SemVer).to.equal('1.2.3-Beta5');
+    expect(version1.AppName).toBe('dog');
+    expect(version1.SK).toBe('version#1.2.3-beta5');
+    expect(version1.SemVer).toBe('1.2.3-Beta5');
 
-    const version2 = await Version.LoadVersionAsync(
-      dynamoClient.ddbDocClient,
-      'Dog',
-      '1.2.3-Beta6',
-    );
+    const version2 = await Version.LoadVersion({
+      dbManager,
+      key: { AppName: 'Dog', SemVer: '1.2.3-Beta6' },
+    });
 
-    expect(version2.AppName).to.equal('dog');
-    expect(version2.SK).to.equal('version#1.2.3-beta6');
-    expect(version2.SemVer).to.equal('1.2.3-Beta6');
+    expect(version2.AppName).toBe('dog');
+    expect(version2.SK).toBe('version#1.2.3-beta6');
+    expect(version2.SemVer).toBe('1.2.3-Beta6');
   });
 
   it('load all app versions should load all versions for 1 app', async () => {
@@ -94,7 +102,7 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     version = new Version();
     version.AppName = 'Frog';
@@ -104,17 +112,17 @@ describe('version records', () => {
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
-    const versions = await Version.LoadVersionsAsync(dynamoClient.ddbDocClient, 'Frog');
+    const versions = await Version.LoadVersions({ dbManager, key: { AppName: 'Frog' } });
 
-    expect(versions.length).to.equal(2);
+    expect(versions.length).toBe(2);
 
-    expect(versions[0].AppName).to.equal('frog');
-    expect(versions[0].SK).to.equal('version#2.2.3-beta5');
-    expect(versions[0].SemVer).to.equal('2.2.3-Beta5');
-    expect(versions[1].AppName).to.equal('frog');
-    expect(versions[1].SK).to.equal('version#2.2.3-beta6');
-    expect(versions[1].SemVer).to.equal('2.2.3-Beta6');
+    expect(versions[0].AppName).toBe('frog');
+    expect(versions[0].SK).toBe('version#2.2.3-beta5');
+    expect(versions[0].SemVer).toBe('2.2.3-Beta5');
+    expect(versions[1].AppName).toBe('frog');
+    expect(versions[1].SK).toBe('version#2.2.3-beta6');
+    expect(versions[1].SemVer).toBe('2.2.3-Beta6');
   });
 });

@@ -132,16 +132,19 @@ class PublishTool extends Command {
     ] as { path: string; versions: IVersions }[];
 
     // Install handler to ensure that we restore files
-    process.on('SIGINT', async () => {
-      if (this._restoreFilesStarted) {
-        return;
-      } else {
-        this._restoreFilesStarted = true;
-      }
-      console.log('Caught Ctrl-C, restoring files');
-      await S3Uploader.removeTempDirIfExists();
-      await this.restoreFiles();
-    });
+    process.on(
+      'SIGINT',
+      void (async () => {
+        if (this._restoreFilesStarted) {
+          return;
+        } else {
+          this._restoreFilesStarted = true;
+        }
+        console.log('Caught Ctrl-C, restoring files');
+        await S3Uploader.removeTempDirIfExists();
+        await this.restoreFiles();
+      })(),
+    );
 
     if (config === undefined) {
       this.error('Failed to load the config file');

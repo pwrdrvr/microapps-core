@@ -10,7 +10,6 @@ Makefile
 .gitignore
 **/node_modules
 node_modules
-**/cdk
 cdk.json
 cdk.context.json
 cdk.out/

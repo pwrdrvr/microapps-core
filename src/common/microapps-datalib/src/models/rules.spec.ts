@@ -1,22 +1,28 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../../fixtures';
-import Manager from '../index';
-import Rules from './rules';
+import 'jest-dynalite/withDb';
+import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { DBManager } from '../manager';
+import { Rules } from './rules';
+
+let dynamoClient: dynamodb.DynamoDBClient;
+let dbManager: DBManager;
+
+const TEST_TABLE_NAME = 'microapps';
 
 describe('rules records', () => {
-  before(async () => {
-    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
+  beforeAll(() => {
+    dynamoClient = new dynamodb.DynamoDBClient({
+      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+      tls: false,
+      region: 'local',
+    });
+
+    // Init the DB manager to point it at the right table
+    dbManager = new DBManager({ dynamoClient, tableName: TEST_TABLE_NAME });
   });
 
-  beforeEach(async () => {
-    // Create the table
-    await InitializeTable();
-  });
-
-  afterEach(async () => {
-    await DropTable();
-  });
+  afterAll(() => {
+    dynamoClient.destroy();
+  }, 20000);
 
   it('saving rules should create 1 record', async () => {
     const rules = new Rules();
@@ -24,19 +30,20 @@ describe('rules records', () => {
     rules.Version = 0;
     rules.RuleSet.default = { SemVer: '1.2.3', AttributeName: '', AttributeValue: '' };
 
-    await rules.SaveAsync(dynamoClient.ddbDocClient);
+    await rules.Save(dbManager);
 
     {
-      const record = await Rules.LoadAsync(dynamoClient.ddbDocClient, 'Cat');
+      const record = await Rules.Load({ dbManager, key: { AppName: 'Cat' } });
 
-      expect(record.PK).equal('appname#cat');
-      expect(record.SK).equal('rules');
-      expect(record.AppName).equal('cat');
-      expect(record.Version).equal(0);
-      expect(record).to.have.property('RuleSet');
-      expect(record.RuleSet).to.have.property('default');
-      expect(record.RuleSet.default).to.have.property('SemVer');
-      expect(record.RuleSet.default.SemVer).to.equal('1.2.3');
+      expect(record).toBeDefined();
+      expect(record.PK).toBe('appname#cat');
+      expect(record.SK).toBe('rules');
+      expect(record.AppName).toBe('cat');
+      expect(record.Version).toBe(0);
+      expect(record).toHaveProperty('RuleSet');
+      expect(record.RuleSet).toHaveProperty('default');
+      expect(record.RuleSet.default).toHaveProperty('SemVer');
+      expect(record.RuleSet.default.SemVer).toBe('1.2.3');
     }
   });
 });

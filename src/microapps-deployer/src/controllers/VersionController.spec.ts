@@ -1,49 +1,52 @@
+/// <reference types="jest" />
+import 'jest-dynalite/withDb';
+import 'reflect-metadata';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
+import * as dynamodb from '@aws-sdk/client-dynamodb';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager, { Version } from '@pwrdrvr/microapps-datalib';
-// eslint-disable-next-line import/no-unresolved
+
+import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { describe, it } from 'mocha';
 import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../../fixtures';
 import { Config } from '../config/Config';
 import {
   handler,
   IDeployVersionPreflightRequest,
   ICreateApplicationRequest,
   IDeployVersionRequest,
+  overrideDBManager,
 } from '../index';
-
-chai.use(sinonChai);
-chai.use(chaiAsPromised);
-
-const { expect } = chai;
 
 let s3Client: AwsClientStub<s3.S3Client>;
 let stsClient: AwsClientStub<sts.STSClient>;
 let apigwyClient: AwsClientStub<apigwy.ApiGatewayV2Client>;
 let lambdaClient: AwsClientStub<lambda.LambdaClient>;
+let dynamoClient: dynamodb.DynamoDBClient;
+let dbManager: DBManager;
+
+const TEST_TABLE_NAME = 'microapps';
 
 describe('VersionController', () => {
   let sandbox: sinon.SinonSandbox;
 
-  before(async () => {
+  beforeAll(() => {
+    dynamoClient = new dynamodb.DynamoDBClient({
+      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+      tls: false,
+      region: 'local',
+    });
+
     // Load the config files
     Config.instance.filestore.stagingBucket = 'pwrdrvr-apps-staging';
     // Init the DB manager to point it at the right table
-    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
+    dbManager = new DBManager({ dynamoClient, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {
-    // Create the table
-    await InitializeTable();
+    overrideDBManager({ dbManager, dynamoClient });
 
     // Create a test app
     await handler(
@@ -62,8 +65,7 @@ describe('VersionController', () => {
     lambdaClient = mockClient(lambda.LambdaClient);
   });
 
-  afterEach(async () => {
-    await DropTable();
+  afterEach(() => {
     sandbox.restore();
     s3Client.restore();
     apigwyClient.restore();
@@ -89,7 +91,7 @@ describe('VersionController', () => {
         } as IDeployVersionPreflightRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
-      expect(response.statusCode).to.equal(404);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 200 for version that exists', async () => {
@@ -112,7 +114,7 @@ describe('VersionController', () => {
         Status: 'integrated',
         Type: 'lambda',
       });
-      await version.SaveAsync(dynamoClient.ddbDocClient);
+      await version.Save(dbManager);
 
       const response = await handler(
         {
@@ -122,7 +124,7 @@ describe('VersionController', () => {
         } as IDeployVersionPreflightRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
-      expect(response.statusCode).to.equal(200);
+      expect(response.statusCode).toBe(200);
     });
   });
 
@@ -226,7 +228,7 @@ describe('VersionController', () => {
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
-      expect(response.statusCode).to.equal(201);
+      expect(response.statusCode).toBe(201);
     });
 
     it('should return 201 for deploying version that does not exist, with continuations', async () => {
@@ -342,7 +344,7 @@ describe('VersionController', () => {
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
-      expect(response.statusCode).to.equal(201);
+      expect(response.statusCode).toBe(201);
     });
 
     it('should 409 version that exists with "routed" status', async () => {
@@ -354,7 +356,7 @@ describe('VersionController', () => {
         Status: 'routed',
         Type: 'lambda',
       });
-      await version.SaveAsync(dynamoClient.ddbDocClient);
+      await version.Save(dbManager);
 
       const response = await handler(
         {
@@ -366,7 +368,7 @@ describe('VersionController', () => {
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
-      expect(response.statusCode).to.equal(409);
+      expect(response.statusCode).toBe(409);
     });
   });
 });

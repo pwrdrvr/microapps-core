@@ -1,26 +1,29 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager, { Application, Version, Rules } from '@pwrdrvr/microapps-datalib';
-// eslint-disable-next-line import/no-unresolved
+/// <reference types="jest" />
+import 'jest-dynalite/withDb';
+import * as dynamodb from '@aws-sdk/client-dynamodb';
+import { Application, DBManager, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { expect } from 'chai';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { describe, it } from 'mocha';
-import { dynamoClient, InitializeTable, DropTable, TEST_TABLE_NAME } from '../../fixtures';
-import { handler } from './index';
+import { handler, overrideDBManager } from './index';
+
+let dynamoClient: dynamodb.DynamoDBClient;
+let dbManager: DBManager;
+
+const TEST_TABLE_NAME = 'microapps';
 
 describe('router', () => {
-  before(async () => {
-    new Manager({ dynamoDB: dynamoClient.client, tableName: TEST_TABLE_NAME });
+  beforeAll(() => {
+    dynamoClient = new dynamodb.DynamoDBClient({
+      endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,
+      tls: false,
+      region: 'local',
+    });
+
+    // Init the DB manager to point it at the right table
+    dbManager = new DBManager({ dynamoClient, tableName: TEST_TABLE_NAME });
   });
 
-  beforeEach(async () => {
-    // Create the table
-    await InitializeTable();
-  });
-
-  afterEach(async () => {
-    await DropTable();
+  beforeEach(() => {
+    overrideDBManager({ dbManager, dynamoClient });
   });
 
   it('should serve appframe with version and default file substitued', async () => {
@@ -28,7 +31,7 @@ describe('router', () => {
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(dynamoClient.ddbDocClient);
+    await app.Save(dbManager);
 
     const version = new Version({
       AppName: 'Bat',
@@ -38,14 +41,14 @@ describe('router', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta0', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(dynamoClient.ddbDocClient);
+    await rules.Save(dbManager);
 
     // Call the handler
     const response = await handler(
@@ -53,12 +56,12 @@ describe('router', () => {
       {} as lambda.Context,
     );
 
-    expect(response).to.have.property('statusCode');
-    expect(response.statusCode).to.equal(200);
-    expect(response).not.equal(undefined);
-    expect(response).to.have.property('body');
-    expect(response.body.length).greaterThan(80);
-    expect(response.body).contains('<iframe src="/bat/3.2.1-beta0/bat.html" seamless');
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(200);
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty('body');
+    expect(response.body?.length).toBeGreaterThan(80);
+    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta0/bat.html" seamless');
   });
 
   it('should serve appframe with no default file', async () => {
@@ -66,7 +69,7 @@ describe('router', () => {
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(dynamoClient.ddbDocClient);
+    await app.Save(dbManager);
 
     const version = new Version({
       AppName: 'Bat',
@@ -76,14 +79,14 @@ describe('router', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta1', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(dynamoClient.ddbDocClient);
+    await rules.Save(dbManager);
 
     // Call the handler
     const response = await handler(
@@ -91,12 +94,12 @@ describe('router', () => {
       {} as lambda.Context,
     );
 
-    expect(response).not.equal(undefined);
-    expect(response).to.have.property('statusCode');
-    expect(response.statusCode).to.equal(200);
-    expect(response).to.have.property('body');
-    expect(response.body.length).greaterThan(80);
-    expect(response.body).contains('<iframe src="/bat/3.2.1-beta1" seamless');
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(200);
+    expect(response).toHaveProperty('body');
+    expect(response.body?.length).toBeGreaterThan(80);
+    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta1" seamless');
   });
 
   it('should serve appframe with sub-route', async () => {
@@ -104,7 +107,7 @@ describe('router', () => {
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(dynamoClient.ddbDocClient);
+    await app.Save(dbManager);
 
     const version = new Version({
       AppName: 'Bat',
@@ -114,14 +117,14 @@ describe('router', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta2', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(dynamoClient.ddbDocClient);
+    await rules.Save(dbManager);
 
     // Call the handler
     const response = await handler(
@@ -129,12 +132,12 @@ describe('router', () => {
       {} as lambda.Context,
     );
 
-    expect(response).not.equal(undefined);
-    expect(response).to.have.property('statusCode');
-    expect(response.statusCode).to.equal(200);
-    expect(response).to.have.property('body');
-    expect(response.body.length).greaterThan(80);
-    expect(response.body).contains('<iframe src="/bat/3.2.1-beta2/demo/grid" seamless');
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(200);
+    expect(response).toHaveProperty('body');
+    expect(response.body?.length).toBeGreaterThan(80);
+    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta2/demo/grid" seamless');
   });
 
   it('should serve appframe with sub-route', async () => {
@@ -142,7 +145,7 @@ describe('router', () => {
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(dynamoClient.ddbDocClient);
+    await app.Save(dbManager);
 
     const version = new Version({
       AppName: 'Bat',
@@ -152,14 +155,14 @@ describe('router', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta3', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(dynamoClient.ddbDocClient);
+    await rules.Save(dbManager);
 
     // Call the handler
     const response = await handler(
@@ -167,12 +170,12 @@ describe('router', () => {
       {} as lambda.Context,
     );
 
-    expect(response).not.equal(undefined);
-    expect(response).to.have.property('statusCode');
-    expect(response.statusCode).to.equal(200);
-    expect(response).to.have.property('body');
-    expect(response.body.length).greaterThan(80);
-    expect(response.body).contains('<iframe src="/bat/3.2.1-beta3/demo" seamless');
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(200);
+    expect(response).toHaveProperty('body');
+    expect(response.body?.length).toBeGreaterThan(80);
+    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta3/demo" seamless');
   });
 
   it('should return 404 for /favicon.ico', async () => {
@@ -180,7 +183,7 @@ describe('router', () => {
       AppName: 'Bat',
       DisplayName: 'Bat App',
     });
-    await app.SaveAsync(dynamoClient.ddbDocClient);
+    await app.Save(dbManager);
 
     const version = new Version({
       AppName: 'Bat',
@@ -190,14 +193,14 @@ describe('router', () => {
       Status: 'deployed',
       Type: 'next.js',
     });
-    await version.SaveAsync(dynamoClient.ddbDocClient);
+    await version.Save(dbManager);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta3', AttributeName: '', AttributeValue: '' } },
     });
-    await rules.SaveAsync(dynamoClient.ddbDocClient);
+    await rules.Save(dbManager);
 
     // Call the handler
     const response = await handler(
@@ -205,8 +208,8 @@ describe('router', () => {
       {} as lambda.Context,
     );
 
-    expect(response).not.equal(undefined);
-    expect(response).to.have.property('statusCode');
-    expect(response.statusCode).to.equal(404);
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(404);
   });
 });

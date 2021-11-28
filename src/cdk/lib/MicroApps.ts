@@ -1,6 +1,5 @@
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
-// eslint-disable-next-line import/no-extraneous-dependencies,import/no-unresolved
 import { MicroApps } from '@pwrdrvr/microapps-cdk';
 import { Imports } from './Imports';
 import { SharedProps } from './SharedProps';

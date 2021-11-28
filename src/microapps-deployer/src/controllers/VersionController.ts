@@ -4,8 +4,7 @@ import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import Manager, { Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../config/Config';
 import {
   IDeployVersionRequest,
@@ -31,14 +30,19 @@ const apigwyClient = new apigwy.ApiGatewayV2Client({
 });
 
 export default class VersionController {
-  public static async DeployVersionPreflight(
-    request: IDeployVersionPreflightRequest,
-    config: IConfig,
-  ): Promise<IDeployVersionPreflightResponse> {
+  public static async DeployVersionPreflight(opts: {
+    dbManager: DBManager;
+    request: IDeployVersionPreflightRequest;
+    config: IConfig;
+  }): Promise<IDeployVersionPreflightResponse> {
+    const { dbManager, request, config } = opts;
     const { appName, semVer } = request;
 
     // Check if the version exists
-    const record = await Version.LoadVersionAsync(Manager.DBDocClient, appName, semVer);
+    const record = await Version.LoadVersion({
+      dbManager,
+      key: { AppName: appName, SemVer: semVer },
+    });
     if (record !== undefined && record.Status !== 'pending') {
       Log.Instance.info('App/Version already exists', { appName, semVer });
       return { statusCode: 200 };
@@ -88,20 +92,21 @@ export default class VersionController {
     }
   }
 
-  public static async DeployVersion(
-    request: IDeployVersionRequest,
-    config: IConfig,
-  ): Promise<IDeployerResponse> {
+  public static async DeployVersion(opts: {
+    dbManager: DBManager;
+    request: IDeployVersionRequest;
+    config: IConfig;
+  }): Promise<IDeployerResponse> {
+    const { dbManager, request, config } = opts;
     Log.Instance.debug('Got Body:', request);
 
     const destinationPrefix = VersionController.GetBucketPrefix(request);
 
     // Check if the version exists
-    let record = await Version.LoadVersionAsync(
-      Manager.DBDocClient,
-      request.appName,
-      request.semVer,
-    );
+    let record = await Version.LoadVersion({
+      dbManager,
+      key: { AppName: request.appName, SemVer: request.semVer },
+    });
     if (record !== undefined && record.Status === 'routed') {
       Log.Instance.info('App/Version already exists', {
         appName: request.appName,
@@ -122,7 +127,7 @@ export default class VersionController {
       });
 
       // Save record with pending status
-      await record.SaveAsync(Manager.DBDocClient);
+      await record.Save(dbManager);
     }
 
     // Only copy the files if not copied yet
@@ -141,7 +146,7 @@ export default class VersionController {
 
       // Update status to assets-copied
       record.Status = 'assets-copied';
-      await record.SaveAsync(Manager.DBDocClient);
+      await record.Save(dbManager);
     }
 
     // TODO: Confirm the Lambda Function exists
@@ -194,7 +199,7 @@ export default class VersionController {
         }),
       );
       record.Status = 'permissioned';
-      await record.SaveAsync(Manager.DBDocClient);
+      await record.Save(dbManager);
     }
 
     // Add Integration pointing to Lambda Function Alias
@@ -220,7 +225,7 @@ export default class VersionController {
         // Save the created IntegrationID
         record.IntegrationID = integration.IntegrationId as string;
         record.Status = 'integrated';
-        await record.SaveAsync(Manager.DBDocClient);
+        await record.Save(dbManager);
       }
     }
 
@@ -255,12 +260,12 @@ export default class VersionController {
 
       // Update the status - Final status
       record.Status = 'routed';
-      await record.SaveAsync(Manager.DBDocClient);
+      await record.Save(dbManager);
     }
 
     // Check if there are any release rules
     // If no rules record, create one pointing to this version by default
-    let rules = await Rules.LoadAsync(Manager.DBDocClient, request.appName);
+    let rules = await Rules.Load({ dbManager, key: { AppName: request.appName } });
     if (rules === undefined) {
       rules = new Rules({
         AppName: request.appName,
@@ -272,7 +277,7 @@ export default class VersionController {
         AttributeName: '',
         AttributeValue: '',
       };
-      await rules.SaveAsync(Manager.DBDocClient);
+      await rules.Save(dbManager);
     }
 
     return { statusCode: 201 };
