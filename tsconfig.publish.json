@@ -5,7 +5,7 @@
       "path": "packages/microapps-datalib/"
     },
     {
-      "path": "packages/microapps-deployer/"
+      "path": "packages/microapps-deployer-lib/"
     },
     {
       "path": "packages/microapps-publish/"
