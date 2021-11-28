@@ -15,13 +15,15 @@ import { handle as errorHandler } from '@oclif/errors';
 import chalk from 'chalk';
 import path from 'path';
 import { promises as fs, pathExists, createReadStream } from 'fs-extra';
-import { Listr, ListrErrorTypes, ListrTask, ListrTaskObject } from 'listr2';
+import { Listr, ListrTask } from 'listr2';
 import { Config, IConfig } from './config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from './DeployClient';
 import S3Uploader from './S3Uploader';
 import S3TransferUtility from './S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
 import { contentType } from 'mime-types';
+import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
+import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 
@@ -37,7 +39,7 @@ interface IVersions {
   alias?: string;
 }
 
-interface IContext {
+export interface IContext {
   preflightResult: IDeployVersionPreflightResult;
   files: string[];
 }
@@ -201,7 +203,7 @@ class PublishTool extends Command {
 
             // Confirm the Version Does Not Exist in Published State
             task.output = `Checking if deployed app/version already exists for ${config.app.name}/${version}`;
-            ctx.preflightResult = await DeployClient.DeployVersionPreflight(config);
+            ctx.preflightResult = await DeployClient.DeployVersionPreflight(config, task);
             if (ctx.preflightResult.exists) {
               task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
             }
@@ -233,13 +235,13 @@ class PublishTool extends Command {
         },
         {
           title: 'Publish to ECR',
-          task: async (ctx, task) => {
+          task: async (ctx: IContext, task: TaskWrapper<IContext, typeof DefaultRenderer>) => {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
             // Docker, build, tag, push to ECR
             // Note: Need to already have AWS env vars set
-            await this.publishToECR(config);
+            await this.publishToECR(config, task);
 
             task.title = origTitle;
           },
@@ -251,7 +253,7 @@ class PublishTool extends Command {
             task.title = RUNNING + origTitle;
 
             // Update the Lambda function
-            await this.deployToLambda(config, this.VersionAndAlias);
+            await this.deployToLambda(config, this.VersionAndAlias, task);
 
             task.title = origTitle;
           },
@@ -387,7 +389,7 @@ class PublishTool extends Command {
             task.title = RUNNING + origTitle;
 
             // Call Deployer to Deploy AppName/Version
-            await DeployClient.DeployVersion(config);
+            await DeployClient.DeployVersion(config, task);
 
             task.title = origTitle;
           },
@@ -402,7 +404,7 @@ class PublishTool extends Command {
 
     try {
       await tasks.run();
-      this.log(`Published: ${config.app.name}/${config.app.semVer}`);
+      // this.log(`Published: ${config.app.name}/${config.app.semVer}`);
     } catch (error) {
       this.log(`Caught exception: ${error.message}`);
     } finally {
@@ -411,7 +413,10 @@ class PublishTool extends Command {
     }
   }
 
-  public async restoreFiles(): Promise<void> {
+  /**
+   * Restore files that the version was patched into
+   */
+  private async restoreFiles(): Promise<void> {
     // Put the old files back when succeeded or failed
     for (const fileToModify of this.FILES_TO_MODIFY) {
       try {
@@ -429,10 +434,22 @@ class PublishTool extends Command {
     }
   }
 
+  /**
+   * Setup version and alias strings
+   * @param version
+   * @returns
+   */
   private createVersions(version: string): IVersions {
     return { version, alias: `v${version.replace(/\./g, '_')}` };
   }
 
+  /**
+   * Write new versions into specified config files
+   * @param path
+   * @param requiredVersions
+   * @param leaveFiles
+   * @returns
+   */
   private async writeNewVersions(
     path: string,
     requiredVersions: IVersions,
@@ -475,6 +492,11 @@ class PublishTool extends Command {
     return true;
   }
 
+  /**
+   * Login to ECR for Lambda Docker functions
+   * @param config
+   * @returns
+   */
   private async loginToECR(config: IConfig): Promise<boolean> {
     this.IMAGE_TAG = `${config.app.ecrRepoName}:${this.VersionAndAlias.version}`;
     this.IMAGE_URI = `${config.app.ecrHost}/${this.IMAGE_TAG}`;
@@ -490,17 +512,33 @@ class PublishTool extends Command {
     return true;
   }
 
-  private async publishToECR(config: IConfig): Promise<void> {
-    // console.log('Starting Docker build');
+  /**
+   * Publish to ECR for Lambda Docker function
+   * @param config
+   */
+  private async publishToECR(
+    config: IConfig,
+    task: TaskWrapper<IContext, typeof DefaultRenderer>,
+  ): Promise<void> {
+    task.output = 'Starting Docker build';
     await asyncExec(`docker build -f Dockerfile -t ${this.IMAGE_TAG}  .`);
     await asyncExec(`docker tag ${this.IMAGE_TAG} ${config.app.ecrHost}/${this.IMAGE_TAG}`);
-    // console.log('Starting Docker push to ECR');
+    task.output = 'Starting Docker push to ECR';
     await asyncExec(`docker push ${config.app.ecrHost}/${this.IMAGE_TAG}`);
   }
 
-  private async deployToLambda(config: IConfig, versions: IVersions): Promise<void> {
+  /**
+   * Publish an app version to Lambda
+   * @param config
+   * @param versions
+   */
+  private async deployToLambda(
+    config: IConfig,
+    versions: IVersions,
+    task: TaskWrapper<IContext, typeof DefaultRenderer>,
+  ): Promise<void> {
     // Create Lambda version
-    // console.log('Updating Lambda code to point to new Docker image');
+    task.output = 'Updating Lambda code to point to new Docker image';
     const resultUpdate = await lambdaClient.send(
       new lambda.UpdateFunctionCodeCommand({
         FunctionName: config.app.lambdaName,
@@ -509,7 +547,7 @@ class PublishTool extends Command {
       }),
     );
     const lambdaVersion = resultUpdate.Version;
-    // console.log('Lambda version created: ', resultUpdate.Version);
+    task.output = `Lambda version created: ${resultUpdate.Version}`;
 
     let lastUpdateStatus = resultUpdate.LastUpdateStatus;
     for (let i = 0; i < 5; i++) {
@@ -517,7 +555,7 @@ class PublishTool extends Command {
       // and we have to wait until it's done creating
       // before we can point an alias to it
       if (lastUpdateStatus === 'Successful') {
-        // console.log(`Lambda function updated, version: ${lambdaVersion}`);
+        task.output = `Lambda function updated, version: ${lambdaVersion}`;
         break;
       }
 
@@ -536,7 +574,7 @@ class PublishTool extends Command {
     }
 
     // Create Lambda alias point
-    // console.log(`Creating the lambda alias for the new version: ${lambdaVersion}`);
+    task.output = `Creating the lambda alias for the new version: ${lambdaVersion}`;
     const resultLambdaAlias = await lambdaClient.send(
       new lambda.CreateAliasCommand({
         FunctionName: config.app.lambdaName,
@@ -544,7 +582,7 @@ class PublishTool extends Command {
         FunctionVersion: lambdaVersion,
       }),
     );
-    // console.log(`Lambda alias created, name: ${resultLambdaAlias.Name}`);
+    task.output = `Lambda alias created, name: ${resultLambdaAlias.Name}`;
   }
 }
 

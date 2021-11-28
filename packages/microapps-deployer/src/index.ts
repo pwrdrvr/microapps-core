@@ -1,6 +1,13 @@
 import 'source-map-support/register';
 // Used by ts-convict
 import 'reflect-metadata';
+import {
+  IRequestBase,
+  IDeployVersionPreflightRequest,
+  ICreateApplicationRequest,
+  IDeployerResponse,
+  IDeployVersionRequest,
+} from '@pwrdrvr/microapps-deployer-lib';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
@@ -27,44 +34,6 @@ export function overrideDBManager(opts: {
 dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
 
 const config = Config.instance;
-
-interface IRequestBase {
-  type: 'createApp' | 'deployVersion' | 'deployVersionPreflight';
-}
-
-export interface ICreateApplicationRequest extends IRequestBase {
-  type: 'createApp';
-  appName: string;
-  displayName: string;
-}
-
-export interface IDeployVersionRequestBase extends IRequestBase {
-  appName: string;
-  semVer: string;
-}
-
-export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBase {
-  type: 'deployVersionPreflight';
-}
-
-export interface IDeployVersionRequest extends IDeployVersionRequestBase {
-  type: 'deployVersion';
-  lambdaARN: string;
-  defaultFile: string;
-}
-
-export interface IDeployerResponse {
-  statusCode: number;
-}
-
-export interface IDeployVersionPreflightResponse extends IDeployerResponse {
-  s3UploadUrl?: string;
-  awsCredentials?: {
-    accessKeyId: string;
-    secretAccessKey: string;
-    sessionToken: string;
-  };
-}
 
 export async function handler(
   event: IRequestBase,
