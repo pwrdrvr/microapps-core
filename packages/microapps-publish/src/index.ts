@@ -322,7 +322,7 @@ class PublishTool extends Command {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
-            const { bucketName } = S3Uploader.ParseUploadPath(
+            const { bucketName, destinationPrefix } = S3Uploader.ParseUploadPath(
               ctx.preflightResult.response.s3UploadUrl,
             );
 
@@ -336,9 +336,13 @@ class PublishTool extends Command {
               },
             });
 
+            const pathWithoutAppAndVer = path.join(S3Uploader.TempDir, destinationPrefix);
+
             const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
               task: async (ctx: IContext, subtask) => {
-                const origTitle = subtask.title;
+                const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
+
+                const origTitle = relFilePath;
                 subtask.title = RUNNING + origTitle;
 
                 const upload = new Upload({
