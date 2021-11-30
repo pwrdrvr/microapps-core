@@ -5,9 +5,6 @@ import { Listr } from 'listr2';
 import { Config } from '../config/Config';
 import { createVersions, IVersions, restoreFiles, writeNewVersions } from '../lib/Versions';
 
-const RUNNING_TEXT = ' RUNS ';
-const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
-
 export class NextJSVersionCommand extends Command {
   static description = 'Apply version to next.config.js overtop of 0.0.0 placeholder';
 
@@ -43,6 +40,9 @@ export class NextJSVersionCommand extends Command {
   }[];
 
   async run(): Promise<void> {
+    const RUNNING_TEXT = ' RUNS ';
+    const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+
     const { flags: parsedFlags } = this.parse(NextJSVersionCommand);
     const version = parsedFlags.newVersion;
     const leaveFiles = parsedFlags.leaveCopy;

@@ -4,9 +4,6 @@ import * as chalk from 'chalk';
 import { Listr } from 'listr2';
 import { createVersions, IVersions, restoreFiles } from '../lib/Versions';
 
-const RUNNING_TEXT = ' RUNS ';
-const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
-
 export class NextJSVersionRestoreCommand extends Command {
   static description = 'Restore next.config.js';
 
@@ -30,6 +27,9 @@ export class NextJSVersionRestoreCommand extends Command {
   }[];
 
   async run(): Promise<void> {
+    const RUNNING_TEXT = ' RUNS ';
+    const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+
     const { flags: parsedFlags } = this.parse(NextJSVersionRestoreCommand);
 
     this.VersionAndAlias = createVersions('0.0.0');
