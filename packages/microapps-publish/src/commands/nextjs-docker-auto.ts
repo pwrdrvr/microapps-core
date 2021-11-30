@@ -95,8 +95,9 @@ export class DockerAutoCommand extends Command {
   private _restoreFilesStarted = false;
 
   async run(): Promise<void> {
-    const RUNNING_TEXT = ' RUNS ';
-    const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+    // const RUNNING_TEXT = ' RUNS ';
+    // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+    const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(DockerAutoCommand);
     const version = parsedFlags.newVersion;

@@ -43,8 +43,9 @@ export class PreflightCommand extends Command {
   async run(): Promise<void> {
     const config = Config.instance;
 
-    const RUNNING_TEXT = ' RUNS ';
-    const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+    // const RUNNING_TEXT = ' RUNS ';
+    // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+    const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(PreflightCommand);
     const version = parsedFlags.newVersion;
