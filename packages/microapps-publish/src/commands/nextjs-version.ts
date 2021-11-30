@@ -40,8 +40,9 @@ export class NextJSVersionCommand extends Command {
   }[];
 
   async run(): Promise<void> {
-    const RUNNING_TEXT = ' RUNS ';
-    const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+    // const RUNNING_TEXT = ' RUNS ';
+    // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
+    const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(NextJSVersionCommand);
     const version = parsedFlags.newVersion;
