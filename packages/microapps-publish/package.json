@@ -8,7 +8,7 @@
     "access": "public"
   },
   "bin": {
-    "microapps-publish": "dist/index.js"
+    "microapps-publish": "./bin/run"
   },
   "engineStrict": true,
   "engine": {
@@ -41,7 +41,9 @@
     "@aws-sdk/lib-storage": "^3.20.0",
     "@oclif/command": "^1.8.4",
     "@oclif/config": "^1.17.1",
+    "@oclif/core": "^1.0.4",
     "@oclif/errors": "^1.3.5",
+    "@oclif/plugin-help": "^3.2.7",
     "chalk": "^4.1.2",
     "commander": "^7.1.0",
     "convict": "^6.1.0",
@@ -64,5 +66,12 @@
     "@types/mime-types": "^2.1.0",
     "@types/source-map-support": "^0.5.4",
     "type-fest": "^0.20.2"
+  },
+  "oclif": {
+    "commands": "./dist/commands/",
+    "bin": "microapps-publish",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
   }
 }

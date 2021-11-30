@@ -15,6 +15,13 @@ export interface IDeployVersionRequestBase extends IRequestBase {
 
 export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBase {
   type: 'deployVersionPreflight';
+
+  /**
+   * Retrieve S3 upload credentials
+   *
+   * @default true
+   */
+  needS3Creds?: boolean;
 }
 
 export interface IDeployVersionRequest extends IDeployVersionRequestBase {

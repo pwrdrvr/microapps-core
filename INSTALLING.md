@@ -5,7 +5,7 @@ This document provides instructions to install the core infrastructure for the M
 # Prerequisites
 
 - `nvm`
-- `node 15` installed with `nvm`
+- `node 16` installed with `nvm`
 - `make`
 - `npm i -g aws-cdk`
 

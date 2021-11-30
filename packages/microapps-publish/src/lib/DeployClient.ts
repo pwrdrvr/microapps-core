@@ -1,6 +1,4 @@
 import * as lambda from '@aws-sdk/client-lambda';
-import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
-import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
 import {
   IDeployVersionPreflightRequest,
   IDeployVersionPreflightResponse,
@@ -8,8 +6,7 @@ import {
   IDeployerResponse,
   IDeployVersionRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
-import { IConfig } from './config/Config';
-import { IContext } from './index';
+import { IConfig } from '../config/Config';
 
 export interface IDeployVersionPreflightResult {
   exists: boolean;
@@ -47,14 +44,25 @@ export default class DeployClient {
     }
   }
 
-  public static async DeployVersionPreflight(
-    config: IConfig,
-    task: TaskWrapper<IContext, typeof DefaultRenderer>,
-  ): Promise<IDeployVersionPreflightResult> {
+  /**
+   * Check if version exists.
+   * Optionally get S3 creds for static asset upload.
+   * @param config
+   * @param output
+   * @returns
+   */
+  public static async DeployVersionPreflight(opts: {
+    config: IConfig;
+    needS3Creds?: boolean;
+    output: (message: string) => void;
+  }): Promise<IDeployVersionPreflightResult> {
+    const { config, needS3Creds = true, output } = opts;
+
     const request = {
       type: 'deployVersionPreflight',
       appName: config.app.name,
       semVer: config.app.semVer,
+      needS3Creds,
     } as IDeployVersionPreflightRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({
@@ -68,9 +76,10 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployVersionPreflightResponse;
       if (dResponse.statusCode === 404) {
-        task.output = `App/Version do not exist: ${config.app.name}/${config.app.semVer}`;
+        output(`App/Version does not exist: ${config.app.name}/${config.app.semVer}`);
         return { exists: false, response: dResponse };
       } else {
+        output(`App/Version exists: ${config.app.name}/${config.app.semVer}`);
         return { exists: true, response: dResponse };
       }
     } else {
@@ -88,7 +97,7 @@ export default class DeployClient {
    */
   public static async DeployVersion(
     config: IConfig,
-    task: TaskWrapper<IContext, typeof DefaultRenderer>,
+    output: (message: string) => void,
   ): Promise<void> {
     const request = {
       type: 'deployVersion',
@@ -109,9 +118,9 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
-        task.output = `Deploy succeeded: ${config.app.name}/${config.app.semVer}`;
+        output(`Deploy succeeded: ${config.app.name}/${config.app.semVer}`);
       } else {
-        task.output = `Deploy failed with: ${dResponse.statusCode}`;
+        output(`Deploy failed with: ${dResponse.statusCode}`);
         throw new Error(`Lambda call to DeployVersionfailed with: ${dResponse.statusCode}`);
       }
     } else {
