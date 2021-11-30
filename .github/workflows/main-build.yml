@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - main
+  # When testing changes to workflow
+  pull_request:
+    branches:
+      - main
 
 jobs:
   #
@@ -109,20 +113,13 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Fix Install for microapps-publish
         run: |
           npm run fixinstall
 
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
-      
       - name: Install CDK
         run: npm i -g aws-cdk ts-node projen
 

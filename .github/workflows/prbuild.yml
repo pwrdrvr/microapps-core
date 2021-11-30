@@ -25,23 +25,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
           node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Fix Install for microapps-publish
         run: |
           npm run fixinstall
-
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
       
       - name: Install CDK
         run: npm i -g aws-cdk ts-node projen
