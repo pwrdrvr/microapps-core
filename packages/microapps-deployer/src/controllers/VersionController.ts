@@ -41,7 +41,7 @@ export default class VersionController {
     config: IConfig;
   }): Promise<IDeployVersionPreflightResponse> {
     const { dbManager, request, config } = opts;
-    const { appName, semVer } = request;
+    const { appName, semVer, needS3Creds = true } = request;
 
     // Check if the version exists
     const record = await Version.LoadVersion({
@@ -49,51 +49,69 @@ export default class VersionController {
       key: { AppName: appName, SemVer: semVer },
     });
     if (record !== undefined && record.Status !== 'pending') {
+      //
+      // Version exists and has moved beyond pending status
+      // No need to create S3 upload credentials
+      // NOTE: This may change in the future if we allow
+      // mutability of versions (at own risk)
+      //
       Log.Instance.info('App/Version already exists', { appName, semVer });
       return { statusCode: 200 };
     } else {
+      //
+      // Version does not exist
+      // Create S3 temp credentials for the static assets upload
+      //
+
       Log.Instance.info('App/Version does not exist', { appName, semVer });
 
-      // Generate a temp policy for staging bucket app prefix
-      const iamPolicyDoc = new iamCDK.PolicyDocument({
-        statements: [
-          new iamCDK.PolicyStatement({
-            effect: iamCDK.Effect.ALLOW,
-            actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
-            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+      // Get S3 creds if requested
+      if (needS3Creds) {
+        // Generate a temp policy for staging bucket app prefix
+        const iamPolicyDoc = new iamCDK.PolicyDocument({
+          statements: [
+            new iamCDK.PolicyStatement({
+              effect: iamCDK.Effect.ALLOW,
+              actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
+              resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+            }),
+            new iamCDK.PolicyStatement({
+              effect: iamCDK.Effect.ALLOW,
+              actions: ['s3:ListBucket'],
+              resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
+            }),
+          ],
+        });
+
+        Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
+
+        // Assume the upload role with limited S3 permissions
+        const stsResult = await stsClient.send(
+          new sts.AssumeRoleCommand({
+            RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
+            DurationSeconds: 60 * 60,
+            RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
+            Policy: JSON.stringify(iamPolicyDoc.toJSON()),
           }),
-          new iamCDK.PolicyStatement({
-            effect: iamCDK.Effect.ALLOW,
-            actions: ['s3:ListBucket'],
-            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
-          }),
-        ],
-      });
+        );
 
-      Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
+        return {
+          statusCode: 404,
+          s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
+            request,
+          )}`,
 
-      // Assume the upload role with limit S3 permissions
-      const stsResult = await stsClient.send(
-        new sts.AssumeRoleCommand({
-          RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
-          DurationSeconds: 60 * 60,
-          RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
-          Policy: JSON.stringify(iamPolicyDoc.toJSON()),
-        }),
-      );
-
-      return {
-        statusCode: 404,
-        s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
-          request,
-        )}`,
-
-        awsCredentials: {
-          accessKeyId: stsResult.Credentials?.AccessKeyId as string,
-          secretAccessKey: stsResult.Credentials?.SecretAccessKey as string,
-          sessionToken: stsResult.Credentials?.SessionToken as string,
-        },
-      };
+          awsCredentials: {
+            accessKeyId: stsResult.Credentials?.AccessKeyId as string,
+            secretAccessKey: stsResult.Credentials?.SecretAccessKey as string,
+            sessionToken: stsResult.Credentials?.SessionToken as string,
+          },
+        };
+      } else {
+        return {
+          statusCode: 404,
+        };
+      }
     }
   }
 

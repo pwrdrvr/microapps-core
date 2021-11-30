@@ -5,7 +5,6 @@ import { TSConvict } from 'ts-convict';
 import { FilesExist } from '../lib/FilesExist';
 import { ApplicationConfig, IApplicationConfig } from './Application';
 import { DeployerConfig, IDeployerConfig } from './Deployer';
-import { FileStoreConfig, IFileStoreRename } from './FileStore';
 
 export interface IConfig {
   deployer: IDeployerConfig;
@@ -76,7 +75,4 @@ export class Config implements IConfig {
 
   @convict.Property(DeployerConfig)
   public deployer!: IDeployerConfig;
-
-  @convict.Property(FileStoreConfig)
-  public filestore!: IFileStoreRename;
 }

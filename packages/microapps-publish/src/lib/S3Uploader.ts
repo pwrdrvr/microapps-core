@@ -1,7 +1,7 @@
-import path from 'path';
+import * as path from 'path';
 import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer-lib';
-import fs from 'fs-extra';
-import { IConfig } from './config/Config';
+import * as fs from 'fs-extra';
+import { IConfig } from '../config/Config';
 import S3TransferUtility from './S3TransferUtility';
 
 export default class S3Uploader {

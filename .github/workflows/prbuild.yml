@@ -33,20 +33,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-      - name: Fix Install for microapps-publish
-        run: |
-          npm run fixinstall
-      
-      - name: Install CDK
-        run: npm i -g aws-cdk ts-node projen
-
       - name: Install Node Modules
         run: npm ci
 
       # Projen keeps creating `packages/microapps-cdk/test/hello.test.ts`
       - name: Generate Projen Files
+        working-directory: packages/microapps-cdk/
         run: |
-          cd packages/microapps-cdk/
           npx projen --version
           npm run projen
           ls -la test/
@@ -72,13 +65,13 @@ jobs:
         run: mv node_modules node_modules_hide
       
       - name: Build CDK Construct
+        working-directory: packages/microapps-cdk/
         run: |
-          cd packages/microapps-cdk
           npm ci
           npm run build
 
       - name: Smoke Check CDK
-        run: cdk list
+        run: npx cdk list
 
       # - name: Bundle Deployer
       #   run: npm run esbuild:deployer
@@ -87,7 +80,7 @@ jobs:
       #   run: npm run esbuild:router
 
       - name: Deploy CDK Stack
-        run: cdk deploy --require-approval never microapps-core
+        run: npx cdk deploy --require-approval never microapps-core
         env:
             AWS_REGION: ${{ secrets.AWS_REGION }}
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
