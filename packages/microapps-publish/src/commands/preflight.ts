@@ -6,9 +6,6 @@ import { Listr } from 'listr2';
 import { Config } from '../config/Config';
 import DeployClient from '../lib/DeployClient';
 
-const RUNNING_TEXT = ' RUNS ';
-const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
-
 export class PreflightCommand extends Command {
   static description = 'Check if app/version are available';
 
@@ -45,6 +42,9 @@ export class PreflightCommand extends Command {
 
   async run(): Promise<void> {
     const config = Config.instance;
+
+    const RUNNING_TEXT = ' RUNS ';
+    const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(PreflightCommand);
     const version = parsedFlags.newVersion;
