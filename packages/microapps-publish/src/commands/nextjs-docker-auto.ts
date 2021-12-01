@@ -105,6 +105,13 @@ export class DockerAutoCommand extends Command {
       description:
         'Path to files to be uploaded to S3 static bucket at app/version/ path.  Do include app/version/ in path if files are already "rooted" under that path locally.',
     }),
+    defaultFile: flagsParser.string({
+      char: 'i',
+      multiple: false,
+      required: false,
+      description:
+        'Default file to return when the app is loaded via the router without a version (e.g. when app/ is requested).',
+    }),
   };
 
   private VersionAndAlias: IVersions;
@@ -128,6 +135,7 @@ export class DockerAutoCommand extends Command {
     const semVer = parsedFlags.newVersion ?? config.app.semVer;
     const ecrRepo = parsedFlags.repoName ?? config.app.ecrRepoName;
     const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
+    const defaultFile = parsedFlags.defaultFile ?? config.app.defaultFile;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -135,6 +143,7 @@ export class DockerAutoCommand extends Command {
     config.app.name = appName;
     config.app.semVer = semVer;
     config.app.staticAssetsPath = staticAssetsPath;
+    config.app.defaultFile = defaultFile;
 
     // Get the account ID and region from STS
     // TODO: Move this to the right place
