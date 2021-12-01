@@ -97,14 +97,16 @@ export default class DeployClient {
    */
   public static async DeployVersion(
     config: IConfig,
+    appType: 'lambda' | 'static',
     output: (message: string) => void,
   ): Promise<void> {
     const request = {
       type: 'deployVersion',
+      appType,
       appName: config.app.name,
       semVer: config.app.semVer,
       defaultFile: config.app.defaultFile,
-      lambdaARN: config.app.lambdaARN,
+      lambdaARN: appType === 'lambda' ? config.app.lambdaARN : undefined,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({

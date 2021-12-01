@@ -1,44 +1,45 @@
 export interface IRequestBase {
-  type: 'createApp' | 'deployVersion' | 'deployVersionPreflight';
+  readonly type: 'createApp' | 'deployVersion' | 'deployVersionPreflight';
 }
 
 export interface ICreateApplicationRequest extends IRequestBase {
-  type: 'createApp';
-  appName: string;
-  displayName: string;
+  readonly type: 'createApp';
+  readonly appName: string;
+  readonly displayName: string;
 }
 
 export interface IDeployVersionRequestBase extends IRequestBase {
-  appName: string;
-  semVer: string;
+  readonly appName: string;
+  readonly semVer: string;
 }
 
 export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBase {
-  type: 'deployVersionPreflight';
+  readonly type: 'deployVersionPreflight';
 
   /**
    * Retrieve S3 upload credentials
    *
    * @default true
    */
-  needS3Creds?: boolean;
+  readonly needS3Creds?: boolean;
 }
 
 export interface IDeployVersionRequest extends IDeployVersionRequestBase {
-  type: 'deployVersion';
-  lambdaARN: string;
-  defaultFile: string;
+  readonly type: 'deployVersion';
+  readonly appType?: 'lambda' | 'static';
+  readonly lambdaARN?: string;
+  readonly defaultFile: string;
 }
 
 export interface IDeployerResponse {
-  statusCode: number;
+  readonly statusCode: number;
 }
 
 export interface IDeployVersionPreflightResponse extends IDeployerResponse {
-  s3UploadUrl?: string;
-  awsCredentials?: {
-    accessKeyId: string;
-    secretAccessKey: string;
-    sessionToken: string;
+  readonly s3UploadUrl?: string;
+  readonly awsCredentials?: {
+    readonly accessKeyId: string;
+    readonly secretAccessKey: string;
+    readonly sessionToken: string;
   };
 }

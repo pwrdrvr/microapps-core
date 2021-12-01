@@ -143,13 +143,15 @@ export default class VersionController {
       return { statusCode: 409 };
     }
 
+    const { appType = 'lambda' } = request;
+
     // Create the version record
     if (record === undefined) {
       record = new Version({
         AppName: request.appName,
         SemVer: request.semVer,
         IntegrationID: '',
-        Type: 'lambda',
+        Type: appType,
         Status: 'pending',
         DefaultFile: request.defaultFile,
       });
@@ -177,138 +179,146 @@ export default class VersionController {
       await record.Save(dbManager);
     }
 
-    // TODO: Confirm the Lambda Function exists
+    if (appType === 'lambda') {
+      // TODO: Confirm the Lambda Function exists
 
-    // Get the API Gateway
-    // const api = await GatewayInfo.GetAPI({ apigwyClient, apiName: config.apigwy.name });
-    const apiId = config.apigwy.apiId;
+      // Get the API Gateway
+      const apiId = config.apigwy.apiId;
 
-    if (record.Status === 'assets-copied') {
-      // Get the account ID and region for API Gateway to Lambda permissions
-      const accountId = config.awsAccountID;
-      const region = config.awsRegion;
+      if (record.Status === 'assets-copied') {
+        // Get the account ID and region for API Gateway to Lambda permissions
+        const accountId = config.awsAccountID;
+        const region = config.awsRegion;
 
-      // Ensure that the Lambda function allows API Gateway to invoke
-      try {
-        await lambdaClient.send(
-          new lambda.RemovePermissionCommand({
-            FunctionName: request.lambdaARN,
-            StatementId: 'microapps-version-root',
-          }),
-        );
-      } catch {
-        // Don't care if this remove throws
-      }
-      try {
-        await lambdaClient.send(
-          new lambda.RemovePermissionCommand({
-            FunctionName: request.lambdaARN,
-            StatementId: 'microapps-version',
-          }),
-        );
-      } catch {
-        // Don't care if this remove throws
-      }
-      await lambdaClient.send(
-        new lambda.AddPermissionCommand({
-          Principal: 'apigateway.amazonaws.com',
-          StatementId: 'microapps-version-root',
-          Action: 'lambda:InvokeFunction',
-          FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}`,
-        }),
-      );
-      await lambdaClient.send(
-        new lambda.AddPermissionCommand({
-          Principal: 'apigateway.amazonaws.com',
-          StatementId: 'microapps-version',
-          Action: 'lambda:InvokeFunction',
-          FunctionName: request.lambdaARN,
-          SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
-        }),
-      );
-      record.Status = 'permissioned';
-      await record.Save(dbManager);
-    }
-
-    // Add Integration pointing to Lambda Function Alias
-    let integrationId = '';
-    if (record.Status === 'permissioned') {
-      if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
-        integrationId = record.IntegrationID;
-      } else {
+        // Ensure that the Lambda function allows API Gateway to invoke
         try {
-          const integration = await apigwyClient.send(
-            new apigwy.CreateIntegrationCommand({
-              ApiId: apiId,
-              IntegrationType: apigwy.IntegrationType.AWS_PROXY,
-              IntegrationMethod: 'POST',
-              PayloadFormatVersion: '2.0',
-              // For a Lambda function the IntegrationUri is the full
-              // ARN of the Lambda function
-              IntegrationUri: request.lambdaARN,
+          await lambdaClient.send(
+            new lambda.RemovePermissionCommand({
+              FunctionName: request.lambdaARN,
+              StatementId: 'microapps-version-root',
             }),
           );
-
-          integrationId = integration.IntegrationId as string;
-        } catch (error) {
-          if (error.name === 'AccessDeniedException') {
-            Log.Instance.error('AccessDeniedException adding integration to API Gateway', {
-              error,
-            });
-            return { statusCode: 401 };
-          }
+        } catch {
+          // Don't care if this remove throws
         }
-
-        // Save the created IntegrationID
-        record.IntegrationID = integrationId;
-        record.Status = 'integrated';
+        try {
+          await lambdaClient.send(
+            new lambda.RemovePermissionCommand({
+              FunctionName: request.lambdaARN,
+              StatementId: 'microapps-version',
+            }),
+          );
+        } catch {
+          // Don't care if this remove throws
+        }
+        await lambdaClient.send(
+          new lambda.AddPermissionCommand({
+            Principal: 'apigateway.amazonaws.com',
+            StatementId: 'microapps-version-root',
+            Action: 'lambda:InvokeFunction',
+            FunctionName: request.lambdaARN,
+            SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}`,
+          }),
+        );
+        await lambdaClient.send(
+          new lambda.AddPermissionCommand({
+            Principal: 'apigateway.amazonaws.com',
+            StatementId: 'microapps-version',
+            Action: 'lambda:InvokeFunction',
+            FunctionName: request.lambdaARN,
+            SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
+          }),
+        );
+        record.Status = 'permissioned';
         await record.Save(dbManager);
       }
-    }
 
-    if (record.Status === 'integrated') {
-      // Add the routes to API Gateway for appName/version/{proxy+}
-      try {
-        await apigwyClient.send(
-          new apigwy.CreateRouteCommand({
-            ApiId: apiId,
-            Target: `integrations/${integrationId}`,
-            RouteKey: `ANY /${request.appName}/${request.semVer}`,
-          }),
-        );
-      } catch (err) {
-        if (err.name === 'AccessDeniedException') {
-          Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
-          return { statusCode: 401 };
+      // Add Integration pointing to Lambda Function Alias
+      let integrationId = '';
+      if (record.Status === 'permissioned') {
+        if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
+          integrationId = record.IntegrationID;
+        } else {
+          try {
+            const integration = await apigwyClient.send(
+              new apigwy.CreateIntegrationCommand({
+                ApiId: apiId,
+                IntegrationType: apigwy.IntegrationType.AWS_PROXY,
+                IntegrationMethod: 'POST',
+                PayloadFormatVersion: '2.0',
+                // For a Lambda function the IntegrationUri is the full
+                // ARN of the Lambda function
+                IntegrationUri: request.lambdaARN,
+              }),
+            );
+
+            integrationId = integration.IntegrationId as string;
+          } catch (error) {
+            if (error.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException adding integration to API Gateway', {
+                error,
+              });
+              return { statusCode: 401 };
+            }
+          }
+
+          // Save the created IntegrationID
+          record.IntegrationID = integrationId;
+          record.Status = 'integrated';
+          await record.Save(dbManager);
         }
-
-        // Don't care
-        Log.Instance.error('Caught unexpected error on app/ver route add');
-        Log.Instance.error(err);
-      }
-      try {
-        await apigwyClient.send(
-          new apigwy.CreateRouteCommand({
-            ApiId: apiId,
-            Target: `integrations/${integrationId}`,
-            RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
-          }),
-        );
-      } catch (err) {
-        if (err.name === 'AccessDeniedException') {
-          Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
-          return { statusCode: 401 };
-        }
-
-        // Don't care
-        Log.Instance.error('Caught unexpected error on {proxy+} route add');
-        Log.Instance.error(err);
       }
 
-      // Update the status - Final status
-      record.Status = 'routed';
-      await record.Save(dbManager);
+      if (record.Status === 'integrated') {
+        // Add the routes to API Gateway for appName/version/{proxy+}
+        try {
+          await apigwyClient.send(
+            new apigwy.CreateRouteCommand({
+              ApiId: apiId,
+              Target: `integrations/${integrationId}`,
+              RouteKey: `ANY /${request.appName}/${request.semVer}`,
+            }),
+          );
+        } catch (err) {
+          if (err.name === 'AccessDeniedException') {
+            Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
+            return { statusCode: 401 };
+          }
+
+          // Don't care
+          Log.Instance.error('Caught unexpected error on app/ver route add');
+          Log.Instance.error(err);
+        }
+        try {
+          await apigwyClient.send(
+            new apigwy.CreateRouteCommand({
+              ApiId: apiId,
+              Target: `integrations/${integrationId}`,
+              RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
+            }),
+          );
+        } catch (err) {
+          if (err.name === 'AccessDeniedException') {
+            Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
+            return { statusCode: 401 };
+          }
+
+          // Don't care
+          Log.Instance.error('Caught unexpected error on {proxy+} route add');
+          Log.Instance.error(err);
+        }
+
+        // Update the status - Final status
+        record.Status = 'routed';
+        await record.Save(dbManager);
+      }
+    } else {
+      // static app
+      if (record.Status === 'assets-copied') {
+        // Update the status - Final status
+        record.Status = 'routed';
+        await record.Save(dbManager);
+      }
     }
 
     // Check if there are any release rules
