@@ -1,26 +1,17 @@
 import 'reflect-metadata';
-import * as util from 'util';
-import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
-import { Config, IConfig } from '../config/Config';
+import { Config } from '../config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
 import S3Uploader from '../lib/S3Uploader';
 import S3TransferUtility from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
 import { contentType } from 'mime-types';
-import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
-import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
 import { createVersions, IVersions } from '../lib/Versions';
-const asyncSetTimeout = util.promisify(setTimeout);
-
-const lambdaClient = new lambda.LambdaClient({
-  maxAttempts: 8,
-});
 
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;
@@ -292,9 +283,6 @@ export class PublishCommand extends Command {
 
     try {
       await tasks.run();
-      // this.log(`Published: ${config.app.name}/${config.app.semVer}`);
-    } catch (error) {
-      this.log(`Caught exception: ${error.message}`);
     } finally {
       await S3Uploader.removeTempDirIfExists();
     }

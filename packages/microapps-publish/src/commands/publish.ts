@@ -4,7 +4,6 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
-import * as chalk from 'chalk';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
@@ -315,9 +314,6 @@ export class PublishCommand extends Command {
 
     try {
       await tasks.run();
-      // this.log(`Published: ${config.app.name}/${config.app.semVer}`);
-    } catch (error) {
-      this.log(`Caught exception: ${error.message}`);
     } finally {
       await S3Uploader.removeTempDirIfExists();
     }

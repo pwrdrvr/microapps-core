@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
-import * as chalk from 'chalk';
 import { Listr } from 'listr2';
 import { Config } from '../config/Config';
 import DeployClient from '../lib/DeployClient';
@@ -99,10 +98,12 @@ export class PreflightCommand extends Command {
               output: (message: string) => (task.output = message),
             });
             if (preflightResult.exists) {
-              task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              throw new Error(
+                `App/Version already exists: ${config.app.name}/${config.app.semVer}`,
+              );
             }
 
-            task.title = origTitle;
+            task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
           },
         },
       ],
@@ -113,10 +114,6 @@ export class PreflightCommand extends Command {
       },
     );
 
-    try {
-      await tasks.run();
-    } catch (error) {
-      this.log(`Caught exception: ${error.message}`);
-    }
+    await tasks.run();
   }
 }
