@@ -59,12 +59,6 @@ export class PublishCommand extends Command {
       required: true,
       description: 'New semantic version to apply',
     }),
-    appLambdaName: flagsParser.string({
-      char: 'l',
-      multiple: false,
-      required: false,
-      description: 'Name of the application lambda function',
-    }),
     appName: flagsParser.string({
       char: 'a',
       multiple: false,
@@ -295,61 +289,5 @@ export class PublishCommand extends Command {
     } finally {
       await S3Uploader.removeTempDirIfExists();
     }
-  }
-
-  /**
-   * Publish an app version to Lambda
-   * @param config
-   * @param versions
-   */
-  private async deployToLambda(
-    config: IConfig,
-    versions: IVersions,
-    task: TaskWrapper<IContext, typeof DefaultRenderer>,
-  ): Promise<void> {
-    // Create Lambda version
-    task.output = 'Creating version for Lambda $LATEST';
-    const resultUpdate = await lambdaClient.send(
-      new lambda.PublishVersionCommand({
-        FunctionName: config.app.lambdaName,
-      }),
-    );
-    const lambdaVersion = resultUpdate.Version;
-    task.output = `Lambda version created: ${resultUpdate.Version}`;
-
-    let lastUpdateStatus = resultUpdate.LastUpdateStatus;
-    for (let i = 0; i < 5; i++) {
-      // When the function is created the status will be "Pending"
-      // and we have to wait until it's done creating
-      // before we can point an alias to it
-      if (lastUpdateStatus === 'Successful') {
-        task.output = `Lambda function updated, version: ${lambdaVersion}`;
-        break;
-      }
-
-      // If it didn't work, wait and try again
-      await asyncSetTimeout(1000 * i);
-
-      const resultGet = await lambdaClient.send(
-        new lambda.GetFunctionCommand({
-          FunctionName: config.app.lambdaName,
-          Qualifier: lambdaVersion,
-        }),
-      );
-
-      // Save the last update status so we can check on re-loop
-      lastUpdateStatus = resultGet?.Configuration?.LastUpdateStatus;
-    }
-
-    // Create Lambda alias point
-    task.output = `Creating the lambda alias for the new version: ${lambdaVersion}`;
-    const resultLambdaAlias = await lambdaClient.send(
-      new lambda.CreateAliasCommand({
-        FunctionName: config.app.lambdaName,
-        Name: versions.alias,
-        FunctionVersion: lambdaVersion,
-      }),
-    );
-    task.output = `Lambda alias created, name: ${resultLambdaAlias.Name}`;
   }
 }
