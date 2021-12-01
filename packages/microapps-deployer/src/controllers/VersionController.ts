@@ -41,7 +41,7 @@ export default class VersionController {
     config: IConfig;
   }): Promise<IDeployVersionPreflightResponse> {
     const { dbManager, request, config } = opts;
-    const { appName, semVer, needS3Creds = true } = request;
+    const { appName, semVer, needS3Creds = true, overwrite = false } = request;
 
     // Check if the version exists
     const record = await Version.LoadVersion({
@@ -49,69 +49,80 @@ export default class VersionController {
       key: { AppName: appName, SemVer: semVer },
     });
     if (record !== undefined && record.Status !== 'pending') {
-      //
-      // Version exists and has moved beyond pending status
-      // No need to create S3 upload credentials
-      // NOTE: This may change in the future if we allow
-      // mutability of versions (at own risk)
-      //
-      Log.Instance.info('App/Version already exists', { appName, semVer });
-      return { statusCode: 200 };
-    } else {
-      //
-      // Version does not exist
-      // Create S3 temp credentials for the static assets upload
-      //
-
-      Log.Instance.info('App/Version does not exist', { appName, semVer });
-
-      // Get S3 creds if requested
-      if (needS3Creds) {
-        // Generate a temp policy for staging bucket app prefix
-        const iamPolicyDoc = new iamCDK.PolicyDocument({
-          statements: [
-            new iamCDK.PolicyStatement({
-              effect: iamCDK.Effect.ALLOW,
-              actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
-              resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
-            }),
-            new iamCDK.PolicyStatement({
-              effect: iamCDK.Effect.ALLOW,
-              actions: ['s3:ListBucket'],
-              resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
-            }),
-          ],
+      if (!overwrite) {
+        //
+        // Version exists and has moved beyond pending status
+        // No need to create S3 upload credentials
+        // NOTE: This may change in the future if we allow
+        // mutability of versions (at own risk)
+        //
+        Log.Instance.info('Error: App/Version already exists', {
+          appName: request.appName,
+          semVer: request.semVer,
         });
 
-        Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
-
-        // Assume the upload role with limited S3 permissions
-        const stsResult = await stsClient.send(
-          new sts.AssumeRoleCommand({
-            RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
-            DurationSeconds: 60 * 60,
-            RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
-            Policy: JSON.stringify(iamPolicyDoc.toJSON()),
-          }),
-        );
-
-        return {
-          statusCode: 404,
-          s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
-            request,
-          )}`,
-
-          awsCredentials: {
-            accessKeyId: stsResult.Credentials?.AccessKeyId as string,
-            secretAccessKey: stsResult.Credentials?.SecretAccessKey as string,
-            sessionToken: stsResult.Credentials?.SessionToken as string,
-          },
-        };
+        return { statusCode: 200 };
       } else {
-        return {
-          statusCode: 404,
-        };
+        Log.Instance.info('Warning: App/Version already exists', {
+          appName: request.appName,
+          semVer: request.semVer,
+        });
       }
+    }
+
+    //
+    // Version does not exist
+    // Create S3 temp credentials for the static assets upload
+    //
+
+    Log.Instance.info('App/Version does not exist', { appName, semVer });
+
+    // Get S3 creds if requested
+    if (needS3Creds) {
+      // Generate a temp policy for staging bucket app prefix
+      const iamPolicyDoc = new iamCDK.PolicyDocument({
+        statements: [
+          new iamCDK.PolicyStatement({
+            effect: iamCDK.Effect.ALLOW,
+            actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
+            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+          }),
+          new iamCDK.PolicyStatement({
+            effect: iamCDK.Effect.ALLOW,
+            actions: ['s3:ListBucket'],
+            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
+          }),
+        ],
+      });
+
+      Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
+
+      // Assume the upload role with limited S3 permissions
+      const stsResult = await stsClient.send(
+        new sts.AssumeRoleCommand({
+          RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
+          DurationSeconds: 60 * 60,
+          RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
+          Policy: JSON.stringify(iamPolicyDoc.toJSON()),
+        }),
+      );
+
+      return {
+        statusCode: 404,
+        s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
+          request,
+        )}`,
+
+        awsCredentials: {
+          accessKeyId: stsResult.Credentials?.AccessKeyId as string,
+          secretAccessKey: stsResult.Credentials?.SecretAccessKey as string,
+          sessionToken: stsResult.Credentials?.SessionToken as string,
+        },
+      };
+    } else {
+      return {
+        statusCode: 404,
+      };
     }
   }
 
@@ -126,6 +137,8 @@ export default class VersionController {
     config: IConfig;
   }): Promise<IDeployerResponse> {
     const { dbManager, request, config } = opts;
+    const { overwrite = false } = request;
+
     Log.Instance.debug('Got Body:', request);
 
     const destinationPrefix = VersionController.GetBucketPrefix(request);
@@ -136,11 +149,19 @@ export default class VersionController {
       key: { AppName: request.appName, SemVer: request.semVer },
     });
     if (record !== undefined && record.Status === 'routed') {
-      Log.Instance.info('App/Version already exists', {
-        appName: request.appName,
-        semVer: request.semVer,
-      });
-      return { statusCode: 409 };
+      if (!overwrite) {
+        Log.Instance.info('Error: App/Version already exists', {
+          appName: request.appName,
+          semVer: request.semVer,
+        });
+
+        return { statusCode: 409 };
+      } else {
+        Log.Instance.info('Warning: App/Version already exists', {
+          appName: request.appName,
+          semVer: request.semVer,
+        });
+      }
     }
 
     const { appType = 'lambda' } = request;
@@ -161,7 +182,7 @@ export default class VersionController {
     }
 
     // Only copy the files if not copied yet
-    if (record.Status === 'pending') {
+    if (overwrite || record.Status === 'pending') {
       const { stagingBucket } = config.filestore;
       const sourcePrefix = VersionController.GetBucketPrefix(request) + '/';
 
@@ -185,7 +206,7 @@ export default class VersionController {
       // Get the API Gateway
       const apiId = config.apigwy.apiId;
 
-      if (record.Status === 'assets-copied') {
+      if (overwrite || record.Status === 'assets-copied') {
         // Get the account ID and region for API Gateway to Lambda permissions
         const accountId = config.awsAccountID;
         const region = config.awsRegion;
@@ -235,7 +256,7 @@ export default class VersionController {
 
       // Add Integration pointing to Lambda Function Alias
       let integrationId = '';
-      if (record.Status === 'permissioned') {
+      if (overwrite || record.Status === 'permissioned') {
         if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
           integrationId = record.IntegrationID;
         } else {
@@ -269,7 +290,7 @@ export default class VersionController {
         }
       }
 
-      if (record.Status === 'integrated') {
+      if (overwrite || record.Status === 'integrated') {
         // Add the routes to API Gateway for appName/version/{proxy+}
         try {
           await apigwyClient.send(

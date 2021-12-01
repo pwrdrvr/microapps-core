@@ -111,6 +111,12 @@ export class DockerAutoCommand extends Command {
       description:
         'Default file to return when the app is loaded via the router without a version (e.g. when app/ is requested).',
     }),
+    overwrite: flagsParser.boolean({
+      char: 'o',
+      required: false,
+      default: false,
+      description: 'Allow overwrite - Warn but do not fail if version exists',
+    }),
   };
 
   private VersionAndAlias: IVersions;
@@ -135,6 +141,7 @@ export class DockerAutoCommand extends Command {
     const ecrRepo = parsedFlags.repoName ?? config.app.ecrRepoName;
     const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
     const defaultFile = parsedFlags.defaultFile ?? config.app.defaultFile;
+    const overwrite = parsedFlags.overwrite;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -239,13 +246,20 @@ export class DockerAutoCommand extends Command {
             task.output = `Checking if deployed app/version already exists for ${config.app.name}/${semVer}`;
             ctx.preflightResult = await DeployClient.DeployVersionPreflight({
               config,
+              overwrite,
               output: (message: string) => (task.output = message),
             });
             if (ctx.preflightResult.exists) {
-              task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              if (!overwrite) {
+                throw new Error(
+                  `App/Version already exists: ${config.app.name}/${config.app.semVer}`,
+                );
+              } else {
+                task.title = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              }
+            } else {
+              task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
             }
-
-            task.title = origTitle;
           },
         },
         {

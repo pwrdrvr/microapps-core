@@ -54,14 +54,16 @@ export default class DeployClient {
   public static async DeployVersionPreflight(opts: {
     config: IConfig;
     needS3Creds?: boolean;
+    overwrite: boolean;
     output: (message: string) => void;
   }): Promise<IDeployVersionPreflightResult> {
-    const { config, needS3Creds = true, output } = opts;
+    const { config, needS3Creds = true, overwrite, output } = opts;
 
     const request = {
       type: 'deployVersionPreflight',
       appName: config.app.name,
       semVer: config.app.semVer,
+      overwrite,
       needS3Creds,
     } as IDeployVersionPreflightRequest;
     const response = await this._client.send(

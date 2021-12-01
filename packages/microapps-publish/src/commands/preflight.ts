@@ -37,6 +37,12 @@ export class PreflightCommand extends Command {
       required: true,
       description: 'Name of the deployer lambda function',
     }),
+    overwrite: flagsParser.boolean({
+      char: 'o',
+      required: false,
+      default: false,
+      description: 'Allow overwrite - Warn but do not fail if version exists',
+    }),
   };
 
   async run(): Promise<void> {
@@ -51,6 +57,7 @@ export class PreflightCommand extends Command {
     const appName = parsedFlags.appName ?? config.app.name;
     const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
     const semVer = parsedFlags.newVersion ?? config.app.semVer;
+    const overwrite = parsedFlags.overwrite;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -95,15 +102,20 @@ export class PreflightCommand extends Command {
             const preflightResult = await DeployClient.DeployVersionPreflight({
               config,
               needS3Creds: false,
+              overwrite,
               output: (message: string) => (task.output = message),
             });
             if (preflightResult.exists) {
-              throw new Error(
-                `App/Version already exists: ${config.app.name}/${config.app.semVer}`,
-              );
+              if (!overwrite) {
+                throw new Error(
+                  `App/Version already exists: ${config.app.name}/${config.app.semVer}`,
+                );
+              } else {
+                task.title = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              }
+            } else {
+              task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
             }
-
-            task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
           },
         },
       ],
