@@ -74,6 +74,13 @@ export class PublishCommand extends Command {
       required: false,
       description: 'MicroApps app name',
     }),
+    staticAssetsPath: flagsParser.string({
+      char: 's',
+      multiple: false,
+      required: false,
+      description:
+        'Path to files to be uploaded to S3 static bucket at app/version/ path.  Do include app/version/ in path if files are already "rooted" under that path locally.',
+    }),
   };
 
   private VersionAndAlias: IVersions;
@@ -90,12 +97,14 @@ export class PublishCommand extends Command {
     const appName = parsedFlags.appName ?? config.app.name;
     const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
     const semVer = parsedFlags.newVersion ?? config.app.semVer;
+    const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
     config.app.lambdaName = appLambdaName;
     config.app.name = appName;
     config.app.semVer = semVer;
+    config.app.staticAssetsPath = staticAssetsPath;
 
     // Get the account ID and region from STS
     // TODO: Move this to the right place
@@ -278,7 +287,11 @@ export class PublishCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Call Deployer to Deploy AppName/Version
-            await DeployClient.DeployVersion(config, (message: string) => (task.output = message));
+            await DeployClient.DeployVersion(
+              config,
+              'lambda',
+              (message: string) => (task.output = message),
+            );
 
             task.title = origTitle;
           },
