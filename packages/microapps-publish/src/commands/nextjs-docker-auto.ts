@@ -115,7 +115,8 @@ export class DockerAutoCommand extends Command {
       char: 'o',
       required: false,
       default: false,
-      description: 'Allow overwrite - Warn but do not fail if version exists',
+      description:
+        'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
     }),
   };
 
