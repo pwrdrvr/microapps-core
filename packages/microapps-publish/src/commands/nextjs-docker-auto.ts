@@ -412,7 +412,7 @@ export class DockerAutoCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Call Deployer to Create App if Not Exists
-            await DeployClient.CreateApp(config);
+            await DeployClient.CreateApp({ config });
 
             task.title = origTitle;
           },
@@ -424,11 +424,12 @@ export class DockerAutoCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Call Deployer to Deploy AppName/Version
-            await DeployClient.DeployVersion(
+            await DeployClient.DeployVersion({
               config,
-              'lambda',
-              (message: string) => (task.output = message),
-            );
+              appType: 'lambda',
+              overwrite,
+              output: (message: string) => (task.output = message),
+            });
 
             task.title = origTitle;
           },
