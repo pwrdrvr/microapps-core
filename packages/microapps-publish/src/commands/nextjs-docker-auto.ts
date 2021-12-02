@@ -118,6 +118,11 @@ export class DockerAutoCommand extends Command {
       description:
         'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
     }),
+    noCache: flagsParser.boolean({
+      required: false,
+      default: false,
+      description: 'Force revalidation of CloudFront and browser caching of static assets',
+    }),
   };
 
   private VersionAndAlias: IVersions;
@@ -143,6 +148,7 @@ export class DockerAutoCommand extends Command {
     const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
     const defaultFile = parsedFlags.defaultFile ?? config.app.defaultFile;
     const overwrite = parsedFlags.overwrite;
+    const noCache = parsedFlags.noCache;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -364,6 +370,16 @@ export class DockerAutoCommand extends Command {
               },
             });
 
+            // Setup caching on static assets
+            // NoCache - Only used for test deploys, requires browser and CloudFront to refetch every time
+            // Overwrite - Reduces default cache time period from 24 hours to 15 minutes
+            // Default - 24 hours
+            const CacheControl = noCache
+              ? 'max-age=0, must-revalidate, public'
+              : overwrite
+              ? `max-age=${15 * 60}, public`
+              : `max-age=${24 * 60 * 60}, public`;
+
             const pathWithoutAppAndVer = path.join(S3Uploader.TempDir, destinationPrefix);
 
             const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
@@ -381,7 +397,7 @@ export class DockerAutoCommand extends Command {
                     Key: path.relative(S3Uploader.TempDir, filePath),
                     Body: createReadStream(filePath),
                     ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
-                    CacheControl: 'max-age=86400; public',
+                    CacheControl,
                   },
                 });
                 await upload.done();
