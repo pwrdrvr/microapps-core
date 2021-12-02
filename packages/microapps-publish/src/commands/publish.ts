@@ -139,11 +139,8 @@ export class PublishCommand extends Command {
 
     this.VersionAndAlias = createVersions(semVer);
 
-    if (config === undefined) {
-      this.error('Failed to load the config file');
-    }
     if (config.app.staticAssetsPath === undefined) {
-      this.error('StaticAssetsPath must be specified in the config file');
+      this.error('staticAssetsPath must be specified');
     }
 
     //

@@ -196,11 +196,8 @@ export class DockerAutoCommand extends Command {
       await restoreFiles(this.FILES_TO_MODIFY);
     });
 
-    if (config === undefined) {
-      this.error('Failed to load the config file');
-    }
     if (config.app.staticAssetsPath === undefined) {
-      this.error('StaticAssetsPath must be specified in the config file');
+      this.error('staticAssetsPath must be specified');
     }
 
     //

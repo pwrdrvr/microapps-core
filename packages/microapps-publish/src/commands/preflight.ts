@@ -82,10 +82,6 @@ export class PreflightCommand extends Command {
       }
     }
 
-    if (config === undefined) {
-      this.error('Failed to load the config file');
-    }
-
     //
     // Setup Tasks
     //

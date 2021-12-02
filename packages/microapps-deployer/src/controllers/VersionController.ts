@@ -195,6 +195,9 @@ export default class VersionController {
         config,
       );
 
+      // Set defaultFile again in-case this is an overwrite
+      record.DefaultFile = request.defaultFile;
+
       // Update status to assets-copied
       record.Status = 'assets-copied';
       await record.Save(dbManager);
