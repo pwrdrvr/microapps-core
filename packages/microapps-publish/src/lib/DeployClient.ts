@@ -19,7 +19,8 @@ export default class DeployClient {
   });
   static readonly _decoder = new TextDecoder('utf-8');
 
-  public static async CreateApp(config: IConfig): Promise<void> {
+  public static async CreateApp(opts: { config: IConfig }): Promise<void> {
+    const { config } = opts;
     const request = {
       type: 'createApp',
       appName: config.app.name,
@@ -54,14 +55,16 @@ export default class DeployClient {
   public static async DeployVersionPreflight(opts: {
     config: IConfig;
     needS3Creds?: boolean;
+    overwrite: boolean;
     output: (message: string) => void;
   }): Promise<IDeployVersionPreflightResult> {
-    const { config, needS3Creds = true, output } = opts;
+    const { config, needS3Creds = true, overwrite, output } = opts;
 
     const request = {
       type: 'deployVersionPreflight',
       appName: config.app.name,
       semVer: config.app.semVer,
+      overwrite,
       needS3Creds,
     } as IDeployVersionPreflightRequest;
     const response = await this._client.send(
@@ -95,11 +98,13 @@ export default class DeployClient {
    * @param config
    * @param task
    */
-  public static async DeployVersion(
-    config: IConfig,
-    appType: 'lambda' | 'static',
-    output: (message: string) => void,
-  ): Promise<void> {
+  public static async DeployVersion(opts: {
+    config: IConfig;
+    appType: 'lambda' | 'static';
+    overwrite: boolean;
+    output: (message: string) => void;
+  }): Promise<void> {
+    const { config, appType, overwrite, output } = opts;
     const request = {
       type: 'deployVersion',
       appType,
@@ -107,6 +112,7 @@ export default class DeployClient {
       semVer: config.app.semVer,
       defaultFile: config.app.defaultFile,
       lambdaARN: appType === 'lambda' ? config.app.lambdaARN : undefined,
+      overwrite,
     } as IDeployVersionRequest;
     const response = await this._client.send(
       new lambda.InvokeCommand({

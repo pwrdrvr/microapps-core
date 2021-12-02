@@ -4,13 +4,35 @@ export interface IRequestBase {
 
 export interface ICreateApplicationRequest extends IRequestBase {
   readonly type: 'createApp';
+
+  /**
+   * Name of the application
+   */
   readonly appName: string;
+
+  /**
+   * Display name of the application
+   */
   readonly displayName: string;
 }
 
 export interface IDeployVersionRequestBase extends IRequestBase {
+  /**
+   * Name of the application
+   */
   readonly appName: string;
+
+  /**
+   * SemVer being published
+   */
   readonly semVer: string;
+
+  /**
+   * Allow overwrite of existing version
+   *
+   * @default false;
+   */
+  readonly overwrite?: boolean;
 }
 
 export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBase {

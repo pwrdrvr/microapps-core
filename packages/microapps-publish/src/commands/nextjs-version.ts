@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { Command, flags as flagsParser } from '@oclif/command';
-import * as chalk from 'chalk';
 import { Listr } from 'listr2';
 import { Config } from '../config/Config';
 import { createVersions, IVersions, restoreFiles, writeNewVersions } from '../lib/Versions';
@@ -105,10 +104,6 @@ export class NextJSVersionCommand extends Command {
       },
     );
 
-    try {
-      await tasks.run();
-    } catch (error) {
-      this.log(`Caught exception: ${error.message}`);
-    }
+    await tasks.run();
   }
 }

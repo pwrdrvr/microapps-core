@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
-import * as chalk from 'chalk';
 import { Listr } from 'listr2';
 import { Config } from '../config/Config';
 import DeployClient from '../lib/DeployClient';
@@ -38,6 +37,13 @@ export class PreflightCommand extends Command {
       required: true,
       description: 'Name of the deployer lambda function',
     }),
+    overwrite: flagsParser.boolean({
+      char: 'o',
+      required: false,
+      default: false,
+      description:
+        'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
+    }),
   };
 
   async run(): Promise<void> {
@@ -52,6 +58,7 @@ export class PreflightCommand extends Command {
     const appName = parsedFlags.appName ?? config.app.name;
     const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
     const semVer = parsedFlags.newVersion ?? config.app.semVer;
+    const overwrite = parsedFlags.overwrite;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -75,10 +82,6 @@ export class PreflightCommand extends Command {
       }
     }
 
-    if (config === undefined) {
-      this.error('Failed to load the config file');
-    }
-
     //
     // Setup Tasks
     //
@@ -96,13 +99,20 @@ export class PreflightCommand extends Command {
             const preflightResult = await DeployClient.DeployVersionPreflight({
               config,
               needS3Creds: false,
+              overwrite,
               output: (message: string) => (task.output = message),
             });
             if (preflightResult.exists) {
-              task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              if (!overwrite) {
+                throw new Error(
+                  `App/Version already exists: ${config.app.name}/${config.app.semVer}`,
+                );
+              } else {
+                task.title = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              }
+            } else {
+              task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
             }
-
-            task.title = origTitle;
           },
         },
       ],
@@ -113,10 +123,6 @@ export class PreflightCommand extends Command {
       },
     );
 
-    try {
-      await tasks.run();
-    } catch (error) {
-      this.log(`Caught exception: ${error.message}`);
-    }
+    await tasks.run();
   }
 }

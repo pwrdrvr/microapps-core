@@ -4,7 +4,6 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
-import * as chalk from 'chalk';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
@@ -88,6 +87,18 @@ export class PublishCommand extends Command {
       description:
         'Default file to return when the app is loaded via the router without a version (e.g. when app/ is requested).',
     }),
+    overwrite: flagsParser.boolean({
+      char: 'o',
+      required: false,
+      default: false,
+      description:
+        'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
+    }),
+    noCache: flagsParser.boolean({
+      required: false,
+      default: false,
+      description: 'Force revalidation of CloudFront and browser caching of static assets',
+    }),
   };
 
   private VersionAndAlias: IVersions;
@@ -106,6 +117,8 @@ export class PublishCommand extends Command {
     const semVer = parsedFlags.newVersion ?? config.app.semVer;
     const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
     const defaultFile = parsedFlags.defaultFile ?? config.app.defaultFile;
+    const overwrite = parsedFlags.overwrite;
+    const noCache = parsedFlags.noCache;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -132,11 +145,8 @@ export class PublishCommand extends Command {
 
     this.VersionAndAlias = createVersions(semVer);
 
-    if (config === undefined) {
-      this.error('Failed to load the config file');
-    }
     if (config.app.staticAssetsPath === undefined) {
-      this.error('StaticAssetsPath must be specified in the config file');
+      this.error('staticAssetsPath must be specified');
     }
 
     //
@@ -156,13 +166,20 @@ export class PublishCommand extends Command {
             task.output = `Checking if deployed app/version already exists for ${config.app.name}/${semVer}`;
             ctx.preflightResult = await DeployClient.DeployVersionPreflight({
               config,
+              overwrite,
               output: (message: string) => (task.output = message),
             });
             if (ctx.preflightResult.exists) {
-              task.output = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              if (!overwrite) {
+                throw new Error(
+                  `App/Version already exists: ${config.app.name}/${config.app.semVer}`,
+                );
+              } else {
+                task.title = `Warning: App/Version already exists: ${config.app.name}/${config.app.semVer}`;
+              }
+            } else {
+              task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
             }
-
-            task.title = origTitle;
           },
         },
         {
@@ -239,6 +256,16 @@ export class PublishCommand extends Command {
               },
             });
 
+            // Setup caching on static assets
+            // NoCache - Only used for test deploys, requires browser and CloudFront to refetch every time
+            // Overwrite - Reduces default cache time period from 24 hours to 15 minutes
+            // Default - 24 hours
+            const CacheControl = noCache
+              ? 'max-age=0, must-revalidate, public'
+              : overwrite
+              ? `max-age=${15 * 60}, public`
+              : `max-age=${24 * 60 * 60}, public`;
+
             const pathWithoutAppAndVer = path.join(S3Uploader.TempDir, destinationPrefix);
 
             const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
@@ -256,7 +283,7 @@ export class PublishCommand extends Command {
                     Key: path.relative(S3Uploader.TempDir, filePath),
                     Body: createReadStream(filePath),
                     ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
-                    CacheControl: 'max-age=86400; public',
+                    CacheControl,
                   },
                 });
                 await upload.done();
@@ -284,7 +311,7 @@ export class PublishCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Call Deployer to Create App if Not Exists
-            await DeployClient.CreateApp(config);
+            await DeployClient.CreateApp({ config });
 
             task.title = origTitle;
           },
@@ -296,11 +323,12 @@ export class PublishCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Call Deployer to Deploy AppName/Version
-            await DeployClient.DeployVersion(
+            await DeployClient.DeployVersion({
               config,
-              'lambda',
-              (message: string) => (task.output = message),
-            );
+              appType: 'lambda',
+              overwrite,
+              output: (message: string) => (task.output = message),
+            });
 
             task.title = origTitle;
           },
@@ -315,9 +343,6 @@ export class PublishCommand extends Command {
 
     try {
       await tasks.run();
-      // this.log(`Published: ${config.app.name}/${config.app.semVer}`);
-    } catch (error) {
-      this.log(`Caught exception: ${error.message}`);
     } finally {
       await S3Uploader.removeTempDirIfExists();
     }
