@@ -190,7 +190,7 @@ export class PublishCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Update the Lambda function
-            await this.deployToLambda(config, this.VersionAndAlias, task);
+            await this.deployToLambda({ config, versions: this.VersionAndAlias, overwrite, task });
 
             task.title = origTitle;
           },
@@ -353,11 +353,14 @@ export class PublishCommand extends Command {
    * @param config
    * @param versions
    */
-  private async deployToLambda(
-    config: IConfig,
-    versions: IVersions,
-    task: TaskWrapper<IContext, typeof DefaultRenderer>,
-  ): Promise<void> {
+  private async deployToLambda(opts: {
+    config: IConfig;
+    versions: IVersions;
+    overwrite: boolean;
+    task: TaskWrapper<IContext, typeof DefaultRenderer>;
+  }): Promise<void> {
+    const { config, overwrite, versions, task } = opts;
+
     // Create Lambda version
     task.output = 'Creating version for Lambda $LATEST';
     const resultUpdate = await lambdaClient.send(
@@ -394,13 +397,30 @@ export class PublishCommand extends Command {
 
     // Create Lambda alias point
     task.output = `Creating the lambda alias for the new version: ${lambdaVersion}`;
-    const resultLambdaAlias = await lambdaClient.send(
-      new lambda.CreateAliasCommand({
-        FunctionName: config.app.lambdaName,
-        Name: versions.alias,
-        FunctionVersion: lambdaVersion,
-      }),
-    );
-    task.output = `Lambda alias created, name: ${resultLambdaAlias.Name}`;
+    try {
+      const resultLambdaAlias = await lambdaClient.send(
+        new lambda.CreateAliasCommand({
+          FunctionName: config.app.lambdaName,
+          Name: versions.alias,
+          FunctionVersion: lambdaVersion,
+        }),
+      );
+      task.output = `Lambda alias created, name: ${resultLambdaAlias.Name}`;
+    } catch (error) {
+      if (overwrite && error.name === 'ResourceConflictException') {
+        task.output = `Alias exists, updating the lambda alias for version: ${lambdaVersion}`;
+
+        const resultLambdaAlias = await lambdaClient.send(
+          new lambda.UpdateAliasCommand({
+            FunctionName: config.app.lambdaName,
+            Name: versions.alias,
+            FunctionVersion: lambdaVersion,
+          }),
+        );
+        task.output = `Lambda alias updated, name: ${resultLambdaAlias.Name}`;
+      } else {
+        throw error;
+      }
+    }
   }
 }
