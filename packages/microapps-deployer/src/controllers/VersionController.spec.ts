@@ -96,6 +96,9 @@ describe('VersionController', () => {
 
   describe('deployVersionPreflight', () => {
     it('should return 404 for version that does not exist', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
       stsClient.on(sts.AssumeRoleCommand).resolves({
         Credentials: {
           AccessKeyId: 'cat',
@@ -107,8 +110,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: 'NewApp',
-          semVer: '0.0.0',
+          appName,
+          semVer,
           type: 'deployVersionPreflight',
         } as IDeployVersionPreflightRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
@@ -117,6 +120,9 @@ describe('VersionController', () => {
     });
 
     it('should return 200 for version that exists', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
       stsClient.on(sts.AssumeRoleCommand).resolves({
         Credentials: {
           AccessKeyId: 'cat',
@@ -127,10 +133,10 @@ describe('VersionController', () => {
       });
 
       const version = new Version({
-        AppName: 'NewApp',
+        AppName: appName,
         DefaultFile: '',
         IntegrationID: '',
-        SemVer: '0.0.0',
+        SemVer: semVer,
         // Note: Pending is reported as "does not exist"
         // So don't set this to pending or the test will fail
         Status: 'integrated',
@@ -140,8 +146,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: 'NewApp',
-          semVer: '0.0.0',
+          appName,
+          semVer,
           type: 'deployVersionPreflight',
         } as IDeployVersionPreflightRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
@@ -151,7 +157,7 @@ describe('VersionController', () => {
   });
 
   describe('deployVersion', () => {
-    const fakeLambdaARN = 'arn:aws:lambda:us-east-2:123456789:function:new-app-function';
+    const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
 
     it('should return 201 for deploying version that does not exist', async () => {
       const fakeIntegrationID = 'abc123integrationID';
@@ -159,6 +165,8 @@ describe('VersionController', () => {
       const semVer = '0.0.0';
 
       s3Client
+        .onAnyCommand()
+        .rejects()
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
@@ -175,21 +183,10 @@ describe('VersionController', () => {
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
-      apigwyClient
-        // Mock Lambda Get request to return success for ARN
-        .on(apigwy.GetApisCommand, {
-          MaxResults: '100',
-        })
-        .resolves({
-          Items: [
-            {
-              Name: 'microapps-apis',
-              ApiId: config.apigwy.apiId,
-              ProtocolType: 'HTTP',
-            } as apigwy.Api,
-          ],
-        });
+
       lambdaClient
+        .onAnyCommand()
+        .rejects()
         // Mock permission removes - these can fail
         .on(lambda.RemovePermissionCommand)
         .rejects()
@@ -199,7 +196,7 @@ describe('VersionController', () => {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
         })
         .resolves({})
         // Mock permission add for version/*
@@ -208,11 +205,13 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
       apigwyClient
+        .onAnyCommand()
+        .rejects()
         // Mock API Gateway Integration Create for Version
         .on(apigwy.CreateIntegrationCommand, {
           ApiId: config.apigwy.apiId,
@@ -241,11 +240,114 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: 'NewApp',
-          semVer: '0.0.0',
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
           type: 'deployVersion',
+        } as IDeployVersionRequest,
+        { awsRequestId: '123' } as lambdaTypes.Context,
+      );
+      expect(response.statusCode).toBe(201);
+    });
+
+    it('should return 201 for deploying version that exists - overwrite true', async () => {
+      const fakeIntegrationID = 'abc123integrationID';
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
+      const version = new Version({
+        AppName: appName,
+        DefaultFile: '',
+        IntegrationID: fakeIntegrationID,
+        SemVer: semVer,
+        Status: 'routed',
+        Type: 'lambda',
+      });
+      await version.Save(dbManager);
+
+      s3Client
+        .onAnyCommand()
+        .rejects()
+        // Mock S3 get for staging bucket - return one file name
+        .on(s3.ListObjectsV2Command, {
+          Bucket: config.filestore.stagingBucket,
+          Prefix: `${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: false,
+          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+        })
+        // Mock S3 copy to prod bucket
+        .on(s3.CopyObjectCommand, {
+          Bucket: config.filestore.destinationBucket,
+          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({});
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        // Mock permission removes - these can fail
+        .on(lambda.RemovePermissionCommand)
+        .rejects()
+        // Mock permission add for version root
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version-root',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock permission add for version/*
+        .on(lambda.AddPermissionCommand, {
+          Principal: 'apigateway.amazonaws.com',
+          StatementId: 'microapps-version',
+          Action: 'lambda:InvokeFunction',
+          FunctionName: fakeLambdaARN,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
+        })
+        .resolves({});
+
+      apigwyClient
+        .onAnyCommand()
+        .rejects()
+        // Mock API Gateway Integration Create for Version
+        .on(apigwy.CreateIntegrationCommand, {
+          ApiId: config.apigwy.apiId,
+          IntegrationType: apigwy.IntegrationType.AWS_PROXY,
+          IntegrationMethod: 'POST',
+          PayloadFormatVersion: '2.0',
+          IntegrationUri: fakeLambdaARN,
+        })
+        .resolves({
+          IntegrationId: fakeIntegrationID,
+        })
+        // Mock create route - this might fail
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: config.apigwy.apiId,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}`,
+        })
+        .resolves({})
+        // Mock create route for /*
+        .on(apigwy.CreateRouteCommand, {
+          ApiId: config.apigwy.apiId,
+          Target: `integrations/${fakeIntegrationID}`,
+          RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
+        })
+        .resolves({});
+
+      const response = await handler(
+        {
+          appName: appName,
+          semVer: semVer,
+          defaultFile: 'index.html',
+          lambdaARN: fakeLambdaARN,
+          type: 'deployVersion',
+          overwrite: true,
+          appType: 'lambda',
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
@@ -258,6 +360,8 @@ describe('VersionController', () => {
       const semVer = '0.0.0';
 
       s3Client
+        .onAnyCommand()
+        .rejects()
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
@@ -283,28 +387,10 @@ describe('VersionController', () => {
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
-      apigwyClient
-        // Mock Lambda Get request to return success for ARN
-        .on(apigwy.GetApisCommand, {
-          MaxResults: '100',
-        })
-        .resolves({
-          NextToken: 'nothing-to-see-here-yet',
-        })
-        .on(apigwy.GetApisCommand, {
-          MaxResults: '100',
-          NextToken: 'nothing-to-see-here-yet',
-        })
-        .resolves({
-          Items: [
-            {
-              Name: 'microapps-apis',
-              ApiId: config.apigwy.apiId,
-              ProtocolType: 'HTTP',
-            } as apigwy.Api,
-          ],
-        });
+
       lambdaClient
+        .onAnyCommand()
+        .rejects()
         // Mock permission removes - these can fail
         .on(lambda.RemovePermissionCommand)
         .rejects()
@@ -314,7 +400,7 @@ describe('VersionController', () => {
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
         })
         .resolves({})
         // Mock permission add for version/*
@@ -323,11 +409,13 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
       apigwyClient
+        .onAnyCommand()
+        .rejects()
         // Mock API Gateway Integration Create for Version
         .on(apigwy.CreateIntegrationCommand, {
           ApiId: config.apigwy.apiId,
@@ -356,8 +444,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: 'NewApp',
-          semVer: '0.0.0',
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
           type: 'deployVersion',
@@ -367,12 +455,15 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(201);
     });
 
-    it('should 409 version that exists with "routed" status', async () => {
+    it('should 409 version that exists with "routed" status - overwrite false', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
       const version = new Version({
-        AppName: 'NewApp',
+        AppName: appName,
         DefaultFile: '',
         IntegrationID: '',
-        SemVer: '0.0.0',
+        SemVer: semVer,
         Status: 'routed',
         Type: 'lambda',
       });
@@ -380,8 +471,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: 'NewApp',
-          semVer: '0.0.0',
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
           type: 'deployVersion',
@@ -397,6 +488,8 @@ describe('VersionController', () => {
       const semVer = '0.0.0';
 
       s3Client
+        .onAnyCommand()
+        .rejects()
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
@@ -413,31 +506,21 @@ describe('VersionController', () => {
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
-      apigwyClient
-        // Mock Lambda Get request to return success for ARN
-        .on(apigwy.GetApisCommand, {
-          MaxResults: '100',
-        })
-        .resolves({
-          Items: [
-            {
-              Name: 'microapps-apis',
-              ApiId: config.apigwy.apiId,
-              ProtocolType: 'HTTP',
-            } as apigwy.Api,
-          ],
-        });
+
       lambdaClient
+        .onAnyCommand()
+        .rejects()
         // Mock permission removes - these can fail
         .on(lambda.RemovePermissionCommand)
         .rejects()
+
         // Mock permission add for version root
         .on(lambda.AddPermissionCommand, {
           Principal: 'apigateway.amazonaws.com',
           StatementId: 'microapps-version-root',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
         })
         .resolves({})
         // Mock permission add for version/*
@@ -446,11 +529,13 @@ describe('VersionController', () => {
           StatementId: 'microapps-version',
           Action: 'lambda:InvokeFunction',
           FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:us-east-2:123456789:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
+          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
         })
         .resolves({});
 
       apigwyClient
+        .onAnyCommand()
+        .rejects()
         // Mock API Gateway Integration Create for Version
         .on(apigwy.CreateIntegrationCommand, {
           ApiId: config.apigwy.apiId,
@@ -461,7 +546,7 @@ describe('VersionController', () => {
         })
         .rejects({
           name: 'AccessDeniedException',
-          message: `User: arn:aws:sts::1234567890123:assumed-role/some-role-name/microapps-deployer-dev is not authorized to perform: apigateway:POST on resource: arn:aws:apigateway:us-east-2::/apis/${config.apigwy.apiId}/integrations`,
+          message: `User: arn:aws:sts::${config.awsAccountID}0123:assumed-role/some-role-name/microapps-deployer-dev is not authorized to perform: apigateway:POST on resource: arn:aws:apigateway:${config.awsRegion}::/apis/${config.apigwy.apiId}/integrations`,
         })
         // Mock create route - this might fail
         .on(apigwy.CreateRouteCommand, {
@@ -480,8 +565,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: 'NewApp',
-          semVer: '0.0.0',
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
           type: 'deployVersion',
