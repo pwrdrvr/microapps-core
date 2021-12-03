@@ -33,6 +33,7 @@
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.1.0",
     "lambda-log": "^2.4.0",
+    "p-map": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.19",
     "ts-convict": "^1.1.0",

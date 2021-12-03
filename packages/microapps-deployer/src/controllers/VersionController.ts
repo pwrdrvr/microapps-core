@@ -5,6 +5,7 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
+import pMap from 'p-map';
 import { IConfig } from '../config/Config';
 import {
   IDeployVersionRequest,
@@ -390,6 +391,15 @@ export default class VersionController {
     return crypto.createHash('sha1').update(input).digest('hex');
   }
 
+  /**
+   * Copy a list of files from the Staging bucket to the Destination bucket
+   * @param list
+   * @param stagingBucket
+   * @param sourcePrefix
+   * @param destinationPrefix
+   * @param config
+   * @returns
+   */
   private static async CopyFilesInList(
     list: s3.ListObjectsV2CommandOutput,
     stagingBucket: string,
@@ -400,28 +410,49 @@ export default class VersionController {
     if (list === undefined || list.Contents === undefined) {
       return;
     }
-    for (const obj of list.Contents) {
-      const sourceKeyRootless = obj.Key?.slice(sourcePrefix.length);
 
-      // FIXME: Use p-map to parallelize with limit
-      await s3Client.send(
-        new s3.CopyObjectCommand({
-          // Source
-          CopySource: `${stagingBucket}/${obj.Key}`,
-          // Destination
-          Bucket: config.filestore.destinationBucket,
-          Key: `${destinationPrefix}/${sourceKeyRootless}`,
-        }),
-      );
-    }
+    await pMap(
+      list.Contents,
+      async (obj) => {
+        const sourceKeyRootless = obj.Key?.slice(sourcePrefix.length);
+
+        // Copy from the Staging bucket to the Destination bucket
+        await s3Client.send(
+          new s3.CopyObjectCommand({
+            // Source
+            CopySource: `${stagingBucket}/${obj.Key}`,
+            // Destination
+            Bucket: config.filestore.destinationBucket,
+            Key: `${destinationPrefix}/${sourceKeyRootless}`,
+          }),
+        );
+
+        // Remove the file from the Staging bucket
+        await s3Client.send(
+          new s3.DeleteObjectCommand({
+            Bucket: stagingBucket,
+            Key: obj.Key,
+          }),
+        );
+      },
+      { concurrency: 4 },
+    );
   }
 
+  /**
+   * List files in the Staging bucket and each chunk of the list
+   * to the Destination bucket
+   * @param stagingBucket
+   * @param sourcePrefix
+   * @param destinationPrefix
+   * @param config
+   */
   private static async CopyToProdBucket(
     stagingBucket: string,
     sourcePrefix: string,
     destinationPrefix: string,
     config: IConfig,
-  ) {
+  ): Promise<void> {
     let list: s3.ListObjectsV2CommandOutput | undefined;
     do {
       const optionals =
