@@ -37,16 +37,16 @@ describe('router', () => {
       AppName: 'Bat',
       DefaultFile: 'bat.html',
       IntegrationID: 'abcd',
-      SemVer: '3.2.1-beta0',
+      SemVer: '3.2.1-beta.1',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
-      RuleSet: { default: { SemVer: '3.2.1-beta0', AttributeName: '', AttributeValue: '' } },
+      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
@@ -61,7 +61,121 @@ describe('router', () => {
     expect(response).toBeDefined();
     expect(response).toHaveProperty('body');
     expect(response.body?.length).toBeGreaterThan(80);
-    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta0/bat.html" seamless');
+    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta.1/bat.html" seamless');
+  });
+
+  it('static app - request to app/x.y.z should redirect to defaultFile', async () => {
+    const app = new Application({
+      AppName: 'Bat',
+      DisplayName: 'Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName: 'Bat',
+      DefaultFile: 'bat.html',
+      IntegrationID: 'abcd',
+      SemVer: '3.2.1-beta.1',
+      Status: 'deployed',
+      Type: 'static',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName: 'Bat',
+      Version: 0,
+      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    const response = await handler(
+      { rawPath: '/bat/3.2.1-beta.1' } as lambda.APIGatewayProxyEventV2,
+      {} as lambda.Context,
+    );
+
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(302);
+    expect(response).toBeDefined();
+    expect(response.headers).toBeDefined();
+    expect(response.headers).toHaveProperty('Location');
+    expect(response.headers?.Location).toContain('/bat/3.2.1-beta.1/bat.html');
+  });
+
+  it('static app - request to app/x.y.z/ should redirect to defaultFile', async () => {
+    const app = new Application({
+      AppName: 'Bat',
+      DisplayName: 'Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName: 'Bat',
+      DefaultFile: 'bat.html',
+      IntegrationID: 'abcd',
+      SemVer: '3.2.1-beta.1',
+      Status: 'deployed',
+      Type: 'static',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName: 'Bat',
+      Version: 0,
+      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    const response = await handler(
+      { rawPath: '/bat/3.2.1-beta.1/' } as lambda.APIGatewayProxyEventV2,
+      {} as lambda.Context,
+    );
+
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(302);
+    expect(response).toBeDefined();
+    expect(response.headers).toBeDefined();
+    expect(response.headers).toHaveProperty('Location');
+    expect(response.headers?.Location).toContain('/bat/3.2.1-beta.1/bat.html');
+  });
+
+  it('static app - request to app/notVersion should load app frame with defaultFile', async () => {
+    const app = new Application({
+      AppName: 'Bat',
+      DisplayName: 'Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName: 'Bat',
+      DefaultFile: 'bat.html',
+      IntegrationID: 'abcd',
+      SemVer: '3.2.1-beta.1',
+      Status: 'deployed',
+      Type: 'static',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName: 'Bat',
+      Version: 0,
+      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    const response = await handler(
+      { rawPath: '/bat/notVersion' } as lambda.APIGatewayProxyEventV2,
+      {} as lambda.Context,
+    );
+
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(200);
+    expect(response).toBeDefined();
+    expect(response).toHaveProperty('body');
+    expect(response.body?.length).toBeGreaterThan(80);
+    expect(response.body).toContain('<iframe src="/bat/3.2.1-beta.1/bat.html" seamless');
   });
 
   it('should serve appframe with no default file', async () => {
@@ -77,7 +191,7 @@ describe('router', () => {
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta1',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 
@@ -115,7 +229,7 @@ describe('router', () => {
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta2',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 
@@ -153,7 +267,7 @@ describe('router', () => {
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta3',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 
@@ -191,7 +305,7 @@ describe('router', () => {
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta3',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 
