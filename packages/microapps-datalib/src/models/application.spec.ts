@@ -137,7 +137,7 @@ describe('application records', () => {
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta0',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 
@@ -176,7 +176,7 @@ describe('application records', () => {
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta0',
       Status: 'deployed',
-      Type: 'next.js',
+      Type: 'lambda',
     });
     await version.Save(dbManager);
 

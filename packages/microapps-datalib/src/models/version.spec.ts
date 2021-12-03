@@ -29,7 +29,7 @@ describe('version records', () => {
     version.AppName = 'Cat';
     version.SemVer = '1.2.3-Beta4';
     version.Status = 'pending';
-    version.Type = 'type';
+    version.Type = 'lambda';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
@@ -45,7 +45,7 @@ describe('version records', () => {
     expect(Item?.AppName).toBe('cat');
     expect(Item?.SemVer).toBe('1.2.3-Beta4');
     expect(Item?.Status).toBe('pending');
-    expect(Item?.Type).toBe('type');
+    expect(Item?.Type).toBe('lambda');
     expect(Item?.DefaultFile).toBe('index.html');
     expect(Item?.IntegrationID).toBe('abcd');
   });
@@ -55,7 +55,7 @@ describe('version records', () => {
     version.AppName = 'Dog';
     version.SemVer = '1.2.3-Beta5';
     version.Status = 'pending';
-    version.Type = 'type';
+    version.Type = 'lambda';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
@@ -65,7 +65,7 @@ describe('version records', () => {
     version.AppName = 'Dog';
     version.SemVer = '1.2.3-Beta6';
     version.Status = 'pending';
-    version.Type = 'type';
+    version.Type = 'lambda';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
@@ -98,7 +98,7 @@ describe('version records', () => {
     version.AppName = 'Frog';
     version.SemVer = '2.2.3-Beta5';
     version.Status = 'pending';
-    version.Type = 'type';
+    version.Type = 'lambda';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 
@@ -108,7 +108,7 @@ describe('version records', () => {
     version.AppName = 'Frog';
     version.SemVer = '2.2.3-Beta6';
     version.Status = 'pending';
-    version.Type = 'type';
+    version.Type = 'lambda';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
 

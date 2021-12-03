@@ -13,12 +13,14 @@ export type VersionStatus =
   | 'routed'
   | 'deployed';
 
+export type AppTypes = 'static' | 'lambda';
+
 export interface IVersionRecord {
   PK: string;
   SK: string;
   AppName: string;
   SemVer: string;
-  Type: string;
+  Type: 'lambda' | 'static';
   Status: VersionStatus;
   DefaultFile: string;
   IntegrationID: string;
@@ -84,7 +86,7 @@ export class Version implements IVersionRecord {
   private _keyBy: SaveBy;
   private _appName: string | undefined;
   private _semVer: string | undefined;
-  private _type: string | undefined;
+  private _type: AppTypes | undefined;
   private _status: VersionStatus;
   private _defaultFile: string;
   private _integrationID: string;
@@ -146,10 +148,10 @@ export class Version implements IVersionRecord {
     this._semVer = value;
   }
 
-  public get Type(): string {
-    return this._type as string;
+  public get Type(): AppTypes {
+    return this._type as AppTypes;
   }
-  public set Type(value: string) {
+  public set Type(value: AppTypes) {
     this._type = value;
   }
 

@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import 'reflect-metadata';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { Application, DBManager, IVersionsAndRules } from '@pwrdrvr/microapps-datalib';
+import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import { pathExistsSync, readFileSync } from 'fs-extra';
 import { LambdaLog, LogMessage } from 'lambda-log';
@@ -24,6 +24,10 @@ export function overrideDBManager(opts: {
 }
 dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
 
+/**
+ * Find and load the appFrame file
+ * @returns
+ */
 function loadAppFrame(): string {
   const paths = [__dirname, `${__dirname}/..`, `${__dirname}/templates`, '/opt', '/opt/templates'];
 
@@ -58,6 +62,12 @@ function loadAppFrame(): string {
 
 const appFrame = loadAppFrame();
 
+/**
+ * Exported Lambda Handler
+ * @param event
+ * @param context
+ * @returns
+ */
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
   context: lambda.Context,
@@ -101,15 +111,33 @@ export async function handler(
       additionalParts = parts.slice(2).join('/');
     }
 
+    // Route an app and version (only) to include the defaultFile
+    // If the second part is not a version that exists, fall through to
+    // routing the app and glomming the rest of the path on to the end
+    if (parts.length === 3 || parts.length === 4) {
+      //   / appName / semVer /
+      // ^   ^^^^^^^   ^^^^^^   ^
+      // 0         1        2   3
+      // This is an app and a version only
+      // If the request got here it's likely a static app that has no
+      // Lambda function (thus the API Gateway route fell through to the Router)
+      if (await RedirectToDefaultFile(event, response, parts[1], parts[2], log)) {
+        return response;
+      }
+    }
+
+    // Remember the first element is '' (nothing to the left of /)
     if (parts.length >= 2) {
+      //  / appName (/ something)?
+      // ^  ^^^^^^^    ^^^^^^^^^
+      // 0        1            2
       // Got at least an application name, try to route it
       await RouteApp(event, response, parts[1], additionalParts, log);
     } else {
       throw new Error('Unmatched route');
     }
   } catch (error) {
-    log.error('unexpected exception - returning 599', { statusCode: 599 });
-    log.error(error);
+    log.error('unexpected exception - returning 599', { statusCode: 599, error });
     response.statusCode = 599;
     response.headers = {};
     response.headers['Content-Type'] = 'text/plain';
@@ -119,6 +147,15 @@ export async function handler(
   return response;
 }
 
+/**
+ * Lookup the version of the app to run
+ * @param request
+ * @param response
+ * @param appName
+ * @param additionalParts
+ * @param log
+ * @returns
+ */
 async function RouteApp(
   request: lambda.APIGatewayProxyEventV2,
   response: lambda.APIGatewayProxyStructuredResultV2,
@@ -144,8 +181,8 @@ async function RouteApp(
     log.info(`GetVersionsAndRules threw for '${appName}', assuming not found - returning 404`, {
       appName,
       statusCode: 404,
+      error,
     });
-    log.info(error);
     response.statusCode = 404;
     response.headers['Cache-Control'] = 'no-store; private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
@@ -184,12 +221,12 @@ async function RouteApp(
   );
 
   // Prepare the iframe contents
-  // var semVerUnderscores = defaultVersion.Replace('.', '_');
   let appVersionPath: string;
   if (
-    defaultVersionInfo?.DefaultFile === undefined ||
-    defaultVersionInfo?.DefaultFile === '' ||
-    additionalParts !== ''
+    defaultVersionInfo?.Type !== 'static' &&
+    (defaultVersionInfo?.DefaultFile === undefined ||
+      defaultVersionInfo?.DefaultFile === '' ||
+      additionalParts !== '')
   ) {
     // KLUDGE: We're going to take a missing default file to mean that the
     // app type is Next.js (or similar) and that it wants no trailing slash after the version
@@ -221,13 +258,64 @@ async function RouteApp(
   });
 }
 
-// Run the function locally for testing
-if (localTesting) {
-  const payload = JSON.parse(readFileSync('../../test/json/router-release-app.json', 'utf-8'));
-  void Promise.all([
-    handler(
-      payload as lambda.APIGatewayProxyEventV2,
-      { awsRequestId: 'local-testing' } as lambda.Context,
-    ),
-  ]);
+/**
+ * Redirect the request to app/x.y.z/? to app/x.y.z/{defaultFile}
+ * @param request
+ * @param response
+ * @param appName
+ * @param semVer
+ * @param log
+ * @returns
+ */
+async function RedirectToDefaultFile(
+  request: lambda.APIGatewayProxyEventV2,
+  response: lambda.APIGatewayProxyStructuredResultV2,
+  appName: string,
+  semVer: string,
+  log: LambdaLog,
+): Promise<boolean> {
+  let versionInfo: Version;
+
+  if (response.headers === undefined) {
+    throw new Error('do not call me with undefined headers');
+  }
+
+  try {
+    versionInfo = await Version.LoadVersion({
+      dbManager,
+      key: { AppName: appName, SemVer: semVer },
+    });
+  } catch (error) {
+    log.info(`LoadVersion threw for '/${appName}/${semVer}' - falling through to app routing'`, {
+      appName,
+      semVer,
+      error,
+    });
+    return false;
+  }
+
+  if (versionInfo === undefined) {
+    log.info(
+      `LoadVersion returned undefined for '/${appName}/${semVer}', assuming not found - falling through to app routing'`,
+      {
+        appName,
+        semVer,
+      },
+    );
+    return false;
+  }
+
+  response.statusCode = 302;
+  response.headers['Cache-Control'] = 'no-store; private';
+  response.headers['Location'] = `/${appName}/${semVer}/${versionInfo.DefaultFile}`;
+
+  log.info(
+    `found '/${appName}/${semVer}' - returning 302 to /${appName}/${semVer}/${versionInfo.DefaultFile}`,
+    {
+      statusCode: 302,
+      routedPath: `/${appName}/${semVer}/${versionInfo.DefaultFile}`,
+    },
+  );
+
+  return true;
 }
