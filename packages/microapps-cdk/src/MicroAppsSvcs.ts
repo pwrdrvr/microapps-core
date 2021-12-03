@@ -422,7 +422,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const policyReadListStaging = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       // FIXME: Allow Deployer to delete from Staging bucket
-      actions: ['s3:GetObject', 's3:ListBucket'],
+      actions: ['s3:DeleteObject', 's3:GetObject', 's3:ListBucket'],
       resources: [`${bucketAppsStaging.bucketArn}/*`, bucketAppsStaging.bucketArn],
     });
     deployerFunc.addToRolePolicy(policyReadListStaging);

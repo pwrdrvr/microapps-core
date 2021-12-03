@@ -182,6 +182,11 @@ describe('VersionController', () => {
           CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
           Key: `${appName}/${semVer}/index.html`,
         })
+        .resolves({})
+        .on(s3.DeleteObjectCommand, {
+          Bucket: config.filestore.stagingBucket,
+          Key: `${appName}/${semVer}/index.html`,
+        })
         .resolves({});
 
       lambdaClient
@@ -285,6 +290,11 @@ describe('VersionController', () => {
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
           CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({})
+        .on(s3.DeleteObjectCommand, {
+          Bucket: config.filestore.stagingBucket,
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
@@ -401,6 +411,11 @@ describe('VersionController', () => {
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
           CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({})
+        .on(s3.DeleteObjectCommand, {
+          Bucket: config.filestore.stagingBucket,
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
@@ -523,6 +538,11 @@ describe('VersionController', () => {
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
           CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
+          Key: `${appName}/${semVer}/index.html`,
+        })
+        .resolves({})
+        .on(s3.DeleteObjectCommand, {
+          Bucket: config.filestore.stagingBucket,
           Key: `${appName}/${semVer}/index.html`,
         })
         .resolves({});
