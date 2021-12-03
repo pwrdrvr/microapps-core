@@ -187,9 +187,12 @@ describe('VersionController', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
-        // Mock permission removes - these can fail
-        .on(lambda.RemovePermissionCommand)
-        .rejects()
+        .on(lambda.GetPolicyCommand, {
+          FunctionName: fakeLambdaARN,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
         // Mock permission add for version root
         .on(lambda.AddPermissionCommand, {
           Principal: 'apigateway.amazonaws.com',
@@ -288,9 +291,23 @@ describe('VersionController', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
-        // Mock permission removes - these can fail
-        .on(lambda.RemovePermissionCommand)
-        .rejects()
+        .on(lambda.GetPolicyCommand, {
+          FunctionName: fakeLambdaARN,
+        })
+        .resolves({
+          Policy: JSON.stringify({
+            Version: '2012-10-17',
+            Id: 'default',
+            Statement: [
+              {
+                Sid: 'microapps-version-root',
+              },
+              {
+                Sid: 'microapps-version',
+              },
+            ],
+          }),
+        })
         // Mock permission add for version root
         .on(lambda.AddPermissionCommand, {
           Principal: 'apigateway.amazonaws.com',
@@ -391,9 +408,12 @@ describe('VersionController', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
-        // Mock permission removes - these can fail
-        .on(lambda.RemovePermissionCommand)
-        .rejects()
+        .on(lambda.GetPolicyCommand, {
+          FunctionName: fakeLambdaARN,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
         // Mock permission add for version root
         .on(lambda.AddPermissionCommand, {
           Principal: 'apigateway.amazonaws.com',
@@ -510,10 +530,12 @@ describe('VersionController', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
-        // Mock permission removes - these can fail
-        .on(lambda.RemovePermissionCommand)
-        .rejects()
-
+        .on(lambda.GetPolicyCommand, {
+          FunctionName: fakeLambdaARN,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
         // Mock permission add for version root
         .on(lambda.AddPermissionCommand, {
           Principal: 'apigateway.amazonaws.com',

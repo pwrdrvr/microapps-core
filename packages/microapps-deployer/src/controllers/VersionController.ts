@@ -214,45 +214,62 @@ export default class VersionController {
         const accountId = config.awsAccountID;
         const region = config.awsRegion;
 
-        // Ensure that the Lambda function allows API Gateway to invoke
+        //
+        // Confirm API Gateway is already allowed to execute this alias
+        // from the specific route for this version
+        //
+        let addStatements = true;
         try {
-          await lambdaClient.send(
-            new lambda.RemovePermissionCommand({
+          const existingPolicy = await lambdaClient.send(
+            new lambda.GetPolicyCommand({
               FunctionName: request.lambdaARN,
+            }),
+          );
+          if (existingPolicy.Policy !== undefined) {
+            interface IPolicyDocument {
+              Version: string;
+              Id: string;
+              Statement: { Sid: string }[];
+            }
+            const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
+
+            if (policyDoc.Statement !== undefined) {
+              const foundStatements = policyDoc.Statement.filter(
+                (value) =>
+                  value.Sid === 'microapps-version-root' || value.Sid === 'microapps-version',
+              );
+              if (foundStatements.length === 2) {
+                addStatements = false;
+              }
+            }
+          }
+        } catch (error) {
+          if (error.name !== 'ResourceNotFoundException') {
+            throw error;
+          }
+        }
+
+        // Add statements if they do not already exist
+        if (addStatements) {
+          await lambdaClient.send(
+            new lambda.AddPermissionCommand({
+              Principal: 'apigateway.amazonaws.com',
               StatementId: 'microapps-version-root',
-            }),
-          );
-        } catch {
-          // Don't care if this remove throws
-        }
-        try {
-          await lambdaClient.send(
-            new lambda.RemovePermissionCommand({
+              Action: 'lambda:InvokeFunction',
               FunctionName: request.lambdaARN,
-              StatementId: 'microapps-version',
+              SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}`,
             }),
           );
-        } catch {
-          // Don't care if this remove throws
+          await lambdaClient.send(
+            new lambda.AddPermissionCommand({
+              Principal: 'apigateway.amazonaws.com',
+              StatementId: 'microapps-version',
+              Action: 'lambda:InvokeFunction',
+              FunctionName: request.lambdaARN,
+              SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
+            }),
+          );
         }
-        await lambdaClient.send(
-          new lambda.AddPermissionCommand({
-            Principal: 'apigateway.amazonaws.com',
-            StatementId: 'microapps-version-root',
-            Action: 'lambda:InvokeFunction',
-            FunctionName: request.lambdaARN,
-            SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}`,
-          }),
-        );
-        await lambdaClient.send(
-          new lambda.AddPermissionCommand({
-            Principal: 'apigateway.amazonaws.com',
-            StatementId: 'microapps-version',
-            Action: 'lambda:InvokeFunction',
-            FunctionName: request.lambdaARN,
-            SourceArn: `arn:aws:execute-api:${region}:${accountId}:${apiId}/*/*/${request.appName}/${request.semVer}/{proxy+}`,
-          }),
-        );
         record.Status = 'permissioned';
         await record.Save(dbManager);
       }
