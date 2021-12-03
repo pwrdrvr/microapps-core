@@ -397,13 +397,15 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const policyCloudFrontAccess = new iam.PolicyStatement({
       sid: 'cloudfront-oai-access',
       effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject'],
+      // ListBucket is needed so that missing assets
+      // return a 404 NotFound instead of a 403 AccessDenied
+      actions: ['s3:GetObject', 's3:ListBucket'],
       principals: [
         new iam.CanonicalUserPrincipal(
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
       ],
-      resources: [`${bucketApps.bucketArn}/*`],
+      resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
     });
     if (bucketApps.policy === undefined) {
       const document = new s3.BucketPolicy(this, 'CFPolicy', {
