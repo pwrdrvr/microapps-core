@@ -142,6 +142,21 @@ export class PublishCommand extends Command {
       [
         {
           // TODO: Disable this task if no static assets path
+          title: 'Confirm Static Assets Folder Exists',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Check that Static Assets Folder exists
+            if (!(await pathExists(config.app.staticAssetsPath))) {
+              this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
+            }
+
+            task.title = origTitle;
+          },
+        },
+        {
+          // TODO: Disable this task if no static assets path
           title: 'Get S3 Temp Credentials',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -165,21 +180,6 @@ export class PublishCommand extends Command {
             } else {
               task.title = `App/Version does not exist: ${config.app.name}/${config.app.semVer}`;
             }
-          },
-        },
-        {
-          // TODO: Disable this task if no static assets path
-          title: 'Confirm Static Assets Folder Exists',
-          task: async (ctx, task) => {
-            const origTitle = task.title;
-            task.title = RUNNING + origTitle;
-
-            // Check that Static Assets Folder exists
-            if (!(await pathExists(config.app.staticAssetsPath))) {
-              this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
-            }
-
-            task.title = origTitle;
           },
         },
         {

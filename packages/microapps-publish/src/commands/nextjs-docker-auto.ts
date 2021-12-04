@@ -289,6 +289,20 @@ export class DockerAutoCommand extends Command {
           },
         },
         {
+          title: 'Confirm Static Assets Folder Exists',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            // Check that Static Assets Folder exists
+            if (!(await pathExists(config.app.staticAssetsPath))) {
+              this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
+            }
+
+            task.title = origTitle;
+          },
+        },
+        {
           title: 'Publish to ECR',
           task: async (ctx: IContext, task: TaskWrapper<IContext, typeof DefaultRenderer>) => {
             const origTitle = task.title;
@@ -304,25 +318,20 @@ export class DockerAutoCommand extends Command {
         {
           title: 'Deploy to Lambda',
           task: async (ctx, task) => {
+            // Allow overwriting a non-overwritable app if the prior
+            // publish was not completely successful - in that case
+            // the lambda alias may exist and need updating
+            const allowOverwrite = overwrite || !ctx.preflightResult.exists;
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
             // Update the Lambda function
-            await this.deployToLambda({ config, versions: this.VersionAndAlias, overwrite, task });
-
-            task.title = origTitle;
-          },
-        },
-        {
-          title: 'Confirm Static Assets Folder Exists',
-          task: async (ctx, task) => {
-            const origTitle = task.title;
-            task.title = RUNNING + origTitle;
-
-            // Check that Static Assets Folder exists
-            if (!(await pathExists(config.app.staticAssetsPath))) {
-              this.error(`Static asset path does not exist: ${config.app.staticAssetsPath}`);
-            }
+            await this.deployToLambda({
+              config,
+              versions: this.VersionAndAlias,
+              overwrite: allowOverwrite,
+              task,
+            });
 
             task.title = origTitle;
           },

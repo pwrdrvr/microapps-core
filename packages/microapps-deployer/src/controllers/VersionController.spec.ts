@@ -95,7 +95,7 @@ describe('VersionController', () => {
   });
 
   describe('deployVersionPreflight', () => {
-    it('should return 404 for version that does not exist', async () => {
+    it('should 404 for version that does not exist', async () => {
       const appName = 'newapp';
       const semVer = '0.0.0';
 
@@ -119,7 +119,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 200 for version that exists', async () => {
+    it('should 200 for version that exists', async () => {
       const appName = 'newapp';
       const semVer = '0.0.0';
 
@@ -159,7 +159,7 @@ describe('VersionController', () => {
   describe('deployVersion', () => {
     const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
 
-    it('should return 201 for deploying version that does not exist', async () => {
+    it('should 201 version that does not exist', async () => {
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -259,7 +259,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(201);
     });
 
-    it('should return 201 for deploying version that exists - overwrite true', async () => {
+    it('should 201 version that exists - overwrite true', async () => {
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -381,7 +381,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(201);
     });
 
-    it('should return 201 for deploying version that does not exist, with continuations', async () => {
+    it('should 201 version that does not exist, with continuations', async () => {
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -517,7 +517,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should return 401 for deploying version with lack of apigwy permission', async () => {
+    it('should 401 version with lack of apigwy permission', async () => {
       const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
