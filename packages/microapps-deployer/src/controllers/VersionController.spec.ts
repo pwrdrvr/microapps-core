@@ -81,10 +81,10 @@ describe('VersionController', () => {
     );
 
     sandbox = sinon.createSandbox();
-    s3Client = mockClient(s3.S3Client);
-    stsClient = mockClient(sts.STSClient);
-    apigwyClient = mockClient(apigwy.ApiGatewayV2Client);
-    lambdaClient = mockClient(lambda.LambdaClient);
+    s3Client = mockClient(s3.S3Client).onAnyCommand().rejects();
+    stsClient = mockClient(sts.STSClient).onAnyCommand().rejects();
+    apigwyClient = mockClient(apigwy.ApiGatewayV2Client).onAnyCommand().rejects();
+    lambdaClient = mockClient(lambda.LambdaClient).onAnyCommand().rejects();
   });
 
   afterEach(() => {

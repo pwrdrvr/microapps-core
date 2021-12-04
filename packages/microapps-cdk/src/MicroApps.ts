@@ -71,20 +71,75 @@ export interface MicroAppsProps {
   readonly certOrigin: acm.ICertificate;
 
   /**
-   * IAM Role name to exclude from the DENY rules on the S3 Bucket Policy.
+   * Use a strict S3 Bucket Policy that prevents applications
+   * from reading/writing/modifying/deleting files in the S3 Bucket
+   * outside of the path that is specific to their app/version.
    *
-   * @default AdminAccess
+   * This setting should be used when applications are less than
+   * fully trusted.
+   *
+   * @default false
    */
-  readonly s3PolicyBypassRoleName: string;
+  readonly s3StrictBucketPolicy?: boolean;
 
   /**
-   * AROA of the IAM Role to exclude from the DENY rules on the S3 Bucket Policy.
+   * Applies when using s3StrictBucketPolicy = true
+   *
+   * IAM Role or IAM User names to exclude from the DENY rules on the S3 Bucket Policy.
+   *
+   * Roles that are Assumed must instead have their AROA added to `s3PolicyBypassAROAs`.
+   *
+   * Typically any admin roles / users that need to view or manage the S3 Bucket
+   * would be added to this list.
+   *
+   * @example ['arn:aws:iam::1234567890123:role/AdminAccess', 'arn:aws:iam::1234567890123:user/MyAdminUser']
+   *
+   * @see s3PolicyBypassAROAs
+   */
+  readonly s3PolicyBypassPrincipalARNs?: string[];
+
+  /**
+   * Applies when using s3StrictBucketPolicy = true
+   *
+   * AROAs of the IAM Role to exclude from the DENY rules on the S3 Bucket Policy.
    * This allows sessions that assume the IAM Role to be excluded from the
    * DENY rules on the S3 Bucket Policy.
    *
-   * @example AROA1234567890123
+   * Typically any admin roles / users that need to view or manage the S3 Bucket
+   * would be added to this list.
+   *
+   * Roles / users that are used directly, not assumed, can be added to `s3PolicyBypassRoleNames` instead.
+   *
+   * Note: This AROA must be specified to prevent this policy from locking
+   * out non-root sessions that have assumed the admin role.
+   *
+   * The notPrincipals will only match the role name exactly and will not match
+   * any session that has assumed the role since notPrincipals does not allow
+   * wildcard matches and does not do wildcard matches implicitly either.
+   *
+   * The AROA must be used because there are only 3 Principal variables available:
+   *  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+   *  aws:username, aws:userid, aws:PrincipalTag
+   *
+   * For an assumed role, aws:username is blank, aws:userid is:
+   *  [unique id AKA AROA for Role]:[session name]
+   *
+   * Table of unique ID prefixes such as AROA:
+   *  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
+   *
+   * The name of the role is simply not available for an assumed role and, if it was,
+   * a complicated comparison would be requierd to prevent exclusion
+   * of applying the Deny Rule to roles from other accounts.
+   *
+   * To get the AROA with the AWS CLI:
+   *   aws iam get-role --role-name ROLE-NAME
+   *   aws iam get-user -–user-name USER-NAME
+   *
+   * @example [ 'AROA1234567890123' ]
+   *
+   * @see s3StrictBucketPolicy
    */
-  readonly s3PolicyBypassAROA: string;
+  readonly s3PolicyBypassAROAs?: string[];
 
   /**
    * AWS Account ID that the stack is being deployed to, this is
@@ -151,8 +206,9 @@ export class MicroApps extends cdk.Construct {
       region,
       appEnv = 'dev',
       certOrigin,
-      s3PolicyBypassAROA,
-      s3PolicyBypassRoleName = 'AdminAccess',
+      s3PolicyBypassAROAs,
+      s3PolicyBypassPrincipalARNs,
+      s3StrictBucketPolicy,
     } = props;
     const reverseDomainName = MicroApps.reverseDomain(domainName);
 
@@ -191,8 +247,9 @@ export class MicroApps extends cdk.Construct {
       region,
       appEnv,
       certOrigin,
-      s3PolicyBypassAROA,
-      s3PolicyBypassRoleName,
+      s3PolicyBypassAROAs,
+      s3PolicyBypassPrincipalARNs,
+      s3StrictBucketPolicy,
     });
   }
 }
