@@ -11,18 +11,25 @@ on:
   pull_request:
     branches: [ main ]
 
+# Limit concurrency to 1, with queueing, per workflow
+# Limit concurrency to 1, with queueing, per workflow per PR
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
 env:
   # This is used by the SharedProps to detect a PR build
   PR_NUMBER: ${{ github.event.pull_request.number }}
+  ENV: dev
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_DEV }}
+  AWS_REGION: us-east-2
+  CDK_CONTEXT_ARGS: "--context @pwrdrvr/microapps:s3BucketName=com.pwrdrvr-microapps-dev"
 
 jobs:
   build:
-    defaults:
-      run:
-        shell: bash
-
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
 
@@ -70,18 +77,18 @@ jobs:
           npm ci
           npm run build
 
-      - name: Smoke Check CDK
-        run: npx cdk list
-
       # - name: Bundle Deployer
       #   run: npm run esbuild:deployer
 
       # - name: Bundle Router
       #   run: npm run esbuild:router
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-core-build
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/RoleForGitHub
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Deploy CDK Stack
         run: npx cdk deploy --require-approval never microapps-core
-        env:
-            AWS_REGION: ${{ secrets.AWS_REGION }}
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
