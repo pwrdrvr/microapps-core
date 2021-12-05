@@ -20,7 +20,7 @@ SharedTags.addSharedTags(app, { shared });
 
 new MicroAppsStack(app, 'microapps-core', {
   env,
-  stackName: `microapps${shared.envSuffix}${shared.prSuffix}`,
+  stackName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
   ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   domainNameEdge: `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
@@ -30,7 +30,7 @@ new MicroAppsStack(app, 'microapps-core', {
 
 // Note: This is only run manually once per env to create build user
 new MicroAppsBuilder(app, 'microapps-builder', {
-  stackName: `microapps-builder${shared.envSuffix}`,
+  stackName: `${shared.stackName}-builder${shared.envSuffix}`,
   shared,
   env,
 });
