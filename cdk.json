@@ -16,6 +16,6 @@
     "@pwrdrvr/microapps:r53ZoneID": "ZHYNI9F572BBD",
     "@pwrdrvr/microapps:certIDEdge": "e2434943-4295-4514-8f83-eeef556d8d09",
     "@pwrdrvr/microapps:certIDOrigin": "533cdfa2-0528-484f-bd53-0a0d0dc6159c",
-    "@pwrdrvr/microapps:s3PolicyBypassAROAs": ["AROATPLZCRY4WP53J2FMI"]
+    "@pwrdrvr/microapps:s3PolicyBypassAROAs": ["AROATPLZCRY4WP53J2FMI", "AROATPLZCRY45RWHYTGJY"]
   }
 }
