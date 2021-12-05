@@ -30,11 +30,11 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-session-name: microapps-core-build
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/RoleForGitHub
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/microapps-ghpublic-builder-dev-builder-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Destroy CDK Stack
         run: |
-          aws cloudformation delete-stack --stack-name "microapps-${NODE_ENV}-pr-${PR_NUMBER}"
-          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation delete-stack --stack-name "microapps-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"

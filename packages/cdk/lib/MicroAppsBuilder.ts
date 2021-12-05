@@ -8,6 +8,13 @@ interface IMicroAppsBuilderStackProps extends cdk.StackProps {
 }
 
 export class MicroAppsBuilder extends cdk.Stack {
+  /**
+   * Create a role to be assumed by GitHub via OIDC for deploying CDK stacks.
+   *
+   * @param scope
+   * @param id
+   * @param props
+   */
   constructor(scope: cdk.Construct, id: string, props?: IMicroAppsBuilderStackProps) {
     super(scope, id, props);
 
@@ -63,7 +70,7 @@ export class MicroAppsBuilder extends cdk.Stack {
     //   }),
     // );
 
-    const userBuilder = new iam.User(this, 'microapps-builder-user', {
+    const builderRole = new iam.Role(this, 'microapps-builder-role', {
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCertificateManagerReadOnly'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('CloudFrontFullAccess'),
@@ -72,13 +79,30 @@ export class MicroAppsBuilder extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchFullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonDynamoDBFullAccess'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryFullAccess'),
         // FIXME: Limit this to Role and Policy creation only (no users)
         iam.ManagedPolicy.fromAwsManagedPolicyName('IAMFullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53FullAccess'),
       ],
-      userName: nameRoot,
+      roleName: `${nameRoot}-builder-role`,
+      assumedBy: new iam.WebIdentityPrincipal(
+        `arn:aws:iam::${props.shared.account}:oidc-provider/token.actions.githubusercontent.com`,
+        {
+          StringEquals: { 'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com' },
+          StringLike: {
+            // Full example here of setting up OIDC via CDK with GitHub:
+            // https://github.com/WojciechMatuszewski/github-oidc-aws-cdk-example
+            // Notice the `ref:refs`. The `s` in the second `ref` is important!
+            // `repo:${yourGitHubUsername}/${yourGitHubRepoName}:ref:refs/heads/${yourGitHubBranchName}`
+            'token.actions.githubusercontent.com:sub': 'repo:pwrdrvr/*',
+          },
+        },
+      ),
+      maxSessionDuration: cdk.Duration.hours(1),
     });
-    userBuilder.addToPolicy(
+
+    // Add permissions needed by the TTL construct
+    builderRole.addToPolicy(
       new iam.PolicyStatement({
         actions: [
           'events:PutRule',
@@ -90,17 +114,9 @@ export class MicroAppsBuilder extends cdk.Stack {
         resources: ['*'],
       }),
     );
-    const groupBuilder = new iam.Group(this, 'microapps-builder-group-1', {
-      groupName: `${nameRoot}-1`,
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53FullAccess'),
-      ],
-    });
-    userBuilder.addToGroup(groupBuilder);
-    // Always destroy this user if the stack is destroyed
-    // This user is not critical and if we destroy the stack we should rotate the keys
-    userBuilder.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
-    groupBuilder.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+
+    // Always destroy this role if the stack is destroyed
+    // This role is not critical
+    builderRole.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
   }
 }

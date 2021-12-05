@@ -1,1 +1,1 @@
-src/microapps-cdk/README.md
+packages/microapps-cdk/README.md
