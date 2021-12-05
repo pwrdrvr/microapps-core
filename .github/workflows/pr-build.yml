@@ -101,3 +101,11 @@ jobs:
         run: |
           npm ci
           npm run build
+
+
+
+      - name: Confirm No Doc Changes
+        run: |
+          npm run post-compile
+          git diff --ignore-space-at-eol --exit-code
+

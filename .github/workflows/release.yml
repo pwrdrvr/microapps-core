@@ -146,7 +146,9 @@ jobs:
           path: dist
 
       - name: Apply Version to Everything
-        run: cat dist/version.txt && npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
+        run: |
+          cat dist/version.txt
+          npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
 
       - name: Install Node Modules
         run: npm ci
