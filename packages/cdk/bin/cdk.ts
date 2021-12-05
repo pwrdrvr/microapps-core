@@ -21,7 +21,6 @@ SharedTags.addSharedTags(app, { shared });
 new MicroAppsStack(app, 'microapps-core', {
   env,
   stackName: `microapps${shared.envSuffix}${shared.prSuffix}`,
-  ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   domainNameEdge: `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
   domainNameOrigin: `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
