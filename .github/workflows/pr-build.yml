@@ -55,8 +55,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-session-name: microapps-core-build
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/RoleForGitHub
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/microapps-ghpublic-builder-dev-builder-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CDK Stack
