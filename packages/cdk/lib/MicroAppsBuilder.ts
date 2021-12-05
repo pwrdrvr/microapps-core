@@ -115,8 +115,6 @@ export class MicroAppsBuilder extends cdk.Stack {
       }),
     );
 
-    builderRole.assumeRolePolicy;
-
     // Always destroy this role if the stack is destroyed
     // This role is not critical
     builderRole.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
