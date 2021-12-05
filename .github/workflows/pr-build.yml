@@ -102,10 +102,8 @@ jobs:
           npm ci
           npm run build
 
-
-
       - name: Confirm No Doc Changes
+        working-directory: packages/microapps-cdk/
         run: |
           npm run post-compile
           git diff --ignore-space-at-eol --exit-code
-
