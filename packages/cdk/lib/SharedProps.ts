@@ -112,15 +112,15 @@ export class SharedProps {
     this._certIDEdge = scope.node.tryGetContext('@pwrdrvr/microapps:certIDEdge');
     this._certIDOrigin = scope.node.tryGetContext('@pwrdrvr/microapps:certIDOrigin');
     this._account =
-      scope.node.tryGetContext('@pwrdrvr/microapps:account') || process.env.CDK_DEFAULT_ACCOUNT;
+      scope.node.tryGetContext('@pwrdrvr/microapps:account') ?? process.env.CDK_DEFAULT_ACCOUNT;
     this._region =
-      scope.node.tryGetContext('@pwrdrvr/microapps:region') || process.env.CDK_DEFAULT_REGION;
-    this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') || 'microapps';
+      scope.node.tryGetContext('@pwrdrvr/microapps:region') ?? process.env.CDK_DEFAULT_REGION;
+    this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') ?? 'microapps';
     this._s3StrictBucketPolicy =
-      (scope.node.tryGetContext('@pwrdrvr/microapps:s3StrictBucketPolicy') as boolean) || true;
+      (scope.node.tryGetContext('@pwrdrvr/microapps:s3StrictBucketPolicy') as boolean) ?? true;
 
     const s3PolicyBypassPrincipalARNsRaw =
-      scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassPrincipalARNs') || [];
+      scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassPrincipalARNs') ?? [];
     if (Array.isArray(s3PolicyBypassPrincipalARNsRaw)) {
       this._s3PolicyBypassPrincipalARNs = s3PolicyBypassPrincipalARNsRaw;
     } else {
@@ -128,7 +128,7 @@ export class SharedProps {
     }
 
     const s3PolicyBypassAROAsRaw =
-      scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROAs') || [];
+      scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROAs') ?? [];
     if (Array.isArray(s3PolicyBypassAROAsRaw)) {
       this._s3PolicyBypassAROAs = s3PolicyBypassAROAsRaw;
     } else {

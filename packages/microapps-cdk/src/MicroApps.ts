@@ -206,9 +206,9 @@ export class MicroApps extends cdk.Construct {
       region,
       appEnv = 'dev',
       certOrigin,
-      s3PolicyBypassAROAs,
-      s3PolicyBypassPrincipalARNs,
-      s3StrictBucketPolicy,
+      s3PolicyBypassAROAs = [],
+      s3PolicyBypassPrincipalARNs = [],
+      s3StrictBucketPolicy = false,
     } = props;
     const reverseDomainName = MicroApps.reverseDomain(domainName);
 

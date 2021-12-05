@@ -60,6 +60,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CDK Stack
+        run: npx cdk synth microapps-core
+
+      - name: Deploy CDK Stack
         run: npx cdk deploy --hotswap --require-approval never microapps-core
 
   build-jsii:
