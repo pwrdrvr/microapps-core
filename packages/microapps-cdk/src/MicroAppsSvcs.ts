@@ -34,8 +34,9 @@ interface MicroAppsSvcsStackProps extends cdk.ResourceProps {
   readonly r53ZoneName: string;
   readonly r53ZoneID: string;
 
-  readonly s3PolicyBypassAROA: string;
-  readonly s3PolicyBypassRoleName: string;
+  readonly s3StrictBucketPolicy?: boolean;
+  readonly s3PolicyBypassAROAs?: string[];
+  readonly s3PolicyBypassPrincipalARNs?: string[];
 
   readonly account: string;
   readonly region: string;
@@ -63,8 +64,9 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const {
       r53ZoneID,
       r53ZoneName,
-      s3PolicyBypassAROA,
-      s3PolicyBypassRoleName,
+      s3PolicyBypassAROAs = [],
+      s3PolicyBypassPrincipalARNs = [],
+      s3StrictBucketPolicy = false,
       autoDeleteEverything,
       appEnv,
       domainNameEdge,
@@ -312,6 +314,16 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
     // Update S3 permissions
     //
+    // Create PrincipalARN List
+    const s3PolicyBypassArnPrincipals: iam.ArnPrincipal[] = [];
+    for (const arnPrincipal of s3PolicyBypassPrincipalARNs) {
+      s3PolicyBypassArnPrincipals.push(new iam.ArnPrincipal(arnPrincipal));
+    }
+    // Create AROA List that matches assumed sessions
+    const s3PolicyBypassAROAMatches: string[] = [];
+    for (const aroa of s3PolicyBypassAROAs) {
+      s3PolicyBypassAROAMatches.push(`${aroa}:*`);
+    }
     // Deny apps from reading:
     // - If they are missing the microapp-name tag
     // - Anything outside of the folder that matches their microapp-name tag
@@ -324,12 +336,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${account}:role/${s3PolicyBypassRoleName}`),
+        ...s3PolicyBypassArnPrincipals,
         deployerFunc.grantPrincipal,
-        // Allow the builder user to update the buckets
-        new iam.ArnPrincipal(
-          `arn:aws:iam::${account}:user/${assetNameRoot}-builder-${props.appEnv}`,
-        ),
       ],
       notResources: [
         `${bucketApps.bucketArn}/\${aws:PrincipalTag/microapp-name}/*`,
@@ -356,15 +364,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
         new iam.AccountRootPrincipal(),
-        new iam.ArnPrincipal(`arn:aws:iam::${account}:role/${s3PolicyBypassRoleName}`),
+        // Exclude the Deployer Function directly
         deployerFunc.grantPrincipal,
+        // 2021-12-04 - Not 100% sure that this is actually needed...
+        // Let's test this and remove if actually not necessary
         new iam.ArnPrincipal(
-          `arn:aws:sts::${account}:assumed-role/${deployerFunc?.role?.roleName}/${deployerFunc.functionName}`,
+          `arn:aws:sts::${account}:assumed-role/${deployerFunc.role?.roleName}/${deployerFunc.functionName}`,
         ),
-        // Allow the builder user to update the buckets
-        new iam.ArnPrincipal(
-          `arn:aws:iam::${account}:user/${assetNameRoot}-builder-${props.appEnv}`,
-        ),
+        ...s3PolicyBypassArnPrincipals,
       ],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
       conditions: {
@@ -374,7 +381,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         // The notPrincipals will only match the role name exactly and will not match
         // any session that has assumed the role since notPrincipals does not allow
         // wildcard matches and does not do them implicitly either.
-        // The AROA must be uased because there are only 3 Principal variables:
+        // The AROA must be used because there are only 3 Principal variables:
         //  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
         //  aws:username, aws:userid, aws:PrincipalTag
         // For an assumed role, aws:username is blank, aws:userid is:
@@ -384,7 +391,11 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
         // The name of the role is simply not available and if it was
         // we'd need to write a complicated comparison to make sure
         // that we didn't exclude the Deny tag from roles in other accounts.
-        StringNotLike: { 'aws:userid': [`${s3PolicyBypassAROA}:*`, account] },
+        //
+        // To get the AROA with the AWS CLI:
+        //   aws iam get-role --role-name ROLE-NAME
+        //   aws iam get-user -–user-name USER-NAME
+        StringNotLike: { 'aws:userid': [account, ...s3PolicyBypassAROAMatches] },
       },
     });
     if (autoDeleteEverything) {
@@ -405,17 +416,24 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       ],
       resources: [`${bucketApps.bucketArn}/*`],
     });
+
     if (bucketApps.policy === undefined) {
       const document = new s3.BucketPolicy(this, 'CFPolicy', {
         bucket: bucketApps,
       }).document;
       document.addStatements(policyCloudFrontAccess);
-      document.addStatements(policyDenyPrefixOutsideTag);
-      document.addStatements(policyDenyMissingTag);
+
+      if (s3StrictBucketPolicy) {
+        document.addStatements(policyDenyPrefixOutsideTag);
+        document.addStatements(policyDenyMissingTag);
+      }
     } else {
       bucketApps.policy.document.addStatements(policyCloudFrontAccess);
-      bucketApps.policy.document.addStatements(policyDenyPrefixOutsideTag);
-      bucketApps.policy.document.addStatements(policyDenyMissingTag);
+
+      if (s3StrictBucketPolicy) {
+        bucketApps.policy.document.addStatements(policyDenyPrefixOutsideTag);
+        bucketApps.policy.document.addStatements(policyDenyMissingTag);
+      }
     }
 
     // Allow the Lambda to read from the staging bucket

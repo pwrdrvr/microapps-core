@@ -31,7 +31,7 @@
     "esbuild:router": "esbuild packages/microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=packages/cdk/dist/microapps-router/index.js",
     "build:deployer": "rollup --config rollup.deployer.js",
     "build:router": "rollup --config rollup.router.js && cp packages/microapps-router/appFrame.html distb/microapps-router/",
-    "test": "AWS_EMF_ENVIRONMENT=Local jest",
+    "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local jest",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix"
   },

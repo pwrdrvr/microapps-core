@@ -48,22 +48,22 @@ export class SharedProps {
     return this._stackName;
   }
 
-  private _reverseDomainName;
+  private _reverseDomainName: string;
   public get reverseDomainName(): string {
     return this._reverseDomainName;
   }
 
-  private _domainName;
+  private _domainName: string;
   public get domainName(): string {
     return this._domainName;
   }
 
-  private _r53ZoneName;
+  private _r53ZoneName: string;
   public get r53ZoneName(): string {
     return this._r53ZoneName;
   }
 
-  private _r53ZoneID;
+  private _r53ZoneID: string;
   public get r53ZoneID(): string {
     return this._r53ZoneID;
   }
@@ -79,22 +79,27 @@ export class SharedProps {
     return `arn:aws:acm:${this._region}:${this._account}:certificate/${this._certIDOrigin}`;
   }
 
-  private _s3PolicyBypassRoleName;
-  public get s3PolicyBypassRoleName(): string {
-    return this._s3PolicyBypassRoleName;
+  private _s3PolicyBypassPrincipalARNs: string[];
+  public get s3PolicyBypassPrincipalARNs(): string[] {
+    return this._s3PolicyBypassPrincipalARNs;
   }
 
-  private _s3PolicyBypassAROA;
-  public get s3PolicyBypassAROA(): string {
-    return this._s3PolicyBypassAROA;
+  private _s3PolicyBypassAROAs: string[];
+  public get s3PolicyBypassAROAs(): string[] {
+    return this._s3PolicyBypassAROAs;
   }
 
-  private _account;
+  private _s3StrictBucketPolicy: boolean;
+  public get s3StrictBucketPolicy(): boolean {
+    return this._s3StrictBucketPolicy;
+  }
+
+  private _account: string;
   public get account(): string {
     return this._account;
   }
 
-  private _region;
+  private _region: string;
   public get region(): string {
     return this._region;
   }
@@ -106,15 +111,29 @@ export class SharedProps {
     this._r53ZoneID = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneID');
     this._certIDEdge = scope.node.tryGetContext('@pwrdrvr/microapps:certIDEdge');
     this._certIDOrigin = scope.node.tryGetContext('@pwrdrvr/microapps:certIDOrigin');
-    this._s3PolicyBypassRoleName = scope.node.tryGetContext(
-      '@pwrdrvr/microapps:s3PolicyBypassRoleName',
-    );
-    this._s3PolicyBypassAROA = scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROA');
     this._account =
       scope.node.tryGetContext('@pwrdrvr/microapps:account') || process.env.CDK_DEFAULT_ACCOUNT;
     this._region =
       scope.node.tryGetContext('@pwrdrvr/microapps:region') || process.env.CDK_DEFAULT_REGION;
     this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') || 'microapps';
+    this._s3StrictBucketPolicy =
+      (scope.node.tryGetContext('@pwrdrvr/microapps:s3StrictBucketPolicy') as boolean) || true;
+
+    const s3PolicyBypassPrincipalARNsRaw =
+      scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassPrincipalARNs') || [];
+    if (Array.isArray(s3PolicyBypassPrincipalARNsRaw)) {
+      this._s3PolicyBypassPrincipalARNs = s3PolicyBypassPrincipalARNsRaw;
+    } else {
+      this._s3PolicyBypassPrincipalARNs = [s3PolicyBypassPrincipalARNsRaw];
+    }
+
+    const s3PolicyBypassAROAsRaw =
+      scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassAROAs') || [];
+    if (Array.isArray(s3PolicyBypassAROAsRaw)) {
+      this._s3PolicyBypassAROAs = s3PolicyBypassAROAsRaw;
+    } else {
+      this._s3PolicyBypassAROAs = [s3PolicyBypassAROAsRaw];
+    }
 
     // Determine if we have a PR number
     if (process.env.CODEBUILD_SOURCE_VERSION !== undefined) {

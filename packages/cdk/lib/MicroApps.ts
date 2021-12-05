@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
-import { MicroApps } from '@pwrdrvr/microapps-cdk';
+import { MicroApps as MicroAppsCDK } from '@pwrdrvr/microapps-cdk';
 import { Imports } from './Imports';
 import { SharedProps } from './SharedProps';
 
@@ -49,7 +49,7 @@ export class MicroAppsStack extends cdk.Stack {
       shared,
     });
 
-    new MicroApps(this, 'microapps', {
+    new MicroAppsCDK(this, 'microapps', {
       account: shared.account,
       region: shared.region,
       appEnv: shared.env,
@@ -62,8 +62,9 @@ export class MicroAppsStack extends cdk.Stack {
       domainName: shared.domainName,
       r53ZoneID: shared.r53ZoneID,
       r53ZoneName: shared.r53ZoneName,
-      s3PolicyBypassAROA: shared.s3PolicyBypassAROA,
-      s3PolicyBypassRoleName: shared.s3PolicyBypassRoleName,
+      s3PolicyBypassAROAs: shared.s3PolicyBypassAROAs,
+      s3PolicyBypassPrincipalARNs: shared.s3PolicyBypassPrincipalARNs,
+      s3StrictBucketPolicy: shared.s3StrictBucketPolicy,
       autoDeleteEverything,
     });
   }
