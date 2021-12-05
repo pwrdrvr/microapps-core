@@ -80,6 +80,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
 
     const apigatewayName = `${assetNameRoot}${assetNameSuffix}`;
 
+    if (s3StrictBucketPolicy === true) {
+      if (s3PolicyBypassAROAs.length === 0 && s3PolicyBypassPrincipalARNs.length === 0) {
+        throw new Error(
+          's3StrictBucketPolicy cannot be true without specifying at least one s3PolicyBypassAROAs or s3PolicyBypassPrincipalARNs',
+        );
+      }
+    }
+
     //
     // DynamoDB Table
     //
