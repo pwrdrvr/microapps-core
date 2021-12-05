@@ -115,7 +115,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     let routerFunc: lambda.Function;
     const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: `${assetNameRoot}-router${assetNameSuffix}`,
-      memorySize: 1024,
+      memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
       timeout: cdk.Duration.seconds(15),
@@ -249,7 +249,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     let deployerFunc: lambda.Function;
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
-      memorySize: 1024,
+      memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
       timeout: cdk.Duration.seconds(15),
