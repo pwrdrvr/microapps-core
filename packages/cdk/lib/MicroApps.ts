@@ -19,8 +19,6 @@ export interface MicroAppsStackProps extends cdk.StackProps {
    */
   readonly autoDeleteEverything?: boolean;
 
-  readonly s3StrictBucketPolicy?: boolean;
-
   readonly domainNameEdge: string;
   readonly domainNameOrigin: string;
 
