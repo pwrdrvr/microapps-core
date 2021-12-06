@@ -20,9 +20,8 @@ env:
   # This is used by the SharedProps to detect a PR build
   PR_NUMBER: ${{ github.event.pull_request.number }}
   ENV: dev
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_DEV }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_GHP }}
   AWS_REGION: us-east-2
-  CDK_CONTEXT_ARGS: "--context @pwrdrvr/microapps:s3BucketName=com.pwrdrvr-microapps-dev"
 
 jobs:
   build:
@@ -56,7 +55,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-session-name: microapps-ghpublic-build
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/microapps-ghpublic-builder-dev-builder-role
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CDK Stack
