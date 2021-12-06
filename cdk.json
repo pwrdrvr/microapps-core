@@ -13,11 +13,10 @@
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
     "@aws-cdk/aws-efs:defaultEncryptionAtRest": true,
     "@pwrdrvr/microapps:stackName": "microapps-ghpublic",
-    "@pwrdrvr/microapps:r53ZoneName": "pwrdrvr.com.",
-    "@pwrdrvr/microapps:r53ZoneID": "ZHYNI9F572BBD",
-    "@pwrdrvr/microapps:certIDEdge": "e2434943-4295-4514-8f83-eeef556d8d09",
-    "@pwrdrvr/microapps:certIDOrigin": "533cdfa2-0528-484f-bd53-0a0d0dc6159c",
-    "@pwrdrvr/microapps:s3PolicyBypassAROAs": ["AROATPLZCRY44NQDF5OXW", "AROATPLZCRY45RWHYTGJY"],
-    "@pwrdrvr/microapps:s3StrictBucketPolicy": true
+    "@pwrdrvr/microapps:r53ZoneName": "ghpublic.pwrdrvr.com.",
+    "@pwrdrvr/microapps:r53ZoneID": "Z005084420J9MD9JNBCUK",
+    "@pwrdrvr/microapps:certIDEdge": "f0c4b317-8453-4bfa-b21b-b219bda53b45",
+    "@pwrdrvr/microapps:certIDOrigin": "840c614c-c55a-4ecd-816f-48afc4de96ac",
+    "@pwrdrvr/microapps:s3StrictBucketPolicy": false
   }
 }
