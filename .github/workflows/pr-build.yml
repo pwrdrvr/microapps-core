@@ -6,8 +6,8 @@
 name: PR Build
 
 on:
-  # push:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -19,7 +19,8 @@ concurrency:
 env:
   # This is used by the SharedProps to detect a PR build
   PR_NUMBER: ${{ github.event.pull_request.number }}
-  ENV: dev
+  # Set env to prod so we don't get an env suffix on the DNS names
+  NODE_ENV: prod
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_GHP }}
   AWS_REGION: us-east-2
 

@@ -6,7 +6,7 @@ name: Merge to Main Build
 on:
   push:
     branches:
-      - main
+      - 'disabled'
   # When testing changes to workflow
   # pull_request:
   #   branches:
