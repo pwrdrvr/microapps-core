@@ -68,13 +68,19 @@ jobs:
         run: |
           echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
 
-      - name: Compute NPM Version
+      - name: Compute NPM Version and App Lambda Name
         run: |
-          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}-pr.${PR_NUMBER} >> $GITHUB_ENV
+          if [ -n "${PR_NUMBER}" ]; then
+            echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}-pr.${PR_NUMBER} >> $GITHUB_ENV
+            echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER}
+          else
+            echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG} >> $GITHUB_ENV
+            echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}
+          fi
 
       - name: Publish Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l microapps-ghpublic-app-${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER} -s packages/demo-app/static_files -i index.html --overwrite --noCache
+          npx microapps-publish publish -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
 
       - name: Test Deployed App
         run: |
