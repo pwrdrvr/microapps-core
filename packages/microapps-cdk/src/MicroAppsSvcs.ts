@@ -218,6 +218,20 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       httpApi.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
+    // Enable access logs on API Gateway
+    const apiAccessLogs = new logs.LogGroup(this, 'microapps-api-logs', {
+      logGroupName: `/aws/apigwy/${apigatewayName}`,
+    });
+    if (autoDeleteEverything) {
+      apiAccessLogs.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+    const stage = httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
+    stage.accessLogSettings = {
+      destinationArn: apiAccessLogs.logGroupArn,
+      format:
+        '$context.identity.sourceIp - - [$context.requestTime] "$context.httpMethod $context.routeKey $context.protocol" $context.status $context.responseLength $context.requestId',
+    };
+
     // Add default route on API Gateway to point to the router
     // httpApi.addRoutes({
     //   path: '$default',

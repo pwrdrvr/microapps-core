@@ -62,6 +62,18 @@ function loadAppFrame(): string {
 
 const appFrame = loadAppFrame();
 
+// Change the logger on each request
+const log = new LambdaLog({
+  dev: localTesting,
+  //debug: localTesting,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dynamicMeta: (_message: LogMessage) => {
+    return {
+      timestamp: new Date().toISOString(),
+    };
+  },
+});
+
 /**
  * Exported Lambda Handler
  * @param event
@@ -81,22 +93,13 @@ export async function handler(
     isBase64Encoded: false,
   } as lambda.APIGatewayProxyStructuredResultV2;
 
-  // Change the logger on each request
-  const log = new LambdaLog({
-    dev: localTesting,
-    //debug: localTesting,
+  log.options = {
     meta: {
       source: 'microapps-router',
       awsRequestId: context.awsRequestId,
       rawPath: event.rawPath,
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dynamicMeta: (_message: LogMessage) => {
-      return {
-        timestamp: new Date().toISOString(),
-      };
-    },
-  });
+  };
 
   try {
     // /someapp will split into length 2 with ["", "someapp"] as results

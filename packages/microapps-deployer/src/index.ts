@@ -35,6 +35,18 @@ dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableNam
 
 const config = Config.instance;
 
+// Change the logger on each request
+Log.Instance = new LambdaLog({
+  dev: localTesting,
+  debug: localTesting,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dynamicMeta: (_message: LogMessage) => {
+    return {
+      timestamp: new Date().toISOString(),
+    };
+  },
+});
+
 export async function handler(
   event: IRequestBase,
   context?: lambda.Context,
@@ -46,6 +58,14 @@ export async function handler(
     });
   }
 
+  // Set meta on each request
+  Log.Instance.options = {
+    meta: {
+      awsRequestId: context?.awsRequestId,
+      requestType: event.type,
+    },
+  };
+
   // Get the current AWS Account ID, once, if not set as env var
   if (config.awsAccountID === 0 && context?.invokedFunctionArn !== undefined) {
     const parts = context.invokedFunctionArn.split(':');
@@ -54,23 +74,6 @@ export async function handler(
       config.awsAccountID = parseInt(accountIDStr, 10);
     }
   }
-
-  // Change the logger on each request
-  Log.Instance = new LambdaLog({
-    dev: localTesting,
-    debug: localTesting,
-    meta: {
-      source: 'microapps-deployer',
-      awsRequestId: context?.awsRequestId,
-      requestType: event.type,
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dynamicMeta: (_message: LogMessage) => {
-      return {
-        timestamp: new Date().toISOString(),
-      };
-    },
-  });
 
   try {
     // Dispatch based on request type
