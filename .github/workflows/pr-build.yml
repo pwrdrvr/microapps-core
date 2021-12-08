@@ -21,6 +21,8 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
   # Set env to prod so we don't get an env suffix on the DNS names
   NODE_ENV: prod
+  DEPLOYER_LAMBDA_NAME: microapps-ghpublic-deployer-prod-pr-${{ github.event.pull_request.number }}
+  APP_NAME: demo-app
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_GHP }}
   AWS_REGION: us-east-2
 
@@ -60,7 +62,28 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CDK Stack
-        run: npx cdk deploy --hotswap --require-approval never microapps-core
+        run: npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true --hotswap --require-approval never microapps-core
+
+      - name: Extract Current NPM Version
+        run: |
+          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
+
+      - name: Compute NPM Version
+        run: |
+          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}-pr.${PR_NUMBER} >> $GITHUB_ENV
+
+      - name: Publish Demo App to MicroApps
+        run: |
+          npx microapps-publish publish -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l microapps-ghpublic-app-${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER} -s packages/demo-app/static_files -i index.html --overwrite --noCache
+
+      - name: Test Deployed App
+        run: |
+          echo Testing App Frame Loading
+          curl https://apps-pr-${PR_NUMBER}.ghpublic.pwrdrvr.com/${APP_NAME}/
+          echo Testing App HTML Loading
+          curl https://apps-pr-${PR_NUMBER}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/index.html
+          echo Testing App Method Invocation
+          curl https://apps-pr-${PR_NUMBER}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/someMethod
 
   build-jsii:
     runs-on: ubuntu-latest

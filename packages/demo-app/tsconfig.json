@@ -4,10 +4,5 @@
     "rootDir": "src",
     "outDir": "dist"
   },
-  "references": [
-    {
-      "path": "../microapps-datalib/"
-    }
-  ],
   "exclude": ["**/*.spec.ts", "dist"]
 }

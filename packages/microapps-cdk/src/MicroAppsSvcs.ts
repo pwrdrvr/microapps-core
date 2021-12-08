@@ -218,6 +218,44 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       httpApi.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
+    // Enable access logs on API Gateway
+    const apiAccessLogs = new logs.LogGroup(this, 'microapps-api-logs', {
+      logGroupName: `/aws/apigwy/${apigatewayName}`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+    });
+    if (autoDeleteEverything) {
+      apiAccessLogs.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    }
+    const stage = httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
+    stage.accessLogSettings = {
+      destinationArn: apiAccessLogs.logGroupArn,
+      format: JSON.stringify({
+        requestId: '$context.requestId',
+        userAgent: '$context.identity.userAgent',
+        sourceIp: '$context.identity.sourceIp',
+        requestTime: '$context.requestTime',
+        requestTimeEpoch: '$context.requestTimeEpoch',
+        httpMethod: '$context.httpMethod',
+        path: '$context.path',
+        status: '$context.status',
+        protocol: '$context.protocol',
+        responseLength: '$context.responseLength',
+        domainName: '$context.domainName',
+      }),
+    };
+
+    // Create a logging role
+    // Tips: https://github.com/aws/aws-cdk/issues/11100
+    const apiGwyLogRole = new iam.Role(this, 'microapps-api-logs-role', {
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AmazonAPIGatewayPushToCloudWatchLogs',
+        ),
+      ],
+      assumedBy: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+    });
+    apiAccessLogs.grantWrite(apiGwyLogRole);
+
     // Add default route on API Gateway to point to the router
     // httpApi.addRoutes({
     //   path: '$default',

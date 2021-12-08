@@ -104,6 +104,17 @@ export class SharedProps {
     return this._region;
   }
 
+  private _deployDemoApp: boolean;
+  public get deployDemoApp(): boolean {
+    return this._deployDemoApp;
+  }
+
+  private static stringToBoolOrUndefined(value: string | undefined): boolean | undefined {
+    if (value === undefined) return undefined;
+    if ((value + '').toLowerCase() === 'true') return true;
+    return false;
+  }
+
   constructor(scope: cdk.Construct) {
     this._r53ZoneName = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneName');
     this._reverseDomainName = SharedProps.reverseDomain(this._r53ZoneName);
@@ -116,8 +127,14 @@ export class SharedProps {
     this._region =
       scope.node.tryGetContext('@pwrdrvr/microapps:region') ?? process.env.CDK_DEFAULT_REGION;
     this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') ?? 'microapps';
+    this._deployDemoApp =
+      SharedProps.stringToBoolOrUndefined(
+        scope.node.tryGetContext('@pwrdrvr/microapps:deployDemoApp'),
+      ) ?? false;
     this._s3StrictBucketPolicy =
-      (scope.node.tryGetContext('@pwrdrvr/microapps:s3StrictBucketPolicy') as boolean) ?? true;
+      SharedProps.stringToBoolOrUndefined(
+        scope.node.tryGetContext('@pwrdrvr/microapps:s3StrictBucketPolicy'),
+      ) ?? true;
 
     const s3PolicyBypassPrincipalARNsRaw =
       scope.node.tryGetContext('@pwrdrvr/microapps:s3PolicyBypassPrincipalARNs') ?? [];

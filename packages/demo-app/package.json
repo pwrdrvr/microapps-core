@@ -1,0 +1,38 @@
+{
+  "name": "@pwrdrvr/microapps-demo-app",
+  "version": "0.0.0",
+  "description": "Demo application as a test during deploy of microapps-core",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engine": {
+    "node": ">= 12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pwrdrvr/microapps-core.git"
+  },
+  "author": "PwrDrvr LLC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pwrdrvr/microapps-core/issues"
+  },
+  "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
+  "peerDependencies": {},
+  "dependencies": {
+    "source-map-support": "^0.5.19"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.72",
+    "@types/node": "^14.17.34"
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "LICENSE"
+  ]
+}

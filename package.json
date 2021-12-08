@@ -9,6 +9,7 @@
   "license": "MIT",
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "workspaces": [
+    "./packages/demo-app/",
     "./packages/microapps-datalib/",
     "./packages/microapps-cdk/",
     "./packages/microapps-deployer-lib/",
