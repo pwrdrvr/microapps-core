@@ -228,9 +228,30 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     const stage = httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
     stage.accessLogSettings = {
       destinationArn: apiAccessLogs.logGroupArn,
-      format:
-        '$context.identity.sourceIp - - [$context.requestTime] "$context.httpMethod $context.routeKey $context.protocol" $context.status $context.responseLength $context.requestId',
+      format: JSON.stringify({
+        requestId: '$context.requestId',
+        userAgent: '$context.identity.userAgent',
+        sourceIp: '$context.identity.sourceIp',
+        requestTime: '$context.requestTime',
+        requestTimeEpoch: '$context.requestTimeEpoch',
+        httpMethod: '$context.httpMethod',
+        path: '$context.path',
+        status: '$context.status',
+        protocol: '$context.protocol',
+        responseLength: '$context.responseLength',
+        domainName: '$context.domainName',
+      }),
     };
+
+    // Create a logging role
+    // Tips: https://github.com/aws/aws-cdk/issues/11100
+    const apiGwyLogRole = new iam.Role(this, 'microapps-api-logs-role', {
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonAPIGatewayPushToCloudWatchLogs'),
+      ],
+      assumedBy: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+    });
+    apiAccessLogs.grantWrite(apiGwyLogRole);
 
     // Add default route on API Gateway to point to the router
     // httpApi.addRoutes({
