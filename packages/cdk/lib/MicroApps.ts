@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { MicroApps as MicroAppsCDK } from '@pwrdrvr/microapps-cdk';
+import { DemoApp } from './DemoApp';
 import { Imports } from './Imports';
 import { SharedProps } from './SharedProps';
 
@@ -67,5 +68,12 @@ export class MicroAppsStack extends cdk.Stack {
       s3StrictBucketPolicy: shared.s3StrictBucketPolicy,
       autoDeleteEverything,
     });
+
+    if (shared.deployDemoApp) {
+      new DemoApp(this, 'demo-app', {
+        shared,
+        appName: 'demo-app',
+      });
+    }
   }
 }
