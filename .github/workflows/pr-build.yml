@@ -21,7 +21,6 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
   # Set env to prod so we don't get an env suffix on the DNS names
   NODE_ENV: prod
-  DEPLOYER_LAMBDA_NAME: microapps-ghpublic-deployer-prod-pr-${{ github.event.pull_request.number }}
   APP_NAME: demo-app
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_GHP }}
   AWS_REGION: us-east-2
@@ -71,9 +70,13 @@ jobs:
       - name: Compute NPM Version and App Lambda Name
         run: |
           if [ -n "${PR_NUMBER}" ]; then
+            echo 'APP_HOST_NAME='apps-pr-${PR_NUMBER}
+            echo 'DEPLOYER_LAMBDA_NAME='microapps-ghpublic-deployer-prod-pr-${{ github.event.pull_request.number }}
             echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}-pr.${PR_NUMBER} >> $GITHUB_ENV
             echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER} >> $GITHUB_ENV
           else
+            echo 'APP_HOST_NAME='apps
+            echo 'DEPLOYER_LAMBDA_NAME='microapps-ghpublic-deployer-prod
             echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG} >> $GITHUB_ENV
             echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV} >> $GITHUB_ENV
           fi
@@ -85,11 +88,11 @@ jobs:
       - name: Test Deployed App
         run: |
           echo Testing App Frame Loading
-          curl https://apps-pr-${PR_NUMBER}.ghpublic.pwrdrvr.com/${APP_NAME}/
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/
           echo Testing App HTML Loading
-          curl https://apps-pr-${PR_NUMBER}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/index.html
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/index.html
           echo Testing App Method Invocation
-          curl https://apps-pr-${PR_NUMBER}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/someMethod
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/someMethod
 
   build-jsii:
     runs-on: ubuntu-latest
