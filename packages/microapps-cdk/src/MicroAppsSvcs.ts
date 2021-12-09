@@ -15,7 +15,7 @@ import * as cdk from '@aws-cdk/core';
 import { IMicroAppsCFExports } from './MicroAppsCF';
 import { IMicroAppsS3Exports } from './MicroAppsS3';
 
-interface MicroAppsSvcsStackProps extends cdk.ResourceProps {
+interface MicroAppsSvcsStackProps {
   readonly cfStackExports: IMicroAppsCFExports;
   readonly s3Exports: IMicroAppsS3Exports;
 
