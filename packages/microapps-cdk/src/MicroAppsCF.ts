@@ -10,7 +10,7 @@ export interface IMicroAppsCFExports {
   readonly cloudFrontDistro: cf.Distribution;
 }
 
-interface MicroAppsCFProps extends cdk.ResourceProps {
+interface MicroAppsCFProps {
   readonly autoDeleteEverything: boolean;
   readonly s3Exports: IMicroAppsS3Exports;
   readonly reverseDomainName: string;

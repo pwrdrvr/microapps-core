@@ -13,7 +13,7 @@ export interface IMicroAppsS3Exports {
   readonly bucketLogs: s3.IBucket;
 }
 
-interface MicroAppsS3Props extends cdk.ResourceProps {
+interface MicroAppsS3Props {
   /**
    * Duration before stack is automatically deleted.
    * Requires that autoDeleteEverything be set to true.
