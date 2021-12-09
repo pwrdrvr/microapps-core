@@ -70,13 +70,13 @@ jobs:
       - name: Compute NPM Version and App Lambda Name
         run: |
           if [ -n "${PR_NUMBER}" ]; then
-            echo 'APP_HOST_NAME='apps-pr-${PR_NUMBER}
-            echo 'DEPLOYER_LAMBDA_NAME='microapps-ghpublic-deployer-prod-pr-${{ github.event.pull_request.number }}
+            echo 'APP_HOST_NAME='apps-pr-${PR_NUMBER} >> $GITHUB_ENV
+            echo 'DEPLOYER_LAMBDA_NAME='microapps-ghpublic-deployer-prod-pr-${{ github.event.pull_request.number }} >> $GITHUB_ENV
             echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}-pr.${PR_NUMBER} >> $GITHUB_ENV
             echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER} >> $GITHUB_ENV
           else
-            echo 'APP_HOST_NAME='apps
-            echo 'DEPLOYER_LAMBDA_NAME='microapps-ghpublic-deployer-prod
+            echo 'APP_HOST_NAME='apps >> $GITHUB_ENV
+            echo 'DEPLOYER_LAMBDA_NAME='microapps-ghpublic-deployer-prod >> $GITHUB_ENV
             echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG} >> $GITHUB_ENV
             echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV} >> $GITHUB_ENV
           fi
