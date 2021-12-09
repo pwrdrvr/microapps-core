@@ -72,10 +72,10 @@ jobs:
         run: |
           if [ -n "${PR_NUMBER}" ]; then
             echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}-pr.${PR_NUMBER} >> $GITHUB_ENV
-            echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER}
+            echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}-pr-${PR_NUMBER} >> $GITHUB_ENV
           else
             echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG} >> $GITHUB_ENV
-            echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}
+            echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV} >> $GITHUB_ENV
           fi
 
       - name: Publish Demo App to MicroApps
