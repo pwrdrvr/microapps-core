@@ -1,5 +1,5 @@
 export interface IRequestBase {
-  readonly type: 'createApp' | 'deployVersion' | 'deployVersionPreflight';
+  readonly type: 'createApp' | 'deleteVersion' | 'deployVersion' | 'deployVersionPreflight';
 }
 
 export interface ICreateApplicationRequest extends IRequestBase {
@@ -51,6 +51,11 @@ export interface IDeployVersionRequest extends IDeployVersionRequestBase {
   readonly appType?: 'lambda' | 'static';
   readonly lambdaARN?: string;
   readonly defaultFile: string;
+}
+
+export interface IDeleteVersionRequest
+  extends Pick<IDeployVersionRequestBase, 'appName' | 'semVer'> {
+  readonly type: 'deleteVersion';
 }
 
 export interface IDeployerResponse {

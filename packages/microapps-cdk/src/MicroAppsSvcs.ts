@@ -491,10 +491,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     });
     deployerFunc.addToRolePolicy(policyReadListStaging);
 
-    // Allow the Lambda to write to the target bucket
+    // Allow the Lambda to write to the target bucket and delete
     const policyReadWriteListTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject', 's3:PutObject', 's3:ListBucket'],
+      actions: ['s3:GetObject', 's3:PutObject', 's3:ListBucket', 's3:DeleteObject'],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
     });
     deployerFunc.addToRolePolicy(policyReadWriteListTarget);
@@ -533,8 +533,10 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       actions: ['apigateway:*'],
       resources: [
         `arn:aws:apigateway:${region}:${account}:${httpApi.httpApiId}/*`,
+        `arn:aws:apigateway:${region}::/apis/${httpApi.httpApiId}/integrations/*`,
         `arn:aws:apigateway:${region}::/apis/${httpApi.httpApiId}/integrations`,
         `arn:aws:apigateway:${region}::/apis/${httpApi.httpApiId}/routes`,
+        `arn:aws:apigateway:${region}::/apis/${httpApi.httpApiId}/routes/*`,
       ],
     });
     deployerFunc.addToRolePolicy(policyAPIManage);

@@ -7,6 +7,7 @@ import {
   ICreateApplicationRequest,
   IDeployerResponse,
   IDeployVersionRequest,
+  IDeleteVersionRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
@@ -75,12 +76,21 @@ export async function handler(
     }
   }
 
+  Log.Instance.info('received request', {
+    request: event,
+  });
+
   try {
     // Dispatch based on request type
     switch (event.type) {
       case 'createApp': {
         const request = event as ICreateApplicationRequest;
         return await AppController.CreateApp({ dbManager, app: request });
+      }
+
+      case 'deleteVersion': {
+        const request = event as IDeleteVersionRequest;
+        return await VersionController.DeleteVersion({ dbManager, request, config });
       }
 
       case 'deployVersionPreflight': {
