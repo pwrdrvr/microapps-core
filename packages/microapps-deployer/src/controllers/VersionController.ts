@@ -8,6 +8,7 @@ import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import pMap from 'p-map';
 import { IConfig } from '../config/Config';
 import {
+  IDeleteVersionRequest,
   IDeployVersionRequest,
   IDeployVersionPreflightRequest,
   IDeployerResponse,
@@ -108,6 +109,8 @@ export default class VersionController {
         }),
       );
 
+      Log.Instance.info('finished request - returning s3 creds');
+
       return {
         statusCode: 404,
         s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
@@ -121,6 +124,8 @@ export default class VersionController {
         },
       };
     } else {
+      Log.Instance.info('finished request - not returning s3 creds');
+
       return {
         statusCode: 404,
       };
@@ -279,7 +284,11 @@ export default class VersionController {
       let integrationId = '';
       if (overwrite || record.Status === 'permissioned') {
         if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
+          // Skip the creation if the Integration was already created
           integrationId = record.IntegrationID;
+          Log.Instance.info('integration already created, skipping creation', {
+            IntegrationId: integrationId,
+          });
         } else {
           try {
             const integration = await apigwyClient.send(
@@ -312,42 +321,67 @@ export default class VersionController {
       }
 
       if (overwrite || record.Status === 'integrated') {
-        // Add the routes to API Gateway for appName/version/{proxy+}
-        try {
-          await apigwyClient.send(
-            new apigwy.CreateRouteCommand({
-              ApiId: apiId,
-              Target: `integrations/${integrationId}`,
-              RouteKey: `ANY /${request.appName}/${request.semVer}`,
-            }),
-          );
-        } catch (err) {
-          if (err.name === 'AccessDeniedException') {
-            Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
-            return { statusCode: 401 };
-          }
+        if (record.RouteIDAppVersion !== undefined && record.RouteIDAppVersion !== '') {
+          // Skip the creation if the Route was already created
+          Log.Instance.info('route app/version already created, skipping creation', {
+            IntegrationId: integrationId,
+            RouteIDAppVersion: record.RouteIDAppVersion,
+          });
+        } else {
+          // Add the routes to API Gateway for appName/version
+          try {
+            const result = await apigwyClient.send(
+              new apigwy.CreateRouteCommand({
+                ApiId: apiId,
+                Target: `integrations/${integrationId}`,
+                RouteKey: `ANY /${request.appName}/${request.semVer}`,
+              }),
+            );
+            Log.Instance.info('created RouteIDAppVersion', { result });
+            record.RouteIDAppVersion = `${result.RouteId}`;
+          } catch (err) {
+            if (err.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException adding route to API Gateway', {
+                error: err,
+              });
+              return { statusCode: 401 };
+            }
 
-          // Don't care
-          Log.Instance.error('Caught unexpected error on app/ver route add');
-          Log.Instance.error(err);
+            // Don't care
+            Log.Instance.error('Caught unexpected error on app/ver route add');
+            Log.Instance.error(err);
+          }
         }
-        try {
-          await apigwyClient.send(
-            new apigwy.CreateRouteCommand({
-              ApiId: apiId,
-              Target: `integrations/${integrationId}`,
-              RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
-            }),
-          );
-        } catch (err) {
-          if (err.name === 'AccessDeniedException') {
-            Log.Instance.error('AccessDeniedException adding route to API Gateway', { error: err });
-            return { statusCode: 401 };
-          }
+        // Add the route to API Gateway for appName/version/{proxy+}
+        if (record.RouteIDAppVersionSplat !== undefined && record.RouteIDAppVersionSplat !== '') {
+          // Skip the creation if the Route was already created
+          Log.Instance.info('route app/version/* already created, skipping creation', {
+            IntegrationId: integrationId,
+            RouteIDAppVersionSplat: record.RouteIDAppVersionSplat,
+          });
+        } else {
+          try {
+            const result = await apigwyClient.send(
+              new apigwy.CreateRouteCommand({
+                ApiId: apiId,
+                Target: `integrations/${integrationId}`,
+                RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
+              }),
+            );
+            Log.Instance.info('created RouteIDAppVersionSplat', { result });
+            record.RouteIDAppVersionSplat = `${result.RouteId}`;
+          } catch (err) {
+            if (err.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException adding route to API Gateway', {
+                error: err,
+              });
+              return { statusCode: 401 };
+            }
 
-          // Don't care
-          Log.Instance.error('Caught unexpected error on {proxy+} route add');
-          Log.Instance.error(err);
+            // Don't care
+            Log.Instance.error('Caught unexpected error on {proxy+} route add');
+            Log.Instance.error(err);
+          }
         }
 
         // Update the status - Final status
@@ -380,7 +414,143 @@ export default class VersionController {
       await rules.Save(dbManager);
     }
 
+    Log.Instance.info('finished request');
+
     return { statusCode: 201 };
+  }
+
+  /**
+   * Delete a version of an app
+   * @param opts
+   * @returns
+   */
+  public static async DeleteVersion(opts: {
+    dbManager: DBManager;
+    request: IDeleteVersionRequest;
+    config: IConfig;
+  }): Promise<IDeployerResponse> {
+    const { dbManager, request, config } = opts;
+
+    Log.Instance.debug('Got Body:', request);
+
+    // Check if the version exists
+    const record = await Version.LoadVersion({
+      dbManager,
+      key: { AppName: request.appName, SemVer: request.semVer },
+    });
+    if (record === undefined) {
+      Log.Instance.info('Error: App/Version does not exist', {
+        appName: request.appName,
+        semVer: request.semVer,
+      });
+
+      return { statusCode: 404 };
+    }
+
+    // Delete files in destinationBucket
+    const destinationPrefix = VersionController.GetBucketPrefix(request) + '/';
+    await this.DeleteFromDestinationBucket(destinationPrefix, config);
+
+    if (record.Type === 'lambda') {
+      // TODO: Confirm the Lambda Function exists
+
+      // Get the API Gateway
+      const apiId = config.apigwy.apiId;
+
+      // Get the account ID and region for API Gateway to Lambda permissions
+      // const accountId = config.awsAccountID;
+      // const region = config.awsRegion;
+
+      // TODO: Could remove the policy from the lambda version...
+      // but typically it will be deleted soon, so no big deal?
+      // if (removeStatements) {
+      //   await lambdaClient.send(
+      //     new lambda.RemovePermissionCommand({
+      //       StatementId: 'microapps-version-root',
+      //       FunctionName: request.lambdaARN,
+      //     }),
+      //   );
+      //   await lambdaClient.send(
+      //     new lambda.RemovePermissionCommand({
+      //       StatementId: 'microapps-version',
+      //       FunctionName: request.lambdaARN,
+      //     }),
+      //   );
+      // }
+
+      //
+      // Remove the routes to API Gateway for appName/version/{proxy+}
+      //
+      if (record.RouteIDAppVersion === '' && record.RouteIDAppVersionSplat === '') {
+        Log.Instance.warn('no RouteIDs to delete');
+      } else {
+        for (const routeId of [record.RouteIDAppVersion, record.RouteIDAppVersionSplat]) {
+          try {
+            await apigwyClient.send(
+              new apigwy.DeleteRouteCommand({
+                ApiId: apiId,
+                RouteId: routeId,
+              }),
+            );
+          } catch (err) {
+            if (err.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException removing route from API Gateway', {
+                error: err,
+                apiId,
+                routeId,
+              });
+              return { statusCode: 401 };
+            }
+
+            // Don't care
+            Log.Instance.error('Caught unexpected error on app/ver route remove', {
+              error: err,
+              apiId,
+              routeId,
+            });
+          }
+        }
+
+        //
+        // Remove Integration pointing to Lambda Function Alias
+        //
+        if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
+          try {
+            await apigwyClient.send(
+              new apigwy.DeleteIntegrationCommand({
+                ApiId: apiId,
+                IntegrationId: record.IntegrationID,
+              }),
+            );
+          } catch (error) {
+            if (error.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException removing integration from API Gateway', {
+                error,
+                apiId,
+                integrationId: record.IntegrationID,
+              });
+              return { statusCode: 401 };
+            }
+
+            Log.Instance.error('Caught unexpected error removing integration from API Gateway', {
+              error: error,
+              apiId,
+              integrationId: record.IntegrationID,
+            });
+          }
+        }
+      }
+    }
+
+    // Delete DynamoDB record
+    await Version.DeleteVersion({
+      dbManager,
+      key: { AppName: request.appName, SemVer: request.semVer },
+    });
+
+    Log.Instance.info('finished request');
+
+    return { statusCode: 200 };
   }
 
   private static SHA256Hash(input: string): string {
@@ -476,7 +646,53 @@ export default class VersionController {
     } while (list.IsTruncated);
   }
 
-  private static GetBucketPrefix(request: IDeployVersionRequestBase): string {
+  /**
+   * List files in the Destination bucket and each chunk of the list
+   * to the Destination bucket
+   * @param sourcePrefix
+   * @param destinationPrefix
+   * @param config
+   */
+  private static async DeleteFromDestinationBucket(
+    destinationPrefix: string,
+    config: IConfig,
+  ): Promise<void> {
+    let list: s3.ListObjectsV2CommandOutput | undefined;
+    do {
+      const optionals =
+        list?.NextContinuationToken !== undefined
+          ? { ContinuationToken: list.NextContinuationToken }
+          : ({} as s3.ListObjectsV2CommandInput);
+      list = await s3Client.send(
+        new s3.ListObjectsV2Command({
+          Bucket: config.filestore.destinationBucket,
+          Prefix: destinationPrefix,
+          ...optionals,
+        }),
+      );
+
+      const objectIds: s3.ObjectIdentifier[] = [];
+      list.Contents?.map((item) => {
+        objectIds.push({ Key: item.Key });
+      });
+
+      if (objectIds.length > 0) {
+        // Remove the files from the Destination bucket
+        await s3Client.send(
+          new s3.DeleteObjectsCommand({
+            Bucket: config.filestore.destinationBucket,
+            Delete: {
+              Objects: objectIds,
+            },
+          }),
+        );
+      }
+    } while (list.IsTruncated);
+  }
+
+  private static GetBucketPrefix(
+    request: Pick<IDeployVersionRequestBase, 'appName' | 'semVer'>,
+  ): string {
     return `${request.appName}/${request.semVer}`.toLowerCase();
   }
 }

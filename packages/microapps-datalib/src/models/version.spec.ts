@@ -32,6 +32,8 @@ describe('version records', () => {
     version.Type = 'lambda';
     version.DefaultFile = 'index.html';
     version.IntegrationID = 'abcd';
+    version.RouteIDAppVersion = '123';
+    version.RouteIDAppVersionSplat = '456';
 
     await version.Save(dbManager);
 
@@ -48,6 +50,8 @@ describe('version records', () => {
     expect(Item?.Type).toBe('lambda');
     expect(Item?.DefaultFile).toBe('index.html');
     expect(Item?.IntegrationID).toBe('abcd');
+    expect(Item?.RouteIDAppVersion).toEqual('123');
+    expect(Item?.RouteIDAppVersionSplat).toEqual('456');
   });
 
   it('load 1 version should load 1 version', async () => {
@@ -99,8 +103,10 @@ describe('version records', () => {
     version.SemVer = '2.2.3-Beta5';
     version.Status = 'pending';
     version.Type = 'lambda';
-    version.DefaultFile = 'index.html';
-    version.IntegrationID = 'abcd';
+    version.DefaultFile = 'index1.html';
+    version.IntegrationID = 'abcd1';
+    version.RouteIDAppVersion = 'routeAppVersion1';
+    version.RouteIDAppVersionSplat = 'routeAppVersionSplat1';
 
     await version.Save(dbManager);
 
@@ -109,8 +115,10 @@ describe('version records', () => {
     version.SemVer = '2.2.3-Beta6';
     version.Status = 'pending';
     version.Type = 'lambda';
-    version.DefaultFile = 'index.html';
-    version.IntegrationID = 'abcd';
+    version.DefaultFile = 'index2.html';
+    version.IntegrationID = 'abcd2';
+    version.RouteIDAppVersion = 'routeAppVersion2';
+    version.RouteIDAppVersionSplat = 'routeAppVersionSplat2';
 
     await version.Save(dbManager);
 
@@ -121,8 +129,14 @@ describe('version records', () => {
     expect(versions[0].AppName).toBe('frog');
     expect(versions[0].SK).toBe('version#2.2.3-beta5');
     expect(versions[0].SemVer).toBe('2.2.3-Beta5');
+    expect(versions[0].DefaultFile).toEqual('index1.html');
+    expect(versions[0].RouteIDAppVersion).toEqual('routeAppVersion1');
+    expect(versions[0].RouteIDAppVersionSplat).toEqual('routeAppVersionSplat1');
     expect(versions[1].AppName).toBe('frog');
     expect(versions[1].SK).toBe('version#2.2.3-beta6');
     expect(versions[1].SemVer).toBe('2.2.3-Beta6');
+    expect(versions[1].DefaultFile).toEqual('index2.html');
+    expect(versions[1].RouteIDAppVersion).toEqual('routeAppVersion2');
+    expect(versions[1].RouteIDAppVersionSplat).toEqual('routeAppVersionSplat2');
   });
 });

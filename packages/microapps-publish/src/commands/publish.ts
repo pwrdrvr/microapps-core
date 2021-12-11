@@ -29,7 +29,7 @@ interface IContext {
 
 export class PublishCommand extends Command {
   static description =
-    'Publish arbitrary framework app - deploy static assets to S3, alias the $LATEST Lambda function, and add route to API Gateway.';
+    'Publish arbitrary framework app - deploy static assets to S3, alias the $LATEST Lambda function, and add integration/route to API Gateway.';
 
   static examples = [
     `$ microapps-publish publish -d microapps-deployer-dev -n 0.0.21 -l microapps-app-release-dev -a release

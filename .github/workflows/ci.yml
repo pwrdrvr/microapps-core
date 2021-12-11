@@ -1,0 +1,221 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+# Workflow syntax reference:
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+name: Build / Deploy - CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  # This is used by the SharedProps to detect a PR build
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  # Set env to prod so we don't get an env suffix on the DNS names
+  NODE_ENV: ${{ secrets.NODE_ENV }}
+  APP_NAME: demo-app
+  AWS_REGION: us-east-2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      prSuffix: ${{ steps.prSuffix.outputs.prSuffix }}
+      prSuffixPackageVersion: ${{ steps.prSuffix.outputs.prSuffixPackageVersion }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Compute PR Suffix
+        id: prSuffix
+        run: |
+          if [ -n "${PR_NUMBER}" ]; then
+            echo "::set-output name=prSuffix::-pr-${PR_NUMBER}"
+            echo "::set-output name=prSuffixPackageVersion::-pr.${PR_NUMBER}"
+            echo "PR_SUFFIX=-pr-"${PR_NUMBER} >> $GITHUB_ENV
+          else
+            echo "::set-output name=prSuffix::"
+            echo "::set-output name=prSuffixPackageVersion::"
+            echo "PR_SUFFIX=" >> $GITHUB_ENV
+          fi
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      - name: Build All TypeScript
+        run: npm run build --if-present
+    
+      - name: Run Lint
+        run: npm run lint
+
+      - name: Run Node Tests
+        run: npm run test
+      
+  deploy:
+    concurrency:
+      group: deploy-${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    needs:
+      - build
+    environment:
+      name: ghpublic
+      url: https://apps${{ needs.build.outputs.prSuffix }}.ghpublic.pwrdrvr.com/demo-app/
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Extract Current NPM Version
+        run: |
+          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
+
+      - name: Compute NPM Version and App Lambda Name
+        run: |
+          echo 'APP_HOST_NAME=apps'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'DEPLOYER_LAMBDA_NAME=microapps-ghpublic-deployer-prod'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
+          echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      - name: Build All TypeScript
+        run: npm run build --if-present
+    
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy CDK Stack
+        run: npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true --hotswap --require-approval never microapps-core
+
+      - name: Publish Demo App to MicroApps
+        run: |
+          npx microapps-publish publish -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
+
+      - name: Test Deployed App
+        run: |
+          echo Testing App Frame Loading
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/
+          echo Testing App HTML Loading
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/index.html
+          echo Testing App Method Invocation
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/someMethod
+
+  delete-demo-app:
+    concurrency:
+      group: delete-demo-app-${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    needs:
+      - build
+      - deploy
+    environment:
+      name: ghpublic
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Extract Current NPM Version
+        run: |
+          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
+
+      - name: Compute NPM Version and App Lambda Name
+        run: |
+          echo 'APP_HOST_NAME=apps'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'DEPLOYER_LAMBDA_NAME=microapps-ghpublic-deployer-prod'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
+          echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      - name: Build All TypeScript
+        run: npm run build --if-present
+    
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete Demo App from MicroApps
+        run: |
+          npx microapps-publish delete -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
+
+  build-jsii:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      # Projen keeps creating `packages/microapps-cdk/test/hello.test.ts`
+      - name: Generate Projen Files
+        working-directory: packages/microapps-cdk/
+        run: |
+          npx projen --version
+          npm run projen
+          rm test/hello.test.ts
+
+      - name: Modify microapps-cdk tsconfig.json
+        run: |
+          mv packages/microapps-cdk/tsconfig.json packages/microapps-cdk/tsconfig.jsii.json
+          jq ".compilerOptions += { \"skipLibCheck\": true }" packages/microapps-cdk/tsconfig.jsii.json > packages/microapps-cdk/tsconfig.json
+
+      - name: Build All TypeScript
+        run: npm run build --if-present
+    
+      - name: Move root modules out of the way for CDK Construct build
+        run: mv node_modules node_modules_hide
+      
+      - name: Build CDK Construct
+        working-directory: packages/microapps-cdk/
+        run: |
+          npm ci
+          npm run build
+
+      - name: Confirm No Doc Changes
+        working-directory: packages/microapps-cdk/
+        run: |
+          npm run post-compile
+          git diff --ignore-space-at-eol --exit-code

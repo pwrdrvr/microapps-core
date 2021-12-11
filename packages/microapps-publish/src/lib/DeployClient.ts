@@ -5,6 +5,7 @@ import {
   ICreateApplicationRequest,
   IDeployerResponse,
   IDeployVersionRequest,
+  IDeleteVersionRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { IConfig } from '../config/Config';
 
@@ -19,6 +20,10 @@ export default class DeployClient {
   });
   static readonly _decoder = new TextDecoder('utf-8');
 
+  /**
+   * Create an application
+   * @param opts
+   */
   public static async CreateApp(opts: { config: IConfig }): Promise<void> {
     const { config } = opts;
     const request = {
@@ -42,6 +47,46 @@ export default class DeployClient {
       }
     } else {
       throw new Error(`App Create - Lambda Invoke Failed: ${JSON.stringify(response)}`);
+    }
+  }
+
+  /**
+   * Delete version
+   * @param config
+   * @param output
+   * @returns
+   */
+  public static async DeleteVersion(opts: {
+    config: IConfig;
+    output: (message: string) => void;
+  }): Promise<IDeployerResponse> {
+    const { config, output } = opts;
+
+    const request = {
+      type: 'deleteVersion',
+      appName: config.app.name,
+      semVer: config.app.semVer,
+    } as IDeleteVersionRequest;
+    const response = await this._client.send(
+      new lambda.InvokeCommand({
+        FunctionName: config.deployer.lambdaName,
+        Payload: Buffer.from(JSON.stringify(request)),
+      }),
+    );
+
+    if (response.$metadata.httpStatusCode === 200 && response.Payload !== undefined) {
+      const dResponse = JSON.parse(
+        Buffer.from(response.Payload).toString('utf-8'),
+      ) as IDeployerResponse;
+      if (dResponse.statusCode === 404) {
+        output(`App/Version does not exist: ${config.app.name}/${config.app.semVer}`);
+        return dResponse;
+      } else {
+        output(`App/Version deleted: ${config.app.name}/${config.app.semVer}`);
+        return dResponse;
+      }
+    } else {
+      throw new Error(`Lambda call to DeleteVersion failed: ${JSON.stringify(response)}`);
     }
   }
 

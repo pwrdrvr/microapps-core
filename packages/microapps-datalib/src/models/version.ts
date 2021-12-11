@@ -24,6 +24,8 @@ export interface IVersionRecord {
   Status: VersionStatus;
   DefaultFile: string;
   IntegrationID: string;
+  RouteIDAppVersion: string;
+  RouteIDAppVersionSplat: string;
 }
 
 export type IVersionRecordNoKeysLoose = Partial<
@@ -32,6 +34,11 @@ export type IVersionRecordNoKeysLoose = Partial<
   Pick<IVersionRecord, 'AppName' | 'SemVer'>;
 
 export class Version implements IVersionRecord {
+  /**
+   * Load records for all the versions of an app
+   * @param opts
+   * @returns
+   */
   public static async LoadVersions(opts: {
     dbManager: DBManager;
     key: Pick<IVersionRecord, 'AppName'>;
@@ -57,6 +64,9 @@ export class Version implements IVersionRecord {
     return records;
   }
 
+  /**
+   * Load record for a single version of an app
+   */
   public static async LoadVersion(opts: {
     dbManager: DBManager;
     key: Pick<IVersionRecord, 'AppName' | 'SemVer'>;
@@ -74,6 +84,27 @@ export class Version implements IVersionRecord {
     return record;
   }
 
+  /**
+   * Delete record for a single version of an app
+   */
+  public static async DeleteVersion(opts: {
+    dbManager: DBManager;
+    key: Pick<IVersionRecord, 'AppName' | 'SemVer'>;
+  }): Promise<void> {
+    const { dbManager, key } = opts;
+
+    await dbManager.ddbDocClient.delete({
+      TableName: dbManager.tableName,
+      Key: {
+        PK: `appName#${key.AppName}`.toLowerCase(),
+        SK: `version#${key.SemVer}`.toLowerCase(),
+      },
+    });
+  }
+
+  /**
+   * Get PK (primary key / hash key) field value for current KeyBy
+   */
   public get PK(): string {
     switch (this._keyBy) {
       case SaveBy.AppName:
@@ -90,12 +121,16 @@ export class Version implements IVersionRecord {
   private _status: VersionStatus;
   private _defaultFile: string;
   private _integrationID: string;
+  private _routeIDAppVersion: string;
+  private _routeIDAppVersionSplat: string | undefined;
 
   public constructor(init?: Partial<IVersionRecordNoKeysLoose>) {
     this._keyBy = SaveBy.AppName;
     this._status = 'pending';
     this._defaultFile = '';
     this._integrationID = '';
+    this._routeIDAppVersion = '';
+    this._routeIDAppVersionSplat = '';
 
     // Save any passed in values over the defaults
     Object.assign(this, init);
@@ -111,9 +146,15 @@ export class Version implements IVersionRecord {
       Status: this.Status,
       DefaultFile: this.DefaultFile,
       IntegrationID: this.IntegrationID,
+      RouteIDAppVersion: this.RouteIDAppVersion,
+      RouteIDAppVersionSplat: this.RouteIDAppVersionSplat,
     };
   }
 
+  /**
+   * Save this record to DynamoDB
+   * @param dbManager
+   */
   public async Save(dbManager: DBManager): Promise<void> {
     // TODO: Validate that all the fields needed are present
 
@@ -174,5 +215,19 @@ export class Version implements IVersionRecord {
   }
   public set IntegrationID(value: string) {
     this._integrationID = value;
+  }
+
+  public get RouteIDAppVersion(): string {
+    return this._routeIDAppVersion as string;
+  }
+  public set RouteIDAppVersion(value: string) {
+    this._routeIDAppVersion = value;
+  }
+
+  public get RouteIDAppVersionSplat(): string {
+    return this._routeIDAppVersionSplat as string;
+  }
+  public set RouteIDAppVersionSplat(value: string) {
+    this._routeIDAppVersionSplat = value;
   }
 }
