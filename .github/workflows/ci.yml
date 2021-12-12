@@ -135,6 +135,7 @@ jobs:
 
 
   delete-apps:
+    if: github.event_name == 'pull_request'
     concurrency:
       group: delete-apps-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
