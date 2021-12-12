@@ -1,8 +1,8 @@
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as cdk from '@aws-cdk/core';
-import { MicroAppsCF } from './MicroAppsCF';
-import { MicroAppsS3 } from './MicroAppsS3';
-import { MicroAppsSvcs } from './MicroAppsSvcs';
+import { IMicroAppsCF, MicroAppsCF } from './MicroAppsCF';
+import { IMicroAppsS3, MicroAppsS3 } from './MicroAppsS3';
+import { IMicroAppsSvcs, MicroAppsSvcs } from './MicroAppsSvcs';
 
 /**
  * Props for MicroApps
@@ -172,10 +172,16 @@ export interface MicroAppsProps {
   readonly domainNameOrigin: string;
 }
 
+export interface IMicroApps {
+  readonly cf: IMicroAppsCF;
+  readonly s3: IMicroAppsS3;
+  readonly svcs: IMicroAppsSvcs;
+}
+
 /**
  * Application deployment and runtime environment.
  */
-export class MicroApps extends cdk.Construct {
+export class MicroApps extends cdk.Construct implements IMicroApps {
   // input like 'example.com.' will return as 'com.example'
   private static reverseDomain(domain: string): string {
     let parts = domain.split('.').reverse();
@@ -185,6 +191,28 @@ export class MicroApps extends cdk.Construct {
     return parts.join('.');
   }
 
+  private _cf: MicroAppsCF;
+  public get cf(): IMicroAppsCF {
+    return this._cf;
+  }
+
+  private _s3: MicroAppsS3;
+  public get s3(): IMicroAppsS3 {
+    return this._s3;
+  }
+
+  private _svcs: MicroAppsSvcs;
+  public get svcs(): IMicroAppsSvcs {
+    return this._svcs;
+  }
+
+  /**
+   * MicroApps - Create entire stack of CloudFront, S3, API Gateway, and Lambda Functions.
+   *
+   * @param scope
+   * @param id
+   * @param props
+   */
   constructor(scope: cdk.Construct, id: string, props?: MicroAppsProps) {
     super(scope, id);
 
@@ -212,14 +240,14 @@ export class MicroApps extends cdk.Construct {
     } = props;
     const reverseDomainName = MicroApps.reverseDomain(domainName);
 
-    const s3 = new MicroAppsS3(this, 'microapps-s3', {
+    this._s3 = new MicroAppsS3(this, 'microapps-s3', {
       autoDeleteEverything,
       reverseDomainName,
       assetNameRoot,
       assetNameSuffix,
     });
-    const cf = new MicroAppsCF(this, 'microapps-cloudfront', {
-      s3Exports: s3,
+    this._cf = new MicroAppsCF(this, 'microapps-cloudfront', {
+      s3Exports: this._s3,
       assetNameRoot,
       assetNameSuffix,
       domainName,
@@ -231,9 +259,9 @@ export class MicroApps extends cdk.Construct {
       r53ZoneName,
       certEdge,
     });
-    new MicroAppsSvcs(this, 'microapps-svcs', {
-      cfStackExports: cf,
-      s3Exports: s3,
+    this._svcs = new MicroAppsSvcs(this, 'microapps-svcs', {
+      cfStackExports: this._cf,
+      s3Exports: this._s3,
       assetNameRoot,
       assetNameSuffix,
       domainName,

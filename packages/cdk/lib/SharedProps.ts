@@ -109,6 +109,11 @@ export class SharedProps {
     return this._deployDemoApp;
   }
 
+  private _deployReleaseApp: boolean;
+  public get deployReleaseApp(): boolean {
+    return this._deployReleaseApp;
+  }
+
   private static stringToBoolOrUndefined(value: string | undefined): boolean | undefined {
     if (value === undefined) return undefined;
     if ((value + '').toLowerCase() === 'true') return true;
@@ -130,6 +135,10 @@ export class SharedProps {
     this._deployDemoApp =
       SharedProps.stringToBoolOrUndefined(
         scope.node.tryGetContext('@pwrdrvr/microapps:deployDemoApp'),
+      ) ?? false;
+    this._deployReleaseApp =
+      SharedProps.stringToBoolOrUndefined(
+        scope.node.tryGetContext('@pwrdrvr/microapps:deployReleaseApp'),
       ) ?? false;
     this._s3StrictBucketPolicy =
       SharedProps.stringToBoolOrUndefined(

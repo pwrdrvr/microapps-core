@@ -4,15 +4,15 @@ import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as cdk from '@aws-cdk/core';
-import { IMicroAppsS3Exports } from './MicroAppsS3';
+import { IMicroAppsS3 } from './MicroAppsS3';
 
-export interface IMicroAppsCFExports {
+export interface IMicroAppsCF {
   readonly cloudFrontDistro: cf.Distribution;
 }
 
-interface MicroAppsCFProps {
+export interface MicroAppsCFProps {
   readonly autoDeleteEverything: boolean;
-  readonly s3Exports: IMicroAppsS3Exports;
+  readonly s3Exports: IMicroAppsS3;
   readonly reverseDomainName: string;
   readonly domainName: string;
   readonly domainNameEdge: string;
@@ -27,12 +27,18 @@ interface MicroAppsCFProps {
   readonly r53ZoneID: string;
 }
 
-export class MicroAppsCF extends cdk.Construct implements IMicroAppsCFExports {
+export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
   private _cloudFrontDistro: cf.Distribution;
   public get cloudFrontDistro(): cf.Distribution {
     return this._cloudFrontDistro;
   }
 
+  /**
+   * MicroApps - Create just CloudFront resources.
+   * @param scope
+   * @param id
+   * @param props
+   */
   constructor(scope: cdk.Construct, id: string, props?: MicroAppsCFProps) {
     super(scope, id);
 
