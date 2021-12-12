@@ -3,7 +3,7 @@ import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 
-export interface IMicroAppsS3Exports {
+export interface IMicroAppsS3 {
   readonly bucketApps: s3.IBucket;
   readonly bucketAppsName: string;
   readonly bucketAppsOAI: cf.OriginAccessIdentity;
@@ -13,7 +13,7 @@ export interface IMicroAppsS3Exports {
   readonly bucketLogs: s3.IBucket;
 }
 
-interface MicroAppsS3Props {
+export interface MicroAppsS3Props {
   /**
    * Duration before stack is automatically deleted.
    * Requires that autoDeleteEverything be set to true.
@@ -28,7 +28,7 @@ interface MicroAppsS3Props {
   readonly assetNameSuffix: string;
 }
 
-export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
+export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
   private _bucketApps: s3.IBucket;
   public get bucketApps(): s3.IBucket {
     return this._bucketApps;
@@ -64,6 +64,12 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3Exports {
     return this._bucketLogs;
   }
 
+  /**
+   * MicroApps - Create just S3 resources.
+   * @param scope
+   * @param id
+   * @param props
+   */
   constructor(scope: cdk.Construct, id: string, props?: MicroAppsS3Props) {
     super(scope, id);
 

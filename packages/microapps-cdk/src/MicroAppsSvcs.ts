@@ -12,12 +12,12 @@ import * as r53 from '@aws-cdk/aws-route53';
 import * as r53targets from '@aws-cdk/aws-route53-targets';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
-import { IMicroAppsCFExports } from './MicroAppsCF';
-import { IMicroAppsS3Exports } from './MicroAppsS3';
+import { IMicroAppsCF } from './MicroAppsCF';
+import { IMicroAppsS3 } from './MicroAppsS3';
 
-interface MicroAppsSvcsStackProps {
-  readonly cfStackExports: IMicroAppsCFExports;
-  readonly s3Exports: IMicroAppsS3Exports;
+export interface MicroAppsSvcsStackProps {
+  readonly cfStackExports: IMicroAppsCF;
+  readonly s3Exports: IMicroAppsS3;
 
   readonly appEnv: string;
   readonly autoDeleteEverything: boolean;
@@ -42,16 +42,28 @@ interface MicroAppsSvcsStackProps {
   readonly region: string;
 }
 
-export interface IMicroAppsSvcsExports {
+export interface IMicroAppsSvcs {
   readonly dnAppsOrigin: apigwy.DomainName;
+  readonly table: dynamodb.ITable;
 }
 
-export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExports {
+export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
   private _dnAppsOrigin: apigwy.DomainName;
   public get dnAppsOrigin(): apigwy.DomainName {
     return this._dnAppsOrigin;
   }
 
+  private _table: dynamodb.Table;
+  public get table(): dynamodb.ITable {
+    return this._table;
+  }
+
+  /**
+   * MicroApps - Create just API Gateway and Lambda resources.
+   * @param scope
+   * @param id
+   * @param props
+   */
   constructor(scope: cdk.Construct, id: string, props?: MicroAppsSvcsStackProps) {
     super(scope, id);
 
@@ -91,7 +103,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     //
     // DynamoDB Table
     //
-    const table = new dynamodb.Table(this, 'microapps-router-table', {
+    this._table = new dynamodb.Table(this, 'microapps-router-table', {
       tableName: `${assetNameRoot}${assetNameSuffix}`,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
@@ -104,7 +116,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       },
     });
     if (autoDeleteEverything) {
-      table.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+      this._table.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
 
     //
@@ -121,7 +133,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       timeout: cdk.Duration.seconds(15),
       environment: {
         NODE_ENV: appEnv,
-        DATABASE_TABLE_NAME: table.tableName,
+        DATABASE_TABLE_NAME: this._table.tableName,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       },
     };
@@ -170,8 +182,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
     for (const router of [routerFunc]) {
       router.addToRolePolicy(policyReadTarget);
       // Give the Router access to DynamoDB table
-      table.grantReadData(router);
-      table.grant(router, 'dynamodb:DescribeTable');
+      this._table.grantReadData(router);
+      this._table.grant(router, 'dynamodb:DescribeTable');
     }
 
     // TODO: Add Last Route for /*/{proxy+}
@@ -294,7 +306,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       environment: {
         NODE_ENV: appEnv,
         APIGWY_ID: httpApi.httpApiId,
-        DATABASE_TABLE_NAME: table.tableName,
+        DATABASE_TABLE_NAME: this._table.tableName,
         FILESTORE_STAGING_BUCKET: bucketAppsStagingName,
         FILESTORE_DEST_BUCKET: bucketAppsName,
         UPLOAD_ROLE_NAME: iamRoleUploadName,
@@ -330,8 +342,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcsExport
       deployerFunc.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     }
     // Give the Deployer access to DynamoDB table
-    table.grantReadWriteData(deployerFunc);
-    table.grant(deployerFunc, 'dynamodb:DescribeTable');
+    this._table.grantReadWriteData(deployerFunc);
+    this._table.grant(deployerFunc, 'dynamodb:DescribeTable');
 
     //
     // Deloyer upload temp role

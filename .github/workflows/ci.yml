@@ -16,7 +16,8 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
   # Set env to prod so we don't get an env suffix on the DNS names
   NODE_ENV: ${{ secrets.NODE_ENV }}
-  APP_NAME: demo-app
+  DEMO_APP_NAME: demo-app
+  RELEASE_APP_NAME: release
   AWS_REGION: us-east-2
 
 jobs:
@@ -68,7 +69,7 @@ jobs:
       - build
     environment:
       name: ghpublic
-      url: https://apps${{ needs.build.outputs.prSuffix }}.ghpublic.pwrdrvr.com/demo-app/
+      url: https://apps${{ needs.build.outputs.prSuffix }}.ghpublic.pwrdrvr.com/release/
     permissions:
       contents: read
       id-token: write
@@ -85,7 +86,8 @@ jobs:
           echo 'APP_HOST_NAME=apps'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
           echo 'DEPLOYER_LAMBDA_NAME=microapps-ghpublic-deployer-prod'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
           echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
-          echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'DEMO_APP_LAMBDA_NAME=microapps-ghpublic-app-'${DEMO_APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'RELEASE_APP_LAMBDA_NAME=microapps-ghpublic-app-'${RELEASE_APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
 
       - name: Use Node.js 16
         uses: actions/setup-node@v2
@@ -96,6 +98,10 @@ jobs:
 
       - name: Install Node Modules
         run: npm ci
+
+      - name: Extract Release App NPM Version
+        run: |
+          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
 
       - name: Build All TypeScript
         run: npm run build --if-present
@@ -108,24 +114,29 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CDK Stack
-        run: npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true --hotswap --require-approval never microapps-core
+        run: npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never microapps-core
 
       - name: Publish Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
+          npx microapps-publish publish -a ${DEMO_APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${DEMO_APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
 
       - name: Test Deployed App
         run: |
           echo Testing App Frame Loading
-          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/index.html
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
           echo Testing App Method Invocation
-          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${APP_NAME}/${PACKAGE_VERSION}/someMethod
+          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
 
-  delete-demo-app:
+      - name: Publish Release App to MicroApps
+        run: |
+          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
+
+
+  delete-apps:
     concurrency:
-      group: delete-demo-app-${{ github.workflow }}-${{ github.event.pull_request.number }}
+      group: delete-apps-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     needs:
       - build
@@ -148,7 +159,7 @@ jobs:
           echo 'APP_HOST_NAME=apps'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
           echo 'DEPLOYER_LAMBDA_NAME=microapps-ghpublic-deployer-prod'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
           echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
-          echo 'APP_LAMBDA_NAME=microapps-ghpublic-app-'${APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
+          echo 'DEMO_APP_LAMBDA_NAME=microapps-ghpublic-app-'${DEMO_APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
 
       - name: Use Node.js 16
         uses: actions/setup-node@v2
@@ -159,6 +170,10 @@ jobs:
 
       - name: Install Node Modules
         run: npm ci
+
+      - name: Extract Release App NPM Version
+        run: |
+          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
 
       - name: Build All TypeScript
         run: npm run build --if-present
@@ -172,7 +187,11 @@ jobs:
 
       - name: Delete Demo App from MicroApps
         run: |
-          npx microapps-publish delete -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
+          npx microapps-publish delete -a ${DEMO_APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
+
+      - name: Delete Release App from MicroApps
+        run: |
+          npx microapps-publish delete -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
 
   build-jsii:
     runs-on: ubuntu-latest

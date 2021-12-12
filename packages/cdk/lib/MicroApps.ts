@@ -1,9 +1,12 @@
 import * as cdk from '@aws-cdk/core';
+import * as lambda from '@aws-cdk/aws-lambda';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
 import { MicroApps as MicroAppsCDK } from '@pwrdrvr/microapps-cdk';
 import { DemoApp } from './DemoApp';
 import { Imports } from './Imports';
 import { SharedProps } from './SharedProps';
+import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
+import { Env } from './Types';
 
 export interface MicroAppsStackProps extends cdk.StackProps {
   /**
@@ -50,7 +53,7 @@ export class MicroAppsStack extends cdk.Stack {
       shared,
     });
 
-    new MicroAppsCDK(this, 'microapps', {
+    const microapps = new MicroAppsCDK(this, 'microapps', {
       account: shared.account,
       region: shared.region,
       appEnv: shared.env,
@@ -73,6 +76,23 @@ export class MicroAppsStack extends cdk.Stack {
       new DemoApp(this, 'demo-app', {
         shared,
         appName: 'demo-app',
+      });
+    }
+
+    if (shared.deployReleaseApp) {
+      const sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
+        this,
+        'sharp-lambda-layer',
+        `arn:aws:lambda:${shared.region}:${shared.account}:layer:sharp-heic:1`,
+      );
+
+      new MicroAppsAppRelease(this, 'release-app', {
+        functionName: `${shared.stackName}-app-release${shared.envSuffix}${shared.prSuffix}`,
+        table: microapps.svcs.table,
+        staticAssetsS3Bucket: microapps.s3.bucketApps,
+        nodeEnv: shared.env as Env,
+        removalPolicy: shared.isPR ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN,
+        sharpLayer,
       });
     }
   }
