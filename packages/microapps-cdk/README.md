@@ -59,14 +59,6 @@ Always run CDK from the root of the git repo, which is the directory containing 
 
 Copies static assets from staging to deployed directory, creates record of application / version in DynamoDB Table.
 
-## Build and Deploy Update
-
-```
-make aws-ecr-login
-make aws-ecr-publish-deployer
-make aws-lambda-update-deployer
-```
-
 # Notes on Selection of Docker Image Lambdas
 
 The Router and Deployer services are very small (0.5 MB) after tree shaking, minification, and uglification performed by `rollup`. The router has the tightest performance requirement and performed just as well as a docker image vs a zip file. However, docker image start up is up to 2x longer vs the zip file for the router; this should not be a problem for any live system with continuous usage and for demos the router can be initialized or pre-provisioned beforehand. The development benefits of docker images for Lambda outweigh the small init time impact on cold starts.
