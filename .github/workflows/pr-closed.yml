@@ -46,6 +46,11 @@ jobs:
           aws cloudformation delete-stack --stack-name "microapps-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
           aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
 
+      - name: Destroy Basic CDK Stack
+        run: |
+          aws cloudformation delete-stack --stack-name "microapps-basic-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-basic-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+
       - name: Extract Current NPM Version
         run: |
           echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV

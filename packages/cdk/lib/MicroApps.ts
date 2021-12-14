@@ -161,6 +161,10 @@ export class MicroAppsStack extends cdk.Stack {
       new TimeToLive(this, 'TimeToLive', {
         ttl,
       });
+    } else {
+      if (autoDeleteEverything) {
+        removalPolicy = cdk.RemovalPolicy.DESTROY;
+      }
     }
 
     // Validate custom domain options
