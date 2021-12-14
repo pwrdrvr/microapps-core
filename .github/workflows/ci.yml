@@ -120,19 +120,114 @@ jobs:
         run: |
           npx microapps-publish publish -a ${DEMO_APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${DEMO_APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
 
-      - name: Test Deployed App
+      - name: Test Demo App
         run: |
           echo Testing App Frame Loading
-          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/
+          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
+          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
           echo Testing App Method Invocation
-          curl https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
+          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
 
       - name: Publish Release App to MicroApps
         run: |
           npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
 
+      - name: Test Release App
+        run: |
+          echo Testing App Frame Loading
+          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${RELEASE_APP_NAME}/
+          echo Testing App HTML Loading
+          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/
+          echo Testing App Method Invocation
+          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
+
+
+  deploy-basic:
+    concurrency:
+      group: deploy-basic-${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    needs:
+      - build
+    environment:
+      name: ghpublic
+      url: https://${{ steps.getCDKExports.outputs.edgeDomain }}/release/
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Extract Current NPM Version
+        run: |
+          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
+
+      - name: Compute NPM Version and App Lambda Name
+        run: |
+          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
+
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Node Modules
+        run: npm ci
+
+      - name: Extract Release App NPM Version
+        run: |
+          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
+
+      - name: Build All TypeScript
+        run: npm run build --if-present
+    
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy CDK Stack
+        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=microapps-basic-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never microapps-basic
+
+      - name: Get CDK Exports
+        id: getCDKExports
+        run: |
+          echo "::set-output name=edgeDomain::"$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text)
+          echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+
+      - name: Publish Demo App to MicroApps
+        run: |
+          npx microapps-publish publish -a ${DEMO_APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${DEMO_APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
+
+      - name: Test Demo App
+        run: |
+          echo Testing App Frame Loading
+          curl --fail https://${EDGE_DOMAIN}/${DEMO_APP_NAME}/
+          echo Testing App HTML Loading
+          curl --fail https://${EDGE_DOMAIN}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
+          echo Testing App Method Invocation
+          curl --fail https://${EDGE_DOMAIN}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
+
+      - name: Publish Release App to MicroApps
+        run: |
+          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
+
+      - name: Test Release App
+        run: |
+          echo Testing App Frame Loading
+          curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/
+          echo Testing App HTML Loading
+          curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/
+          echo Testing App Method Invocation
+          curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
 
   delete-apps:
     if: github.event_name == 'pull_request'
@@ -209,13 +304,11 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
-      # Projen keeps creating `packages/microapps-cdk/test/hello.test.ts`
       - name: Generate Projen Files
         working-directory: packages/microapps-cdk/
         run: |
           npx projen --version
           npm run projen
-          rm test/hello.test.ts
 
       - name: Modify microapps-cdk tsconfig.json
         run: |

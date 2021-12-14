@@ -4,39 +4,84 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as cdk from '@aws-cdk/core';
 
 export interface IMicroAppsS3 {
+  /**
+   * S3 bucket for deployed applications
+   */
   readonly bucketApps: s3.IBucket;
-  readonly bucketAppsName: string;
+
+  /**
+   * CloudFront Origin Access Identity for the deployed applications bucket
+   */
   readonly bucketAppsOAI: cf.OriginAccessIdentity;
+
+  /**
+   * CloudFront Origin for the deployed applications bucket
+   */
   readonly bucketAppsOrigin: cforigins.S3Origin;
+
+  /**
+   * S3 bucket for staged applications (prior to deploy)
+   */
   readonly bucketAppsStaging: s3.IBucket;
-  readonly bucketAppsStagingName: string;
+
+  /**
+   * S3 bucket for CloudFront logs
+   */
   readonly bucketLogs: s3.IBucket;
 }
 
 export interface MicroAppsS3Props {
   /**
-   * Duration before stack is automatically deleted.
-   * Requires that autoDeleteEverything be set to true.
+   * RemovalPolicy override for child resources
    *
-   * @default false
+   * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+   *
+   * @default - per resource default
    */
-  readonly autoDeleteEverything?: boolean;
+  readonly removalPolicy?: cdk.RemovalPolicy;
 
-  readonly reverseDomainName: string;
+  /**
+   * S3 deployed apps bucket name
+   *
+   * @default auto-assigned
+   */
+  readonly bucketAppsName?: string;
 
-  readonly assetNameRoot: string;
-  readonly assetNameSuffix: string;
+  /**
+   * S3 staging apps bucket name
+   *
+   * @default auto-assigned
+   */
+  readonly bucketAppsStagingName?: string;
+
+  /**
+   * S3 logs bucket name
+   *
+   * @default auto-assigned
+   */
+  readonly bucketLogsName?: string;
+
+  /**
+   * Optional asset name root
+   *
+   * @example microapps
+   * @default - resource names auto assigned
+   */
+  readonly assetNameRoot?: string;
+
+  /**
+   * Optional asset name suffix
+   *
+   * @example -dev-pr-12
+   * @default none
+   */
+  readonly assetNameSuffix?: string;
 }
 
 export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
   private _bucketApps: s3.IBucket;
   public get bucketApps(): s3.IBucket {
     return this._bucketApps;
-  }
-
-  private _bucketAppsName: string;
-  public get bucketAppsName(): string {
-    return this._bucketAppsName;
   }
 
   private _bucketAppsOAI: cf.OriginAccessIdentity;
@@ -52,11 +97,6 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
   private _bucketAppsStaging: s3.IBucket;
   public get bucketAppsStaging(): s3.IBucket {
     return this._bucketAppsStaging;
-  }
-
-  private _bucketAppsStagingName: string;
-  public get bucketAppsStagingName(): string {
-    return this._bucketAppsStagingName;
   }
 
   private _bucketLogs: s3.IBucket;
@@ -77,56 +117,43 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
       throw new Error('props must be set');
     }
 
-    const {
-      autoDeleteEverything = false,
-      reverseDomainName,
-      assetNameRoot,
-      assetNameSuffix,
-    } = props;
+    const { removalPolicy, assetNameRoot, assetNameSuffix } = props;
 
-    // Use Auto-Delete S3Bucket for PRs
-    this._bucketAppsName = `${reverseDomainName}-${assetNameRoot}${assetNameSuffix}`;
-    this._bucketAppsStagingName = `${reverseDomainName}-${assetNameRoot}-staging${assetNameSuffix}`;
-
-    const s3RemovalPolicy = autoDeleteEverything
-      ? cdk.RemovalPolicy.DESTROY
-      : cdk.RemovalPolicy.RETAIN;
-    const s3AutoDeleteItems = autoDeleteEverything;
+    // Use Auto-Delete S3Bucket if removal policy is DESTROY
+    const s3AutoDeleteItems = removalPolicy === cdk.RemovalPolicy.DESTROY;
 
     //
     // S3 Bucket for Logging - Usable by many stacks
     //
-    this._bucketLogs = new s3.Bucket(this, 'microapps-logs', {
-      bucketName: `${reverseDomainName}-${assetNameRoot}-logs${assetNameSuffix}`,
+    this._bucketLogs = new s3.Bucket(this, 'logs', {
+      bucketName: props.bucketLogsName,
       autoDeleteObjects: s3AutoDeleteItems,
-      removalPolicy: s3RemovalPolicy,
+      removalPolicy,
     });
 
     //
     // S3 Buckets for Apps
     //
-    this._bucketApps = new s3.Bucket(this, 'microapps-apps', {
-      bucketName: this._bucketAppsName,
+    this._bucketApps = new s3.Bucket(this, 'apps', {
+      bucketName: props.bucketAppsName,
       autoDeleteObjects: s3AutoDeleteItems,
-      removalPolicy: s3RemovalPolicy,
+      removalPolicy,
     });
-    this._bucketAppsStaging = new s3.Bucket(this, 'microapps-apps-staging', {
-      bucketName: this._bucketAppsStagingName,
+    this._bucketAppsStaging = new s3.Bucket(this, 'staging', {
+      bucketName: props.bucketAppsStagingName,
       autoDeleteObjects: s3AutoDeleteItems,
-      removalPolicy: s3RemovalPolicy,
+      removalPolicy,
     });
 
     // Create S3 Origin Identity
-    this._bucketAppsOAI = new cf.OriginAccessIdentity(this, 'microapps-oai', {
-      comment: `${assetNameRoot}${assetNameSuffix}`,
+    this._bucketAppsOAI = new cf.OriginAccessIdentity(this, 'oai', {
+      comment: assetNameRoot !== undefined ? `${assetNameRoot}${assetNameSuffix}` : undefined,
     });
-    if (autoDeleteEverything) {
-      this._bucketAppsOAI.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    if (removalPolicy !== undefined) {
+      this._bucketAppsOAI.applyRemovalPolicy(removalPolicy);
     }
 
-    //
-    // Add Origins
-    //
+    // Add Origin for CloudFront
     this._bucketAppsOrigin = new cforigins.S3Origin(this._bucketApps, {
       originAccessIdentity: this.bucketAppsOAI,
     });

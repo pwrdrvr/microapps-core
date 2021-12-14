@@ -25,7 +25,26 @@ new MicroAppsStack(app, 'microapps-core', {
   autoDeleteEverything: true,
   domainNameEdge: `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
   domainNameOrigin: `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
-  shared,
+  r53ZoneID: shared.r53ZoneID,
+  r53ZoneName: shared.r53ZoneName,
+  certARNEdge: shared.certARNEdge,
+  certARNOrigin: shared.certARNOrigin,
+  s3PolicyBypassAROAs: shared.s3PolicyBypassAROAs,
+  s3PolicyBypassPrincipalARNs: shared.s3PolicyBypassPrincipalARNs,
+  s3StrictBucketPolicy: shared.s3StrictBucketPolicy,
+  assetNameRoot: `${shared.stackName}`,
+  assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
+  deployDemoApp: shared.deployDemoApp,
+  deployReleaseApp: shared.deployReleaseApp,
+});
+
+new MicroAppsStack(app, 'microapps-basic', {
+  env,
+  stackName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+  ttl: shared.isPR ? shared.ttlBase : undefined,
+  autoDeleteEverything: true,
+  deployDemoApp: shared.deployDemoApp,
+  deployReleaseApp: shared.deployReleaseApp,
 });
 
 // Note: This is only run manually once per env to create build user

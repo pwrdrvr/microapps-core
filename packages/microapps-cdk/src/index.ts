@@ -1,4 +1,5 @@
 export * from './MicroApps';
+export * from './MicroAppsAPIGwy';
 export * from './MicroAppsCF';
 export * from './MicroAppsS3';
 export * from './MicroAppsSvcs';

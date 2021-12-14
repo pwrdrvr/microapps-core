@@ -38,6 +38,12 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 #### Properties <a name="Properties"></a>
 
+##### `apigwy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.apigwy"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+---
+
 ##### `cf`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.cf"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
@@ -53,6 +59,57 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 ##### `svcs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.svcs"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
+
+---
+
+
+### MicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy"></a>
+
+- *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+#### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.Initializer"></a>
+
+```typescript
+import { MicroAppsAPIGwy } from '@pwrdrvr/microapps-cdk'
+
+new MicroAppsAPIGwy(scope: Construct, id: string, props?: MicroAppsAPIGwyProps)
+```
+
+##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.scope"></a>
+
+- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+
+---
+
+##### `id`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.id"></a>
+
+- *Type:* `string`
+
+---
+
+##### `props`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps)
+
+---
+
+
+
+#### Properties <a name="Properties"></a>
+
+##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.httpApi"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+
+API Gateway.
+
+---
+
+##### `dnAppsOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.dnAppsOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2.IDomainName`](#@aws-cdk/aws-apigatewayv2.IDomainName)
+
+Domain Name applied to API Gateway origin.
 
 ---
 
@@ -136,11 +193,7 @@ new MicroAppsS3(scope: Construct, id: string, props?: MicroAppsS3Props)
 
 - *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
 
----
-
-##### `bucketAppsName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsName"></a>
-
-- *Type:* `string`
+S3 bucket for deployed applications.
 
 ---
 
@@ -148,11 +201,15 @@ new MicroAppsS3(scope: Construct, id: string, props?: MicroAppsS3Props)
 
 - *Type:* [`@aws-cdk/aws-cloudfront.OriginAccessIdentity`](#@aws-cdk/aws-cloudfront.OriginAccessIdentity)
 
+CloudFront Origin Access Identity for the deployed applications bucket.
+
 ---
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOrigin"></a>
 
 - *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+
+CloudFront Origin for the deployed applications bucket.
 
 ---
 
@@ -160,17 +217,15 @@ new MicroAppsS3(scope: Construct, id: string, props?: MicroAppsS3Props)
 
 - *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
 
----
-
-##### `bucketAppsStagingName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsStagingName"></a>
-
-- *Type:* `string`
+S3 bucket for staged applications (prior to deploy).
 
 ---
 
 ##### `bucketLogs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketLogs"></a>
 
 - *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+
+S3 bucket for CloudFront logs.
 
 ---
 
@@ -184,7 +239,7 @@ new MicroAppsS3(scope: Construct, id: string, props?: MicroAppsS3Props)
 ```typescript
 import { MicroAppsSvcs } from '@pwrdrvr/microapps-cdk'
 
-new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsStackProps)
+new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsProps)
 ```
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.scope"></a>
@@ -201,7 +256,7 @@ new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsStackProps)
 
 ##### `props`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.props"></a>
 
-- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps`](#@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps)
+- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsSvcsProps`](#@pwrdrvr/microapps-cdk.MicroAppsSvcsProps)
 
 ---
 
@@ -209,9 +264,11 @@ new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsStackProps)
 
 #### Properties <a name="Properties"></a>
 
-##### `dnAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.dnAppsOrigin"></a>
+##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.deployerFunc"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.DomainName`](#@aws-cdk/aws-apigatewayv2.DomainName)
+- *Type:* [`@aws-cdk/aws-lambda.IFunction`](#@aws-cdk/aws-lambda.IFunction)
+
+Lambda function for the Deployer.
 
 ---
 
@@ -219,10 +276,86 @@ new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsStackProps)
 
 - *Type:* [`@aws-cdk/aws-dynamodb.ITable`](#@aws-cdk/aws-dynamodb.ITable)
 
+DynamoDB table used by Router, Deployer, and Release console app.
+
 ---
 
 
 ## Structs <a name="Structs"></a>
+
+### MicroAppsAPIGwyProps <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps"></a>
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { MicroAppsAPIGwyProps } from '@pwrdrvr/microapps-cdk'
+
+const microAppsAPIGwyProps: MicroAppsAPIGwyProps = { ... }
+```
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.assetNameRoot"></a>
+
+- *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
+
+---
+
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.assetNameSuffix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
+
+---
+
+##### `certOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.certOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+- *Default:* none
+
+Optional local region ACM certificate to use for API Gateway Note: required when using a custom domain.
+
+---
+
+##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.domainNameEdge"></a>
+
+- *Type:* `string`
+- *Default:* auto-assigned
+
+CloudFront edge domain name.
+
+---
+
+##### `domainNameOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.domainNameOrigin"></a>
+
+- *Type:* `string`
+- *Default:* auto-assigned
+
+API Gateway origin domain name.
+
+---
+
+##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.r53Zone"></a>
+
+- *Type:* [`@aws-cdk/aws-route53.IHostedZone`](#@aws-cdk/aws-route53.IHostedZone)
+
+Route53 zone in which to create optional `domainNameEdge` record.
+
+---
+
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.removalPolicy"></a>
+
+- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Default:* per resource default
+
+RemovalPolicy override for child resources.
+
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
 
 ### MicroAppsCFProps <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps"></a>
 
@@ -234,69 +367,90 @@ import { MicroAppsCFProps } from '@pwrdrvr/microapps-cdk'
 const microAppsCFProps: MicroAppsCFProps = { ... }
 ```
 
-##### `assetNameRoot`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.assetNameRoot"></a>
+##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketAppsOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+
+S3 bucket origin for deployed applications.
+
+---
+
+##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.httpApi"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+
+API Gateway v2 HTTP API for apps.
+
+---
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.assetNameRoot"></a>
 
 - *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
 
 ---
 
-##### `assetNameSuffix`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.assetNameSuffix"></a>
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.assetNameSuffix"></a>
 
 - *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
 
 ---
 
-##### `autoDeleteEverything`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.autoDeleteEverything"></a>
+##### `bucketLogs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketLogs"></a>
 
-- *Type:* `boolean`
+- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+
+S3 bucket for CloudFront logs.
 
 ---
 
-##### `certEdge`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.certEdge"></a>
+##### `certEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.certEdge"></a>
 
 - *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
 
+ACM Certificate that covers `domainNameEdge` name.
+
 ---
 
-##### `domainName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.domainName"></a>
+##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.domainNameEdge"></a>
 
 - *Type:* `string`
+- *Default:* auto-assigned
+
+CloudFront Distribution domain name.
 
 ---
 
-##### `domainNameEdge`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.domainNameEdge"></a>
+##### `domainNameOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.domainNameOrigin"></a>
 
 - *Type:* `string`
+- *Default:* retrieved from httpApi, if possible
+
+API Gateway custom origin domain name.
 
 ---
 
-##### `domainNameOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.domainNameOrigin"></a>
+##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53Zone"></a>
 
-- *Type:* `string`
+- *Type:* [`@aws-cdk/aws-route53.IHostedZone`](#@aws-cdk/aws-route53.IHostedZone)
 
----
-
-##### `r53ZoneID`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53ZoneID"></a>
-
-- *Type:* `string`
+Route53 zone in which to create optional `domainNameEdge` record.
 
 ---
 
-##### `r53ZoneName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53ZoneName"></a>
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.removalPolicy"></a>
 
-- *Type:* `string`
+- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Default:* per resource default
 
----
+RemovalPolicy override for child resources.
 
-##### `reverseDomainName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.reverseDomainName"></a>
-
-- *Type:* `string`
-
----
-
-##### `s3Exports`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.s3Exports"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
 
 ---
 
@@ -312,14 +466,6 @@ import { MicroAppsProps } from '@pwrdrvr/microapps-cdk'
 const microAppsProps: MicroAppsProps = { ... }
 ```
 
-##### `account`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.account"></a>
-
-- *Type:* `string`
-
-AWS Account ID that the stack is being deployed to, this is required for importing the R53 Zone.
-
----
-
 ##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.appEnv"></a>
 
 - *Type:* `string`
@@ -329,78 +475,12 @@ Passed to NODE_ENV of Router and Deployer Lambda functions.
 
 ---
 
-##### `assetNameRoot`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.assetNameRoot"></a>
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.assetNameRoot"></a>
 
 - *Type:* `string`
-- *Default:* microapps
+- *Default:* resource names auto assigned
 
-Start of asset names.
-
----
-
-##### `certEdge`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.certEdge"></a>
-
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
-
-Certificate in US-East-1 for the CloudFront distribution.
-
----
-
-##### `certOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.certOrigin"></a>
-
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
-
-Certificate in deployed region for the API Gateway.
-
----
-
-##### `domainName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.domainName"></a>
-
-- *Type:* `string`
-
-Domain name of the zone for the edge host.
-
-Example: 'pwrdrvr.com' for apps.pwrdrvr.com
-
----
-
-##### `domainNameEdge`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.domainNameEdge"></a>
-
-- *Type:* `string`
-
-CNAME for the CloudFront distribution.
-
----
-
-##### `domainNameOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.domainNameOrigin"></a>
-
-- *Type:* `string`
-
-CNAME for the API Gateway HTTPv2 API.
-
----
-
-##### `r53ZoneID`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.r53ZoneID"></a>
-
-- *Type:* `string`
-
-ID of the zone in R53 to add records to.
-
----
-
-##### `r53ZoneName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.r53ZoneName"></a>
-
-- *Type:* `string`
-
-Name of the zone in R53 to add records to.
-
----
-
-##### `region`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.region"></a>
-
-- *Type:* `string`
-
-AWS Region that the stack is being deployed to, this is required for importing the R53 Zone.
+Optional asset name root.
 
 ---
 
@@ -409,16 +489,60 @@ AWS Region that the stack is being deployed to, this is required for importing t
 - *Type:* `string`
 - *Default:* none
 
-Suffix to add to asset names, such as -[env]-pr-[prNum].
+Optional asset name suffix.
 
 ---
 
-##### `autoDeleteEverything`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.autoDeleteEverything"></a>
+##### `certEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.certEdge"></a>
 
-- *Type:* `boolean`
-- *Default:* false
+- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
 
-Automatically destroy all assets when stack is deleted.
+Certificate in US-East-1 for the CloudFront distribution.
+
+---
+
+##### `certOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.certOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+
+Certificate in deployed region for the API Gateway.
+
+---
+
+##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.domainNameEdge"></a>
+
+- *Type:* `string`
+- *Default:* auto-assigned
+
+Optional custom domain name for the CloudFront distribution.
+
+---
+
+##### `domainNameOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.domainNameOrigin"></a>
+
+- *Type:* `string`
+- *Default:* auto-assigned
+
+Optional custom domain name for the API Gateway HTTPv2 API.
+
+---
+
+##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.r53Zone"></a>
+
+- *Type:* [`@aws-cdk/aws-route53.IHostedZone`](#@aws-cdk/aws-route53.IHostedZone)
+
+Route53 zone in which to create optional `domainNameEdge` record.
+
+---
+
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.removalPolicy"></a>
+
+- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Default:* per resource default
+
+RemovalPolicy override for child resources.
+
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
 
 ---
 
@@ -505,148 +629,152 @@ import { MicroAppsS3Props } from '@pwrdrvr/microapps-cdk'
 const microAppsS3Props: MicroAppsS3Props = { ... }
 ```
 
-##### `assetNameRoot`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.assetNameRoot"></a>
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.assetNameRoot"></a>
 
 - *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
 
 ---
 
-##### `assetNameSuffix`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.assetNameSuffix"></a>
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.assetNameSuffix"></a>
 
 - *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
 
 ---
 
-##### `reverseDomainName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.reverseDomainName"></a>
+##### `bucketAppsName`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.bucketAppsName"></a>
 
 - *Type:* `string`
+- *Default:* auto-assigned
+
+S3 deployed apps bucket name.
 
 ---
 
-##### `autoDeleteEverything`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.autoDeleteEverything"></a>
+##### `bucketAppsStagingName`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.bucketAppsStagingName"></a>
 
-- *Type:* `boolean`
-- *Default:* false
+- *Type:* `string`
+- *Default:* auto-assigned
 
-Duration before stack is automatically deleted.
-
-Requires that autoDeleteEverything be set to true.
+S3 staging apps bucket name.
 
 ---
 
-### MicroAppsSvcsStackProps <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps"></a>
+##### `bucketLogsName`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.bucketLogsName"></a>
+
+- *Type:* `string`
+- *Default:* auto-assigned
+
+S3 logs bucket name.
+
+---
+
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.removalPolicy"></a>
+
+- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Default:* per resource default
+
+RemovalPolicy override for child resources.
+
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+### MicroAppsSvcsProps <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps"></a>
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
 ```typescript
-import { MicroAppsSvcsStackProps } from '@pwrdrvr/microapps-cdk'
+import { MicroAppsSvcsProps } from '@pwrdrvr/microapps-cdk'
 
-const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
+const microAppsSvcsProps: MicroAppsSvcsProps = { ... }
 ```
 
-##### `account`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.account"></a>
+##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.appEnv"></a>
 
 - *Type:* `string`
 
 ---
 
-##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.appEnv"></a>
+##### `bucketApps`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.bucketApps"></a>
+
+- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+
+S3 bucket for deployed applications.
+
+---
+
+##### `bucketAppsOAI`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.bucketAppsOAI"></a>
+
+- *Type:* [`@aws-cdk/aws-cloudfront.OriginAccessIdentity`](#@aws-cdk/aws-cloudfront.OriginAccessIdentity)
+
+CloudFront Origin Access Identity for the deployed applications bucket.
+
+---
+
+##### `bucketAppsStaging`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.bucketAppsStaging"></a>
+
+- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+
+S3 bucket for staged applications (prior to deploy).
+
+---
+
+##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+
+API Gateway v2 HTTP for Router and app.
+
+---
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.assetNameRoot"></a>
 
 - *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
 
 ---
 
-##### `assetNameRoot`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.assetNameRoot"></a>
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.assetNameSuffix"></a>
 
 - *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
 
 ---
 
-##### `assetNameSuffix`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.assetNameSuffix"></a>
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.removalPolicy"></a>
 
-- *Type:* `string`
+- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Default:* per resource default
 
----
+RemovalPolicy override for child resources.
 
-##### `autoDeleteEverything`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.autoDeleteEverything"></a>
-
-- *Type:* `boolean`
-
----
-
-##### `certOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.certOrigin"></a>
-
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
 
 ---
 
-##### `cfStackExports`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.cfStackExports"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
-
----
-
-##### `domainName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.domainName"></a>
-
-- *Type:* `string`
-
----
-
-##### `domainNameEdge`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.domainNameEdge"></a>
-
-- *Type:* `string`
-
----
-
-##### `domainNameOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.domainNameOrigin"></a>
-
-- *Type:* `string`
-
----
-
-##### `r53ZoneID`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.r53ZoneID"></a>
-
-- *Type:* `string`
-
----
-
-##### `r53ZoneName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.r53ZoneName"></a>
-
-- *Type:* `string`
-
----
-
-##### `region`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.region"></a>
-
-- *Type:* `string`
-
----
-
-##### `reverseDomainName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.reverseDomainName"></a>
-
-- *Type:* `string`
-
----
-
-##### `s3Exports`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.s3Exports"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
-
----
-
-##### `s3PolicyBypassAROAs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.s3PolicyBypassAROAs"></a>
+##### `s3PolicyBypassAROAs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.s3PolicyBypassAROAs"></a>
 
 - *Type:* `string`[]
 
 ---
 
-##### `s3PolicyBypassPrincipalARNs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.s3PolicyBypassPrincipalARNs"></a>
+##### `s3PolicyBypassPrincipalARNs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.s3PolicyBypassPrincipalARNs"></a>
 
 - *Type:* `string`[]
 
 ---
 
-##### `s3StrictBucketPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsStackProps.s3StrictBucketPolicy"></a>
+##### `s3StrictBucketPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.s3StrictBucketPolicy"></a>
 
 - *Type:* `boolean`
 
@@ -661,6 +789,12 @@ const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
 
 
 #### Properties <a name="Properties"></a>
+
+##### `apigwy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.apigwy"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+---
 
 ##### `cf`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.cf"></a>
 
@@ -677,6 +811,29 @@ const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
 ##### `svcs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.svcs"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
+
+---
+
+### IMicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy"></a>
+
+- *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwy), [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+
+#### Properties <a name="Properties"></a>
+
+##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy.httpApi"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+
+API Gateway.
+
+---
+
+##### `dnAppsOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy.dnAppsOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2.IDomainName`](#@aws-cdk/aws-apigatewayv2.IDomainName)
+
+Domain Name applied to API Gateway origin.
 
 ---
 
@@ -704,11 +861,7 @@ const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
 
 - *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
 
----
-
-##### `bucketAppsName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsName"></a>
-
-- *Type:* `string`
+S3 bucket for deployed applications.
 
 ---
 
@@ -716,11 +869,15 @@ const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
 
 - *Type:* [`@aws-cdk/aws-cloudfront.OriginAccessIdentity`](#@aws-cdk/aws-cloudfront.OriginAccessIdentity)
 
+CloudFront Origin Access Identity for the deployed applications bucket.
+
 ---
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOrigin"></a>
 
 - *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+
+CloudFront Origin for the deployed applications bucket.
 
 ---
 
@@ -728,17 +885,15 @@ const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
 
 - *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
 
----
-
-##### `bucketAppsStagingName`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsStagingName"></a>
-
-- *Type:* `string`
+S3 bucket for staged applications (prior to deploy).
 
 ---
 
 ##### `bucketLogs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketLogs"></a>
 
 - *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+
+S3 bucket for CloudFront logs.
 
 ---
 
@@ -749,15 +904,19 @@ const microAppsSvcsStackProps: MicroAppsSvcsStackProps = { ... }
 
 #### Properties <a name="Properties"></a>
 
-##### `dnAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.dnAppsOrigin"></a>
+##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.deployerFunc"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.DomainName`](#@aws-cdk/aws-apigatewayv2.DomainName)
+- *Type:* [`@aws-cdk/aws-lambda.IFunction`](#@aws-cdk/aws-lambda.IFunction)
+
+Lambda function for the Deployer.
 
 ---
 
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.table"></a>
 
 - *Type:* [`@aws-cdk/aws-dynamodb.ITable`](#@aws-cdk/aws-dynamodb.ITable)
+
+DynamoDB table used by Router, Deployer, and Release console app.
 
 ---
 

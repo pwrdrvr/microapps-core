@@ -1,8 +1,11 @@
 import * as acm from '@aws-cdk/aws-certificatemanager';
+import * as r53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
+import { IMicroAppsAPIGwy, MicroAppsAPIGwy } from './MicroAppsAPIGwy';
 import { IMicroAppsCF, MicroAppsCF } from './MicroAppsCF';
 import { IMicroAppsS3, MicroAppsS3 } from './MicroAppsS3';
 import { IMicroAppsSvcs, MicroAppsSvcs } from './MicroAppsSvcs';
+import { reverseDomain } from './utils/ReverseDomain';
 
 /**
  * Props for MicroApps
@@ -10,11 +13,13 @@ import { IMicroAppsSvcs, MicroAppsSvcs } from './MicroAppsSvcs';
  */
 export interface MicroAppsProps {
   /**
-   * Automatically destroy all assets when stack is deleted
+   * RemovalPolicy override for child resources
    *
-   * @default false
+   * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+   *
+   * @default - per resource default
    */
-  readonly autoDeleteEverything?: boolean;
+  readonly removalPolicy?: cdk.RemovalPolicy;
 
   /**
    * Passed to NODE_ENV of Router and Deployer Lambda functions.
@@ -24,51 +29,37 @@ export interface MicroAppsProps {
   readonly appEnv: string;
 
   /**
-   * Start of asset names.
+   * Optional asset name root
    *
-   * @default microapps
+   * @example microapps
+   * @default - resource names auto assigned
    */
-  readonly assetNameRoot: string;
+  readonly assetNameRoot?: string;
 
   /**
-   * Suffix to add to asset names, such as -[env]-pr-[prNum]
+   * Optional asset name suffix
    *
-   * @default - none
+   * @example -dev-pr-12
+   * @default none
    */
   readonly assetNameSuffix?: string;
 
   /**
-   * Domain name of the zone for the edge host.
-   * Example: 'pwrdrvr.com' for apps.pwrdrvr.com
-   *
+   * Route53 zone in which to create optional `domainNameEdge` record
    */
-  readonly domainName: string;
-
-  /**
-   * Name of the zone in R53 to add records to.
-   *
-   * @example pwrdrvr.com.
-   *
-   */
-  readonly r53ZoneName: string;
-
-  /**
-   * ID of the zone in R53 to add records to.
-   *
-   */
-  readonly r53ZoneID: string;
+  readonly r53Zone?: r53.IHostedZone;
 
   /**
    * Certificate in US-East-1 for the CloudFront distribution.
    *
    */
-  readonly certEdge: acm.ICertificate;
+  readonly certEdge?: acm.ICertificate;
 
   /**
    * Certificate in deployed region for the API Gateway.
    *
    */
-  readonly certOrigin: acm.ICertificate;
+  readonly certOrigin?: acm.ICertificate;
 
   /**
    * Use a strict S3 Bucket Policy that prevents applications
@@ -142,55 +133,33 @@ export interface MicroAppsProps {
   readonly s3PolicyBypassAROAs?: string[];
 
   /**
-   * AWS Account ID that the stack is being deployed to, this is
-   * required for importing the R53 Zone.
-   *
-   * @example 012345678901234
-   */
-  readonly account: string;
-
-  /**
-   * AWS Region that the stack is being deployed to, this is
-   * required for importing the R53 Zone.
-   *
-   * @example us-east-2
-   */
-  readonly region: string;
-
-  /**
-   * CNAME for the CloudFront distribution.
+   * Optional custom domain name for the CloudFront distribution.
    *
    * @example apps.pwrdrvr.com
+   * @default auto-assigned
    */
-  readonly domainNameEdge: string;
+  readonly domainNameEdge?: string;
 
   /**
-   * CNAME for the API Gateway HTTPv2 API.
+   * Optional custom domain name for the API Gateway HTTPv2 API.
    *
    * @example apps-origin.pwrdrvr.com
+   * @default auto-assigned
    */
-  readonly domainNameOrigin: string;
+  readonly domainNameOrigin?: string;
 }
 
 export interface IMicroApps {
   readonly cf: IMicroAppsCF;
   readonly s3: IMicroAppsS3;
   readonly svcs: IMicroAppsSvcs;
+  readonly apigwy: IMicroAppsAPIGwy;
 }
 
 /**
  * Application deployment and runtime environment.
  */
 export class MicroApps extends cdk.Construct implements IMicroApps {
-  // input like 'example.com.' will return as 'com.example'
-  private static reverseDomain(domain: string): string {
-    let parts = domain.split('.').reverse();
-    if (parts[0] === '') {
-      parts = parts.slice(1);
-    }
-    return parts.join('.');
-  }
-
   private _cf: MicroAppsCF;
   public get cf(): IMicroAppsCF {
     return this._cf;
@@ -201,6 +170,11 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
     return this._s3;
   }
 
+  private _apigwy: MicroAppsAPIGwy;
+  public get apigwy(): IMicroAppsAPIGwy {
+    return this._apigwy;
+  }
+
   private _svcs: MicroAppsSvcs;
   public get svcs(): IMicroAppsSvcs {
     return this._svcs;
@@ -208,6 +182,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
 
   /**
    * MicroApps - Create entire stack of CloudFront, S3, API Gateway, and Lambda Functions.
+   * This is the "Easy Button" construct to get started as quickly as possible.
    *
    * @param scope
    * @param id
@@ -221,60 +196,60 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
     }
 
     const {
-      domainName,
       domainNameEdge,
       domainNameOrigin,
-      assetNameRoot = 'microapps',
-      assetNameSuffix = '',
-      autoDeleteEverything = false,
-      r53ZoneID,
-      r53ZoneName,
+      assetNameRoot,
+      assetNameSuffix,
+      r53Zone,
       certEdge,
-      account,
-      region,
       appEnv = 'dev',
       certOrigin,
+      removalPolicy,
       s3PolicyBypassAROAs,
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
     } = props;
-    const reverseDomainName = MicroApps.reverseDomain(domainName);
 
-    this._s3 = new MicroAppsS3(this, 'microapps-s3', {
-      autoDeleteEverything,
-      reverseDomainName,
+    this._s3 = new MicroAppsS3(this, 's3', {
+      removalPolicy,
+      bucketLogsName: domainNameEdge ? `${reverseDomain(domainNameEdge)}-logs` : undefined,
+      bucketAppsName: domainNameEdge ? `${reverseDomain(domainNameEdge)}` : undefined,
+      bucketAppsStagingName: domainNameEdge
+        ? `${reverseDomain(domainNameEdge)}-staging`
+        : undefined,
       assetNameRoot,
       assetNameSuffix,
     });
-    this._cf = new MicroAppsCF(this, 'microapps-cloudfront', {
-      s3Exports: this._s3,
+    this._apigwy = new MicroAppsAPIGwy(this, 'api', {
+      removalPolicy,
       assetNameRoot,
       assetNameSuffix,
-      domainName,
-      reverseDomainName,
       domainNameEdge,
       domainNameOrigin,
-      autoDeleteEverything,
-      r53ZoneID,
-      r53ZoneName,
-      certEdge,
-    });
-    this._svcs = new MicroAppsSvcs(this, 'microapps-svcs', {
-      cfStackExports: this._cf,
-      s3Exports: this._s3,
-      assetNameRoot,
-      assetNameSuffix,
-      domainName,
-      reverseDomainName,
-      domainNameEdge,
-      domainNameOrigin,
-      autoDeleteEverything,
-      r53ZoneID,
-      r53ZoneName,
-      account,
-      region,
-      appEnv,
+      r53Zone,
       certOrigin,
+    });
+    this._cf = new MicroAppsCF(this, 'cft', {
+      removalPolicy,
+      assetNameRoot,
+      assetNameSuffix,
+      domainNameEdge,
+      domainNameOrigin,
+      httpApi: this._apigwy.httpApi,
+      r53Zone,
+      certEdge,
+      bucketAppsOrigin: this._s3.bucketAppsOrigin,
+      bucketLogs: this._s3.bucketLogs,
+    });
+    this._svcs = new MicroAppsSvcs(this, 'svcs', {
+      httpApi: this.apigwy.httpApi,
+      removalPolicy,
+      bucketApps: this._s3.bucketApps,
+      bucketAppsOAI: this._s3.bucketAppsOAI,
+      bucketAppsStaging: this._s3.bucketAppsStaging,
+      assetNameRoot,
+      assetNameSuffix,
+      appEnv,
       s3PolicyBypassAROAs,
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
