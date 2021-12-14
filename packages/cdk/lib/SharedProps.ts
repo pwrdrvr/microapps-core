@@ -11,6 +11,13 @@ export class SharedProps {
     return parts.join('.');
   }
 
+  private static stripTrailingDomainDot(domain: string): string {
+    if (domain !== undefined && domain.endsWith('.')) {
+      return domain.slice(0, domain.length - 1);
+    }
+    return domain;
+  }
+
   private _ttlBase = cdk.Duration.hours(6);
   public get ttlBase(): cdk.Duration {
     return this._ttlBase;
@@ -46,11 +53,6 @@ export class SharedProps {
   private _stackName: string;
   public get stackName(): string {
     return this._stackName;
-  }
-
-  private _reverseDomainName: string;
-  public get reverseDomainName(): string {
-    return this._reverseDomainName;
   }
 
   private _domainName: string;
@@ -122,8 +124,9 @@ export class SharedProps {
 
   constructor(scope: cdk.Construct) {
     this._r53ZoneName = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneName');
-    this._reverseDomainName = SharedProps.reverseDomain(this._r53ZoneName);
-    this._domainName = SharedProps.reverseDomain(this._reverseDomainName);
+    this._domainName = SharedProps.stripTrailingDomainDot(
+      scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneName'),
+    );
     this._r53ZoneID = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneID');
     this._certIDEdge = scope.node.tryGetContext('@pwrdrvr/microapps:certIDEdge');
     this._certIDOrigin = scope.node.tryGetContext('@pwrdrvr/microapps:certIDOrigin');

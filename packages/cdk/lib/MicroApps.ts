@@ -1,10 +1,13 @@
 import * as cdk from '@aws-cdk/core';
+import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as r53 from '@aws-cdk/aws-route53';
 import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
-import { MicroApps as MicroAppsCDK } from '@pwrdrvr/microapps-cdk';
+import {
+  MicroApps as MicroAppsCDK,
+  MicroAppsProps as MicroAppsCDKProps,
+} from '@pwrdrvr/microapps-cdk';
 import { DemoApp } from './DemoApp';
-import { Imports } from './Imports';
-import { SharedProps } from './SharedProps';
 import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
 import { Env } from './Types';
 
@@ -23,13 +26,105 @@ export interface MicroAppsStackProps extends cdk.StackProps {
    */
   readonly autoDeleteEverything?: boolean;
 
-  readonly domainNameEdge: string;
-  readonly domainNameOrigin: string;
+  /**
+   * Optional domain name for CloudFront distribution
+   *
+   * @default auto-assigned
+   */
+  readonly domainNameEdge?: string;
 
-  readonly shared: SharedProps;
+  /**
+   * Optional domain name for API Gateway
+   *
+   * @default auto-assigned
+   */
+  readonly domainNameOrigin?: string;
+
+  /**
+   * Optional Route53 zone name for custom names
+   */
+  readonly r53ZoneName?: string;
+
+  /**
+   * Optional Route53 zone id for custom names
+   */
+  readonly r53ZoneID?: string;
+
+  /**
+   * Optional US East 1 ACM cert for custom names
+   */
+  readonly certARNEdge?: string;
+
+  /**
+   * Optional local region cert for custom names
+   */
+  readonly certARNOrigin?: string;
+
+  /**
+   * Principal ARNs (e.g. Users not Assumed Roles) that should
+   * bypass the strict S3 Bucket Policy
+   */
+  readonly s3PolicyBypassPrincipalARNs?: string[];
+
+  /**
+   * AROAs (e.g. Role AROAs) that should bypass the strict
+   * S3 Bucket Policy
+   */
+  readonly s3PolicyBypassAROAs?: string[];
+
+  /**
+   * Use a strict S3 bucket policy
+   *
+   * @default false
+   */
+  readonly s3StrictBucketPolicy?: boolean;
+
+  /**
+   * Optional asset name root
+   *
+   * @example microapps
+   * @default - resource names auto assigned
+   */
+  readonly assetNameRoot?: string;
+
+  /**
+   * Optional asset name suffix
+   *
+   * @example -dev-pr-12
+   * @default none
+   */
+  readonly assetNameSuffix?: string;
+
+  /**
+   * Deploy the Release app
+   *
+   * @default false
+   */
+  readonly deployReleaseApp?: boolean;
+
+  /**
+   * Deploy the Demo app
+   *
+   * @default false
+   */
+  readonly deployDemoApp?: boolean;
+
+  /**
+   * NODE_ENV to pass to apps
+   *
+   * @default dev
+   */
+  readonly nodeEnv?: Env;
 }
 
 export class MicroAppsStack extends cdk.Stack {
+  /**
+   * Create the MicroApps Construct
+   *
+   * @param scope
+   * @param id
+   * @param props
+   */
   constructor(scope: cdk.Construct, id: string, props?: MicroAppsStackProps) {
     super(scope, id, props);
 
@@ -37,63 +132,143 @@ export class MicroAppsStack extends cdk.Stack {
       throw new Error('props must be set');
     }
 
-    const { ttl, autoDeleteEverything = false, shared } = props;
+    const {
+      ttl,
+      autoDeleteEverything = false,
+      domainNameEdge,
+      domainNameOrigin,
+      s3PolicyBypassPrincipalARNs,
+      s3PolicyBypassAROAs,
+      s3StrictBucketPolicy = false,
+      assetNameRoot,
+      assetNameSuffix,
+      deployReleaseApp = false,
+      deployDemoApp = false,
+      nodeEnv = 'dev',
+      r53ZoneID,
+      r53ZoneName,
+      certARNEdge,
+      certARNOrigin,
+    } = props;
 
+    let removalPolicy: cdk.RemovalPolicy | undefined = undefined;
     // Set stack to delete if this is a PR build
     if (ttl !== undefined) {
       if (autoDeleteEverything === false) {
         throw new Error('autoDeleteEverything must be true when ttl is set');
       }
+      removalPolicy = cdk.RemovalPolicy.DESTROY;
       new TimeToLive(this, 'TimeToLive', {
         ttl,
       });
     }
 
-    const imports = new Imports(this, 'microapps-imports', {
-      shared,
-    });
+    // Validate custom domain options
+    if (domainNameEdge !== undefined) {
+      if (
+        domainNameOrigin === undefined ||
+        certARNEdge === undefined ||
+        certARNOrigin === undefined ||
+        r53ZoneName === undefined ||
+        r53ZoneID === undefined
+      ) {
+        throw new Error(
+          'Either all of `domainNameEdge, domainNameOrigin, certARNEdge, certARNOrigin, r53ZoneName, and r53ZoneID`, must be defined or they must all be undefined',
+        );
+      }
+    }
+
+    const optionalCustomDomainOpts: Partial<MicroAppsCDKProps> =
+      domainNameEdge !== undefined
+        ? {
+            domainNameEdge,
+            domainNameOrigin,
+            // CloudFront certificate
+            // Note: Must be in US East 1
+            certEdge: acm.Certificate.fromCertificateArn(this, 'cert-edge', certARNEdge as string),
+
+            // Specific cert for API Gateway
+            // Note: Must be in region where CDK stack is deployed
+            certOrigin: acm.Certificate.fromCertificateArn(
+              this,
+              'cert-origin',
+              certARNOrigin as string,
+            ),
+            r53Zone: r53.HostedZone.fromHostedZoneAttributes(this, 'microapps-zone', {
+              zoneName: r53ZoneName as string,
+              hostedZoneId: r53ZoneID as string,
+            }),
+          }
+        : {};
+
+    const optionals3PolicyOpts: Partial<MicroAppsCDKProps> = {
+      // Note: these can be undefined, which is ok if s3Strict is false
+      s3PolicyBypassAROAs,
+      s3PolicyBypassPrincipalARNs,
+      s3StrictBucketPolicy,
+    };
+
+    const optionalAssetNameOpts: Partial<MicroAppsCDKProps> = {
+      assetNameRoot,
+      assetNameSuffix,
+    };
 
     const microapps = new MicroAppsCDK(this, 'microapps', {
-      account: shared.account,
-      region: shared.region,
-      appEnv: shared.env,
-      assetNameRoot: `${shared.stackName}`,
-      assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
-      domainNameEdge: props.domainNameEdge,
-      domainNameOrigin: props.domainNameOrigin,
-      certEdge: imports.certEdge,
-      certOrigin: imports.certOrigin,
-      domainName: shared.domainName,
-      r53ZoneID: shared.r53ZoneID,
-      r53ZoneName: shared.r53ZoneName,
-      s3PolicyBypassAROAs: shared.s3PolicyBypassAROAs,
-      s3PolicyBypassPrincipalARNs: shared.s3PolicyBypassPrincipalARNs,
-      s3StrictBucketPolicy: shared.s3StrictBucketPolicy,
-      autoDeleteEverything,
+      removalPolicy,
+      appEnv: nodeEnv,
+      ...optionalAssetNameOpts,
+      ...optionals3PolicyOpts,
+      ...optionalCustomDomainOpts,
     });
 
-    if (shared.deployDemoApp) {
-      new DemoApp(this, 'demo-app', {
-        shared,
+    if (deployDemoApp) {
+      const demoApp = new DemoApp(this, 'demo-app', {
         appName: 'demo-app',
+        assetNameRoot,
+        assetNameSuffix,
+        removalPolicy,
+      });
+
+      new cdk.CfnOutput(this, 'demo-app-func-name', {
+        value: `${demoApp.lambdaFunction.functionName}`,
+        exportName: `${this.stackName}-demo-app-func-name`,
       });
     }
 
-    if (shared.deployReleaseApp) {
+    if (deployReleaseApp) {
       const sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
         this,
         'sharp-lambda-layer',
-        `arn:aws:lambda:${shared.region}:${shared.account}:layer:sharp-heic:1`,
+        `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
       );
 
-      new MicroAppsAppRelease(this, 'release-app', {
-        functionName: `${shared.stackName}-app-release${shared.envSuffix}${shared.prSuffix}`,
+      const releaseApp = new MicroAppsAppRelease(this, 'release-app', {
+        functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
         table: microapps.svcs.table,
         staticAssetsS3Bucket: microapps.s3.bucketApps,
-        nodeEnv: shared.env as Env,
-        removalPolicy: shared.isPR ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN,
+        nodeEnv,
+        removalPolicy,
         sharpLayer,
       });
+
+      new cdk.CfnOutput(this, 'release-app-func-name', {
+        value: `${releaseApp.lambdaFunction.functionName}`,
+        exportName: `${this.stackName}-release-app-func-name`,
+      });
     }
+
+    // Exports
+    new cdk.CfnOutput(this, 'edge-domain-name', {
+      value: domainNameEdge ? domainNameEdge : microapps.cf.cloudFrontDistro.domainName,
+      exportName: `${this.stackName}-edge-domain-name`,
+    });
+    new cdk.CfnOutput(this, 'dynamodb-table-name', {
+      value: `${microapps.svcs.table.tableName}`,
+      exportName: `${this.stackName}-dynamodb-table-name`,
+    });
+    new cdk.CfnOutput(this, 'deployer-func-name', {
+      value: `${microapps.svcs.deployerFunc.functionName}`,
+      exportName: `${this.stackName}-deployer-func-name`,
+    });
   }
 }
