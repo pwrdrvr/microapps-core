@@ -144,6 +144,7 @@ jobs:
 
 
   deploy-basic:
+    if: github.event_name == 'pull_request'
     concurrency:
       group: deploy-basic-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
