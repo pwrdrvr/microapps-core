@@ -230,7 +230,7 @@ jobs:
           curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
 
   delete-apps:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && false
     concurrency:
       group: delete-apps-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
