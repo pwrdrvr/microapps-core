@@ -66,7 +66,7 @@ jobs:
     strategy:
       matrix:
         deployName:
-          - microapps
+          - microapps-core
           - microapps-basic
     name: deploy-${{ matrix.deployName }}
     concurrency:
