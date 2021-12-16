@@ -60,93 +60,17 @@ jobs:
 
       - name: Run Node Tests
         run: npm run test
-      
+
   deploy:
-    concurrency:
-      group: deploy-${{ github.workflow }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: false
-    needs:
-      - build
-    environment:
-      name: ghpublic
-      url: https://apps${{ needs.build.outputs.prSuffix }}.ghpublic.pwrdrvr.com/release/
-    permissions:
-      contents: read
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Extract Current NPM Version
-        run: |
-          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
-
-      - name: Compute NPM Version and App Lambda Name
-        run: |
-          echo 'APP_HOST_NAME=apps'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
-          echo 'DEPLOYER_LAMBDA_NAME=microapps-ghpublic-deployer-prod'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
-          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
-          echo 'DEMO_APP_LAMBDA_NAME=microapps-ghpublic-app-'${DEMO_APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
-          echo 'RELEASE_APP_LAMBDA_NAME=microapps-ghpublic-app-'${RELEASE_APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
-
-      - name: Use Node.js 16
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
-      - name: Install Node Modules
-        run: npm ci
-
-      - name: Extract Release App NPM Version
-        run: |
-          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
-
-      - name: Build All TypeScript
-        run: npm run build --if-present
-    
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-session-name: microapps-ghpublic-build
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Deploy CDK Stack
-        run: npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never microapps-core
-
-      - name: Publish Demo App to MicroApps
-        run: |
-          npx microapps-publish publish -a ${DEMO_APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${DEMO_APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
-
-      - name: Test Demo App
-        run: |
-          echo Testing App Frame Loading
-          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/
-          echo Testing App HTML Loading
-          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
-          echo Testing App Method Invocation
-          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
-
-      - name: Publish Release App to MicroApps
-        run: |
-          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
-
-      - name: Test Release App
-        run: |
-          echo Testing App Frame Loading
-          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${RELEASE_APP_NAME}/
-          echo Testing App HTML Loading
-          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/
-          echo Testing App Method Invocation
-          curl --fail https://${APP_HOST_NAME}.ghpublic.pwrdrvr.com/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
-
-
-  deploy-basic:
     if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        deployName:
+          - microapps-core
+          - microapps-basic
+    name: deploy-${{ matrix.deployName }}
     concurrency:
-      group: deploy-basic-${{ github.workflow }}-${{ github.event.pull_request.number }}
+      group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     needs:
       - build
@@ -193,16 +117,16 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy CDK Stack
-        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=microapps-basic-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never microapps-basic
+        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never ${{ matrix.deployName }}
 
       - name: Get CDK Exports
         id: getCDKExports
         run: |
-          echo "::set-output name=edgeDomain::"$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text)
-          echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-basic-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "::set-output name=edgeDomain::"$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text)
+          echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
 
       - name: Publish Demo App to MicroApps
         run: |
