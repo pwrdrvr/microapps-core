@@ -62,7 +62,6 @@ jobs:
         run: npm run test
 
   deploy:
-    if: github.event_name == 'pull_request'
     strategy:
       matrix:
         deployName:
