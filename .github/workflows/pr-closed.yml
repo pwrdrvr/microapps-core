@@ -22,17 +22,18 @@ env:
 
 jobs:
   cleanup-pr:
+    strategy:
+      matrix:
+        deployName:
+          - microapps-core
+          - microapps-basic
+    name: deploy-${{ matrix.deployName }}
     permissions:
       contents: read
       id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Use Node.js 16
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -43,25 +44,5 @@ jobs:
 
       - name: Destroy CDK Stack
         run: |
-          aws cloudformation delete-stack --stack-name "microapps-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
-          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
-
-      - name: Destroy Basic CDK Stack
-        run: |
-          aws cloudformation delete-stack --stack-name "microapps-basic-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
-          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "microapps-basic-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
-
-      - name: Extract Current NPM Version
-        run: |
-          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
-
-      - name: Compute NPM Version and App Lambda Name
-        run: |
-          echo 'DEPLOYER_LAMBDA_NAME=microapps-ghpublic-deployer-prod'${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
-          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
-
-      # TODO: After @pwrdrvr/microapps-publish is updated, add this delete step
-      # - name: Delete Demo App from MicroApps
-      #   run: |
-      #     npm i @pwrdrvr/microapps-publish
-      #     npx microapps-publish delete -a ${APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
+          aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
