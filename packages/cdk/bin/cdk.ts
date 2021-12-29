@@ -47,6 +47,16 @@ new MicroAppsStack(app, 'microapps-basic', {
   deployReleaseApp: shared.deployReleaseApp,
 });
 
+new MicroAppsStack(app, 'microapps-basic-prefix', {
+  env,
+  stackName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+  ttl: shared.isPR ? shared.ttlBase : undefined,
+  autoDeleteEverything: true,
+  deployDemoApp: shared.deployDemoApp,
+  deployReleaseApp: shared.deployReleaseApp,
+  rootPathPrefix: 'prefix',
+});
+
 // Note: This is only run manually once per env to create build user
 new MicroAppsBuilder(app, 'microapps-builder', {
   stackName: `${shared.stackName}-builder${shared.envSuffix}`,

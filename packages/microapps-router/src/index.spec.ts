@@ -1,8 +1,24 @@
 /// <reference types="jest" />
+import 'reflect-metadata';
 import 'jest-dynalite/withDb';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
+import { Config, IConfig } from './config/Config';
+jest.mock('./config/Config');
+const configMock = jest.fn((): IConfig => {
+  return {
+    db: {
+      tableName: 'microapps',
+    },
+    rootPathPrefix: '',
+  };
+});
+Object.defineProperty(Config, 'instance', {
+  configurable: false,
+  enumerable: false,
+  get: configMock,
+});
 import { handler, overrideDBManager } from './index';
 
 let dynamoClient: dynamodb.DynamoDBClient;
@@ -10,7 +26,7 @@ let dbManager: DBManager;
 
 const TEST_TABLE_NAME = 'microapps';
 
-describe('router', () => {
+describe('router - without prefix', () => {
   beforeAll(() => {
     dynamoClient = new dynamodb.DynamoDBClient({
       endpoint: process.env.MOCK_DYNAMODB_ENDPOINT,

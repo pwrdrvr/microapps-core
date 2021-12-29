@@ -123,7 +123,7 @@ Domain Name applied to API Gateway origin.
 ```typescript
 import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
 
-new MicroAppsCF(scope: Construct, id: string, props?: MicroAppsCFProps)
+new MicroAppsCF(scope: Construct, id: string, props: MicroAppsCFProps)
 ```
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.scope"></a>
@@ -138,13 +138,54 @@ new MicroAppsCF(scope: Construct, id: string, props?: MicroAppsCFProps)
 
 ---
 
-##### `props`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
+##### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsCFProps`](#@pwrdrvr/microapps-cdk.MicroAppsCFProps)
 
 ---
 
 
+#### Static Functions <a name="Static Functions"></a>
+
+##### `addRoutes` <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.addRoutes"></a>
+
+```typescript
+import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
+
+MicroAppsCF.addRoutes(_scope: Construct, props: AddRoutesOptions)
+```
+
+###### `_scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF._scope"></a>
+
+- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+
+---
+
+###### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.AddRoutesOptions`](#@pwrdrvr/microapps-cdk.AddRoutesOptions)
+
+---
+
+##### `createAPIOriginPolicy` <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.createAPIOriginPolicy"></a>
+
+```typescript
+import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
+
+MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicyOptions)
+```
+
+###### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.scope"></a>
+
+- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+
+---
+
+###### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions`](#@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions)
+
+---
 
 #### Properties <a name="Properties"></a>
 
@@ -283,6 +324,76 @@ DynamoDB table used by Router, Deployer, and Release console app.
 
 ## Structs <a name="Structs"></a>
 
+### AddRoutesOptions <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions"></a>
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { AddRoutesOptions } from '@pwrdrvr/microapps-cdk'
+
+const addRoutesOptions: AddRoutesOptions = { ... }
+```
+
+##### `apiGwyOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apiGwyOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-cloudfront.IOrigin`](#@aws-cdk/aws-cloudfront.IOrigin)
+
+---
+
+##### `apigwyOriginRequestPolicy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyOriginRequestPolicy"></a>
+
+- *Type:* [`@aws-cdk/aws-cloudfront.IOriginRequestPolicy`](#@aws-cdk/aws-cloudfront.IOriginRequestPolicy)
+
+---
+
+##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketAppsOrigin"></a>
+
+- *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+
+---
+
+##### `distro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.distro"></a>
+
+- *Type:* [`@aws-cdk/aws-cloudfront.Distribution`](#@aws-cdk/aws-cloudfront.Distribution)
+
+---
+
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.rootPathPrefix"></a>
+
+- *Type:* `string`
+
+---
+
+### CreateAPIOriginPolicyOptions <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions"></a>
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { CreateAPIOriginPolicyOptions } from '@pwrdrvr/microapps-cdk'
+
+const createAPIOriginPolicyOptions: CreateAPIOriginPolicyOptions = { ... }
+```
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions.assetNameRoot"></a>
+
+- *Type:* `string`
+
+---
+
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions.assetNameSuffix"></a>
+
+- *Type:* `string`
+
+---
+
+##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions.domainNameEdge"></a>
+
+- *Type:* `string`
+
+Edge domain name used by CloudFront - If set a custom OriginRequestPolicy will be created that prevents the Host header from being passed to the origin.
+
+---
+
 ### MicroAppsAPIGwyProps <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps"></a>
 
 #### Initializer <a name="[object Object].Initializer"></a>
@@ -354,6 +465,15 @@ Route53 zone in which to create optional `domainNameEdge` record.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Path prefix on the root of the API Gateway Stage.
 
 ---
 
@@ -454,6 +574,14 @@ Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true
 
 ---
 
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+
+Path prefix on the root of the CloudFront distribution.
+
+---
+
 ### MicroAppsProps <a name="@pwrdrvr/microapps-cdk.MicroAppsProps"></a>
 
 Props for MicroApps.
@@ -543,6 +671,14 @@ Route53 zone in which to create optional `domainNameEdge` record.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+
+Path prefix on the root of the CloudFront distribution.
 
 ---
 
@@ -759,6 +895,15 @@ Optional asset name suffix.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Path prefix on the root of the deployment.
 
 ---
 

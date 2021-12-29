@@ -58,6 +58,7 @@
     "jest-dynalite": "^3.4.4",
     "prettier": "^2.2.1",
     "projen": "~0.34.20",
+    "replace-in-file": "^6.3.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.39.0",
     "rollup-plugin-node-externals": "^2.2.0",

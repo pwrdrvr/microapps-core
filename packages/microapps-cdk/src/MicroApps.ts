@@ -147,6 +147,13 @@ export interface MicroAppsProps {
    * @default auto-assigned
    */
   readonly domainNameOrigin?: string;
+
+  /**
+   * Path prefix on the root of the CloudFront distribution
+   *
+   * @example dev/
+   */
+  readonly rootPathPrefix?: string;
 }
 
 export interface IMicroApps {
@@ -208,6 +215,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
       s3PolicyBypassAROAs,
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
+      rootPathPrefix,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -228,6 +236,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
       domainNameOrigin,
       r53Zone,
       certOrigin,
+      rootPathPrefix,
     });
     this._cf = new MicroAppsCF(this, 'cft', {
       removalPolicy,
@@ -240,6 +249,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
       certEdge,
       bucketAppsOrigin: this._s3.bucketAppsOrigin,
       bucketLogs: this._s3.bucketLogs,
+      rootPathPrefix,
     });
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,
@@ -253,6 +263,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
       s3PolicyBypassAROAs,
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
+      rootPathPrefix,
     });
   }
 }

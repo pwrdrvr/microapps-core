@@ -60,6 +60,14 @@ export interface MicroAppsAPIGwyProps {
    * Route53 zone in which to create optional `domainNameEdge` record
    */
   readonly r53Zone?: r53.IHostedZone;
+
+  /**
+   * Path prefix on the root of the API Gateway Stage
+   *
+   * @example dev/
+   * @default none
+   */
+  readonly rootPathPrefix?: string;
 }
 
 export interface IMicroAppsAPIGwy {
@@ -131,6 +139,7 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
       removalPolicy,
       assetNameRoot,
       assetNameSuffix,
+      rootPathPrefix,
     } = props;
 
     // API Gateway uses the `id` string as the gateway name without
@@ -142,6 +151,22 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
     //
     // APIGateway domain names for CloudFront and origin
     //
+    this._httpApi = new apigwy.HttpApi(this, 'gwy', {
+      apiName: apigatewayName,
+      createDefaultStage: false,
+    });
+    if (removalPolicy !== undefined) {
+      this._httpApi.applyRemovalPolicy(removalPolicy);
+    }
+
+    // Create the stage
+    const stage = new apigwy.HttpStage(this, 'stage', {
+      httpApi: this._httpApi,
+      autoDeploy: true,
+      // If rootPathPrefix is not defined this will be the $default stage
+      stageName: rootPathPrefix,
+    });
+
     if (domainNameEdge !== undefined && certOrigin !== undefined) {
       // Create Custom Domains for API Gateway
       const dnAppsEdge = new apigwy.DomainName(this, 'microapps-apps-edge-dn', {
@@ -152,23 +177,12 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
         dnAppsEdge.applyRemovalPolicy(removalPolicy);
       }
 
-      // Create APIGateway for the Edge name
-      const httpApiDomainMapping: apigwy.DomainMappingOptions = {
+      // Create the edge domain name mapping for the API
+      new apigwy.ApiMapping(this, 'mapping', {
+        api: this._httpApi,
         domainName: dnAppsEdge,
-      };
-      this._httpApi = new apigwy.HttpApi(this, 'gwy', {
-        defaultDomainMapping: httpApiDomainMapping,
-        apiName: apigatewayName,
+        stage,
       });
-    } else {
-      // Create HttpApi with default names
-      this._httpApi = new apigwy.HttpApi(this, 'gwy', {
-        apiName: apigatewayName,
-      });
-    }
-
-    if (removalPolicy !== undefined) {
-      this._httpApi.applyRemovalPolicy(removalPolicy);
     }
 
     if (domainNameOrigin !== undefined && certOrigin !== undefined) {
@@ -191,8 +205,8 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
     if (removalPolicy !== undefined) {
       apiAccessLogs.applyRemovalPolicy(removalPolicy);
     }
-    const stage = this._httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
-    stage.accessLogSettings = {
+    // const stage = this._httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
+    (stage as unknown as apigwy.CfnStage).accessLogSettings = {
       destinationArn: apiAccessLogs.logGroupArn,
       format: JSON.stringify({
         requestId: '$context.requestId',
@@ -231,6 +245,7 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
       const mappingAppsApis = new apigwy.ApiMapping(this, 'api-map-origin', {
         api: this._httpApi,
         domainName: this._dnAppsOrigin,
+        stage,
       });
       // 2021-12-12 - This should not be needed
       mappingAppsApis.node.addDependency(this._dnAppsOrigin);
