@@ -21,6 +21,7 @@ Object.defineProperty(Config, 'instance', {
         destinationBucket: 'microapps-test-destination',
       },
       uploadRoleName: 'microapps-upload-test-role',
+      rootPathPrefix: 'dev',
     };
   }),
 });
@@ -54,6 +55,7 @@ const TEST_TABLE_NAME = 'microapps';
 describe('VersionController', () => {
   const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
+  const pathPrefix = `${config.rootPathPrefix}/`;
 
   beforeAll(() => {
     dynamoClient = new dynamodb.DynamoDBClient({
@@ -134,7 +136,7 @@ describe('VersionController', () => {
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.destinationBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: true,
@@ -143,18 +145,18 @@ describe('VersionController', () => {
         .on(s3.ListObjectsV2Command, {
           ContinuationToken: 'nothing-to-see-here-yet',
           Bucket: config.filestore.destinationBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: false,
-          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
         })
         .on(s3.DeleteObjectsCommand, {
           Bucket: config.filestore.destinationBucket,
           Delete: {
             Objects: [
               {
-                Key: `${appName}/${semVer}/index.html`,
+                Key: `${pathPrefix}${appName}/${semVer}/index.html`,
               },
             ],
           },
@@ -293,25 +295,35 @@ describe('VersionController', () => {
       s3Client
         .onAnyCommand()
         .rejects()
+        // .callsFake((input) => {
+        //   console.log(`received input: ${JSON.stringify(input)}`);
+        //   console.log(
+        //     `our matcher: ${JSON.stringify({
+        //       Bucket: config.filestore.destinationBucket,
+        //       CopySource: `${config.filestore.stagingBucket}${pathPrefix}/${appName}/${semVer}/index.html`,
+        //       Key: `${pathPrefix}${appName}/${semVer}/index.html`,
+        //     })}`,
+        //   );
+        // })
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: false,
-          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
-          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
-          Key: `${appName}/${semVer}/index.html`,
+          CopySource: `${config.filestore.stagingBucket}/${pathPrefix}${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({})
         .on(s3.DeleteObjectCommand, {
           Bucket: config.filestore.stagingBucket,
-          Key: `${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({});
 
@@ -412,22 +424,22 @@ describe('VersionController', () => {
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: false,
-          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
-          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
-          Key: `${appName}/${semVer}/index.html`,
+          CopySource: `${config.filestore.stagingBucket}/${pathPrefix}${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({})
         .on(s3.DeleteObjectCommand, {
           Bucket: config.filestore.stagingBucket,
-          Key: `${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({});
       lambdaClient
@@ -512,7 +524,7 @@ describe('VersionController', () => {
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: true,
@@ -521,22 +533,22 @@ describe('VersionController', () => {
         .on(s3.ListObjectsV2Command, {
           ContinuationToken: 'nothing-to-see-here-yet',
           Bucket: config.filestore.stagingBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: false,
-          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
-          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
-          Key: `${appName}/${semVer}/index.html`,
+          CopySource: `${config.filestore.stagingBucket}/${pathPrefix}${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({})
         .on(s3.DeleteObjectCommand, {
           Bucket: config.filestore.stagingBucket,
-          Key: `${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({});
 
@@ -652,22 +664,22 @@ describe('VersionController', () => {
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
-          Prefix: `${appName}/${semVer}/`,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
         })
         .resolves({
           IsTruncated: false,
-          Contents: [{ Key: `${appName}/${semVer}/index.html` }],
+          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
         })
         // Mock S3 copy to prod bucket
         .on(s3.CopyObjectCommand, {
           Bucket: config.filestore.destinationBucket,
-          CopySource: `${config.filestore.stagingBucket}/${appName}/${semVer}/index.html`,
-          Key: `${appName}/${semVer}/index.html`,
+          CopySource: `${config.filestore.stagingBucket}/${pathPrefix}${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({})
         .on(s3.DeleteObjectCommand, {
           Bucket: config.filestore.stagingBucket,
-          Key: `${appName}/${semVer}/index.html`,
+          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({});
 
@@ -726,6 +738,7 @@ describe('VersionController', () => {
         // Mock create route for /*
         .on(apigwy.CreateRouteCommand, {
           ApiId: config.apigwy.apiId,
+
           Target: `integrations/${fakeIntegrationID}`,
           RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
         })

@@ -1,6 +1,7 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
+import path from 'path';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
@@ -25,11 +26,34 @@ export function overrideDBManager(opts: {
 dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
 
 /**
+ * Ensure that the path starts with a / and does not end with a /
+ * @param pathPrefix
+ * @returns
+ */
+function normalizePathPrefix(pathPrefix: string): string {
+  let normalizedPathPrefix = pathPrefix;
+  if (normalizedPathPrefix !== '' && !normalizedPathPrefix.startsWith('/')) {
+    normalizedPathPrefix = '/' + pathPrefix;
+  }
+  if (normalizedPathPrefix.endsWith('/')) {
+    normalizedPathPrefix.substring(0, normalizedPathPrefix.length - 1);
+  }
+
+  return normalizedPathPrefix;
+}
+
+/**
  * Find and load the appFrame file
  * @returns
  */
 function loadAppFrame(): string {
-  const paths = [__dirname, `${__dirname}/..`, `${__dirname}/templates`, '/opt', '/opt/templates'];
+  const paths = [
+    __dirname,
+    path.join(__dirname, '..'),
+    path.join(__dirname, 'templates'),
+    '/opt',
+    '/opt/templates',
+  ];
 
   // Change the logger on each request
   const log = new LambdaLog({
@@ -44,8 +68,8 @@ function loadAppFrame(): string {
     },
   });
 
-  for (const path of paths) {
-    const fullPath = `${path}/appFrame.html`;
+  for (const pathRoot of paths) {
+    const fullPath = path.join(pathRoot, 'appFrame.html');
     try {
       if (pathExistsSync(fullPath)) {
         log.info('found html file', { fullPath });
@@ -61,6 +85,7 @@ function loadAppFrame(): string {
 }
 
 const appFrame = loadAppFrame();
+const normalizedPathPrefix = normalizePathPrefix(Config.instance.rootPathPrefix);
 
 // Change the logger on each request
 const log = new LambdaLog({
@@ -102,13 +127,24 @@ export async function handler(
   };
 
   try {
+    if (normalizedPathPrefix !== '' && !event.rawPath.startsWith(normalizedPathPrefix)) {
+      // The prefix is required if configured, if missing we cannot serve this app
+      response.statusCode = 404;
+      return response;
+    }
+
+    const pathAfterPrefix =
+      normalizedPathPrefix !== '' && event.rawPath.startsWith(normalizedPathPrefix)
+        ? event.rawPath.slice(normalizedPathPrefix.length - 1)
+        : event.rawPath;
+
     // /someapp will split into length 2 with ["", "someapp"] as results
     // /someapp/somepath will split into length 3 with ["", "someapp", "somepath"] as results
     // /someapp/somepath/ will split into length 3 with ["", "someapp", "somepath", ""] as results
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
-    const parts = event.rawPath.split('/');
+    const parts = pathAfterPrefix.split('/');
 
-    // TODO: Pass any parts after the appName/Version to the route handler
+    // Pass any parts after the appName/Version to the route handler
     let additionalParts = '';
     if (parts.length >= 3 && parts[2] !== '') {
       additionalParts = parts.slice(2).join('/');
@@ -124,7 +160,7 @@ export async function handler(
       // This is an app and a version only
       // If the request got here it's likely a static app that has no
       // Lambda function (thus the API Gateway route fell through to the Router)
-      if (await RedirectToDefaultFile(event, response, parts[1], parts[2], log)) {
+      if (await RedirectToDefaultFile({ response, appName: parts[1], semVer: parts[2], log })) {
         return response;
       }
     }
@@ -135,7 +171,7 @@ export async function handler(
       // ^  ^^^^^^^    ^^^^^^^^^
       // 0        1            2
       // Got at least an application name, try to route it
-      await RouteApp(event, response, parts[1], additionalParts, log);
+      await RouteApp({ event, response, appName: parts[1], additionalParts, log });
     } else {
       throw new Error('Unmatched route');
     }
@@ -152,20 +188,21 @@ export async function handler(
 
 /**
  * Lookup the version of the app to run
- * @param request
+ * @param event
  * @param response
  * @param appName
  * @param additionalParts
  * @param log
  * @returns
  */
-async function RouteApp(
-  request: lambda.APIGatewayProxyEventV2,
-  response: lambda.APIGatewayProxyStructuredResultV2,
-  appName: string,
-  additionalParts: string,
-  log: LambdaLog,
-) {
+async function RouteApp(opts: {
+  event: lambda.APIGatewayProxyEventV2;
+  response: lambda.APIGatewayProxyStructuredResultV2;
+  appName: string;
+  additionalParts: string;
+  log: LambdaLog;
+}) {
+  const { event, response, appName, additionalParts, log } = opts;
   let versionsAndRules: IVersionsAndRules;
 
   if (response.headers === undefined) {
@@ -189,7 +226,7 @@ async function RouteApp(
     response.statusCode = 404;
     response.headers['Cache-Control'] = 'no-store; private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
-    response.body = `Router - Could not find app: ${request.rawPath}, ${appName}`;
+    response.body = `Router - Could not find app: ${event.rawPath}, ${appName}`;
     return;
   }
 
@@ -208,13 +245,13 @@ async function RouteApp(
   const defaultVersion = versionsAndRules.Rules?.RuleSet.default?.SemVer;
 
   if (defaultVersion == null) {
-    log.error(`could not find app ${appName}, for path ${request.rawPath} - returning 404`, {
+    log.error(`could not find app ${appName}, for path ${event.rawPath} - returning 404`, {
       statusCode: 404,
     });
     response.statusCode = 404;
     response.headers['Cache-Control'] = 'no-store; private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
-    response.body = `Router - Could not find app: ${request.rawPath}, ${appName}`;
+    response.body = `Router - Could not find app: ${event.rawPath}, ${appName}`;
     return;
   }
 
@@ -234,14 +271,14 @@ async function RouteApp(
     // KLUDGE: We're going to take a missing default file to mean that the
     // app type is Next.js (or similar) and that it wants no trailing slash after the version
     // TODO: Move this to an attribute of the version
-    appVersionPath = `/${appName}/${defaultVersion}`;
+    appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}`;
     if (additionalParts !== '') {
       appVersionPath += `/${additionalParts}`;
     }
   } else {
     // Linking to the file directly means this will be peeled off by the S3 route
     // That means we won't have to proxy this from S3
-    appVersionPath = `/${appName}/${defaultVersion}/${defaultVersionInfo.DefaultFile}`;
+    appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}/${defaultVersionInfo.DefaultFile}`;
   }
 
   //
@@ -255,7 +292,7 @@ async function RouteApp(
   response.statusCode = 200;
   response.body = frameHTML;
 
-  log.info(`found app ${appName}, for path ${request.rawPath} - returning 200`, {
+  log.info(`found app ${appName}, for path ${event.rawPath} - returning 200`, {
     statusCode: 200,
     routedPath: appVersionPath,
   });
@@ -270,13 +307,13 @@ async function RouteApp(
  * @param log
  * @returns
  */
-async function RedirectToDefaultFile(
-  request: lambda.APIGatewayProxyEventV2,
-  response: lambda.APIGatewayProxyStructuredResultV2,
-  appName: string,
-  semVer: string,
-  log: LambdaLog,
-): Promise<boolean> {
+async function RedirectToDefaultFile(opts: {
+  response: lambda.APIGatewayProxyStructuredResultV2;
+  appName: string;
+  semVer: string;
+  log: LambdaLog;
+}): Promise<boolean> {
+  const { response, appName, semVer, log } = opts;
   let versionInfo: Version;
 
   if (response.headers === undefined) {
@@ -289,17 +326,20 @@ async function RedirectToDefaultFile(
       key: { AppName: appName, SemVer: semVer },
     });
   } catch (error) {
-    log.info(`LoadVersion threw for '/${appName}/${semVer}' - falling through to app routing'`, {
-      appName,
-      semVer,
-      error,
-    });
+    log.info(
+      `LoadVersion threw for '${normalizedPathPrefix}/${appName}/${semVer}' - falling through to app routing'`,
+      {
+        appName,
+        semVer,
+        error,
+      },
+    );
     return false;
   }
 
   if (versionInfo === undefined) {
     log.info(
-      `LoadVersion returned undefined for '/${appName}/${semVer}', assuming not found - falling through to app routing'`,
+      `LoadVersion returned undefined for '${normalizedPathPrefix}/${appName}/${semVer}', assuming not found - falling through to app routing'`,
       {
         appName,
         semVer,
@@ -310,13 +350,15 @@ async function RedirectToDefaultFile(
 
   response.statusCode = 302;
   response.headers['Cache-Control'] = 'no-store; private';
-  response.headers['Location'] = `/${appName}/${semVer}/${versionInfo.DefaultFile}`;
+  response.headers[
+    'Location'
+  ] = `${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`;
 
   log.info(
-    `found '/${appName}/${semVer}' - returning 302 to /${appName}/${semVer}/${versionInfo.DefaultFile}`,
+    `found '${normalizedPathPrefix}/${appName}/${semVer}' - returning 302 to ${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`,
     {
       statusCode: 302,
-      routedPath: `/${appName}/${semVer}/${versionInfo.DefaultFile}`,
+      routedPath: `${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`,
     },
   );
 

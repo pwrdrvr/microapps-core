@@ -27,6 +27,7 @@ jobs:
         deployName:
           - microapps-core
           - microapps-basic
+          - microapps-basic-prefix
     name: deploy-${{ matrix.deployName }}
     permissions:
       contents: read

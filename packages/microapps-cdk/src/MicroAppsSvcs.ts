@@ -62,6 +62,14 @@ export interface MicroAppsSvcsProps {
   readonly s3StrictBucketPolicy?: boolean;
   readonly s3PolicyBypassAROAs?: string[];
   readonly s3PolicyBypassPrincipalARNs?: string[];
+
+  /**
+   * Path prefix on the root of the deployment
+   *
+   * @example dev/
+   * @default none
+   */
+  readonly rootPathPrefix?: string;
 }
 
 export interface IMicroAppsSvcs {
@@ -112,6 +120,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
       removalPolicy,
       assetNameRoot,
       assetNameSuffix,
+      rootPathPrefix = '',
     } = props;
 
     if (s3StrictBucketPolicy === true) {
@@ -155,6 +164,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
         NODE_ENV: appEnv,
         DATABASE_TABLE_NAME: this._table.tableName,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+        ROOT_PATH_PREFIX: rootPathPrefix,
       },
     };
     if (
@@ -233,6 +243,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
         FILESTORE_STAGING_BUCKET: bucketAppsStaging.bucketName,
         FILESTORE_DEST_BUCKET: bucketApps.bucketName,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+        ROOT_PATH_PREFIX: rootPathPrefix,
       },
     };
     if (
@@ -392,13 +403,13 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
     const policyCloudFrontAccess = new iam.PolicyStatement({
       sid: 'cloudfront-oai-access',
       effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject'],
+      actions: ['s3:GetObject', 's3:ListBucket'],
       principals: [
         new iam.CanonicalUserPrincipal(
           bucketAppsOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId,
         ),
       ],
-      resources: [`${bucketApps.bucketArn}/*`],
+      resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
     });
 
     if (bucketApps.policy === undefined) {
@@ -432,7 +443,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
     // Allow the Lambda to write to the target bucket and delete
     const policyReadWriteListTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject', 's3:PutObject', 's3:ListBucket', 's3:DeleteObject'],
+      actions: ['s3:DeleteObject', 's3:GetObject', 's3:PutObject', 's3:ListBucket'],
       resources: [`${bucketApps.bucketArn}/*`, bucketApps.bucketArn],
     });
     this._deployerFunc.addToRolePolicy(policyReadWriteListTarget);

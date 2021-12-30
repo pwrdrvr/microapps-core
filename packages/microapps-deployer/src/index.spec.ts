@@ -22,11 +22,11 @@ Object.defineProperty(Config, 'instance', {
         destinationBucket: 'microapps-test-destination',
       },
       uploadRoleName: 'microapps-upload-test-role',
+      rootPathPrefix: 'qa',
     };
   }),
 });
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
 import { handler, overrideDBManager } from './index';
 import { Application, DBManager } from '@pwrdrvr/microapps-datalib';
 import { ICreateApplicationRequest } from '@pwrdrvr/microapps-deployer-lib';

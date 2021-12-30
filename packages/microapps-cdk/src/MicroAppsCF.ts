@@ -1,3 +1,4 @@
+import { posix as posixPath } from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2';
 import * as acm from '@aws-cdk/aws-certificatemanager';
 import * as cf from '@aws-cdk/aws-cloudfront';
@@ -78,9 +79,151 @@ export interface MicroAppsCFProps {
    * Route53 zone in which to create optional `domainNameEdge` record
    */
   readonly r53Zone?: r53.IHostedZone;
+
+  /**
+   * Path prefix on the root of the CloudFront distribution
+   *
+   * @example dev/
+   */
+  readonly rootPathPrefix?: string;
+}
+
+export interface CreateAPIOriginPolicyOptions {
+  readonly assetNameRoot?: string;
+  readonly assetNameSuffix?: string;
+
+  /**
+   * Edge domain name used by CloudFront - If set a custom
+   * OriginRequestPolicy will be created that prevents
+   * the Host header from being passed to the origin.
+   */
+  readonly domainNameEdge?: string;
+}
+
+export interface AddRoutesOptions {
+  readonly apiGwyOrigin: cf.IOrigin;
+  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly distro: cf.Distribution;
+  readonly apigwyOriginRequestPolicy: cf.IOriginRequestPolicy;
+  readonly rootPathPrefix?: string;
 }
 
 export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
+  /**
+   * Create or get the origin request policy
+   *
+   * If a custom domain name is NOT used for the origin then a policy
+   * will be created.
+   *
+   * If a custom domain name IS used for the origin then the ALL_VIEWER
+   * policy will be returned.  This policy passes the Host header to the
+   * origin, which is fine when using a custom domain name on the origin.
+   *
+   * @param scope
+   * @param props
+   */
+  public static createAPIOriginPolicy(
+    scope: cdk.Construct,
+    props: CreateAPIOriginPolicyOptions,
+  ): cf.IOriginRequestPolicy {
+    const { assetNameRoot, assetNameSuffix, domainNameEdge } = props;
+
+    let apigwyOriginRequestPolicy: cf.IOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
+    if (domainNameEdge === undefined) {
+      // When not using a custom domain name we must limit down the origin policy to
+      // prevent it from passing the Host header (distribution_id.cloudfront.net) to
+      // apigwy which will then reject it with a 403 because it does not match the
+      // execute-api name that apigwy is expecting.
+      //
+      // 2021-12-28 - There is a bug in the name generation that causes the same asset
+      // in different stacks to have the same generated name.  We have to make the id
+      // in all cases to ensure the generated name is unique.
+      apigwyOriginRequestPolicy = new cf.OriginRequestPolicy(
+        scope,
+        `apigwy-origin-policy-${cdk.Stack.of(scope).stackName}`,
+        {
+          comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
+
+          originRequestPolicyName: assetNameRoot
+            ? `${assetNameRoot}-apigwy${assetNameSuffix}`
+            : undefined,
+          cookieBehavior: cf.OriginRequestCookieBehavior.all(),
+          queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
+          headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
+        },
+      );
+    }
+
+    return apigwyOriginRequestPolicy;
+  }
+
+  /**
+   * Add API Gateway and S3 routes to an existing CloudFront Distribution
+   * @param _scope
+   * @param props
+   */
+  public static addRoutes(_scope: cdk.Construct, props: AddRoutesOptions) {
+    const {
+      apiGwyOrigin,
+      bucketAppsOrigin,
+      distro,
+      apigwyOriginRequestPolicy,
+      rootPathPrefix = '',
+    } = props;
+
+    //
+    // Add Behaviors
+    //
+    const apiGwyBehaviorOptions: cf.AddBehaviorOptions = {
+      allowedMethods: cf.AllowedMethods.ALLOW_ALL,
+      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy: apigwyOriginRequestPolicy,
+      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    };
+    const s3BehaviorOptions: cf.AddBehaviorOptions = {
+      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
+      compress: true,
+      originRequestPolicy: cf.OriginRequestPolicy.CORS_S3_ORIGIN,
+      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    };
+    const apiGwyVersionRootBehaviorOptions: cf.AddBehaviorOptions = {
+      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy: apigwyOriginRequestPolicy,
+      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    };
+
+    //
+    // Setup Routes
+    // Pull to the API first, then pull to S3 if it contains /static/
+    // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
+    // Let everything else fall through to the API Gateway
+    //
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '/*/*/api/*'),
+      apiGwyOrigin,
+      apiGwyBehaviorOptions,
+    );
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '/*/*/static/*'),
+      bucketAppsOrigin,
+      s3BehaviorOptions,
+    );
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '/*/*/*.*'),
+      bucketAppsOrigin,
+      s3BehaviorOptions,
+    );
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '/*/*/'),
+      apiGwyOrigin,
+      apiGwyVersionRootBehaviorOptions,
+    );
+  }
+
   private _cloudFrontDistro: cf.Distribution;
   public get cloudFrontDistro(): cf.Distribution {
     return this._cloudFrontDistro;
@@ -92,7 +235,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: MicroAppsCFProps) {
+  constructor(scope: cdk.Construct, id: string, props: MicroAppsCFProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -117,30 +260,28 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       r53Zone,
       bucketLogs,
       bucketAppsOrigin,
+      rootPathPrefix,
     } = props;
+
+    const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
+      assetNameRoot,
+      assetNameSuffix,
+      domainNameEdge,
+    });
+
+    //
+    // Determine URL of the origin FQDN
+    //
+    let httpOriginFQDN: string = 'invalid.pwrdrvr.com';
+    if (domainNameOrigin !== undefined) {
+      httpOriginFQDN = domainNameOrigin;
+    } else {
+      httpOriginFQDN = `${httpApi.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`;
+    }
 
     //
     // CloudFront Distro
     //
-    let httpOriginFQDN: string = 'invalid.pwrdrvr.com';
-    let apigwyOriginPolicy: cf.IOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
-    if (domainNameOrigin !== undefined) {
-      // When using a custom domain we can use the default apigwy origin policy of
-      // ALL_VIEWER (all header, all cookies, all query strings)
-      httpOriginFQDN = domainNameOrigin;
-    } else {
-      // When not using a custom domain name we must limit down the origin policy to
-      // prevent it from passing the Host header (distribution_id.cloudfront.net) to
-      // apigwy which will then reject it with a 403 because it does not match the
-      // execute-api name that apigwhy is expecting.
-      apigwyOriginPolicy = new cf.OriginRequestPolicy(this, 'apigwy-origin-policy', {
-        comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
-        cookieBehavior: cf.OriginRequestCookieBehavior.all(),
-        queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
-        headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
-      });
-      httpOriginFQDN = `${httpApi.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`;
-    }
     const apiGwyOrigin = new cforigins.HttpOrigin(httpOriginFQDN, {
       protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
@@ -154,7 +295,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
         compress: true,
-        originRequestPolicy: apigwyOriginPolicy,
+        originRequestPolicy: apigwyOriginRequestPolicy,
         origin: apiGwyOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
@@ -169,41 +310,14 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       this._cloudFrontDistro.applyRemovalPolicy(removalPolicy);
     }
 
-    //
-    // Add Behaviors
-    //
-    const apiGwyBehavior: cf.AddBehaviorOptions = {
-      allowedMethods: cf.AllowedMethods.ALLOW_ALL,
-      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
-      originRequestPolicy: apigwyOriginPolicy,
-      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    };
-    const s3Behavior: cf.AddBehaviorOptions = {
-      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-      cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
-      compress: true,
-      originRequestPolicy: cf.OriginRequestPolicy.CORS_S3_ORIGIN,
-      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    };
-    const apiGwyVersionRootBehavior: cf.AddBehaviorOptions = {
-      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
-      originRequestPolicy: apigwyOriginPolicy,
-      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    };
-
-    //
-    // Setup Routes
-    // Pull to the API first, then pull to S3 if it contains /static/
-    // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
-    // Let everything else fall through to the API Gateway
-    //
-    this._cloudFrontDistro.addBehavior('/*/*/api/*', apiGwyOrigin, apiGwyBehavior);
-    this._cloudFrontDistro.addBehavior('/*/*/static/*', bucketAppsOrigin, s3Behavior);
-    this._cloudFrontDistro.addBehavior('/*/*/*.*', bucketAppsOrigin, s3Behavior);
-    this._cloudFrontDistro.addBehavior('/*/*/', apiGwyOrigin, apiGwyVersionRootBehavior);
+    // Add routes to the CloudFront Distribution
+    MicroAppsCF.addRoutes(scope, {
+      apiGwyOrigin,
+      bucketAppsOrigin,
+      distro: this._cloudFrontDistro,
+      apigwyOriginRequestPolicy: apigwyOriginRequestPolicy,
+      rootPathPrefix,
+    });
 
     //
     // Create the edge name for the CloudFront distro

@@ -115,6 +115,13 @@ export interface MicroAppsStackProps extends cdk.StackProps {
    * @default dev
    */
   readonly nodeEnv?: Env;
+
+  /**
+   * Path prefix on the root of the CloudFront distribution
+   *
+   * @example dev/
+   */
+  readonly rootPathPrefix?: string;
 }
 
 export class MicroAppsStack extends cdk.Stack {
@@ -149,6 +156,7 @@ export class MicroAppsStack extends cdk.Stack {
       r53ZoneName,
       certARNEdge,
       certARNOrigin,
+      rootPathPrefix,
     } = props;
 
     let removalPolicy: cdk.RemovalPolicy | undefined = undefined;
@@ -220,6 +228,7 @@ export class MicroAppsStack extends cdk.Stack {
     const microapps = new MicroAppsCDK(this, 'microapps', {
       removalPolicy,
       appEnv: nodeEnv,
+      rootPathPrefix,
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,

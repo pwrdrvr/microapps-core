@@ -16,6 +16,8 @@ export interface IConfig {
   awsRegion: string;
 
   uploadRoleName: string;
+
+  rootPathPrefix: string;
 }
 
 @convict.Config({
@@ -106,4 +108,11 @@ export class Config implements IConfig {
     env: 'UPLOAD_ROLE_NAME',
   })
   public uploadRoleName!: string;
+
+  @convict.Property({
+    doc: 'Path prefix for this deployment',
+    default: '',
+    env: 'ROOT_PATH_PREFIX',
+  })
+  public rootPathPrefix!: string;
 }

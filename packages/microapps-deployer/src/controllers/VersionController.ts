@@ -6,7 +6,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import pMap from 'p-map';
-import { IConfig } from '../config/Config';
+import { Config, IConfig } from '../config/Config';
 import {
   IDeleteVersionRequest,
   IDeployVersionRequest,
@@ -104,7 +104,9 @@ export default class VersionController {
         new sts.AssumeRoleCommand({
           RoleArn: `arn:aws:iam::${config.awsAccountID}:role/${config.uploadRoleName}`,
           DurationSeconds: 60 * 60,
-          RoleSessionName: VersionController.SHA1Hash(VersionController.GetBucketPrefix(request)),
+          RoleSessionName: VersionController.SHA1Hash(
+            VersionController.GetBucketPrefix(request, config),
+          ),
           Policy: JSON.stringify(iamPolicyDoc.toJSON()),
         }),
       );
@@ -115,6 +117,7 @@ export default class VersionController {
         statusCode: 404,
         s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
           request,
+          config,
         )}`,
 
         awsCredentials: {
@@ -146,8 +149,6 @@ export default class VersionController {
     const { overwrite = false } = request;
 
     Log.Instance.debug('Got Body:', request);
-
-    const destinationPrefix = VersionController.GetBucketPrefix(request);
 
     // Check if the version exists
     let record = await Version.LoadVersion({
@@ -190,14 +191,14 @@ export default class VersionController {
     // Only copy the files if not copied yet
     if (overwrite || record.Status === 'pending') {
       const { stagingBucket } = config.filestore;
-      const sourcePrefix = VersionController.GetBucketPrefix(request) + '/';
+      const sourcePrefix = VersionController.GetBucketPrefix(request, config) + '/';
 
       // Example Source: s3://pwrdrvr-apps-staging/release/1.0.0/
       // Loop through all S3 source assets and copy to the destination
       await VersionController.CopyToProdBucket(
         stagingBucket,
         sourcePrefix,
-        destinationPrefix,
+        VersionController.GetBucketPrefix(request, config),
         config,
       );
 
@@ -448,7 +449,7 @@ export default class VersionController {
     }
 
     // Delete files in destinationBucket
-    const destinationPrefix = VersionController.GetBucketPrefix(request) + '/';
+    const destinationPrefix = VersionController.GetBucketPrefix(request, config) + '/';
     await this.DeleteFromDestinationBucket(destinationPrefix, config);
 
     if (record.Type === 'lambda') {
@@ -692,7 +693,9 @@ export default class VersionController {
 
   private static GetBucketPrefix(
     request: Pick<IDeployVersionRequestBase, 'appName' | 'semVer'>,
+    config: IConfig,
   ): string {
-    return `${request.appName}/${request.semVer}`.toLowerCase();
+    const pathPrefix = config.rootPathPrefix === '' ? '' : `${config.rootPathPrefix}/`;
+    return `${pathPrefix}${request.appName}/${request.semVer}`.toLowerCase();
   }
 }

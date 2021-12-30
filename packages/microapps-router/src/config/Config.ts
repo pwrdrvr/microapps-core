@@ -7,6 +7,7 @@ import { Database, IDatabase } from './Database';
 
 export interface IConfig {
   db: IDatabase;
+  rootPathPrefix: string;
 }
 
 @convict.Config({
@@ -70,4 +71,11 @@ export class Config implements IConfig {
 
   @convict.Property(Database)
   public db!: IDatabase;
+
+  @convict.Property({
+    doc: 'Path prefix for this deployment',
+    default: '',
+    env: 'ROOT_PATH_PREFIX',
+  })
+  public rootPathPrefix!: string;
 }

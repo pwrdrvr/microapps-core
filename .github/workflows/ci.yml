@@ -67,6 +67,7 @@ jobs:
         deployName:
           - microapps-core
           - microapps-basic
+          - microapps-basic-prefix
     name: deploy-${{ matrix.deployName }}
     concurrency:
       group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -90,6 +91,14 @@ jobs:
       - name: Compute NPM Version and App Lambda Name
         run: |
           echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
+
+      - name: Set Prefix Path
+        run: |
+          if [ "${{ matrix.deployName }}" == "microapps-basic-prefix" ]; then
+            echo 'PREFIX=/prefix' >> $GITHUB_ENV
+          else
+            echo 'PREFIX=' >> $GITHUB_ENV
+          fi
 
       - name: Use Node.js 16
         uses: actions/setup-node@v2
@@ -115,6 +124,12 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Stitch Prefix into Release App
+        run: |
+          if [ -n "${PREFIX}" ] ; then
+            npx replace-in-file "/\/${RELEASE_APP_NAME}\/${RELEASE_APP_PACKAGE_VERSION}/g" ${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION} --configFile=.release-replace.config.js --isRegex
+          fi
+
       - name: Deploy CDK Stack
         run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never ${{ matrix.deployName }}
 
@@ -134,11 +149,11 @@ jobs:
       - name: Test Demo App
         run: |
           echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}/${DEMO_APP_NAME}/
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
           echo Testing App Method Invocation
-          curl --fail https://${EDGE_DOMAIN}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
 
       - name: Publish Release App to MicroApps
         run: |
@@ -147,11 +162,11 @@ jobs:
       - name: Test Release App
         run: |
           echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}
           echo Testing App Method Invocation
-          curl --fail https://${EDGE_DOMAIN}/${RELEASE_APP_NAME}/${PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
 
   delete-apps:
     if: github.event_name == 'pull_request' && false

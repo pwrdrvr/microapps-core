@@ -70,7 +70,7 @@ export class MicroAppsBuilder extends cdk.Stack {
     //   }),
     // );
 
-    const builderRole = new iam.Role(this, 'microapps-builder-role', {
+    const builderRole = new iam.Role(this, 'builder-role', {
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCertificateManagerReadOnly'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('CloudFrontFullAccess'),
