@@ -178,11 +178,14 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
       }
 
       // Create the edge domain name mapping for the API
-      new apigwy.ApiMapping(this, 'mapping', {
+      const apiMapping = new apigwy.ApiMapping(this, 'mapping', {
         api: this._httpApi,
         domainName: dnAppsEdge,
         stage,
       });
+      // 2022-01-16 - CDK is still generating CloudFormation with no dependency
+      // between the R53 RecordSet and the Mapping
+      apiMapping.node.addDependency(dnAppsEdge);
     }
 
     if (domainNameOrigin !== undefined && certOrigin !== undefined) {
@@ -247,7 +250,8 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
         domainName: this._dnAppsOrigin,
         stage,
       });
-      // 2021-12-12 - This should not be needed
+      // 2022-01-16 - CDK is still generating CloudFormation with no dependency
+      // between the R53 RecordSet and the Mapping
       mappingAppsApis.node.addDependency(this._dnAppsOrigin);
       if (removalPolicy !== undefined) {
         mappingAppsApis.applyRemovalPolicy(removalPolicy);
