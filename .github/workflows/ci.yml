@@ -77,7 +77,7 @@ jobs:
       - build
     environment:
       name: ghpublic
-      url: https://${{ steps.getCDKExports.outputs.edgeDomain }}/release/
+      url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/release/
     permissions:
       contents: read
       id-token: write
@@ -144,6 +144,7 @@ jobs:
       - name: Get CDK Exports
         id: getCDKExports
         run: |
+          echo "::set-output name=prefix::"${PREFIX}
           echo "::set-output name=edgeDomain::"$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text)
           echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV

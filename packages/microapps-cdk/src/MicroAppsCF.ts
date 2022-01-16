@@ -174,13 +174,6 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
     //
     // Add Behaviors
     //
-    const apiGwyBehaviorOptions: cf.AddBehaviorOptions = {
-      allowedMethods: cf.AllowedMethods.ALLOW_ALL,
-      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
-      originRequestPolicy: apigwyOriginRequestPolicy,
-      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    };
     const s3BehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
@@ -188,8 +181,9 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       originRequestPolicy: cf.OriginRequestPolicy.CORS_S3_ORIGIN,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     };
-    const apiGwyVersionRootBehaviorOptions: cf.AddBehaviorOptions = {
-      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+    const apiGwyBehaviorOptions: cf.AddBehaviorOptions = {
+      allowedMethods: cf.AllowedMethods.ALLOW_ALL,
+      // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
       compress: true,
       originRequestPolicy: apigwyOriginRequestPolicy,
@@ -197,31 +191,20 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
     };
 
     //
-    // Setup Routes
-    // Pull to the API first, then pull to S3 if it contains /static/
-    // Pull anything under /appName/x.y.z/ folder with '.' in file name to S3
-    // Let everything else fall through to the API Gateway
+    // All static assets are assumed to have a dot in them
     //
-    distro.addBehavior(
-      posixPath.join(rootPathPrefix, '/*/*/api/*'),
-      apiGwyOrigin,
-      apiGwyBehaviorOptions,
-    );
-    distro.addBehavior(
-      posixPath.join(rootPathPrefix, '/*/*/static/*'),
-      bucketAppsOrigin,
-      s3BehaviorOptions,
-    );
     distro.addBehavior(
       posixPath.join(rootPathPrefix, '/*/*/*.*'),
       bucketAppsOrigin,
       s3BehaviorOptions,
     );
-    distro.addBehavior(
-      posixPath.join(rootPathPrefix, '/*/*/'),
-      apiGwyOrigin,
-      apiGwyVersionRootBehaviorOptions,
-    );
+
+    //
+    // Everything that isn't a static asset is going to API Gateway
+    // There is no trailing slash because Serverless Next.js wants
+    // go load pages at /release/0.0.3 (with no trailing slash).
+    //
+    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), apiGwyOrigin, apiGwyBehaviorOptions);
   }
 
   private _cloudFrontDistro: cf.Distribution;
