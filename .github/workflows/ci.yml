@@ -166,7 +166,7 @@ jobs:
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${NEXTJS_DEMO_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/ --overwrite --noCache
+          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${NEXTJS_DEMO_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/ --overwrite --noCache
 
       - name: Test Nextjs Demo App
         run: |
