@@ -139,7 +139,7 @@ jobs:
           fi
 
       - name: Deploy CDK Stack
-        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never ${{ matrix.deployName }}
+        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployNexjsDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never ${{ matrix.deployName }}
 
       - name: Get CDK Exports
         id: getCDKExports
