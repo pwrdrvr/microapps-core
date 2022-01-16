@@ -1,5 +1,5 @@
 {
-  "name": "cdk",
+  "name": "@pwrdrvr/microapps-core-cdk-stack",
   "version": "0.0.0",
   "private": true,
   "repository": {
@@ -22,6 +22,7 @@
     "@aws-cdk/aws-logs": "^1.95.2",
     "@aws-cdk/core": "^1.95.2",
     "@cloudcomponents/cdk-temp-stack": "^1.37.0",
+    "@pwrdrvr/microapps-app-nextjs-demo-cdk": "^0.0.1",
     "@pwrdrvr/microapps-app-release-cdk": "^0.0.3",
     "source-map-support": "^0.5.16"
   },

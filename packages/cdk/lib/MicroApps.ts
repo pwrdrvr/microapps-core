@@ -10,6 +10,7 @@ import {
 import { DemoApp } from './DemoApp';
 import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
 import { Env } from './Types';
+import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
 
 export interface MicroAppsStackProps extends cdk.StackProps {
   /**
@@ -103,6 +104,13 @@ export interface MicroAppsStackProps extends cdk.StackProps {
   readonly deployReleaseApp?: boolean;
 
   /**
+   * Deploy Serverless Next.js Demo app
+   *
+   * @default false
+   */
+  readonly deployNextjsDemoApp?: boolean;
+
+  /**
    * Deploy the Demo app
    *
    * @default false
@@ -150,6 +158,7 @@ export class MicroAppsStack extends cdk.Stack {
       assetNameRoot,
       assetNameSuffix,
       deployReleaseApp = false,
+      deployNextjsDemoApp = false,
       deployDemoApp = false,
       nodeEnv = 'dev',
       r53ZoneID,
@@ -255,7 +264,7 @@ export class MicroAppsStack extends cdk.Stack {
         `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
       );
 
-      const releaseApp = new MicroAppsAppRelease(this, 'release-app', {
+      const app = new MicroAppsAppRelease(this, 'release-app', {
         functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
         table: microapps.svcs.table,
         staticAssetsS3Bucket: microapps.s3.bucketApps,
@@ -265,8 +274,32 @@ export class MicroAppsStack extends cdk.Stack {
       });
 
       new cdk.CfnOutput(this, 'release-app-func-name', {
-        value: `${releaseApp.lambdaFunction.functionName}`,
+        value: `${app.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-release-app-func-name`,
+      });
+    }
+
+    if (deployNextjsDemoApp) {
+      const sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
+        this,
+        'sharp-lambda-layer',
+        `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
+      );
+
+      const app = new MicroAppsAppNextjsDemo(this, 'nextjs-demo-app', {
+        functionName: assetNameRoot
+          ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
+          : undefined,
+        table: microapps.svcs.table,
+        staticAssetsS3Bucket: microapps.s3.bucketApps,
+        nodeEnv,
+        removalPolicy,
+        sharpLayer,
+      });
+
+      new cdk.CfnOutput(this, 'nextjs-demo-app-func-name', {
+        value: `${app.lambdaFunction.functionName}`,
+        exportName: `${this.stackName}-nextjs-demo-app-func-name`,
       });
     }
 

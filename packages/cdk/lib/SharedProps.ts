@@ -111,6 +111,11 @@ export class SharedProps {
     return this._deployDemoApp;
   }
 
+  private _deployNextjsDemoApp: boolean;
+  public get deployNextjsDemoApp(): boolean {
+    return this._deployNextjsDemoApp;
+  }
+
   private _deployReleaseApp: boolean;
   public get deployReleaseApp(): boolean {
     return this._deployReleaseApp;
@@ -138,6 +143,10 @@ export class SharedProps {
     this._deployDemoApp =
       SharedProps.stringToBoolOrUndefined(
         scope.node.tryGetContext('@pwrdrvr/microapps:deployDemoApp'),
+      ) ?? false;
+    this._deployNextjsDemoApp =
+      SharedProps.stringToBoolOrUndefined(
+        scope.node.tryGetContext('@pwrdrvr/microapps:deployNexjsDemoApp'),
       ) ?? false;
     this._deployReleaseApp =
       SharedProps.stringToBoolOrUndefined(
