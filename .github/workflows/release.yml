@@ -295,4 +295,4 @@ jobs:
       #   run: npm publish
 
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16
+      image: jsii/superchain
