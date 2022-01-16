@@ -21,6 +21,8 @@ env:
 
 jobs:
   cleanup-pr:
+    environment:
+      name: ghpublic
     strategy:
       matrix:
         deployName:
