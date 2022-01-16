@@ -35,6 +35,7 @@ new MicroAppsStack(app, 'microapps-core', {
   assetNameRoot: `${shared.stackName}`,
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
   deployDemoApp: shared.deployDemoApp,
+  deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
 });
 
@@ -44,6 +45,7 @@ new MicroAppsStack(app, 'microapps-basic', {
   ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   deployDemoApp: shared.deployDemoApp,
+  deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
 });
 
@@ -53,6 +55,7 @@ new MicroAppsStack(app, 'microapps-basic-prefix', {
   ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   deployDemoApp: shared.deployDemoApp,
+  deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
   rootPathPrefix: 'prefix',
 });
