@@ -41,9 +41,6 @@ jobs:
           chown -R root ./
           chmod -R 777 ./
 
-      - name: Print NPM Cache Location
-        run: npm config get cache
-
       - name: Cache Node.js modules
         uses: actions/cache@v2
         with:
@@ -56,10 +53,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Projen Files
-        working-directory: packages/microapps-cdk/
-        run: |
-          npm run projen
+      # - name: Generate Projen Files
+      #   working-directory: packages/microapps-cdk/
+      #   run: |
+      #     npm run projen
 
       - name: Build All TypeScript
         run: npm run build --if-present

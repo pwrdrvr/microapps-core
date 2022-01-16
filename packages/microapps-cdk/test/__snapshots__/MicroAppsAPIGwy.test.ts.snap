@@ -119,7 +119,9 @@ Object {
         "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
-        "DomainName": "mydeploy-origin.test.pwrdrvr.com",
+        "DomainName": Object {
+          "Ref": "constructorigindnDD3F36CE",
+        },
         "Stage": "/myprefix/",
       },
       "Type": "AWS::ApiGatewayV2::ApiMapping",
@@ -212,7 +214,9 @@ Object {
         "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
-        "DomainName": "mydeploy.test.pwrdrvr.com",
+        "DomainName": Object {
+          "Ref": "constructmicroappsappsedgedn308BF2C3",
+        },
         "Stage": "/myprefix/",
       },
       "Type": "AWS::ApiGatewayV2::ApiMapping",

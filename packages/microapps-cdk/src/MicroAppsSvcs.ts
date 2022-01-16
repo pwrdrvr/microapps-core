@@ -505,9 +505,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
 
     // Create an integration for the Router
     // All traffic without another route goes to the Router
-    const intRouter = new apigwyint.LambdaProxyIntegration({
-      handler: routerFunc,
-    });
+    const intRouter = new apigwyint.HttpLambdaIntegration('router-integration', routerFunc);
     new apigwy.HttpRoute(this, 'route-default', {
       httpApi,
       routeKey: apigwy.HttpRouteKey.DEFAULT,
