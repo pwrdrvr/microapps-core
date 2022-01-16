@@ -257,13 +257,16 @@ export class MicroAppsStack extends cdk.Stack {
       });
     }
 
-    if (deployReleaseApp) {
-      const sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
+    let sharpLayer: lambda.ILayerVersion | undefined = undefined;
+    if (deployReleaseApp || deployNextjsDemoApp) {
+      sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
         this,
         'sharp-lambda-layer',
         `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
       );
+    }
 
+    if (deployReleaseApp) {
       const app = new MicroAppsAppRelease(this, 'release-app', {
         functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
         table: microapps.svcs.table,
@@ -280,12 +283,6 @@ export class MicroAppsStack extends cdk.Stack {
     }
 
     if (deployNextjsDemoApp) {
-      const sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
-        this,
-        'sharp-lambda-layer',
-        `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
-      );
-
       const app = new MicroAppsAppNextjsDemo(this, 'nextjs-demo-app', {
         functionName: assetNameRoot
           ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
