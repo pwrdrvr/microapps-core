@@ -18,7 +18,6 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
   NODE_ENV: prod
   AWS_REGION: us-east-2
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_GHP }}
 
 jobs:
   cleanup-pr:
@@ -38,7 +37,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-session-name: microapps-ghpublic-build
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Destroy CDK Stack
