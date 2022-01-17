@@ -6,11 +6,11 @@ name: Merge to Main Build
 on:
   push:
     branches:
-      - 'disabled'
+      - 'main'
   # When testing changes to workflow
-  # pull_request:
-  #   branches:
-  #     - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   #
@@ -96,10 +96,6 @@ jobs:
   build-publish-tool:
     name: Build Publish Tool
     needs: build-cdk-construct
-    defaults:
-      run:
-        shell: bash
-
     runs-on: ubuntu-latest
 
     steps:
