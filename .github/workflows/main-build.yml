@@ -40,17 +40,12 @@ jobs:
           chown -R root ./
           chmod -R 777 ./
 
-      - name: Print NPM Cache Location
-        run: npm config get cache
-
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
         with:
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
