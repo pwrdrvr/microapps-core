@@ -9,7 +9,7 @@ export class DeleteCommand extends Command {
   static description = 'Delete app/version';
 
   static examples = [
-    `$ microapps-publish delete -a release -n 0.0.13
+    `$ microapps-publish delete -d microapps-deployer-dev -a release -n 0.0.13
 ✔ App/Version deleted: release/0.0.13 [1.2s]
 `,
   ];

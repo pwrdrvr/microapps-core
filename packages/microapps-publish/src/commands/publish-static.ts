@@ -22,7 +22,7 @@ export class PublishCommand extends Command {
   static description = 'Publish arbitrary framework static app - deploy static assets to S3 only.';
 
   static examples = [
-    `$ microapps-publish publish-static -d microapps-deployer-dev -n 0.0.21 -l microapps-app-release-dev -a release
+    `$ microapps-publish publish-static -d microapps-deployer-dev -l microapps-app-release-dev -a release -n 0.0.21
 ✔ Get S3 Temp Credentials [1s]
 ✔ Confirm Static Assets Folder Exists [0.0s]
 ✔ Copy Static Files to Local Upload Dir [0.0s]
