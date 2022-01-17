@@ -144,6 +144,11 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
+      - name: Generate Projen Files
+        working-directory: packages/microapps-cdk/
+        run: |
+          npm run projen
+
       - name: Build All TypeScript
         run: npm run build:publish --if-present
 
