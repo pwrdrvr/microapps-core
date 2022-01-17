@@ -80,7 +80,7 @@ jobs:
           github.ref }} | cut -f1)"
 
       - name: Upload CDK Construct Artifact
-        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        # if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2
         with:
           name: cdk-construct-dist
@@ -148,7 +148,7 @@ jobs:
   #
   release-assets:
     # Release only on main branch
-    name: Release Assets
+    name: Release Assets - Dry Run
     needs: [ build-cdk-construct, build-publish-tool ]
     runs-on: ubuntu-latest
     permissions:
