@@ -129,7 +129,6 @@ jobs:
         run: npm run lint
 
       - name: Upload Publish Tool artifact
-        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2
         with:
           name: publish-tool-dist
@@ -138,7 +137,6 @@ jobs:
             !packages/microapps-publish/node_modules/
 
       - name: Upload Datalib artifact
-        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v2
         with:
           name: datalib-dist
@@ -147,9 +145,10 @@ jobs:
             !packages/microapps-datalib/node_modules/
 
   #
-  # Release Assets
+  # Release Assets - Dry Run Only
   #
   release-assets:
+    # Release only on main branch
     name: Release Assets
     needs: [ build-cdk-construct, build-publish-tool ]
     runs-on: ubuntu-latest

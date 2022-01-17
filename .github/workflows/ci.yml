@@ -138,8 +138,16 @@ jobs:
             npx replace-in-file "/\/${RELEASE_APP_NAME}\/${RELEASE_APP_PACKAGE_VERSION}/g" ${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION} --configFile=.release-replace.config.js --isRegex
           fi
 
+      - name: Set Hotswap Flag
+        run: |
+          if [ -n "${PR_NUMBER}" ]; then
+            echo "HOTSWAP_FLAG=--hotswap" >> $GITHUB_ENV
+          else
+            echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
+          fi
+
       - name: Deploy CDK Stack
-        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployNexjsDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true --hotswap --require-approval never ${{ matrix.deployName }}
+        run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployNexjsDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true ${HOTSWAP_FLAG} --require-approval never ${{ matrix.deployName }}
 
       - name: Get CDK Exports
         id: getCDKExports
