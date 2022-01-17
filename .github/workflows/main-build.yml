@@ -88,7 +88,7 @@ jobs:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16
+      image: jsii/superchain
 
   #
   # Publish Tool
@@ -196,4 +196,4 @@ jobs:
           npm publish --dry-run
 
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16
+      image: jsii/superchain
