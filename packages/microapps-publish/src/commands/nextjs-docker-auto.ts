@@ -40,7 +40,7 @@ export class DockerAutoCommand extends Command {
     'Fully automatic publishing of Docker-based Lambda function using Next.js and serverless-nextjs-router';
 
   static examples = [
-    `$ microapps-publish nextjs-docker-auto -d microapps-deployer-dev -n 0.0.14 -r microapps-app-release-dev-repo
+    `$ microapps-publish nextjs-docker-auto -d microapps-deployer-dev -r microapps-app-release-dev-repo -n 0.0.14
 ✔ Logging into ECR [2s]
 ✔ Modifying Config Files [0.0s]
 ✔ Preflight Version Check [1s]
