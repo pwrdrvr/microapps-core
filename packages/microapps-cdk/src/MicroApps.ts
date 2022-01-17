@@ -154,6 +154,19 @@ export interface MicroAppsProps {
    * @example dev/
    */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Create an extra Behavior (Route) for /api/ that allows
+   * API routes to have a period in them.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /api/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createAPIPathRoute?: boolean;
 }
 
 export interface IMicroApps {
@@ -216,6 +229,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
       rootPathPrefix,
+      createAPIPathRoute = true,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -250,6 +264,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
       bucketAppsOrigin: this._s3.bucketAppsOrigin,
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
+      createAPIPathRoute,
     });
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,

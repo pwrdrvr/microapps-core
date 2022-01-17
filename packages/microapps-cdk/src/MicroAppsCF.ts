@@ -86,6 +86,19 @@ export interface MicroAppsCFProps {
    * @example dev/
    */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Create an extra Behavior (Route) for /api/ that allows
+   * API routes to have a period in them.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /api/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createAPIPathRoute?: boolean;
 }
 
 export interface CreateAPIOriginPolicyOptions {
@@ -101,11 +114,45 @@ export interface CreateAPIOriginPolicyOptions {
 }
 
 export interface AddRoutesOptions {
+  /**
+   * API Gateway CloudFront Origin for API calls
+   */
   readonly apiGwyOrigin: cf.IOrigin;
+
+  /**
+   * S3 Bucket CloudFront Origin for static assets
+   */
   readonly bucketAppsOrigin: cforigins.S3Origin;
+
+  /**
+   * CloudFront Distribution to add the Behaviors (Routes) to
+   */
   readonly distro: cf.Distribution;
+
+  /**
+   * Origin Request policy for API Gateway Origin
+   */
   readonly apigwyOriginRequestPolicy: cf.IOriginRequestPolicy;
+
+  /**
+   * Path prefix on the root of the CloudFront distribution
+   *
+   * @example dev/
+   */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Create an extra Behavior (Route) for /api/ that allows
+   * API routes to have a period in them.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /api/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createAPIPathRoute?: boolean;
 }
 
 export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
@@ -169,6 +216,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       distro,
       apigwyOriginRequestPolicy,
       rootPathPrefix = '',
+      createAPIPathRoute = true,
     } = props;
 
     //
@@ -189,6 +237,19 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       originRequestPolicy: apigwyOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     };
+
+    //
+    // If a route specifically has `/api/` in it, send it to API Gateway
+    // This is needed to catch routes that have periods in the API path data,
+    // such as: /release/0.0.0/api/update/default/release/0.0.0
+    //
+    if (createAPIPathRoute) {
+      distro.addBehavior(
+        posixPath.join(rootPathPrefix, '/*/*/api/*'),
+        apiGwyOrigin,
+        apiGwyBehaviorOptions,
+      );
+    }
 
     //
     // All static assets are assumed to have a dot in them
@@ -244,6 +305,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       bucketLogs,
       bucketAppsOrigin,
       rootPathPrefix,
+      createAPIPathRoute = true,
     } = props;
 
     const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -300,6 +362,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       distro: this._cloudFrontDistro,
       apigwyOriginRequestPolicy: apigwyOriginRequestPolicy,
       rootPathPrefix,
+      createAPIPathRoute,
     });
 
     //

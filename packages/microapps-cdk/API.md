@@ -338,11 +338,15 @@ const addRoutesOptions: AddRoutesOptions = { ... }
 
 - *Type:* [`@aws-cdk/aws-cloudfront.IOrigin`](#@aws-cdk/aws-cloudfront.IOrigin)
 
+API Gateway CloudFront Origin for API calls.
+
 ---
 
 ##### `apigwyOriginRequestPolicy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyOriginRequestPolicy"></a>
 
 - *Type:* [`@aws-cdk/aws-cloudfront.IOriginRequestPolicy`](#@aws-cdk/aws-cloudfront.IOriginRequestPolicy)
+
+Origin Request policy for API Gateway Origin.
 
 ---
 
@@ -350,17 +354,37 @@ const addRoutesOptions: AddRoutesOptions = { ... }
 
 - *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
 
+S3 Bucket CloudFront Origin for static assets.
+
 ---
 
 ##### `distro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.distro"></a>
 
 - *Type:* [`@aws-cdk/aws-cloudfront.Distribution`](#@aws-cdk/aws-cloudfront.Distribution)
 
+CloudFront Distribution to add the Behaviors (Routes) to.
+
+---
+
+##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createAPIPathRoute"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them.
+
+When false API routes with a period in the path will get routed to S3.
+
+When true API routes that contain /api/ in the path will get routed to API Gateway
+even if they have a period in the path.
+
 ---
 
 ##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.rootPathPrefix"></a>
 
 - *Type:* `string`
+
+Path prefix on the root of the CloudFront distribution.
 
 ---
 
@@ -537,6 +561,20 @@ ACM Certificate that covers `domainNameEdge` name.
 
 ---
 
+##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.createAPIPathRoute"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them.
+
+When false API routes with a period in the path will get routed to S3.
+
+When true API routes that contain /api/ in the path will get routed to API Gateway
+even if they have a period in the path.
+
+---
+
 ##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.domainNameEdge"></a>
 
 - *Type:* `string`
@@ -634,6 +672,20 @@ Certificate in US-East-1 for the CloudFront distribution.
 - *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
 
 Certificate in deployed region for the API Gateway.
+
+---
+
+##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.createAPIPathRoute"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them.
+
+When false API routes with a period in the path will get routed to S3.
+
+When true API routes that contain /api/ in the path will get routed to API Gateway
+even if they have a period in the path.
 
 ---
 
