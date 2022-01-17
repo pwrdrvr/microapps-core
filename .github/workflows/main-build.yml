@@ -6,11 +6,11 @@ name: Merge to Main Build
 on:
   push:
     branches:
-      - 'disabled'
+      - 'main'
   # When testing changes to workflow
-  # pull_request:
-  #   branches:
-  #     - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   #
@@ -40,17 +40,12 @@ jobs:
           chown -R root ./
           chmod -R 777 ./
 
-      - name: Print NPM Cache Location
-        run: npm config get cache
-
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
         with:
-          path: ~/.npm
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-node-
-            ${{ runner.OS }}-
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -62,6 +57,9 @@ jobs:
 
       - name: Build All TypeScript
         run: npm run build --if-present
+
+      - name: Run Node Tests
+        run: npm run test
 
       - name: Move root NPM modules out of the way
         run: mv node_modules node_modules_hide
@@ -88,7 +86,7 @@ jobs:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16
+      image: jsii/superchain
 
   #
   # Publish Tool
@@ -96,10 +94,6 @@ jobs:
   build-publish-tool:
     name: Build Publish Tool
     needs: build-cdk-construct
-    defaults:
-      run:
-        shell: bash
-
     runs-on: ubuntu-latest
 
     steps:
@@ -123,14 +117,16 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
-      - name: Build All TypeScript
+      - name: Generate Projen Files
+        working-directory: packages/microapps-cdk/
+        run: |
+          npm run projen
+
+      - name: Build Publish TypeScript
         run: npm run build:publish --if-present
 
       - name: Run Lint
         run: npm run lint
-
-      - name: Run Node Tests
-        run: npm run test
 
       - name: Upload Publish Tool artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
@@ -196,4 +192,4 @@ jobs:
           npm publish --dry-run
 
     container:
-      image: ghcr.io/pwrdrvr/jsii-node-16
+      image: jsii/superchain
