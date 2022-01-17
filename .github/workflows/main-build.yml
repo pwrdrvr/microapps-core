@@ -93,7 +93,6 @@ jobs:
   #
   build-publish-tool:
     name: Build Publish Tool
-    needs: build-cdk-construct
     runs-on: ubuntu-latest
 
     steps:
