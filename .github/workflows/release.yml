@@ -212,6 +212,9 @@ jobs:
           name: datalib-dist
           path: packages/microapps-datalib
 
+      #
+      # CDKv1 - Publishing Directly to NuGet is no longer needed for CDKv2
+      #
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
       # Docs for jsii-release-nuget
@@ -221,27 +224,29 @@ jobs:
       #   env:
       #     NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
       #     NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Release CDK Construct - NuGet.org
+      #   working-directory: packages/microapps-cdk/
+      #   run: |
+      #     npx -p jsii-release@latest jsii-release-nuget
+      #   env:
+      #     NUGET_API_KEY: ${{ secrets.NUGET_MICROAPPS }}
 
-      - name: Release CDK Construct - NuGet.org
-        working-directory: packages/microapps-cdk/
-        run: |
-          npx -p jsii-release@latest jsii-release-nuget
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_MICROAPPS }}
-
+      #
+      # CDKv1 - Publishing Directly to Maven is no longer needed for CDKv2
+      #
       # Docs for GitHub Maven
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
       # Docs for jsii-release-maven
       # https://github.com/cdklabs/jsii-release#maven
-      - name: Release CDK Construct - Maven
-        working-directory: packages/microapps-cdk/
-        run: |
-          npx -p jsii-release@latest jsii-release-maven
-        env:
-          MAVEN_SERVER_ID: github
-          MAVEN_REPOSITORY_URL: https://maven.pkg.github.com/pwrdrvr/microapps-core
-          MAVEN_USERNAME: ${{ github.actor }}
-          MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Release CDK Construct - Maven
+      #   working-directory: packages/microapps-cdk/
+      #   run: |
+      #     npx -p jsii-release@latest jsii-release-maven
+      #   env:
+      #     MAVEN_SERVER_ID: github
+      #     MAVEN_REPOSITORY_URL: https://maven.pkg.github.com/pwrdrvr/microapps-core
+      #     MAVEN_USERNAME: ${{ github.actor }}
+      #     MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       # Docs for different release steps and params
       # https://www.npmjs.com/package/jsii-release
