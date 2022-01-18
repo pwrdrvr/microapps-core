@@ -21,11 +21,6 @@
     "target": "ES2018",
     "skipLibCheck": true
   },
-  "include": [
-    "packages/**/.projenrc.js",
-    "packages/**/.projenrc.ts",
-    "packages/**/*.ts",
-    "test/**/*.ts"
-  ],
+  "include": ["packages/**/*.ts"],
   "exclude": ["node_modules"]
 }

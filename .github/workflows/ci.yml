@@ -284,21 +284,21 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
-      # - name: Generate Projen Files
-      #   working-directory: packages/microapps-cdk/
+      # - name: Modify microapps-cdk tsconfig.json
       #   run: |
-      #     npx projen --version
-      #     npm run projen
-
-      - name: Modify microapps-cdk tsconfig.json
-        run: |
-          mv packages/microapps-cdk/tsconfig.json packages/microapps-cdk/tsconfig.jsii.json
-          jq ".compilerOptions += { \"skipLibCheck\": true }" packages/microapps-cdk/tsconfig.jsii.json > packages/microapps-cdk/tsconfig.json
+      #     mv packages/microapps-cdk/tsconfig.json packages/microapps-cdk/tsconfig.jsii.json
+      #     jq ".compilerOptions += { \"skipLibCheck\": true }" packages/microapps-cdk/tsconfig.jsii.json > packages/microapps-cdk/tsconfig.json
 
       - name: Build All TypeScript
         run: npm run build --if-present
     
-      - name: Move root modules out of the way for CDK Construct build
+      #
+      # The CDK v2 Construct must be built with JSII for type info.
+      # Unfortunately, JSII does not work well with monorepos.
+      # https://constructs.dev/contribute
+      #
+
+      - name: Move root modules out of the way for JSII build of CDK Construct
         run: mv node_modules node_modules_hide
       
       - name: Install CDK Construct Deps
@@ -306,9 +306,9 @@ jobs:
         run: |
           npm ci
 
-      # - name: Post Install Patch of api-gatewayv2
-      #   working-directory: packages/microapps-cdk/
-      #   run: npx patch-package
+      - name: Post Install Patch of api-gatewayv2
+        working-directory: packages/microapps-cdk/
+        run: npx patch-package
 
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
@@ -318,5 +318,5 @@ jobs:
       - name: Confirm No Doc Changes
         working-directory: packages/microapps-cdk/
         run: |
-          npm run post-compile
+          npm run docgen
           git diff --ignore-space-at-eol --exit-code

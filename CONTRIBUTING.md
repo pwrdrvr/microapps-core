@@ -26,16 +26,6 @@ npm ERR! enoent This is related to npm not being able to find a file.
 npm ERR! enoent
 ```
 
-# Bootstrapping Projen Templates
-
-Note: `npm` has a problem with `jest` as CDK wants version 26 and `projen` installs version 27. This works with `yarn` but causes `npm` to complain.
-
-```
-npm i -g projen
-
-npx projen new awscdk-construct --no-git --name @pwrdrvr/microapps-cdk --author "Harold Hunt" --package-manager npm --license MIT --npm-access public --copyright-owner "PwrDrvr LLC" --copyright-period 2020 --projenrc-ts --no-jest
-```
-
 # Releasing NPM Packages
 
 Challenge: `projen` does not support monorepos well, so it can build, tag, version, and release the CDK Construct library in `packages/microapps-cdk` but it cannot be invoked to release `packages/microapps-publish` and, because it doesn't support monorepos well, it cannot build and publish both in one invocation.

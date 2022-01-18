@@ -319,7 +319,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // Determine URL of the origin FQDN
     //
-    let httpOriginFQDN: string = 'invalid.pwrdrvr.com';
+    let httpOriginFQDN = 'invalid.pwrdrvr.com';
     if (domainNameOrigin !== undefined) {
       httpOriginFQDN = domainNameOrigin;
     } else {
