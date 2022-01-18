@@ -53,6 +53,9 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
+      - name: Post Install Patch of api-gatewayv2
+        run: npm run postinstall
+
       - name: Build All TypeScript
         run: npm run build --if-present
     
@@ -77,7 +80,7 @@ jobs:
       - build
     environment:
       name: ghpublic
-      url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/release/
+      url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/demo-app/
     permissions:
       contents: read
       id-token: write
@@ -173,33 +176,33 @@ jobs:
           echo Testing App Method Invocation
           curl --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/someMethod
 
-      - name: Publish Nextjs Demo App to MicroApps
-        run: |
-          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${NEXTJS_DEMO_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/ --overwrite --noCache
+      # - name: Publish Nextjs Demo App to MicroApps
+      #   run: |
+      #     npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${NEXTJS_DEMO_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/ --overwrite --noCache
 
-      - name: Test Nextjs Demo App
-        run: |
-          echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
-          echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}
-          echo Testing Post Page Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/posts/pre-rendering
-          echo Testing Image Rendering
-          curl --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
+      # - name: Test Nextjs Demo App
+      #   run: |
+      #     echo Testing App Frame Loading
+      #     curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
+      #     echo Testing App HTML Loading
+      #     curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}
+      #     echo Testing Post Page Loading
+      #     curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/posts/pre-rendering
+      #     echo Testing Image Rendering
+      #     curl --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
 
-      - name: Publish Release App to MicroApps
-        run: |
-          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
+      # - name: Publish Release App to MicroApps
+      #   run: |
+      #     npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
 
-      - name: Test Release App
-        run: |
-          echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
-          echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}
-          echo Testing App Method Invocation
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
+      # - name: Test Release App
+      #   run: |
+      #     echo Testing App Frame Loading
+      #     curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
+      #     echo Testing App HTML Loading
+      #     curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}
+      #     echo Testing App Method Invocation
+      #     curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
 
   delete-apps:
     if: github.event_name == 'pull_request' && false
@@ -281,9 +284,6 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
-      - name: DEBUG - Print version of package
-        run: cat node_modules/@aws-cdk/aws-apigatewayv2-integrations/package.json
-
       # - name: Generate Projen Files
       #   working-directory: packages/microapps-cdk/
       #   run: |
@@ -295,19 +295,24 @@ jobs:
           mv packages/microapps-cdk/tsconfig.json packages/microapps-cdk/tsconfig.jsii.json
           jq ".compilerOptions += { \"skipLibCheck\": true }" packages/microapps-cdk/tsconfig.jsii.json > packages/microapps-cdk/tsconfig.json
 
-      - name: DEBUG - Print version of package
-        run: cat node_modules/@aws-cdk/aws-apigatewayv2-integrations/package.json
-
       - name: Build All TypeScript
         run: npm run build --if-present
     
       - name: Move root modules out of the way for CDK Construct build
         run: mv node_modules node_modules_hide
       
-      - name: Build CDK Construct
+      - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
         run: |
           npm ci
+
+      # - name: Post Install Patch of api-gatewayv2
+      #   working-directory: packages/microapps-cdk/
+      #   run: npx patch-package
+
+      - name: Build CDK Construct
+        working-directory: packages/microapps-cdk/
+        run: |
           npm run build
 
       - name: Confirm No Doc Changes

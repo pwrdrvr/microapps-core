@@ -18,7 +18,7 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -77,7 +77,7 @@ new MicroAppsAPIGwy(scope: Construct, id: string, props?: MicroAppsAPIGwyProps)
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -99,7 +99,7 @@ new MicroAppsAPIGwy(scope: Construct, id: string, props?: MicroAppsAPIGwyProps)
 
 ##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.httpApi"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
 
 API Gateway.
 
@@ -107,7 +107,7 @@ API Gateway.
 
 ##### `dnAppsOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.dnAppsOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.IDomainName`](#@aws-cdk/aws-apigatewayv2.IDomainName)
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.IDomainName`](#@aws-cdk/aws-apigatewayv2-alpha.IDomainName)
 
 Domain Name applied to API Gateway origin.
 
@@ -128,7 +128,7 @@ new MicroAppsCF(scope: Construct, id: string, props: MicroAppsCFProps)
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -157,7 +157,7 @@ MicroAppsCF.addRoutes(_scope: Construct, props: AddRoutesOptions)
 
 ###### `_scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF._scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -177,7 +177,7 @@ MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicy
 
 ###### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -191,7 +191,7 @@ MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicy
 
 ##### `cloudFrontDistro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.cloudFrontDistro"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.Distribution`](#@aws-cdk/aws-cloudfront.Distribution)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
 ---
 
@@ -210,7 +210,7 @@ new MicroAppsS3(scope: Construct, id: string, props?: MicroAppsS3Props)
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -232,7 +232,7 @@ new MicroAppsS3(scope: Construct, id: string, props?: MicroAppsS3Props)
 
 ##### `bucketApps`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketApps"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for deployed applications.
 
@@ -240,7 +240,7 @@ S3 bucket for deployed applications.
 
 ##### `bucketAppsOAI`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOAI"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.OriginAccessIdentity`](#@aws-cdk/aws-cloudfront.OriginAccessIdentity)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.OriginAccessIdentity`](#aws-cdk-lib.aws_cloudfront.OriginAccessIdentity)
 
 CloudFront Origin Access Identity for the deployed applications bucket.
 
@@ -248,7 +248,7 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
 CloudFront Origin for the deployed applications bucket.
 
@@ -256,7 +256,7 @@ CloudFront Origin for the deployed applications bucket.
 
 ##### `bucketAppsStaging`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsStaging"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for staged applications (prior to deploy).
 
@@ -264,7 +264,7 @@ S3 bucket for staged applications (prior to deploy).
 
 ##### `bucketLogs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketLogs"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for CloudFront logs.
 
@@ -285,7 +285,7 @@ new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsProps)
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.scope"></a>
 
-- *Type:* [`@aws-cdk/core.Construct`](#@aws-cdk/core.Construct)
+- *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
@@ -307,7 +307,7 @@ new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsProps)
 
 ##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.deployerFunc"></a>
 
-- *Type:* [`@aws-cdk/aws-lambda.IFunction`](#@aws-cdk/aws-lambda.IFunction)
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
 
 Lambda function for the Deployer.
 
@@ -315,7 +315,7 @@ Lambda function for the Deployer.
 
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.table"></a>
 
-- *Type:* [`@aws-cdk/aws-dynamodb.ITable`](#@aws-cdk/aws-dynamodb.ITable)
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
 
 DynamoDB table used by Router, Deployer, and Release console app.
 
@@ -336,7 +336,7 @@ const addRoutesOptions: AddRoutesOptions = { ... }
 
 ##### `apiGwyOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apiGwyOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.IOrigin`](#@aws-cdk/aws-cloudfront.IOrigin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.IOrigin`](#aws-cdk-lib.aws_cloudfront.IOrigin)
 
 API Gateway CloudFront Origin for API calls.
 
@@ -344,7 +344,7 @@ API Gateway CloudFront Origin for API calls.
 
 ##### `apigwyOriginRequestPolicy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyOriginRequestPolicy"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.IOriginRequestPolicy`](#@aws-cdk/aws-cloudfront.IOriginRequestPolicy)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.IOriginRequestPolicy`](#aws-cdk-lib.aws_cloudfront.IOriginRequestPolicy)
 
 Origin Request policy for API Gateway Origin.
 
@@ -352,7 +352,7 @@ Origin Request policy for API Gateway Origin.
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketAppsOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
 S3 Bucket CloudFront Origin for static assets.
 
@@ -360,7 +360,7 @@ S3 Bucket CloudFront Origin for static assets.
 
 ##### `distro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.distro"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.Distribution`](#@aws-cdk/aws-cloudfront.Distribution)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
 CloudFront Distribution to add the Behaviors (Routes) to.
 
@@ -448,7 +448,7 @@ Optional asset name suffix.
 
 ##### `certOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.certOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+- *Type:* [`aws-cdk-lib.aws_certificatemanager.ICertificate`](#aws-cdk-lib.aws_certificatemanager.ICertificate)
 - *Default:* none
 
 Optional local region ACM certificate to use for API Gateway Note: required when using a custom domain.
@@ -475,7 +475,7 @@ API Gateway origin domain name.
 
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.r53Zone"></a>
 
-- *Type:* [`@aws-cdk/aws-route53.IHostedZone`](#@aws-cdk/aws-route53.IHostedZone)
+- *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
 
 Route53 zone in which to create optional `domainNameEdge` record.
 
@@ -483,7 +483,7 @@ Route53 zone in which to create optional `domainNameEdge` record.
 
 ##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.removalPolicy"></a>
 
-- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
 - *Default:* per resource default
 
 RemovalPolicy override for child resources.
@@ -513,7 +513,7 @@ const microAppsCFProps: MicroAppsCFProps = { ... }
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketAppsOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
 S3 bucket origin for deployed applications.
 
@@ -521,7 +521,7 @@ S3 bucket origin for deployed applications.
 
 ##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.httpApi"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
 
 API Gateway v2 HTTP API for apps.
 
@@ -547,7 +547,7 @@ Optional asset name suffix.
 
 ##### `bucketLogs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketLogs"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for CloudFront logs.
 
@@ -555,7 +555,7 @@ S3 bucket for CloudFront logs.
 
 ##### `certEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.certEdge"></a>
 
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+- *Type:* [`aws-cdk-lib.aws_certificatemanager.ICertificate`](#aws-cdk-lib.aws_certificatemanager.ICertificate)
 
 ACM Certificate that covers `domainNameEdge` name.
 
@@ -595,7 +595,7 @@ API Gateway custom origin domain name.
 
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53Zone"></a>
 
-- *Type:* [`@aws-cdk/aws-route53.IHostedZone`](#@aws-cdk/aws-route53.IHostedZone)
+- *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
 
 Route53 zone in which to create optional `domainNameEdge` record.
 
@@ -603,7 +603,7 @@ Route53 zone in which to create optional `domainNameEdge` record.
 
 ##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.removalPolicy"></a>
 
-- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
 - *Default:* per resource default
 
 RemovalPolicy override for child resources.
@@ -661,7 +661,7 @@ Optional asset name suffix.
 
 ##### `certEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.certEdge"></a>
 
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+- *Type:* [`aws-cdk-lib.aws_certificatemanager.ICertificate`](#aws-cdk-lib.aws_certificatemanager.ICertificate)
 
 Certificate in US-East-1 for the CloudFront distribution.
 
@@ -669,7 +669,7 @@ Certificate in US-East-1 for the CloudFront distribution.
 
 ##### `certOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.certOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-certificatemanager.ICertificate`](#@aws-cdk/aws-certificatemanager.ICertificate)
+- *Type:* [`aws-cdk-lib.aws_certificatemanager.ICertificate`](#aws-cdk-lib.aws_certificatemanager.ICertificate)
 
 Certificate in deployed region for the API Gateway.
 
@@ -709,7 +709,7 @@ Optional custom domain name for the API Gateway HTTPv2 API.
 
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.r53Zone"></a>
 
-- *Type:* [`@aws-cdk/aws-route53.IHostedZone`](#@aws-cdk/aws-route53.IHostedZone)
+- *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
 
 Route53 zone in which to create optional `domainNameEdge` record.
 
@@ -717,7 +717,7 @@ Route53 zone in which to create optional `domainNameEdge` record.
 
 ##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.removalPolicy"></a>
 
-- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
 - *Default:* per resource default
 
 RemovalPolicy override for child resources.
@@ -864,7 +864,7 @@ S3 logs bucket name.
 
 ##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.removalPolicy"></a>
 
-- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
 - *Default:* per resource default
 
 RemovalPolicy override for child resources.
@@ -891,7 +891,7 @@ const microAppsSvcsProps: MicroAppsSvcsProps = { ... }
 
 ##### `bucketApps`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.bucketApps"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for deployed applications.
 
@@ -899,7 +899,7 @@ S3 bucket for deployed applications.
 
 ##### `bucketAppsOAI`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.bucketAppsOAI"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.OriginAccessIdentity`](#@aws-cdk/aws-cloudfront.OriginAccessIdentity)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.OriginAccessIdentity`](#aws-cdk-lib.aws_cloudfront.OriginAccessIdentity)
 
 CloudFront Origin Access Identity for the deployed applications bucket.
 
@@ -907,7 +907,7 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 
 ##### `bucketAppsStaging`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.bucketAppsStaging"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for staged applications (prior to deploy).
 
@@ -915,7 +915,7 @@ S3 bucket for staged applications (prior to deploy).
 
 ##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
 
 API Gateway v2 HTTP for Router and app.
 
@@ -941,7 +941,7 @@ Optional asset name suffix.
 
 ##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.removalPolicy"></a>
 
-- *Type:* [`@aws-cdk/core.RemovalPolicy`](#@aws-cdk/core.RemovalPolicy)
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
 - *Default:* per resource default
 
 RemovalPolicy override for child resources.
@@ -1020,7 +1020,7 @@ Path prefix on the root of the deployment.
 
 ##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy.httpApi"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.HttpApi`](#@aws-cdk/aws-apigatewayv2.HttpApi)
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
 
 API Gateway.
 
@@ -1028,7 +1028,7 @@ API Gateway.
 
 ##### `dnAppsOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy.dnAppsOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-apigatewayv2.IDomainName`](#@aws-cdk/aws-apigatewayv2.IDomainName)
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.IDomainName`](#@aws-cdk/aws-apigatewayv2-alpha.IDomainName)
 
 Domain Name applied to API Gateway origin.
 
@@ -1043,7 +1043,7 @@ Domain Name applied to API Gateway origin.
 
 ##### `cloudFrontDistro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.cloudFrontDistro"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.Distribution`](#@aws-cdk/aws-cloudfront.Distribution)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
 ---
 
@@ -1056,7 +1056,7 @@ Domain Name applied to API Gateway origin.
 
 ##### `bucketApps`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketApps"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for deployed applications.
 
@@ -1064,7 +1064,7 @@ S3 bucket for deployed applications.
 
 ##### `bucketAppsOAI`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOAI"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront.OriginAccessIdentity`](#@aws-cdk/aws-cloudfront.OriginAccessIdentity)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.OriginAccessIdentity`](#aws-cdk-lib.aws_cloudfront.OriginAccessIdentity)
 
 CloudFront Origin Access Identity for the deployed applications bucket.
 
@@ -1072,7 +1072,7 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOrigin"></a>
 
-- *Type:* [`@aws-cdk/aws-cloudfront-origins.S3Origin`](#@aws-cdk/aws-cloudfront-origins.S3Origin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
 CloudFront Origin for the deployed applications bucket.
 
@@ -1080,7 +1080,7 @@ CloudFront Origin for the deployed applications bucket.
 
 ##### `bucketAppsStaging`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsStaging"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for staged applications (prior to deploy).
 
@@ -1088,7 +1088,7 @@ S3 bucket for staged applications (prior to deploy).
 
 ##### `bucketLogs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketLogs"></a>
 
-- *Type:* [`@aws-cdk/aws-s3.IBucket`](#@aws-cdk/aws-s3.IBucket)
+- *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
 
 S3 bucket for CloudFront logs.
 
@@ -1103,7 +1103,7 @@ S3 bucket for CloudFront logs.
 
 ##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.deployerFunc"></a>
 
-- *Type:* [`@aws-cdk/aws-lambda.IFunction`](#@aws-cdk/aws-lambda.IFunction)
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
 
 Lambda function for the Deployer.
 
@@ -1111,7 +1111,7 @@ Lambda function for the Deployer.
 
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.table"></a>
 
-- *Type:* [`@aws-cdk/aws-dynamodb.ITable`](#@aws-cdk/aws-dynamodb.ITable)
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
 
 DynamoDB table used by Router, Deployer, and Release console app.
 

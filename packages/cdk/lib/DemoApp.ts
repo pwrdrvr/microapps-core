@@ -1,7 +1,8 @@
-import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
-import * as logs from '@aws-cdk/aws-logs';
+import { Construct } from 'constructs';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as logs from 'aws-cdk-lib/aws-logs';
 
 export interface DemoAppProps {
   /**
@@ -9,7 +10,7 @@ export interface DemoAppProps {
    *
    * @default - per resource defaults
    */
-  readonly removalPolicy?: cdk.RemovalPolicy;
+  readonly removalPolicy?: RemovalPolicy;
 
   /**
    * Optional asset name root
@@ -39,13 +40,13 @@ export interface IDemoApp {
   lambdaFunction: lambda.IFunction;
 }
 
-export class DemoApp extends cdk.Construct implements IDemoApp {
+export class DemoApp extends Construct implements IDemoApp {
   private _lambdaFunction: lambda.Function;
   public get lambdaFunction(): lambda.IFunction {
     return this._lambdaFunction;
   }
 
-  constructor(scope: cdk.Construct, id: string, props: DemoAppProps) {
+  constructor(scope: Construct, id: string, props: DemoAppProps) {
     super(scope, id);
 
     const { appName = 'demo-app', assetNameRoot, assetNameSuffix, removalPolicy } = props;
@@ -60,7 +61,7 @@ export class DemoApp extends cdk.Construct implements IDemoApp {
       functionName: assetNameRoot ? `${assetNameRoot}-app-${appName}${assetNameSuffix}` : undefined,
       logRetention: logs.RetentionDays.ONE_WEEK,
       memorySize: 512,
-      timeout: cdk.Duration.seconds(3),
+      timeout: Duration.seconds(3),
       bundling: {
         minify: true,
         sourceMap: true,

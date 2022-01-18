@@ -149,7 +149,12 @@
     },
     "pre-compile": {
       "name": "pre-compile",
-      "description": "Prepare the project for compilation"
+      "description": "Prepare the project for compilation",
+      "steps": [
+        {
+          "exec": "patch-package"
+        }
+      ]
     },
     "publish:github": {
       "name": "publish:github",
@@ -297,7 +302,7 @@
           "exec": "npm install"
         },
         {
-          "exec": "npm update @aws-cdk/assert @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser esbuild eslint eslint-import-resolver-node eslint-import-resolver-typescript eslint-plugin-import jsii jsii-diff jsii-docgen jsii-pacmak json-schema npm-check-updates standard-version typescript @aws-cdk/aws-apigatewayv2-integrations @aws-cdk/aws-apigatewayv2 @aws-cdk/aws-certificatemanager @aws-cdk/aws-cloudfront-origins @aws-cdk/aws-cloudfront @aws-cdk/aws-dynamodb @aws-cdk/aws-ecr @aws-cdk/aws-iam @aws-cdk/aws-lambda-nodejs @aws-cdk/aws-lambda @aws-cdk/aws-logs @aws-cdk/aws-route53-targets @aws-cdk/aws-route53 @aws-cdk/aws-s3 @aws-cdk/core constructs @aws-cdk/aws-apigatewayv2-integrations @aws-cdk/aws-apigatewayv2 @aws-cdk/aws-certificatemanager @aws-cdk/aws-cloudfront-origins @aws-cdk/aws-cloudfront @aws-cdk/aws-dynamodb @aws-cdk/aws-ecr @aws-cdk/aws-iam @aws-cdk/aws-lambda-nodejs @aws-cdk/aws-lambda @aws-cdk/aws-logs @aws-cdk/aws-route53-targets @aws-cdk/aws-route53 @aws-cdk/aws-s3 @aws-cdk/core"
+          "exec": "npm update @aws-cdk/assert @aws-cdk/aws-apigatewayv2-alpha @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk-lib esbuild eslint eslint-import-resolver-node eslint-import-resolver-typescript eslint-plugin-import jsii jsii-diff jsii-docgen jsii-pacmak json-schema npm-check-updates patch-package standard-version typescript @aws-cdk/aws-apigatewayv2-alpha aws-cdk-lib constructs aws-cdk-lib"
         },
         {
           "exec": "npx projen"

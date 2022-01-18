@@ -6,7 +6,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import pMap from 'p-map';
-import { Config, IConfig } from '../config/Config';
+import { IConfig } from '../config/Config';
 import {
   IDeleteVersionRequest,
   IDeployVersionRequest,

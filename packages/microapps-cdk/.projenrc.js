@@ -4,7 +4,7 @@ const project = new AwsCdkConstructLibrary({
   author: 'Harold Hunt',
   authorAddress: 'harold@pwrdrvr.com',
   description: 'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '1.135.0',
+  cdkVersion: '2.8.0',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -21,24 +21,18 @@ const project = new AwsCdkConstructLibrary({
   repositoryUrl: 'git@github.com:pwrdrvr/microapps-core.git',
   jest: false,
   projenVersion: '0.34.20',
+  keywords: ['awscdk', 'microapps'],
+
+  // Can't do this because it's automatically invoked
+  // when running `npm ci` at the top-level when there is no
+  // module installed in this local directory.
+  // scripts: {
+  //   postinstall: 'patch-package',
+  // },
 
   // Which AWS CDK modules (those that start with "@aws-cdk/") does this library require when consumed?
   cdkDependencies: [
-    '@aws-cdk/aws-apigatewayv2',
-    '@aws-cdk/aws-apigatewayv2-integrations',
-    '@aws-cdk/aws-certificatemanager',
-    '@aws-cdk/aws-cloudfront',
-    '@aws-cdk/aws-cloudfront-origins',
-    '@aws-cdk/aws-dynamodb',
-    '@aws-cdk/aws-ecr',
-    '@aws-cdk/aws-iam',
-    '@aws-cdk/aws-lambda',
-    '@aws-cdk/aws-lambda-nodejs',
-    '@aws-cdk/aws-logs',
-    '@aws-cdk/aws-route53',
-    '@aws-cdk/aws-route53-targets',
-    '@aws-cdk/aws-s3',
-    '@aws-cdk/core',
+    'aws-cdk-lib',
   ],
 
   // cdkTestDependencies: undefined,    /* AWS CDK modules required for testing. */
@@ -46,7 +40,9 @@ const project = new AwsCdkConstructLibrary({
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
-  devDeps: ['esbuild'],
+
+  devDeps: ['aws-cdk-lib', 'esbuild', '@aws-cdk/aws-apigatewayv2-alpha@2.8.0-alpha.0', 'patch-package@^6.4.7'],
+  peerDeps: ['@aws-cdk/aws-apigatewayv2-alpha@2.8.0-alpha.0'],
 
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */
@@ -68,6 +64,10 @@ const project = new AwsCdkConstructLibrary({
     module: 'pwrdrvr.microapps.cdk',
   },
 });
+
+project.preCompileTask.exec(
+  'patch-package',
+);
 
 // Move the parent node_modules back into place now that jsii is done
 project.compileTask.exec(

@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 import '@aws-cdk/assert/jest';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as r53 from '@aws-cdk/aws-route53';
-import { App, RemovalPolicy, Stack } from '@aws-cdk/core';
+import { App, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as r53 from 'aws-cdk-lib/aws-route53';
 import { MicroAppsAPIGwy } from '../src/MicroAppsAPIGwy';
 
 describe('MicroAppsAPIGwy', () => {

@@ -1,10 +1,12 @@
-import * as apigwy from '@aws-cdk/aws-apigatewayv2';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as iam from '@aws-cdk/aws-iam';
-import * as logs from '@aws-cdk/aws-logs';
-import * as r53 from '@aws-cdk/aws-route53';
-import * as r53targets from '@aws-cdk/aws-route53-targets';
-import * as cdk from '@aws-cdk/core';
+import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
+import { RemovalPolicy, Stack } from 'aws-cdk-lib';
+import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as r53 from 'aws-cdk-lib/aws-route53';
+import * as r53targets from 'aws-cdk-lib/aws-route53-targets';
+import { Construct } from 'constructs';
 
 export interface MicroAppsAPIGwyProps {
   /**
@@ -14,7 +16,7 @@ export interface MicroAppsAPIGwyProps {
    *
    * @default - per resource default
    */
-  readonly removalPolicy?: cdk.RemovalPolicy;
+  readonly removalPolicy?: RemovalPolicy;
 
   /**
    * CloudFront edge domain name
@@ -82,7 +84,7 @@ export interface IMicroAppsAPIGwy {
   readonly httpApi: apigwy.HttpApi;
 }
 
-export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
+export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
   private _dnAppsOrigin: apigwy.DomainName | undefined;
   public get dnAppsOrigin(): apigwy.IDomainName | undefined {
     return this._dnAppsOrigin;
@@ -99,7 +101,7 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: MicroAppsAPIGwyProps) {
+  constructor(scope: Construct, id: string, props?: MicroAppsAPIGwyProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -146,7 +148,7 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
     // any randomization... we have to make sure the name is unique-ish
     const apigatewayName = assetNameRoot
       ? `${assetNameRoot}${assetNameSuffix}`
-      : `${cdk.Stack.of(this).stackName}-microapps`;
+      : `${Stack.of(this).stackName}-microapps`;
 
     //
     // APIGateway domain names for CloudFront and origin
@@ -209,7 +211,7 @@ export class MicroAppsAPIGwy extends cdk.Construct implements IMicroAppsAPIGwy {
       apiAccessLogs.applyRemovalPolicy(removalPolicy);
     }
     // const stage = this._httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
-    (stage as unknown as apigwy.CfnStage).accessLogSettings = {
+    (stage as unknown as apigwycfn.CfnStage).accessLogSettings = {
       destinationArn: apiAccessLogs.logGroupArn,
       format: JSON.stringify({
         requestId: '$context.requestId',

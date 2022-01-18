@@ -1,12 +1,13 @@
 /// <reference types="jest" />
 import '@aws-cdk/assert/jest';
-import * as apigwy from '@aws-cdk/aws-apigatewayv2';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as cf from '@aws-cdk/aws-cloudfront';
-import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
-import * as r53 from '@aws-cdk/aws-route53';
-import * as s3 from '@aws-cdk/aws-s3';
-import { App, Stack } from '@aws-cdk/core';
+import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
+// import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
+import { App, Stack } from 'aws-cdk-lib';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as r53 from 'aws-cdk-lib/aws-route53';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { MicroAppsCF } from '../src/MicroAppsCF';
 
 describe('MicroAppsCF', () => {
