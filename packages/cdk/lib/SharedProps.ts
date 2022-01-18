@@ -1,4 +1,5 @@
-import * as cdk from '@aws-cdk/core';
+import { Construct } from 'constructs';
+import { Duration } from 'aws-cdk-lib';
 import { Env } from './Types';
 
 export class SharedProps {
@@ -18,8 +19,8 @@ export class SharedProps {
     return domain;
   }
 
-  private _ttlBase = cdk.Duration.hours(6);
-  public get ttlBase(): cdk.Duration {
+  private _ttlBase = Duration.hours(6);
+  public get ttlBase(): Duration {
     return this._ttlBase;
   }
 
@@ -127,7 +128,7 @@ export class SharedProps {
     return false;
   }
 
-  constructor(scope: cdk.Construct) {
+  constructor(scope: Construct) {
     this._r53ZoneName = scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneName');
     this._domainName = SharedProps.stripTrailingDomainDot(
       scope.node.tryGetContext('@pwrdrvr/microapps:r53ZoneName'),

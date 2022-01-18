@@ -1,12 +1,14 @@
 import { posix as posixPath } from 'path';
-import * as apigwy from '@aws-cdk/aws-apigatewayv2';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as cf from '@aws-cdk/aws-cloudfront';
-import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
-import * as r53 from '@aws-cdk/aws-route53';
-import * as r53targets from '@aws-cdk/aws-route53-targets';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as cdk from '@aws-cdk/core';
+import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
+import { Aws, RemovalPolicy, Stack } from 'aws-cdk-lib';
+// import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as r53 from 'aws-cdk-lib/aws-route53';
+import * as r53targets from 'aws-cdk-lib/aws-route53-targets';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 import { reverseDomain } from './utils/ReverseDomain';
 
 export interface IMicroAppsCF {
@@ -21,7 +23,7 @@ export interface MicroAppsCFProps {
    *
    * @default - per resource default
    */
-  readonly removalPolicy?: cdk.RemovalPolicy;
+  readonly removalPolicy?: RemovalPolicy;
 
   /**
    * S3 bucket origin for deployed applications
@@ -155,7 +157,7 @@ export interface AddRoutesOptions {
   readonly createAPIPathRoute?: boolean;
 }
 
-export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
+export class MicroAppsCF extends Construct implements IMicroAppsCF {
   /**
    * Create or get the origin request policy
    *
@@ -170,7 +172,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
    * @param props
    */
   public static createAPIOriginPolicy(
-    scope: cdk.Construct,
+    scope: Construct,
     props: CreateAPIOriginPolicyOptions,
   ): cf.IOriginRequestPolicy {
     const { assetNameRoot, assetNameSuffix, domainNameEdge } = props;
@@ -187,7 +189,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
       // in all cases to ensure the generated name is unique.
       apigwyOriginRequestPolicy = new cf.OriginRequestPolicy(
         scope,
-        `apigwy-origin-policy-${cdk.Stack.of(scope).stackName}`,
+        `apigwy-origin-policy-${Stack.of(scope).stackName}`,
         {
           comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
 
@@ -209,7 +211,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
    * @param _scope
    * @param props
    */
-  public static addRoutes(_scope: cdk.Construct, props: AddRoutesOptions) {
+  public static addRoutes(_scope: Construct, props: AddRoutesOptions) {
     const {
       apiGwyOrigin,
       bucketAppsOrigin,
@@ -279,7 +281,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props: MicroAppsCFProps) {
+  constructor(scope: Construct, id: string, props: MicroAppsCFProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -321,7 +323,7 @@ export class MicroAppsCF extends cdk.Construct implements IMicroAppsCF {
     if (domainNameOrigin !== undefined) {
       httpOriginFQDN = domainNameOrigin;
     } else {
-      httpOriginFQDN = `${httpApi.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com`;
+      httpOriginFQDN = `${httpApi.apiId}.execute-api.${Aws.REGION}.amazonaws.com`;
     }
 
     //

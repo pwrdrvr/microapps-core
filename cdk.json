@@ -1,17 +1,6 @@
 {
   "app": "npx ts-node --project packages/cdk/tsconfig.json  --prefer-ts-exts packages/cdk/bin/cdk.ts",
   "context": {
-    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
-    "@aws-cdk/core:enableStackNameDuplicates": "true",
-    "aws-cdk:enableDiffNoFail": "true",
-    "@aws-cdk/core:stackRelativeExports": "true",
-    "@aws-cdk/aws-ecr-assets:dockerIgnoreSupport": true,
-    "@aws-cdk/aws-secretsmanager:parseOwnedSecretName": true,
-    "@aws-cdk/aws-kms:defaultKeyPolicies": true,
-    "@aws-cdk/aws-s3:grantWriteWithoutAcl": true,
-    "@aws-cdk/aws-ecs-patterns:removeDefaultDesiredCount": true,
-    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
-    "@aws-cdk/aws-efs:defaultEncryptionAtRest": true,
     "@pwrdrvr/microapps:stackName": "microapps-ghpublic",
     "@pwrdrvr/microapps:r53ZoneName": "ghpublic.pwrdrvr.com.",
     "@pwrdrvr/microapps:r53ZoneID": "Z005084420J9MD9JNBCUK",

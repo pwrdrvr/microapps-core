@@ -1,7 +1,8 @@
-import * as cf from '@aws-cdk/aws-cloudfront';
-import * as cforigins from '@aws-cdk/aws-cloudfront-origins';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as cdk from '@aws-cdk/core';
+import { RemovalPolicy } from 'aws-cdk-lib';
+import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 
 export interface IMicroAppsS3 {
   /**
@@ -38,7 +39,7 @@ export interface MicroAppsS3Props {
    *
    * @default - per resource default
    */
-  readonly removalPolicy?: cdk.RemovalPolicy;
+  readonly removalPolicy?: RemovalPolicy;
 
   /**
    * S3 deployed apps bucket name
@@ -78,7 +79,7 @@ export interface MicroAppsS3Props {
   readonly assetNameSuffix?: string;
 }
 
-export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
+export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
   private _bucketApps: s3.IBucket;
   public get bucketApps(): s3.IBucket {
     return this._bucketApps;
@@ -110,7 +111,7 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: MicroAppsS3Props) {
+  constructor(scope: Construct, id: string, props?: MicroAppsS3Props) {
     super(scope, id);
 
     if (props === undefined) {
@@ -120,7 +121,7 @@ export class MicroAppsS3 extends cdk.Construct implements IMicroAppsS3 {
     const { removalPolicy, assetNameRoot, assetNameSuffix } = props;
 
     // Use Auto-Delete S3Bucket if removal policy is DESTROY
-    const s3AutoDeleteItems = removalPolicy === cdk.RemovalPolicy.DESTROY;
+    const s3AutoDeleteItems = removalPolicy === RemovalPolicy.DESTROY;
 
     //
     // S3 Bucket for Logging - Usable by many stacks

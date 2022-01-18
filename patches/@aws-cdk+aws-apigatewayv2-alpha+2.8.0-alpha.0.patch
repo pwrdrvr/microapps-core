@@ -1,0 +1,39 @@
+diff --git a/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/integration.d.ts b/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/integration.d.ts
+index ed6a643..415d1ce 100644
+--- a/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/integration.d.ts
++++ b/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/integration.d.ts
+@@ -339,7 +339,7 @@ export interface HttpRouteIntegrationBindOptions {
+  */
+ export declare abstract class HttpRouteIntegration {
+     private readonly id;
+-    private integration?;
++    protected integration?: HttpIntegration;
+     /**
+      * (experimental) Initialize an integration for a route on http api.
+      *
+diff --git a/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.d.ts b/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.d.ts
+index 7bd7dd9..9d297b9 100644
+--- a/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.d.ts
++++ b/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.d.ts
+@@ -241,7 +241,7 @@ export declare class HttpRoute extends Resource implements IHttpRoute {
+      * @experimental
+      */
+     constructor(scope: Construct, id: string, props: HttpRouteProps);
+-    private produceRouteArn;
++    public produceRouteArn(method: HttpMethod): string;
+     /**
+      * (experimental) Grant access to invoke the route.
+      *
+diff --git a/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.js b/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.js
+index 0fa1475..72d6d28 100644
+--- a/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.js
++++ b/node_modules/@aws-cdk/aws-apigatewayv2-alpha/lib/http/route.js
+@@ -145,7 +145,7 @@ class HttpRoute extends aws_cdk_lib_1.Resource {
+     grantInvoke(grantee, options = {}) {
+         var _c;
+         jsiiDeprecationWarnings._aws_cdk_aws_apigatewayv2_alpha_GrantInvokeOptions(options);
+-        if (!this.authBindResult || this.authBindResult.authorizationType !== HttpRouteAuthorizationType.AWS_IAM) {
++        if (this.authBindResult && this.authBindResult.authorizationType !== HttpRouteAuthorizationType.AWS_IAM) {
+             throw new Error('To use grantInvoke, you must use IAM authorization');
+         }
+         const httpMethods = Array.from(new Set((_c = options.httpMethods) !== null && _c !== void 0 ? _c : [this.method]));

@@ -1,15 +1,53 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
-import * as apigwy from '@aws-cdk/aws-apigatewayv2';
-import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations';
-import * as cf from '@aws-cdk/aws-cloudfront';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
-import * as logs from '@aws-cdk/aws-logs';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as cdk from '@aws-cdk/core';
+import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
+import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
+
+class HttpRouteIntegration extends apigwy.HttpRouteIntegration {
+  private httpIntegrationProps?: apigwy.HttpIntegrationProps;
+
+  constructor(
+    id: string,
+    opts: { integration?: apigwy.HttpIntegration; integrationProps?: apigwy.HttpIntegrationProps },
+  ) {
+    super(id);
+    this.httpIntegrationProps = opts.integrationProps;
+    this.integration = opts.integration;
+  }
+
+  /**
+   * (experimental) Bind this integration to the route.
+   *
+   * @experimental
+   */
+  public bind(_options: apigwy.HttpRouteIntegrationBindOptions): apigwy.HttpRouteIntegrationConfig {
+    if (this.httpIntegrationProps === undefined) {
+      throw new TypeError('bind called without IntegrationProps defined');
+    }
+
+    return {
+      type: this.httpIntegrationProps.integrationType,
+      payloadFormatVersion:
+        this.httpIntegrationProps.payloadFormatVersion ?? apigwy.PayloadFormatVersion.VERSION_2_0,
+      connectionType: this.httpIntegrationProps.connectionType,
+      connectionId: this.httpIntegrationProps.connectionId,
+      credentials: this.httpIntegrationProps.credentials,
+      method: this.httpIntegrationProps.method,
+      parameterMapping: this.httpIntegrationProps.parameterMapping,
+      secureServerName: this.httpIntegrationProps.secureServerName,
+      subtype: this.httpIntegrationProps.integrationSubtype,
+      uri: this.httpIntegrationProps.integrationUri,
+    };
+  }
+}
 
 export interface MicroAppsSvcsProps {
   /**
@@ -19,7 +57,7 @@ export interface MicroAppsSvcsProps {
    *
    * @default - per resource default
    */
-  readonly removalPolicy?: cdk.RemovalPolicy;
+  readonly removalPolicy?: RemovalPolicy;
 
   /**
    * S3 bucket for deployed applications
@@ -84,7 +122,7 @@ export interface IMicroAppsSvcs {
   readonly deployerFunc: lambda.IFunction;
 }
 
-export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
+export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
   private _table: dynamodb.Table;
   public get table(): dynamodb.ITable {
     return this._table;
@@ -101,7 +139,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: MicroAppsSvcsProps) {
+  constructor(scope: Construct, id: string, props?: MicroAppsSvcsProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -159,7 +197,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
-      timeout: cdk.Duration.seconds(15),
+      timeout: Duration.seconds(15),
       environment: {
         NODE_ENV: appEnv,
         DATABASE_TABLE_NAME: this._table.tableName,
@@ -235,7 +273,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_14_X,
-      timeout: cdk.Duration.seconds(15),
+      timeout: Duration.seconds(15),
       environment: {
         NODE_ENV: appEnv,
         APIGWY_ID: httpApi.httpApiId,
@@ -347,7 +385,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
       policyDenyPrefixOutsideTag.addCondition(
         // Allows the DeletableBucket Lambda to delete items in the buckets
         'StringNotLike',
-        { 'aws:PrincipalTag/application': `${cdk.Stack.of(this).stackName}-core*` },
+        { 'aws:PrincipalTag/application': `${Stack.of(this).stackName}-core*` },
       );
     }
     const policyDenyMissingTag = new iam.PolicyStatement({
@@ -364,7 +402,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
         // 2021-12-04 - Not 100% sure that this is actually needed...
         // Let's test this and remove if actually not necessary
         new iam.ArnPrincipal(
-          `arn:aws:sts::${cdk.Aws.ACCOUNT_ID}:assumed-role/${this._deployerFunc.role?.roleName}/${this._deployerFunc.functionName}`,
+          `arn:aws:sts::${Aws.ACCOUNT_ID}:assumed-role/${this._deployerFunc.role?.roleName}/${this._deployerFunc.functionName}`,
         ),
         ...s3PolicyBypassArnPrincipals,
       ],
@@ -390,14 +428,14 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
         // To get the AROA with the AWS CLI:
         //   aws iam get-role --role-name ROLE-NAME
         //   aws iam get-user -–user-name USER-NAME
-        StringNotLike: { 'aws:userid': [cdk.Aws.ACCOUNT_ID, ...s3PolicyBypassAROAMatches] },
+        StringNotLike: { 'aws:userid': [Aws.ACCOUNT_ID, ...s3PolicyBypassAROAMatches] },
       },
     });
     if (removalPolicy !== undefined) {
       policyDenyMissingTag.addCondition(
         // Allows the DeletableBucket Lambda to delete items in the buckets
         'StringNotLike',
-        { 'aws:PrincipalTag/application': `${cdk.Stack.of(this).stackName}-core*` },
+        { 'aws:PrincipalTag/application': `${Stack.of(this).stackName}-core*` },
       );
     }
     const policyCloudFrontAccess = new iam.PolicyStatement({
@@ -473,7 +511,7 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
     const policyAPIList = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['apigateway:GET'],
-      resources: [`arn:aws:apigateway:${cdk.Aws.REGION}::/apis`],
+      resources: [`arn:aws:apigateway:${Aws.REGION}::/apis`],
     });
     this._deployerFunc.addToRolePolicy(policyAPIList);
     // Grant full control over the API we created
@@ -481,11 +519,11 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
       effect: iam.Effect.ALLOW,
       actions: ['apigateway:*'],
       resources: [
-        `arn:aws:apigateway:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:${httpApi.httpApiId}/*`,
-        `arn:aws:apigateway:${cdk.Aws.REGION}::/apis/${httpApi.httpApiId}/integrations/*`,
-        `arn:aws:apigateway:${cdk.Aws.REGION}::/apis/${httpApi.httpApiId}/integrations`,
-        `arn:aws:apigateway:${cdk.Aws.REGION}::/apis/${httpApi.httpApiId}/routes`,
-        `arn:aws:apigateway:${cdk.Aws.REGION}::/apis/${httpApi.httpApiId}/routes/*`,
+        `arn:aws:apigateway:${Aws.REGION}:${Aws.ACCOUNT_ID}:${httpApi.httpApiId}/*`,
+        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/integrations/*`,
+        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/integrations`,
+        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/routes`,
+        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/routes/*`,
       ],
     });
     this._deployerFunc.addToRolePolicy(policyAPIManage);
@@ -494,8 +532,8 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
       effect: iam.Effect.ALLOW,
       actions: ['lambda:*'],
       resources: [
-        `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:function:*`,
-        `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:function:*:*`,
+        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*`,
+        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*:*`,
       ],
       conditions: {
         StringEqualsIfExists: { 'aws:ResourceTag/microapp-managed': 'true' },
@@ -505,11 +543,44 @@ export class MicroAppsSvcs extends cdk.Construct implements IMicroAppsSvcs {
 
     // Create an integration for the Router
     // All traffic without another route goes to the Router
-    const intRouter = new apigwyint.HttpLambdaIntegration('router-integration', routerFunc);
-    new apigwy.HttpRoute(this, 'route-default', {
+    const intRouter = new apigwy.HttpIntegration(this, 'router-integration', {
+      integrationType: apigwy.HttpIntegrationType.AWS_PROXY,
+      httpApi,
+      integrationUri: routerFunc.functionArn,
+      payloadFormatVersion: apigwy.PayloadFormatVersion.VERSION_2_0,
+    });
+    // new apigwycfn.CfnIntegration(this, 'router-integration', {
+    //   apiId: httpApi.httpApiId,
+    //   integrationType: 'AWS_PROXY',
+    //   integrationUri: routerFunc.functionArn,
+    // });
+    // new apigwycfn.CfnRoute(this, 'route-default', {
+    //   apiId: httpApi.httpApiId,
+    //   routeKey: apigwy.HttpRouteKey.DEFAULT.key,
+    //   target: `integrations/${intRouter.integrationId}`,
+    // });
+
+    // This creates an integration and a router
+    const route = new apigwy.HttpRoute(this, 'route-default', {
       httpApi,
       routeKey: apigwy.HttpRouteKey.DEFAULT,
-      integration: intRouter,
+      // @ts-expect-error null is needed to prevent this.bind call
+      authorizer: apigwy.Auth,
+      integration: new HttpRouteIntegration('router-integration', {
+        integration: intRouter,
+      }),
+    });
+
+    let routeArn = route.produceRouteArn(apigwy.HttpMethod.ANY);
+    // Remove the trailing `/` on the ARN, which is not correct
+    routeArn = routeArn.slice(0, routeArn.length - 1);
+
+    // Grant API Gateway permission to invoke the Lambda
+    new lambda.CfnPermission(this, 'router-invoke', {
+      action: 'lambda:InvokeFunction',
+      functionName: routerFunc.functionName,
+      principal: 'apigateway.amazonaws.com',
+      sourceArn: routeArn,
     });
   }
 }

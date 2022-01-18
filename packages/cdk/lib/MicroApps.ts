@@ -1,24 +1,24 @@
-import * as cdk from '@aws-cdk/core';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as r53 from '@aws-cdk/aws-route53';
-import { TimeToLive } from '@cloudcomponents/cdk-temp-stack';
+import { Aws, CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as r53 from 'aws-cdk-lib/aws-route53';
 import {
   MicroApps as MicroAppsCDK,
   MicroAppsProps as MicroAppsCDKProps,
 } from '@pwrdrvr/microapps-cdk';
 import { DemoApp } from './DemoApp';
-import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
+// import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
 import { Env } from './Types';
-import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
+// import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
 
-export interface MicroAppsStackProps extends cdk.StackProps {
+export interface MicroAppsStackProps extends StackProps {
   /**
    * Duration before stack is automatically deleted.
    * Requires that autoDeleteEverything be set to true.
    *
    */
-  readonly ttl?: cdk.Duration;
+  readonly ttl?: Duration;
 
   /**
    * Automatically destroy all assets when stack is deleted
@@ -132,7 +132,7 @@ export interface MicroAppsStackProps extends cdk.StackProps {
   readonly rootPathPrefix?: string;
 }
 
-export class MicroAppsStack extends cdk.Stack {
+export class MicroAppsStack extends Stack {
   /**
    * Create the MicroApps Construct
    *
@@ -140,7 +140,7 @@ export class MicroAppsStack extends cdk.Stack {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: MicroAppsStackProps) {
+  constructor(scope: Construct, id: string, props?: MicroAppsStackProps) {
     super(scope, id, props);
 
     if (props === undefined) {
@@ -168,19 +168,20 @@ export class MicroAppsStack extends cdk.Stack {
       rootPathPrefix,
     } = props;
 
-    let removalPolicy: cdk.RemovalPolicy | undefined = undefined;
+    let removalPolicy: RemovalPolicy | undefined = undefined;
     // Set stack to delete if this is a PR build
     if (ttl !== undefined) {
       if (autoDeleteEverything === false) {
         throw new Error('autoDeleteEverything must be true when ttl is set');
       }
-      removalPolicy = cdk.RemovalPolicy.DESTROY;
-      new TimeToLive(this, 'TimeToLive', {
-        ttl,
-      });
+      removalPolicy = RemovalPolicy.DESTROY;
+      // TODO: Reinstate when CDK 2 version is available
+      // new TimeToLive(this, 'TimeToLive', {
+      //   ttl,
+      // });
     } else {
       if (autoDeleteEverything) {
-        removalPolicy = cdk.RemovalPolicy.DESTROY;
+        removalPolicy = RemovalPolicy.DESTROY;
       }
     }
 
@@ -251,7 +252,7 @@ export class MicroAppsStack extends cdk.Stack {
         removalPolicy,
       });
 
-      new cdk.CfnOutput(this, 'demo-app-func-name', {
+      new CfnOutput(this, 'demo-app-func-name', {
         value: `${demoApp.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-demo-app-func-name`,
       });
@@ -262,54 +263,54 @@ export class MicroAppsStack extends cdk.Stack {
       sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
         this,
         'sharp-lambda-layer',
-        `arn:aws:lambda:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
+        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
       );
     }
 
-    if (deployReleaseApp) {
-      const app = new MicroAppsAppRelease(this, 'release-app', {
-        functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
-        table: microapps.svcs.table,
-        staticAssetsS3Bucket: microapps.s3.bucketApps,
-        nodeEnv,
-        removalPolicy,
-        sharpLayer,
-      });
+    // if (deployReleaseApp) {
+    //   const app = new MicroAppsAppRelease(this, 'release-app', {
+    //     functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
+    //     table: microapps.svcs.table,
+    //     staticAssetsS3Bucket: microapps.s3.bucketApps,
+    //     nodeEnv,
+    //     removalPolicy,
+    //     sharpLayer,
+    //   });
 
-      new cdk.CfnOutput(this, 'release-app-func-name', {
-        value: `${app.lambdaFunction.functionName}`,
-        exportName: `${this.stackName}-release-app-func-name`,
-      });
-    }
+    //   new CfnOutput(this, 'release-app-func-name', {
+    //     value: `${app.lambdaFunction.functionName}`,
+    //     exportName: `${this.stackName}-release-app-func-name`,
+    //   });
+    // }
 
-    if (deployNextjsDemoApp) {
-      const app = new MicroAppsAppNextjsDemo(this, 'nextjs-demo-app', {
-        functionName: assetNameRoot
-          ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
-          : undefined,
-        table: microapps.svcs.table,
-        staticAssetsS3Bucket: microapps.s3.bucketApps,
-        nodeEnv,
-        removalPolicy,
-        sharpLayer,
-      });
+    // if (deployNextjsDemoApp) {
+    //   const app = new MicroAppsAppNextjsDemo(this, 'nextjs-demo-app', {
+    //     functionName: assetNameRoot
+    //       ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
+    //       : undefined,
+    //     table: microapps.svcs.table,
+    //     staticAssetsS3Bucket: microapps.s3.bucketApps,
+    //     nodeEnv,
+    //     removalPolicy,
+    //     sharpLayer,
+    //   });
 
-      new cdk.CfnOutput(this, 'nextjs-demo-app-func-name', {
-        value: `${app.lambdaFunction.functionName}`,
-        exportName: `${this.stackName}-nextjs-demo-app-func-name`,
-      });
-    }
+    //   new CfnOutput(this, 'nextjs-demo-app-func-name', {
+    //     value: `${app.lambdaFunction.functionName}`,
+    //     exportName: `${this.stackName}-nextjs-demo-app-func-name`,
+    //   });
+    // }
 
     // Exports
-    new cdk.CfnOutput(this, 'edge-domain-name', {
+    new CfnOutput(this, 'edge-domain-name', {
       value: domainNameEdge ? domainNameEdge : microapps.cf.cloudFrontDistro.domainName,
       exportName: `${this.stackName}-edge-domain-name`,
     });
-    new cdk.CfnOutput(this, 'dynamodb-table-name', {
+    new CfnOutput(this, 'dynamodb-table-name', {
       value: `${microapps.svcs.table.tableName}`,
       exportName: `${this.stackName}-dynamodb-table-name`,
     });
-    new cdk.CfnOutput(this, 'deployer-func-name', {
+    new CfnOutput(this, 'deployer-func-name', {
       value: `${microapps.svcs.deployerFunc.functionName}`,
       exportName: `${this.stackName}-deployer-func-name`,
     });

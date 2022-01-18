@@ -1,6 +1,7 @@
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as r53 from '@aws-cdk/aws-route53';
-import * as cdk from '@aws-cdk/core';
+import { RemovalPolicy } from 'aws-cdk-lib';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as r53 from 'aws-cdk-lib/aws-route53';
+import { Construct } from 'constructs';
 import { IMicroAppsAPIGwy, MicroAppsAPIGwy } from './MicroAppsAPIGwy';
 import { IMicroAppsCF, MicroAppsCF } from './MicroAppsCF';
 import { IMicroAppsS3, MicroAppsS3 } from './MicroAppsS3';
@@ -9,7 +10,6 @@ import { reverseDomain } from './utils/ReverseDomain';
 
 /**
  * Props for MicroApps
- *
  */
 export interface MicroAppsProps {
   /**
@@ -19,7 +19,7 @@ export interface MicroAppsProps {
    *
    * @default - per resource default
    */
-  readonly removalPolicy?: cdk.RemovalPolicy;
+  readonly removalPolicy?: RemovalPolicy;
 
   /**
    * Passed to NODE_ENV of Router and Deployer Lambda functions.
@@ -179,7 +179,7 @@ export interface IMicroApps {
 /**
  * Application deployment and runtime environment.
  */
-export class MicroApps extends cdk.Construct implements IMicroApps {
+export class MicroApps extends Construct implements IMicroApps {
   private _cf: MicroAppsCF;
   public get cf(): IMicroAppsCF {
     return this._cf;
@@ -208,7 +208,7 @@ export class MicroApps extends cdk.Construct implements IMicroApps {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: MicroAppsProps) {
+  constructor(scope: Construct, id: string, props?: MicroAppsProps) {
     super(scope, id);
 
     if (props === undefined) {

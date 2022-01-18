@@ -51,6 +51,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Post Install Patch of api-gatewayv2
+        run: npm run postinstall
+
       # - name: Generate Projen Files
       #   working-directory: packages/microapps-cdk/
       #   run: |
@@ -69,6 +72,10 @@ jobs:
         working-directory: packages/microapps-cdk/
         run: |
           npm ci
+
+      # - name: Post Install Patch of api-gatewayv2
+      #   working-directory: packages/microapps-cdk/
+      #   run: npx patch-package
 
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/

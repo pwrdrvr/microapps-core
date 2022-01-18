@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import '@aws-cdk/assert/jest';
-import { App, Stack } from '@aws-cdk/core';
+import { App, Stack } from 'aws-cdk-lib';
 import { MicroApps } from '../src/MicroApps';
 
 describe('MicroApps', () => {

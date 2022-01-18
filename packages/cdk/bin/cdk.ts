@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
+import { App, Environment } from 'aws-cdk-lib';
 import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 import { SharedProps } from '../lib/SharedProps';
 import { SharedTags } from '../lib/SharedTags';
 
-const app = new cdk.App();
+const app = new App();
 
 const shared = new SharedProps(app);
 
 // We must set the env so that R53 zone imports will work
-const env: cdk.Environment = {
+const env: Environment = {
   region: shared.region,
   account: shared.account,
 };

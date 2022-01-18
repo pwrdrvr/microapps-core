@@ -1,13 +1,14 @@
-import * as iam from '@aws-cdk/aws-iam';
-import * as cdk from '@aws-cdk/core';
+import { Construct } from 'constructs';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { SharedProps } from './SharedProps';
 import { SharedTags } from './SharedTags';
 
-interface IMicroAppsBuilderStackProps extends cdk.StackProps {
+interface IMicroAppsBuilderStackProps extends StackProps {
   readonly shared: SharedProps;
 }
 
-export class MicroAppsBuilder extends cdk.Stack {
+export class MicroAppsBuilder extends Stack {
   /**
    * Create a role to be assumed by GitHub via OIDC for deploying CDK stacks.
    *
@@ -15,7 +16,7 @@ export class MicroAppsBuilder extends cdk.Stack {
    * @param id
    * @param props
    */
-  constructor(scope: cdk.Construct, id: string, props?: IMicroAppsBuilderStackProps) {
+  constructor(scope: Construct, id: string, props?: IMicroAppsBuilderStackProps) {
     super(scope, id, props);
 
     if (props === undefined) {
@@ -98,7 +99,7 @@ export class MicroAppsBuilder extends cdk.Stack {
           },
         },
       ),
-      maxSessionDuration: cdk.Duration.hours(1),
+      maxSessionDuration: Duration.hours(1),
     });
 
     // Add permissions needed by the TTL construct
@@ -117,6 +118,6 @@ export class MicroAppsBuilder extends cdk.Stack {
 
     // Always destroy this role if the stack is destroyed
     // This role is not critical
-    builderRole.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+    builderRole.applyRemovalPolicy(RemovalPolicy.DESTROY);
   }
 }
