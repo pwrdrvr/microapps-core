@@ -215,6 +215,18 @@ jobs:
           name: datalib-dist
           path: packages/microapps-datalib
 
+      #
+      # PyPI
+      #
+      # https://github.com/cdklabs/jsii-release#pypi
+      - name: Release CDK Construct - PyPI
+        working-directory: packages/microapps-cdk
+        run: |
+          npx -p jsii-release@latest jsii-release-pypi
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
       # Docs for jsii-release-nuget
