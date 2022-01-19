@@ -18,7 +18,7 @@ const project = new AwsCdkConstructLibrary({
   // running `npx projen` - It's just not worth the trouble to try to
   // get `.projenrc.ts` to work
   projenrcTs: false,
-  repositoryUrl: 'git@github.com:pwrdrvr/microapps-core.git',
+  repositoryUrl: 'https://github.com/pwrdrvr/microapps-core',
   homepage: 'https://github.com/pwrdrvr/microapps-core',
   jest: false,
   projenVersion: '0.34.20',
@@ -53,8 +53,6 @@ const project = new AwsCdkConstructLibrary({
     mavenArtifactId: 'microapps-cdk',
     javaPackage: 'com.pwrdrvr.microapps.cdk',
     mavenGroupId: 'com.pwrdrvr.microapps',
-    mavenServerId: 'github',
-    mavenRepositoryUrl: 'https://maven.pkg.github.com/pwrdrvr/microapps.cdk',
   },
   publishToNuget: {
     dotNetNamespace: 'PwrDrvr.MicroApps.CDK',
