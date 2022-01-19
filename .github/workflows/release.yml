@@ -111,8 +111,6 @@ jobs:
         with:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
-    container:
-      image: jsii/superchain
 
   #
   # Publish Tool
@@ -194,6 +192,11 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
       - name: Download CDK Construct build artifacts
         uses: actions/download-artifact@v2
         with:
@@ -212,9 +215,6 @@ jobs:
           name: datalib-dist
           path: packages/microapps-datalib
 
-      #
-      # CDKv1 - Publishing Directly to NuGet is no longer needed for CDKv2
-      #
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
       # Docs for jsii-release-nuget
@@ -224,21 +224,18 @@ jobs:
       #   env:
       #     NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
       #     NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Release CDK Construct - NuGet.org
-      #   working-directory: packages/microapps-cdk/
-      #   run: |
-      #     npx -p jsii-release@latest jsii-release-nuget
-      #   env:
-      #     NUGET_API_KEY: ${{ secrets.NUGET_MICROAPPS }}
+      - name: Release CDK Construct - NuGet.org
+        working-directory: packages/microapps-cdk/
+        run: |
+          npx -p jsii-release@latest jsii-release-nuget
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_MICROAPPS }}
 
-      #
-      # CDKv1 - Publishing Directly to Maven is no longer needed for CDKv2
-      #
       # Docs for GitHub Maven
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
       # Docs for jsii-release-maven
       # https://github.com/cdklabs/jsii-release#maven
-      # - name: Release CDK Construct - Maven
+      # - name: Release CDK Construct - GitHub Maven
       #   working-directory: packages/microapps-cdk/
       #   run: |
       #     npx -p jsii-release@latest jsii-release-maven
@@ -247,6 +244,17 @@ jobs:
       #     MAVEN_REPOSITORY_URL: https://maven.pkg.github.com/pwrdrvr/microapps-core
       #     MAVEN_USERNAME: ${{ github.actor }}
       #     MAVEN_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release CDK Construct - Maven Central
+        working-directory: packages/microapps-cdk/
+        run: |
+          npx -p jsii-release@latest jsii-release-maven
+        env:
+          MAVEN_ENDPOINT: https://s01.oss.sonatype.org
+          MAVEN_STAGING_PROFILE_ID: 3127710ac57dbb
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.MAVEN_GPG_PRIVATE_KEY_PASSPHRASE }}
 
       # Docs for different release steps and params
       # https://www.npmjs.com/package/jsii-release
@@ -258,7 +266,6 @@ jobs:
       #     NPM_DIST_TAG: latest
       #     NPM_REGISTRY: npm.pkg.github.com
       #     NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Release CDK Construct - npmjs.org
         working-directory: packages/microapps-cdk
         run: |
