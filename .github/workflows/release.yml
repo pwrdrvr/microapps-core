@@ -111,6 +111,8 @@ jobs:
         with:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
+    container:
+      image: jsii/superchain
 
   #
   # Publish Tool
