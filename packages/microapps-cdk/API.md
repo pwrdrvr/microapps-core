@@ -6,7 +6,17 @@
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroApps`](#@pwrdrvr/microapps-cdk.IMicroApps)
 
-Application deployment and runtime environment.
+Create a new MicroApps "turnkey" construct for simple deployments and for initial evaulation of the MicroApps framework.
+
+Use this construct to create a working entire stack.
+
+Do not use this construct when adding MicroApps to an existing
+CloudFront, API Gateway, S3 Bucket, etc. or where access
+to all features of the AWS Resources are needed (e.g. to
+add additional Behaviors to the CloudFront distribution, set authorizors
+on API Gateway, etc.).
+
+> {@link https://github.com/pwrdrvr/microapps-core/blob/main/packages/cdk/lib/MicroApps.ts | example usage in a CDK Stack }
 
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroApps.Initializer"></a>
 
@@ -42,11 +52,15 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
 
+{@inheritdoc IMicroAppsAPIGwy}.
+
 ---
 
 ##### `cf`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.cf"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
+
+{@inheritdoc IMicroAppsCF}.
 
 ---
 
@@ -54,11 +68,15 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
 
+{@inheritdoc IMicroAppsS3}.
+
 ---
 
 ##### `svcs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.svcs"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
+
+{@inheritdoc IMicroAppsSvcs}.
 
 ---
 
@@ -66,6 +84,8 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 ### MicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy"></a>
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+Create a new MicroApps API Gateway HTTP API endpoint.
 
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.Initializer"></a>
 
@@ -117,6 +137,8 @@ Domain Name applied to API Gateway origin.
 ### MicroAppsCF <a name="@pwrdrvr/microapps-cdk.MicroAppsCF"></a>
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
+
+Create a new MicroApps CloudFront Distribution.
 
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.Initializer"></a>
 
@@ -200,6 +222,8 @@ MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicy
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
 
+Create a new MicroApps S3 Bucket.
+
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.Initializer"></a>
 
 ```typescript
@@ -275,6 +299,8 @@ S3 bucket for CloudFront logs.
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
 
+Create a new MicroApps Services construct, including the Deployer and Router Lambda Functions, and the DynamoDB Table used by both.
+
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.Initializer"></a>
 
 ```typescript
@@ -313,6 +339,14 @@ Lambda function for the Deployer.
 
 ---
 
+##### `routerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.routerFunc"></a>
+
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+
+Lambda function for the Router.
+
+---
+
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.table"></a>
 
 - *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
@@ -325,6 +359,8 @@ DynamoDB table used by Router, Deployer, and Release console app.
 ## Structs <a name="Structs"></a>
 
 ### AddRoutesOptions <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions"></a>
+
+Options for `AddRoutes`.
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
@@ -390,6 +426,8 @@ Path prefix on the root of the CloudFront distribution.
 
 ### CreateAPIOriginPolicyOptions <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions"></a>
 
+Options for the `CreateAPIOriginPolicy`.
+
 #### Initializer <a name="[object Object].Initializer"></a>
 
 ```typescript
@@ -401,12 +439,18 @@ const createAPIOriginPolicyOptions: CreateAPIOriginPolicyOptions = { ... }
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions.assetNameRoot"></a>
 
 - *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
 
 ---
 
 ##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions.assetNameSuffix"></a>
 
 - *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
 
 ---
 
@@ -419,6 +463,8 @@ Edge domain name used by CloudFront - If set a custom OriginRequestPolicy will b
 ---
 
 ### MicroAppsAPIGwyProps <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps"></a>
+
+Properties to initialize an instance of `MicroAppsAPIGwy`.
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
@@ -502,6 +548,8 @@ Path prefix on the root of the API Gateway Stage.
 ---
 
 ### MicroAppsCFProps <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps"></a>
+
+Properties to initialize an instance of `MicroAppsCF`.
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
@@ -622,7 +670,7 @@ Path prefix on the root of the CloudFront distribution.
 
 ### MicroAppsProps <a name="@pwrdrvr/microapps-cdk.MicroAppsProps"></a>
 
-Props for MicroApps.
+Properties to initialize an instance of `MicroApps`.
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
@@ -809,6 +857,8 @@ fully trusted.
 
 ### MicroAppsS3Props <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props"></a>
 
+Properties to initialize an instance of `MicroAppsS3`.
+
 #### Initializer <a name="[object Object].Initializer"></a>
 
 ```typescript
@@ -869,11 +919,13 @@ S3 logs bucket name.
 
 RemovalPolicy override for child resources.
 
-Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+Note: if set to DESTROY the S3 buckets will have `autoDeleteObjects` set to `true`
 
 ---
 
 ### MicroAppsSvcsProps <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps"></a>
+
+Properties to initialize an instance of `MicroAppsSvcs`.
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
@@ -886,6 +938,8 @@ const microAppsSvcsProps: MicroAppsSvcsProps = { ... }
 ##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.appEnv"></a>
 
 - *Type:* `string`
+
+Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda functions.
 
 ---
 
@@ -963,17 +1017,72 @@ Path prefix on the root of the deployment.
 
 - *Type:* `string`[]
 
+Applies when using s3StrictBucketPolicy = true.
+
+AROAs of the IAM Role to exclude from the DENY rules on the S3 Bucket Policy.
+This allows sessions that assume the IAM Role to be excluded from the
+DENY rules on the S3 Bucket Policy.
+
+Typically any admin roles / users that need to view or manage the S3 Bucket
+would be added to this list.
+
+Roles / users that are used directly, not assumed, can be added to `s3PolicyBypassRoleNames` instead.
+
+Note: This AROA must be specified to prevent this policy from locking
+out non-root sessions that have assumed the admin role.
+
+The notPrincipals will only match the role name exactly and will not match
+any session that has assumed the role since notPrincipals does not allow
+wildcard matches and does not do wildcard matches implicitly either.
+
+The AROA must be used because there are only 3 Principal variables available:
+  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+  aws:username, aws:userid, aws:PrincipalTag
+
+For an assumed role, aws:username is blank, aws:userid is:
+  [unique id AKA AROA for Role]:[session name]
+
+Table of unique ID prefixes such as AROA:
+  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
+
+The name of the role is simply not available for an assumed role and, if it was,
+a complicated comparison would be requierd to prevent exclusion
+of applying the Deny Rule to roles from other accounts.
+
+To get the AROA with the AWS CLI:
+   aws iam get-role --role-name ROLE-NAME
+   aws iam get-user -–user-name USER-NAME
+
+> s3StrictBucketPolicy
+
 ---
 
 ##### `s3PolicyBypassPrincipalARNs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.s3PolicyBypassPrincipalARNs"></a>
 
 - *Type:* `string`[]
 
+Applies when using s3StrictBucketPolicy = true.
+
+IAM Role or IAM User names to exclude from the DENY rules on the S3 Bucket Policy.
+
+Roles that are Assumed must instead have their AROA added to `s3PolicyBypassAROAs`.
+
+Typically any admin roles / users that need to view or manage the S3 Bucket
+would be added to this list.
+
+> s3PolicyBypassAROAs
+
 ---
 
 ##### `s3StrictBucketPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.s3StrictBucketPolicy"></a>
 
 - *Type:* `boolean`
+- *Default:* false
+
+Use a strict S3 Bucket Policy that prevents applications from reading/writing/modifying/deleting files in the S3 Bucket outside of the path that is specific to their app/version.
+
+This setting should be used when applications are less than
+fully trusted.
 
 ---
 
@@ -984,6 +1093,8 @@ Path prefix on the root of the deployment.
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroApps`](#@pwrdrvr/microapps-cdk.MicroApps), [`@pwrdrvr/microapps-cdk.IMicroApps`](#@pwrdrvr/microapps-cdk.IMicroApps)
 
+Represents a MicroApps.
+
 
 #### Properties <a name="Properties"></a>
 
@@ -991,11 +1102,15 @@ Path prefix on the root of the deployment.
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
 
+{@inheritdoc IMicroAppsAPIGwy}.
+
 ---
 
 ##### `cf`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.cf"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
+
+{@inheritdoc IMicroAppsCF}.
 
 ---
 
@@ -1003,17 +1118,23 @@ Path prefix on the root of the deployment.
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
 
+{@inheritdoc IMicroAppsS3}.
+
 ---
 
 ##### `svcs`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.svcs"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
 
+{@inheritdoc IMicroAppsSvcs}.
+
 ---
 
 ### IMicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy"></a>
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwy), [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+Represents a MicroApps API Gateway.
 
 
 #### Properties <a name="Properties"></a>
@@ -1038,6 +1159,8 @@ Domain Name applied to API Gateway origin.
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsCF`](#@pwrdrvr/microapps-cdk.MicroAppsCF), [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
 
+Represents a MicroApps CloudFront.
+
 
 #### Properties <a name="Properties"></a>
 
@@ -1050,6 +1173,8 @@ Domain Name applied to API Gateway origin.
 ### IMicroAppsS3 <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3"></a>
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsS3`](#@pwrdrvr/microapps-cdk.MicroAppsS3), [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
+
+Represents a MicroApps S3.
 
 
 #### Properties <a name="Properties"></a>
@@ -1098,6 +1223,8 @@ S3 bucket for CloudFront logs.
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsSvcs`](#@pwrdrvr/microapps-cdk.MicroAppsSvcs), [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
 
+Represents a MicroApps Services.
+
 
 #### Properties <a name="Properties"></a>
 
@@ -1106,6 +1233,14 @@ S3 bucket for CloudFront logs.
 - *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
 
 Lambda function for the Deployer.
+
+---
+
+##### `routerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.routerFunc"></a>
+
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+
+Lambda function for the Router.
 
 ---
 

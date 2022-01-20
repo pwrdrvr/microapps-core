@@ -1,5 +1,8 @@
 import { Property } from 'ts-convict';
 
+/**
+ * Represents a Deployer Config
+ */
 export interface IDeployerConfig {
   lambdaName: string;
 }

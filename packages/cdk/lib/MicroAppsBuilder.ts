@@ -4,18 +4,18 @@ import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { SharedProps } from './SharedProps';
 import { SharedTags } from './SharedTags';
 
+/**
+ * Properties to initialize an instance of `MicroAppsBuilderStack`.
+ */
 interface IMicroAppsBuilderStackProps extends StackProps {
   readonly shared: SharedProps;
 }
 
+/**
+ * Creates an IAM Role with permissions sufficient to deploy
+ * {@link MicroAppsStack }
+ */
 export class MicroAppsBuilder extends Stack {
-  /**
-   * Create a role to be assumed by GitHub via OIDC for deploying CDK stacks.
-   *
-   * @param scope
-   * @param id
-   * @param props
-   */
   constructor(scope: Construct, id: string, props?: IMicroAppsBuilderStackProps) {
     super(scope, id, props);
 

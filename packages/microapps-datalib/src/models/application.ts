@@ -8,6 +8,9 @@ enum SaveBy {
   Applications,
 }
 
+/**
+ * Represents Versions and Rules
+ */
 export interface IVersionsAndRules {
   Versions: Version[];
   Rules: Rules;

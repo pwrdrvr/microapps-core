@@ -4,6 +4,9 @@ import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
+/**
+ * Represents a MicroApps S3
+ */
 export interface IMicroAppsS3 {
   /**
    * S3 bucket for deployed applications
@@ -31,11 +34,14 @@ export interface IMicroAppsS3 {
   readonly bucketLogs: s3.IBucket;
 }
 
+/**
+ * Properties to initialize an instance of `MicroAppsS3`.
+ */
 export interface MicroAppsS3Props {
   /**
    * RemovalPolicy override for child resources
    *
-   * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+   * Note: if set to DESTROY the S3 buckets will have `autoDeleteObjects` set to `true`
    *
    * @default - per resource default
    */
@@ -79,6 +85,9 @@ export interface MicroAppsS3Props {
   readonly assetNameSuffix?: string;
 }
 
+/**
+ * Create a new MicroApps S3 Bucket.
+ */
 export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
   private _bucketApps: s3.IBucket;
   public get bucketApps(): s3.IBucket {
@@ -105,12 +114,6 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     return this._bucketLogs;
   }
 
-  /**
-   * MicroApps - Create just S3 resources.
-   * @param scope
-   * @param id
-   * @param props
-   */
   constructor(scope: Construct, id: string, props?: MicroAppsS3Props) {
     super(scope, id);
 

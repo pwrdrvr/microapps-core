@@ -2,6 +2,9 @@ import { url, ipaddress } from 'convict-format-with-validator';
 import * as yaml from 'js-yaml';
 import * as convict from 'ts-convict';
 
+/**
+ * Represents an Application Config
+ */
 export interface IApplicationConfig {
   name: string;
   semVer: string;

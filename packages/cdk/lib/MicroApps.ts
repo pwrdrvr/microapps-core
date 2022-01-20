@@ -3,15 +3,15 @@ import { Construct } from 'constructs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as r53 from 'aws-cdk-lib/aws-route53';
-import {
-  MicroApps as MicroAppsCDK,
-  MicroAppsProps as MicroAppsCDKProps,
-} from '@pwrdrvr/microapps-cdk';
+import { MicroApps, MicroAppsProps } from '@pwrdrvr/microapps-cdk';
 import { DemoApp } from './DemoApp';
-// import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
 import { Env } from './Types';
+// import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
 // import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
 
+/**
+ * Properties to initialize an instance of `MicroAppsStack`.
+ */
 export interface MicroAppsStackProps extends StackProps {
   /**
    * Duration before stack is automatically deleted.
@@ -73,11 +73,7 @@ export interface MicroAppsStackProps extends StackProps {
    */
   readonly s3PolicyBypassAROAs?: string[];
 
-  /**
-   * Use a strict S3 bucket policy
-   *
-   * @default false
-   */
+  /** { @inheritdoc MicroAppsProps.s3StrictBucketPolicy } */
   readonly s3StrictBucketPolicy?: boolean;
 
   /**
@@ -133,13 +129,6 @@ export interface MicroAppsStackProps extends StackProps {
 }
 
 export class MicroAppsStack extends Stack {
-  /**
-   * Create the MicroApps Construct
-   *
-   * @param scope
-   * @param id
-   * @param props
-   */
   constructor(scope: Construct, id: string, props?: MicroAppsStackProps) {
     super(scope, id, props);
 
@@ -200,7 +189,7 @@ export class MicroAppsStack extends Stack {
       }
     }
 
-    const optionalCustomDomainOpts: Partial<MicroAppsCDKProps> =
+    const optionalCustomDomainOpts: Partial<MicroAppsProps> =
       domainNameEdge !== undefined
         ? {
             domainNameEdge,
@@ -223,19 +212,19 @@ export class MicroAppsStack extends Stack {
           }
         : {};
 
-    const optionals3PolicyOpts: Partial<MicroAppsCDKProps> = {
+    const optionals3PolicyOpts: Partial<MicroAppsProps> = {
       // Note: these can be undefined, which is ok if s3Strict is false
       s3PolicyBypassAROAs,
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
     };
 
-    const optionalAssetNameOpts: Partial<MicroAppsCDKProps> = {
+    const optionalAssetNameOpts: Partial<MicroAppsProps> = {
       assetNameRoot,
       assetNameSuffix,
     };
 
-    const microapps = new MicroAppsCDK(this, 'microapps', {
+    const microapps = new MicroApps(this, 'microapps', {
       removalPolicy,
       appEnv: nodeEnv,
       rootPathPrefix,

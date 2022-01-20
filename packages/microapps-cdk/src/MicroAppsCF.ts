@@ -11,10 +11,16 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { reverseDomain } from './utils/ReverseDomain';
 
+/**
+ * Represents a MicroApps CloudFront
+ */
 export interface IMicroAppsCF {
   readonly cloudFrontDistro: cf.Distribution;
 }
 
+/**
+ * Properties to initialize an instance of `MicroAppsCF`.
+ */
 export interface MicroAppsCFProps {
   /**
    * RemovalPolicy override for child resources
@@ -103,8 +109,24 @@ export interface MicroAppsCFProps {
   readonly createAPIPathRoute?: boolean;
 }
 
+/**
+ * Options for the `CreateAPIOriginPolicy`
+ */
 export interface CreateAPIOriginPolicyOptions {
+  /**
+   * Optional asset name root
+   *
+   * @example microapps
+   * @default - resource names auto assigned
+   */
   readonly assetNameRoot?: string;
+
+  /**
+   * Optional asset name suffix
+   *
+   * @example -dev-pr-12
+   * @default none
+   */
   readonly assetNameSuffix?: string;
 
   /**
@@ -115,6 +137,9 @@ export interface CreateAPIOriginPolicyOptions {
   readonly domainNameEdge?: string;
 }
 
+/**
+ * Options for `AddRoutes`
+ */
 export interface AddRoutesOptions {
   /**
    * API Gateway CloudFront Origin for API calls
@@ -157,6 +182,9 @@ export interface AddRoutesOptions {
   readonly createAPIPathRoute?: boolean;
 }
 
+/**
+ * Create a new MicroApps CloudFront Distribution.
+ */
 export class MicroAppsCF extends Construct implements IMicroAppsCF {
   /**
    * Create or get the origin request policy
@@ -275,12 +303,6 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     return this._cloudFrontDistro;
   }
 
-  /**
-   * MicroApps - Create just CloudFront resources.
-   * @param scope
-   * @param id
-   * @param props
-   */
   constructor(scope: Construct, id: string, props: MicroAppsCFProps) {
     super(scope, id);
 

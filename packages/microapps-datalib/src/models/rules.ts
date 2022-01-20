@@ -2,6 +2,9 @@ import { plainToClass } from 'class-transformer';
 import { DBManager } from '..';
 import { IVersionRecord } from './version';
 
+/**
+ * Represents a Rule
+ */
 export interface IRule {
   SemVer: string;
   AttributeName: string;
@@ -10,6 +13,9 @@ export interface IRule {
 
 type RuleSet = { [key: string]: IRule };
 
+/**
+ * Represents a Rules Record
+ */
 export interface IRulesRecord {
   PK: string;
   SK: 'rules';

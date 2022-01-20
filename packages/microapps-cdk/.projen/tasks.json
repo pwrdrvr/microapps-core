@@ -152,7 +152,7 @@
       "description": "Prepare the project for compilation",
       "steps": [
         {
-          "exec": "patch-package"
+          "exec": "patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi"
         }
       ]
     },

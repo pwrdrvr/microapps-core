@@ -6,6 +6,9 @@ import { FilesExist } from '../lib/FilesExist';
 import { ApplicationConfig, IApplicationConfig } from './Application';
 import { DeployerConfig, IDeployerConfig } from './Deployer';
 
+/**
+ * Represents a Config
+ */
 export interface IConfig {
   deployer: IDeployerConfig;
   app: IApplicationConfig;

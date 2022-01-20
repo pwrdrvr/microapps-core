@@ -1,10 +1,16 @@
 import { promises as fs } from 'fs-extra';
 
+/**
+ * Represents a Versions
+ */
 export interface IVersions {
   version: string;
   alias?: string;
 }
 
+/**
+ * Represents a File To Modify
+ */
 export interface IFileToModify {
   path: string;
   versions: IVersions;
