@@ -7,6 +7,9 @@ import { APIGateway, IAPIGateway } from './APIGateway';
 import { Database, IDatabase } from './Database';
 import { FileStore, IFileStore } from './FileStore';
 
+/**
+ * Represents a Config
+ */
 export interface IConfig {
   db: IDatabase;
   apigwy: IAPIGateway;

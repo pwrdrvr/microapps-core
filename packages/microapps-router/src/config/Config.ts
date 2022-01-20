@@ -5,11 +5,17 @@ import { TSConvict } from 'ts-convict';
 import { FilesExist } from '../lib/FilesExist';
 import { Database, IDatabase } from './Database';
 
+/**
+ * Represents a Config
+ */
 export interface IConfig {
   db: IDatabase;
   rootPathPrefix: string;
 }
 
+/**
+ * MicroApps Router Config
+ */
 @convict.Config({
   // optional default file to load, no errors if it doesn't exist
   file: 'config.yml', // relative to NODE_PATH or cwd()

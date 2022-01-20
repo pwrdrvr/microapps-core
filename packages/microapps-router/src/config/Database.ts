@@ -1,9 +1,15 @@
 import { Property } from 'ts-convict';
 
+/**
+ * Represents a Database Config
+ */
 export interface IDatabase {
   tableName: string;
 }
 
+/**
+ * Database Config
+ */
 export class Database implements IDatabase {
   @Property({
     doc: 'DynamoDB Table Name',

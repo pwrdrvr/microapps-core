@@ -298,8 +298,8 @@ jobs:
       - name: Build All TypeScript
         run: npm run build --if-present
     
-      - name: Move root modules out of the way for CDK Construct build
-        run: mv node_modules node_modules_hide
+      # - name: Move root modules out of the way for CDK Construct build
+      #   run: mv node_modules node_modules_hide
       
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/

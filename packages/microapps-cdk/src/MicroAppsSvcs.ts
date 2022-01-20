@@ -11,6 +11,9 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
+/**
+ * Class missing from `@aws-cdk/aws-apigatewayv2-alpha`.
+ */
 class HttpRouteIntegration extends apigwy.HttpRouteIntegration {
   private httpIntegrationProps?: apigwy.HttpIntegrationProps;
 
@@ -49,6 +52,9 @@ class HttpRouteIntegration extends apigwy.HttpRouteIntegration {
   }
 }
 
+/**
+ * Properties to initialize an instance of `MicroAppsSvcs`.
+ */
 export interface MicroAppsSvcsProps {
   /**
    * RemovalPolicy override for child resources
@@ -79,6 +85,10 @@ export interface MicroAppsSvcsProps {
    */
   readonly httpApi: apigwy.HttpApi;
 
+  /**
+   * Application environment, passed as `NODE_ENV`
+   * to the Router and Deployer Lambda functions
+   */
   readonly appEnv: string;
 
   /**
@@ -97,9 +107,76 @@ export interface MicroAppsSvcsProps {
    */
   readonly assetNameSuffix?: string;
 
+  /**
+   * Use a strict S3 Bucket Policy that prevents applications
+   * from reading/writing/modifying/deleting files in the S3 Bucket
+   * outside of the path that is specific to their app/version.
+   *
+   * This setting should be used when applications are less than
+   * fully trusted.
+   *
+   * @default false
+   */
   readonly s3StrictBucketPolicy?: boolean;
-  readonly s3PolicyBypassAROAs?: string[];
+
+  /**
+   * Applies when using s3StrictBucketPolicy = true
+   *
+   * IAM Role or IAM User names to exclude from the DENY rules on the S3 Bucket Policy.
+   *
+   * Roles that are Assumed must instead have their AROA added to `s3PolicyBypassAROAs`.
+   *
+   * Typically any admin roles / users that need to view or manage the S3 Bucket
+   * would be added to this list.
+   *
+   * @example ['arn:aws:iam::1234567890123:role/AdminAccess', 'arn:aws:iam::1234567890123:user/MyAdminUser']
+   *
+   * @see s3PolicyBypassAROAs
+   */
   readonly s3PolicyBypassPrincipalARNs?: string[];
+
+  /**
+   * Applies when using s3StrictBucketPolicy = true
+   *
+   * AROAs of the IAM Role to exclude from the DENY rules on the S3 Bucket Policy.
+   * This allows sessions that assume the IAM Role to be excluded from the
+   * DENY rules on the S3 Bucket Policy.
+   *
+   * Typically any admin roles / users that need to view or manage the S3 Bucket
+   * would be added to this list.
+   *
+   * Roles / users that are used directly, not assumed, can be added to `s3PolicyBypassRoleNames` instead.
+   *
+   * Note: This AROA must be specified to prevent this policy from locking
+   * out non-root sessions that have assumed the admin role.
+   *
+   * The notPrincipals will only match the role name exactly and will not match
+   * any session that has assumed the role since notPrincipals does not allow
+   * wildcard matches and does not do wildcard matches implicitly either.
+   *
+   * The AROA must be used because there are only 3 Principal variables available:
+   *  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+   *  aws:username, aws:userid, aws:PrincipalTag
+   *
+   * For an assumed role, aws:username is blank, aws:userid is:
+   *  [unique id AKA AROA for Role]:[session name]
+   *
+   * Table of unique ID prefixes such as AROA:
+   *  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
+   *
+   * The name of the role is simply not available for an assumed role and, if it was,
+   * a complicated comparison would be requierd to prevent exclusion
+   * of applying the Deny Rule to roles from other accounts.
+   *
+   * To get the AROA with the AWS CLI:
+   *   aws iam get-role --role-name ROLE-NAME
+   *   aws iam get-user -–user-name USER-NAME
+   *
+   * @example [ 'AROA1234567890123' ]
+   *
+   * @see s3StrictBucketPolicy
+   */
+  readonly s3PolicyBypassAROAs?: string[];
 
   /**
    * Path prefix on the root of the deployment
@@ -110,6 +187,9 @@ export interface MicroAppsSvcsProps {
   readonly rootPathPrefix?: string;
 }
 
+/**
+ * Represents a MicroApps Services
+ */
 export interface IMicroAppsSvcs {
   /**
    * DynamoDB table used by Router, Deployer, and Release console app
@@ -120,8 +200,17 @@ export interface IMicroAppsSvcs {
    * Lambda function for the Deployer
    */
   readonly deployerFunc: lambda.IFunction;
+
+  /**
+   * Lambda function for the Router
+   */
+  readonly routerFunc: lambda.IFunction;
 }
 
+/**
+ * Create a new MicroApps Services construct, including the Deployer
+ * and Router Lambda Functions, and the DynamoDB Table used by both.
+ */
 export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
   private _table: dynamodb.Table;
   public get table(): dynamodb.ITable {
@@ -133,12 +222,11 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     return this._deployerFunc;
   }
 
-  /**
-   * MicroApps - Create Lambda resources, DynamoDB, and grant S3 privs
-   * @param scope
-   * @param id
-   * @param props
-   */
+  private _routerFunc: lambda.Function;
+  public get routerFunc(): lambda.IFunction {
+    return this._routerFunc;
+  }
+
   constructor(scope: Construct, id: string, props?: MicroAppsSvcsProps) {
     super(scope, id);
 
@@ -191,7 +279,6 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     //
 
     // Create Router Lambda Function
-    let routerFunc: lambda.Function;
     const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: assetNameRoot ? `${assetNameRoot}-router${assetNameSuffix}` : undefined,
       memorySize: 1769,
@@ -210,14 +297,14 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       existsSync(path.join(__dirname, '..', '..', 'microapps-router', 'dist', 'index.js'))
     ) {
       // This is for local dev
-      routerFunc = new lambda.Function(this, 'router-func', {
+      this._routerFunc = new lambda.Function(this, 'router-func', {
         code: lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'microapps-router', 'dist')),
         handler: 'index.handler',
         ...routerFuncProps,
       });
     } else if (existsSync(path.join(__dirname, 'microapps-router', 'index.js'))) {
       // This is for built apps packaged with the CDK construct
-      routerFunc = new lambda.Function(this, 'router-func', {
+      this._routerFunc = new lambda.Function(this, 'router-func', {
         code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-router')),
         handler: 'index.handler',
         ...routerFuncProps,
@@ -231,7 +318,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
         removalPolicy,
       });
 
-      routerFunc = new lambdaNodejs.NodejsFunction(this, 'router-func', {
+      this._routerFunc = new lambdaNodejs.NodejsFunction(this, 'router-func', {
         entry: path.join(__dirname, '..', '..', 'microapps-router', 'src', 'index.ts'),
         handler: 'handler',
         bundling: {
@@ -243,14 +330,14 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       });
     }
     if (removalPolicy !== undefined) {
-      routerFunc.applyRemovalPolicy(removalPolicy);
+      this._routerFunc.applyRemovalPolicy(removalPolicy);
     }
     const policyReadTarget = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject'],
       resources: [`${bucketApps.bucketArn}/*`],
     });
-    for (const router of [routerFunc]) {
+    for (const router of [this._routerFunc]) {
       router.addToRolePolicy(policyReadTarget);
       // Give the Router access to DynamoDB table
       this._table.grantReadData(router);
@@ -546,7 +633,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     const intRouter = new apigwy.HttpIntegration(this, 'router-integration', {
       integrationType: apigwy.HttpIntegrationType.AWS_PROXY,
       httpApi,
-      integrationUri: routerFunc.functionArn,
+      integrationUri: this._routerFunc.functionArn,
       payloadFormatVersion: apigwy.PayloadFormatVersion.VERSION_2_0,
     });
     // new apigwycfn.CfnIntegration(this, 'router-integration', {
@@ -578,7 +665,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     // Grant API Gateway permission to invoke the Lambda
     new lambda.CfnPermission(this, 'router-invoke', {
       action: 'lambda:InvokeFunction',
-      functionName: routerFunc.functionName,
+      functionName: this._routerFunc.functionName,
       principal: 'apigateway.amazonaws.com',
       sourceArn: routeArn,
     });

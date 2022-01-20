@@ -61,8 +61,8 @@ jobs:
       - name: Run Node Tests
         run: npm run test
 
-      - name: Move root NPM modules out of the way
-        run: mv node_modules node_modules_hide
+      # - name: Move root NPM modules out of the way
+      #   run: mv node_modules node_modules_hide
 
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/

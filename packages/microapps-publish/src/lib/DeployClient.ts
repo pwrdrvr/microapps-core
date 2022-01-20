@@ -9,6 +9,9 @@ import {
 } from '@pwrdrvr/microapps-deployer-lib';
 import { IConfig } from '../config/Config';
 
+/**
+ * Represents a Deploy Version Preflight Result
+ */
 export interface IDeployVersionPreflightResult {
   exists: boolean;
   response: IDeployVersionPreflightResponse;

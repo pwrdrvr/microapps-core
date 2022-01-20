@@ -9,7 +9,29 @@ import { IMicroAppsSvcs, MicroAppsSvcs } from './MicroAppsSvcs';
 import { reverseDomain } from './utils/ReverseDomain';
 
 /**
- * Props for MicroApps
+ * A CDK Construct for creating a MicroApps runtime environment used
+ * to host Next.js, React, or any other sort of web application with
+ * multiple versions available for comparison, quick rollbacks, quick
+ * releases, and a complete lack of user disturbance on deploys.
+ *
+ * @remarks
+ *
+ * {@link MicroApps} provides a turn-key construct that creates all
+ * dependencies with limited exposure of underlying AWS Resource options.
+ * This construct is the easiest to use when exploring MicroApps for the
+ * first time.
+ *
+ * {@link MicroAppsAPIGwy}, {@link MicroAppsCF}, {@link MicroAppsS3},
+ * and {@link MicroAppsSvcs}, and their helper static methods, can be used
+ * to create AWS Resources more directly, to provide your own AWS Resources
+ * (e.g. an existing CloudFront Distribution), and to have more flexibility
+ * than the {@link MicroApps} construct offers.
+ *
+ * @packageDocumentation
+ */
+
+/**
+ * Properties to initialize an instance of `MicroApps`.
  */
 export interface MicroAppsProps {
   /**
@@ -51,13 +73,11 @@ export interface MicroAppsProps {
 
   /**
    * Certificate in US-East-1 for the CloudFront distribution.
-   *
    */
   readonly certEdge?: acm.ICertificate;
 
   /**
    * Certificate in deployed region for the API Gateway.
-   *
    */
   readonly certOrigin?: acm.ICertificate;
 
@@ -169,15 +189,36 @@ export interface MicroAppsProps {
   readonly createAPIPathRoute?: boolean;
 }
 
+/**
+ * Represents a MicroApps
+ */
 export interface IMicroApps {
+  /** {@inheritdoc IMicroAppsCF} */
   readonly cf: IMicroAppsCF;
+
+  /** {@inheritdoc IMicroAppsS3} */
   readonly s3: IMicroAppsS3;
+
+  /** {@inheritdoc IMicroAppsSvcs} */
   readonly svcs: IMicroAppsSvcs;
+
+  /** {@inheritdoc IMicroAppsAPIGwy} */
   readonly apigwy: IMicroAppsAPIGwy;
 }
 
 /**
- * Application deployment and runtime environment.
+ * Create a new MicroApps "turnkey" construct for simple
+ * deployments and for initial evaulation of the MicroApps framework.
+ *
+ * Use this construct to create a working entire stack.
+ *
+ * Do not use this construct when adding MicroApps to an existing
+ * CloudFront, API Gateway, S3 Bucket, etc. or where access
+ * to all features of the AWS Resources are needed (e.g. to
+ * add additional Behaviors to the CloudFront distribution, set authorizors
+ * on API Gateway, etc.).
+ *
+ *  @see {@link https://github.com/pwrdrvr/microapps-core/blob/main/packages/cdk/lib/MicroApps.ts | example usage in a CDK Stack }
  */
 export class MicroApps extends Construct implements IMicroApps {
   private _cf: MicroAppsCF;
@@ -200,14 +241,6 @@ export class MicroApps extends Construct implements IMicroApps {
     return this._svcs;
   }
 
-  /**
-   * MicroApps - Create entire stack of CloudFront, S3, API Gateway, and Lambda Functions.
-   * This is the "Easy Button" construct to get started as quickly as possible.
-   *
-   * @param scope
-   * @param id
-   * @param props
-   */
   constructor(scope: Construct, id: string, props?: MicroAppsProps) {
     super(scope, id);
 

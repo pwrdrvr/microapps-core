@@ -8,6 +8,9 @@ import * as r53 from 'aws-cdk-lib/aws-route53';
 import * as r53targets from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
 
+/**
+ * Properties to initialize an instance of `MicroAppsAPIGwy`.
+ */
 export interface MicroAppsAPIGwyProps {
   /**
    * RemovalPolicy override for child resources
@@ -72,6 +75,9 @@ export interface MicroAppsAPIGwyProps {
   readonly rootPathPrefix?: string;
 }
 
+/**
+ * Represents a MicroApps API Gateway
+ */
 export interface IMicroAppsAPIGwy {
   /**
    * Domain Name applied to API Gateway origin
@@ -84,6 +90,9 @@ export interface IMicroAppsAPIGwy {
   readonly httpApi: apigwy.HttpApi;
 }
 
+/**
+ * Create a new MicroApps API Gateway HTTP API endpoint.
+ */
 export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
   private _dnAppsOrigin: apigwy.DomainName | undefined;
   public get dnAppsOrigin(): apigwy.IDomainName | undefined {
@@ -95,12 +104,6 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     return this._httpApi;
   }
 
-  /**
-   * MicroApps - Create just API Gateway
-   * @param scope
-   * @param id
-   * @param props
-   */
   constructor(scope: Construct, id: string, props?: MicroAppsAPIGwyProps) {
     super(scope, id);
 

@@ -1,5 +1,8 @@
 import { Property } from 'ts-convict';
 
+/**
+ * Represents a API Gateway Config
+ */
 export interface IAPIGateway {
   /**
    * ID of the API Gateway to integrate with

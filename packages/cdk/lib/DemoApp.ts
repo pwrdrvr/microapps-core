@@ -4,6 +4,9 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 
+/**
+ * Properties to initialize an instance of `DemoApp`.
+ */
 export interface DemoAppProps {
   /**
    * Removal policy
@@ -36,10 +39,20 @@ export interface DemoAppProps {
   readonly appName?: string;
 }
 
+/**
+ * Represents a `DemoApp`
+ */
 export interface IDemoApp {
   lambdaFunction: lambda.IFunction;
 }
 
+/**
+ * DemoApp with Lambda function.
+ *
+ * @remarks
+ * Used to confirm correct functioning of a `MicroApps` construct
+ * after deploy.
+ */
 export class DemoApp extends Construct implements IDemoApp {
   private _lambdaFunction: lambda.Function;
   public get lambdaFunction(): lambda.IFunction {

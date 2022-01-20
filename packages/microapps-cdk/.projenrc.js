@@ -65,7 +65,7 @@ const project = new AwsCdkConstructLibrary({
 });
 
 project.preCompileTask.exec(
-  'patch-package',
+  'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
 );
 
 // Move the parent node_modules back into place now that jsii is done

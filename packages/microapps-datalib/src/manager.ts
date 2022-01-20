@@ -1,6 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
+/**
+ * Represents a DB Manager
+ */
 export interface IDBManager {
   readonly client: DynamoDBClient;
   readonly ddbDocClient: DynamoDBDocument;

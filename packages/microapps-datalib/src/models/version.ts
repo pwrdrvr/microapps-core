@@ -15,6 +15,9 @@ export type VersionStatus =
 
 export type AppTypes = 'static' | 'lambda';
 
+/**
+ * Represents a Version Record
+ */
 export interface IVersionRecord {
   PK: string;
   SK: string;
