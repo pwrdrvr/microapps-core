@@ -83,7 +83,7 @@
   },
   "version": "0.0.0",
   "types": "lib/index.d.ts",
-  "stability": "stable",
+  "stability": "experimental",
   "jsii": {
     "outdir": "dist",
     "targets": {

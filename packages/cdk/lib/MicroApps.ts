@@ -6,8 +6,8 @@ import * as r53 from 'aws-cdk-lib/aws-route53';
 import { MicroApps, MicroAppsProps } from '@pwrdrvr/microapps-cdk';
 import { DemoApp } from './DemoApp';
 import { Env } from './Types';
-// import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
-// import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
+import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
+import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
 
 /**
  * Properties to initialize an instance of `MicroAppsStack`.
@@ -256,39 +256,38 @@ export class MicroAppsStack extends Stack {
       );
     }
 
-    // if (deployReleaseApp) {
-    //   const app = new MicroAppsAppRelease(this, 'release-app', {
-    //     functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
-    //     table: microapps.svcs.table,
-    //     staticAssetsS3Bucket: microapps.s3.bucketApps,
-    //     nodeEnv,
-    //     removalPolicy,
-    //     sharpLayer,
-    //   });
+    if (deployReleaseApp) {
+      const app = new MicroAppsAppRelease(this, 'release-app', {
+        functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
+        table: microapps.svcs.table,
+        staticAssetsS3Bucket: microapps.s3.bucketApps,
+        nodeEnv,
+        removalPolicy,
+        sharpLayer,
+      });
 
-    //   new CfnOutput(this, 'release-app-func-name', {
-    //     value: `${app.lambdaFunction.functionName}`,
-    //     exportName: `${this.stackName}-release-app-func-name`,
-    //   });
-    // }
+      new CfnOutput(this, 'release-app-func-name', {
+        value: `${app.lambdaFunction.functionName}`,
+        exportName: `${this.stackName}-release-app-func-name`,
+      });
+    }
 
-    // if (deployNextjsDemoApp) {
-    //   const app = new MicroAppsAppNextjsDemo(this, 'nextjs-demo-app', {
-    //     functionName: assetNameRoot
-    //       ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
-    //       : undefined,
-    //     table: microapps.svcs.table,
-    //     staticAssetsS3Bucket: microapps.s3.bucketApps,
-    //     nodeEnv,
-    //     removalPolicy,
-    //     sharpLayer,
-    //   });
+    if (deployNextjsDemoApp) {
+      const app = new MicroAppsAppNextjsDemo(this, 'nextjs-demo-app', {
+        functionName: assetNameRoot
+          ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
+          : undefined,
+        staticAssetsS3Bucket: microapps.s3.bucketApps,
+        nodeEnv,
+        removalPolicy,
+        sharpLayer,
+      });
 
-    //   new CfnOutput(this, 'nextjs-demo-app-func-name', {
-    //     value: `${app.lambdaFunction.functionName}`,
-    //     exportName: `${this.stackName}-nextjs-demo-app-func-name`,
-    //   });
-    // }
+      new CfnOutput(this, 'nextjs-demo-app-func-name', {
+        value: `${app.lambdaFunction.functionName}`,
+        exportName: `${this.stackName}-nextjs-demo-app-func-name`,
+      });
+    }
 
     // Exports
     new CfnOutput(this, 'edge-domain-name', {

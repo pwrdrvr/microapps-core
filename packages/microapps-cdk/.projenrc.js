@@ -20,6 +20,7 @@ const project = new AwsCdkConstructLibrary({
   projenrcTs: false,
   repositoryUrl: 'https://github.com/pwrdrvr/microapps-core',
   homepage: 'https://github.com/pwrdrvr/microapps-core',
+  stability: 'experimental',
   jest: false,
   projenVersion: '0.34.20',
   keywords: ['awscdk', 'microapps'],
