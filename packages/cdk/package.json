@@ -14,8 +14,8 @@
     "cdk": "cdk"
   },
   "dependencies": {
-    "@pwrdrvr/microapps-app-nextjs-demo-cdk": "^0.0.1",
-    "@pwrdrvr/microapps-app-release-cdk": "^0.0.3",
+    "@pwrdrvr/microapps-app-nextjs-demo-cdk": "^0.2.1",
+    "@pwrdrvr/microapps-app-release-cdk": "^0.2.2",
     "source-map-support": "^0.5.16"
   },
   "devDependencies": {
