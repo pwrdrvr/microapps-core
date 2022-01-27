@@ -2,6 +2,12 @@
 
 Instructions, tools, and tips for those wishing to contribute.
 
+# Prerequisites
+
+- `nvm`
+- `node 16` installed with `nvm`
+- `npm i -g aws-cdk`
+
 # TIP: Installing npm Modules
 
 Attempting to run `npm i` will fail because of a chicken and egg problem with npm 7 workspaces, TypeScript transpiled .js output files, and `bin` in `package.json`. npm wants the files pointed to by `bin` to exist when linking to workspaces, but the `.js` files can't exist until `npm i` and `npm run build` build, which is a circular dependency. npm also, unfortunately, [gives no way to run a script before installing dependencies](https://stackoverflow.com/questions/46725374/how-to-run-a-script-before-installing-any-npm-module) thus we must manually run our script before running `npm i`.

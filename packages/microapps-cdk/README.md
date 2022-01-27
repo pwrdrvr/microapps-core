@@ -2,151 +2,97 @@
 
 # Overview
 
-The MicroApps project....
+The MicroApps project enables rapidly deploying many web apps to AWS on a single shared host name, fronted by a CloudFront Distribution, serving static assets from an S3 Bucket, and routing application requests via API Gateway.
+
+MicroApps allows many versions of an application to be deployed either as ephemeral deploys (e.g. for pull request builds) or as semi-permanent deploys. The `microapps-router` Lambda function handled routing requests to apps to the current version targeted for a particular application start request using rules as complex as one is interested in implementing (e.g. A/B testing integration, canary releases, per-user rules for logged in users, per-group, per-deparment, and default rules).
+
+Users start applications via a URL such as `[/{prefix}]/{appname}/`, which hits the `microapps-router` that looks up the version of the application to be run, then renders a transparent `iframe` with a link to that version. The URL seen by the user in the browser (and available for bookmarking) has no version in it, so subsequent launches (e.g. the next day or just in another tab) will lookup the version again. All relative URL API requests (e.g. `some/api/path`) will go to the corresponding API version that matches the version of the loaded static files, eliminating issues of incompatibility between static files and API deployments.
+
+For development / testing purposes only, each version of an applicaton can be accessed directly via a URL of the pattern `[/{prefix}]/{appname}/{semver}/`. These "versioned" URLs are not intended to be advertised to end users as they would cause a user to be stuck on a particular version of the app if the URL was bookmarked. Note that the system does not limit access to particular versions of an application, as of 2022-01-26, but that can be added as a feature.
+
+# Why MicroApps
+
+MicroApps are like micro services, but for Web UIs. A MicroApp allows a single functional site to be developed by many independent teams within an organization. Teams must coordinate deployments and agree upon one implementation technology and framework when building a monolithic, or even a monorepo, web application.
+
+Teams using MicroApps can deploy independently of each other with coordination being required only at points of intentional integration (e.g. adding a feature to pass context from one MicroApp to another or coordination of a major feature release to users) and sharing UI styles, if desired (it is possible to build styles that look the same across many different UI frameworks).
+
+MicroApps also allow each team to use a UI framework and backend language that is most appropriate for their solving their business problem. Not every app has to use React or Next.js or even Node on the backend, but instead they can use whatever framework they want and Java, Go, C#, Python, etc. for UI API calls.
+
+# Related Projects
+
+- Release App
+  - The Release app is an initial, rudimentary, release control console for setting the default version of an application
+  - Built with Next.js
+  - [](https://github.com/pwrdrvr/microapps-app-release)
+- Next.js Demo App
+  - The Next.js Tutorial application deployed as a MicroApp
+  - [](https://github.com/pwrdrvr/serverless-nextjs-demo)
+- Serverless Next.js Router
+  - [](https://github.com/pwrdrvr/serverless-nextjs-router)
+  - Complementary to [@sls-next/serverless-component](https://github.com/serverless-nextjs/serverless-next.js)
+  - Allows Next.js apps to run as Lambda @ Origin for speed and cost improvements vs Lambda@Edge
+  - Essentially the router translates CloudFront Lambda events to API Gateway Lambda events and vice versa for responses
+  - The `serverless-nextjs` project allows Next.js apps to run as Lambda functions without Express, but there was a design change to make the Lambda functions run at Edge (note: need to recheck if this changed after early 2021)
+    - Lambda@Edge is _at least_ 3x more expensive than Lambda at the origin:
+      - In US East 1, the price per GB-Second is $0.00005001 for Lambda@Edge vs $0.0000166667 for Lambda at the origin
+    - Additionally, any DB or services calls from Lambda@Edge back to the origin will pay that 3x higher per GB-Second cost for any time spent waiting to send the request and get a response. Example:
+      - Lambda@Edge
+        - 0.250s Round Trip Time (RTT) for EU-zone edge request to hit US-East 1 Origin
+        - 0.200s DB lookup time
+        - 0.050s CPU usage to process the DB response
+        - 0.500s total billed time @ $0.00005001 @ 128 MB
+        - $0.000003125625 total charge
+      - Lambda at Origin
+        - RTT does not apply (it's effectively 1-2 ms to hit a DB in the same region)
+        - 0.200s DB lookup time
+        - 0.050s CPU usage to process the DB response
+        - 0.250s total billed time @ $0.0000166667 @ 128 MB
+        - Half the billed time of running on Lambda@Edge
+        - 1/6th the cost of running on Lambda@Edge:
+          - $0.000000520834375 total charge (assuming no CPU time to process the response)
+          - $0.000003125625 / $0.000000520834375 = 6x more expensive in Lambda@Edge
+
+# Architecure Diagram
+
+![Architecure Diagram](https://github.com/pwrdrvr/microapps-core/blob/main/assets/images/architecture-diagram.png)
 
 # Project Layout
 
-- [packages/cdk]() - CDK Stacks
+- [packages/cdk](https://github.com/pwrdrvr/microapps-core/tree/main/packages/cdk)
+  - Example CDK Stack
+  - Deploys MicroApps CDK stack for the GitHub Workflows
+  - Can be used as an example of how to use the MicroApps CDK Construct
+- [packages/demo-app](https://github.com/pwrdrvr/microapps-core/tree/main/packages/demo-app)
+  - Example app with static resources and a Lambda function
+  - Does not use any Web UI framework at all
+- [packages/microapps-cdk](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-cdk)
+
+  - MicroApps
+    - "Turn key" CDK Construct that creates all assets needed for a working MicroApps deployment
+  - MicroAppsAPIGwy
+    - Create APIGateway HTTP API
+    - Creates domain names to point to the edge (Cloudfront) and origin (API Gateway)
+  - MicroAppsCF
+    - Creates Cloudfront distribution
   - MicroAppsS3
     - Creates S3 buckets
-  - MicroAppsRepos
-    - Creates the ECR repos for components to be published into;
-      - Deployer
-      - Router
   - MicroAppsSvcs
     - Create DynamoDB table
     - Create Deployer Lambda function
     - Create Router Lambda function
-    - Create APIGateway HTTP API
-  - MicroAppsCF
-    - Creates Cloudfront distribution
-  - MicroAppsR53
-    - Creates domain names to point to the edge (Cloudfront) and origin (API Gateway)
-- [packages/microapps-deployer]()
+
+- [packages/microapps-datalib](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-datalib)
+  - Installed from `npm`:
+    - `npm i -g @pwrdrvr/microapps-datalib`
+  - APIs for access to the DynamoDB Table used by `microapps-publish`, `microapps-deployer`, and `@pwrdrvr/microapps-app-release-cdk`
+- [packages/microapps-deployer](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-deployer)
   - Lambda service invoked by `microapps-publish` to record new app/version in the DynamoDB table, create API Gateway integrations, copy S3 assets from staging to prod bucket, etc.
-- [packages/microapps-publish]()
+  - Returns a temporary S3 token with restricted access to the staging S3 bucket for upload of the static files for one app/semver
+- [packages/microapps-publish](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-publish)
+  - Installed from `npm`:
+    - `npm i -g @pwrdrvr/microapps-publish`
   - Node executable that updates versions in config files, deploys static assets to the S3 staging bucket, optionally compiles and deploys a new Lambda function version, and invokes `microapps-deployer`
-  - Permissions required:
-    - Lambda invoke
-    - S3 publish to the staging bucket
-    - ECR write
-    - Lambda version publish
-- [packages/microapps-router]()
+  - AWS IAM permissions required:
+    - `lambda:InvokeFunction`
+- [packages/microapps-router](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-router)
   - Lambda function that determines which version of an app to point a user to on a particular invocation
-
-# Useful Commands
-
-- `npm run build` compiles TypeSript to JavaScript
-- `npm run lint` checks TypeScript for compliance with Lint rules
-- `cdk list` list the stack names
-- `cdk deploy` deploy this stack to your default AWS account/region
-- `cdk diff` compare deployed stack with current state
-- `cdk synth` emits the synthesized CloudFormation template
-
-# Running CDK
-
-Always run CDK from the root of the git repo, which is the directory containing `cdk.json`.
-
-## Set AWS Profile
-
-`export AWS_PROFILE=pwrdrvr`
-
-## Set NVM Version
-
-`nvm use`
-
-# Deployer Service
-
-Copies static assets from staging to deployed directory, creates record of application / version in DynamoDB Table.
-
-# Notes on Selection of Docker Image Lambdas
-
-The Router and Deployer services are very small (0.5 MB) after tree shaking, minification, and uglification performed by `rollup`. The router has the tightest performance requirement and performed just as well as a docker image vs a zip file. However, docker image start up is up to 2x longer vs the zip file for the router; this should not be a problem for any live system with continuous usage and for demos the router can be initialized or pre-provisioned beforehand. The development benefits of docker images for Lambda outweigh the small init time impact on cold starts.
-
-# Notes on Performance
-
-## Router
-
-For best demo performance (and real user performance), the memory for the Router Lambda should be set to 1024 MB as this gives the fastest cold start at the lowest cost. The cost per warm request is actually lower at 1024 MB than at 128 MB, so 1024 MB is just the ideal size.
-
-For supremely optimum demo performance the Router Lambda should be deployed as a .zip file as that saves about 50% of the cold start time, or about 200 ms, but once it's the cold start has happened they are equally as fast as each other.
-
-- Lambda Memory (which linearly scales CPU) Speeds
-  - Docker Image Lambda
-    - Note: All times captured with Rollup ~400 KB Docker Layer
-    - 128 MB
-      - Duration Warm: 118 ms
-      - Duration Cold: 763 ms
-      - Init Duration: 518 ms
-      - Billed Duration Warm: 119 ms
-      - Billed Duration Init: 1,282 ms
-      - Warm Cost: 0.025 millicents
-      - Init Cost: 0.26 millicents
-    - 256 MB
-      - Duration Warm: 30 ms
-      - Duration Cold: 363 ms
-      - Init Duration: 488 ms
-      - Billed Duration Warm: 30 ms
-      - Billed Duration Init: 853 ms
-      - Warm Cost: 0.013 millicents
-      - Init Cost: 0.36 millicents
-    - 512 MB
-      - Duration Warm: 10 ms
-      - Duration Cold: 176 ms
-      - Init Duration: 572 ms
-      - Billed Duration Warm: 10 ms
-      - Billed Duration Init: 749 ms
-      - Warm Cost: 0.0083 millicents
-      - Init Cost: 0.62 millicents
-    - 1024 MB
-      - Duration Warm: 9 ms
-      - Duration Cold: 84.5 ms
-      - Init Duration: 497 ms
-      - Billed Duration Warm: 9 ms
-      - Billed Duration Init: 585 ms
-      - Warm Cost: 0.015 millicents
-      - Init Cost: 0.97 millicents
-      - _Init performance scales linearly up to and including 1024 MB_
-    - 1769 MB
-      - This is the point at which a Lambda has 100% of 1 CPU
-      - https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html
-      - Duration Warm: 8.31 ms
-      - Duration Cold: 73 ms
-      - Init Duration: 514 ms
-      - Billed Duration Warm: 10 ms
-      - Billed Duration Cold: 587 ms
-      - Warm Cost: 0.029 millicents
-      - Init Cost: 1.7 millicents
-    - 2048 MB
-      - Duration Warm: 10 ms
-      - Duration Cold: 67 ms
-      - Init Duration: 497 ms
-      - Billed Duration Warm: 11 ms
-      - Billed Duration Init: 566 ms
-      - Warm Cost: 0.037 millicents
-      - Init Cost: 1.89 millicents
-  - Zip File Lambda
-    - 128 MB
-      - Duration Warm: 110 ms
-      - Duration Cold: 761 ms
-      - Init Duration: 210 ms
-      - Billed Duration Warm: 120 ms
-      - Billed Duration Init: 762 ms
-      - Warm Cost: 0.025 millicents
-      - Init Cost: 0.16 millicents
-    - 512 MB
-      - Duration Warm: 10 ms
-      - Duration Cold: 179 ms
-      - Init Duration: 201 ms
-      - Billed Duration Warm: 12 ms
-      - Billed Duration Init: 185 ms
-      - Warm Cost: 0.01 millicents
-      - Init Cost: 0.15 millicents
-    - 1024 MB
-      - Duration Warm: 10 ms
-      - Duration Cold: 85 ms
-      - Init Duration: 185 ms
-      - Billed Duration Warm: 12 ms
-      - Billed Duration Init: 85 ms
-      - Warm Cost: 0.02 millicents
-      - Init Cost: 0.14 millicents
