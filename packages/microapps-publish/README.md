@@ -1,107 +1,300 @@
 # Overview
 
-`microapps-publish` is used to deploy new apps and new versions for existing apps using the [MicroApps framework](https://github.com/pwrdrvr/microapps-core/).
+`microapps-publish` is used to deploy new MicroApps and new versions for existing MicroApps using the [MicroApps framework](https://github.com/pwrdrvr/microapps-core/).
 
-# Getting Started
+# Installation
 
-## Next.js Apps
+`npm i -g @pwrdrvr/microapps-publish`
 
-Create a Next.js app then follow the steps in this section to set it up for publishing to AWS Lambda @ Origin as a MicroApp. To publish new versions of the app use `npx microapps-publish --new-version x.y.z` when logged in to the target AWS account.
+# Usage
 
-### Modify package.json
+## Command - help
 
-Replace the version with `0.0.0` so it can be modified by the `microapps-publish` tool.
-
-### Install Dependencies
+`npx microapps-publish help`
 
 ```
-npm i --save-dev @sls-next/serverless-component@1.19.0 @pwrdrvr/serverless-nextjs-router @pwrdrvr/microapps-publish
+Publish tool for deploying apps and updates
+
+VERSION
+  @pwrdrvr/microapps-publish/0.0.0 darwin-x64 node-v16.13.1
+
+USAGE
+  $ microapps-publish [COMMAND]
+
+COMMANDS
+  delete                  Delete app/version
+  help                    display help for microapps-publish
+  nextjs-docker-auto      Fully automatic publishing of Docker-based Lambda
+                          function using Next.js and serverless-nextjs-router
+  nextjs-version          Apply version to next.config.js overtop of 0.0.0
+                          placeholder
+  nextjs-version-restore  Restore next.config.js
+  preflight               Check if app/version are available
+  publish                 Publish arbitrary framework app - deploy static
+                          assets to S3, alias the $LATEST Lambda function, and
+                          add integration/route to API Gateway.
+  publish-static          Publish arbitrary framework static app - deploy
+                          static assets to S3 only.
 ```
 
-### Dockerfile
+## Command - preflight
 
-Add this file to the root of the app.
+`npx microapps-publish preflight help`
 
-```Dockerfile
-FROM node:15-slim as base
+```
+Check if app/version are available
 
-WORKDIR /app
+USAGE
+  $ microapps-publish preflight
 
-# Download the sharp libs once to save time
-# Do this before copying anything else in
-RUN mkdir -p image-lambda-npms && \
-  cd image-lambda-npms && npm i sharp && \
-  rm -rf node_modules/sharp/vendor/*/include/
+OPTIONS
+  -a, --appName=appName                        Name of the MicroApp
+  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer lambda function
+  -n, --newVersion=newVersion                  (required) New semantic version to apply
 
-# Copy in the build output from `npx serverless`
-COPY .serverless_nextjs .
-COPY config.json .
+  -o, --overwrite                              Allow overwrite - Warn but do not fail if version exists.
+                                               Discouraged outside of test envs if cacheable static files
+                                               have changed.
 
-# Move the sharp libs into place
-RUN rm -rf image-lambda/node_modules/ && \
-  mv image-lambda-npms/node_modules image-labmda/ && \
-  rm -rf image-lambda-npms
+  -v, --version                                show CLI version
 
+  --help                                       show CLI help
 
-
-FROM public.ecr.aws/lambda/nodejs:14 AS final
-
-# Copy in the munged code
-COPY --from=base /app .
-
-CMD [ "./index.handler" ]
+EXAMPLE
+  $ microapps-publish preflight -d microapps-deployer-dev -a release -n 0.0.13
+  ✔ Preflight Version Check [0.2s]
 ```
 
-### next.config.js
+## Command - publish
 
-Add this file to the root of the app.
+`npx microapps-publish publish help`
 
-Replace `appname` with your URL path-compatible application name.
+```
+Publish arbitrary framework app - deploy static assets to S3, alias the $LATEST Lambda function, and add integration/route to API Gateway.
 
-```js
-const appRoot = '/appname/0.0.0';
+USAGE
+  $ microapps-publish publish
 
-// eslint-disable-next-line no-undef
-module.exports = {
-  target: 'serverless',
-  webpack: (config, _options) => {
-    return config;
-  },
-  basePath: appRoot,
-  publicRuntimeConfig: {
-    // Will be available on both server and client
-    staticFolder: appRoot,
-  },
-};
+OPTIONS
+  -a, --appName=appName                        MicroApps app name
+  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer lambda function
+
+  -i, --defaultFile=defaultFile                Default file to return when the app is loaded via the
+                                               router without a version (e.g. when app/ is requested).
+
+  -l, --appLambdaName=appLambdaName            Name of the application lambda function
+
+  -n, --newVersion=newVersion                  (required) New semantic version to apply
+
+  -o, --overwrite                              Allow overwrite - Warn but do not fail if version exists.
+                                               Discouraged outside of test envs if cacheable static files
+                                               have changed.
+
+  -s, --staticAssetsPath=staticAssetsPath      Path to files to be uploaded to S3 static bucket at
+                                               app/version/ path.  Do include app/version/ in path if
+                                               files are already "rooted" under that path locally.
+
+  -v, --version                                show CLI version
+
+  --help                                       show CLI help
+
+  --noCache                                    Force revalidation of CloudFront and browser caching of
+                                               static assets
+
+EXAMPLE
+  $ microapps-publish publish -d microapps-deployer-dev -l microapps-app-release-dev -a release -n 0.0.21
+  ✔ Get S3 Temp Credentials [1s]
+  ✔ Deploy to Lambda [0.6s]
+  ✔ Confirm Static Assets Folder Exists [0.0s]
+  ✔ Copy Static Files to Local Upload Dir [0.0s]
+  ✔ Enumerate Files to Upload to S3 [0.0s]
+  ✔ Upload Static Files to S3 [1s]
+  ✔ Creating MicroApp Application: release [0.0s]
+  ✔ Creating MicroApp Version: 0.0.21 [1s]
 ```
 
-### deploy.json
+## Command - publish-static
 
-Add this file to the root of the app.
+`npx microapps-publish publish-static help`
 
-Replace `appname` with your URL path-compatible application name.
+```
+Publish arbitrary framework static app - deploy static assets to S3 only.
 
-```json
-{
-  "AppName": "appname",
-  "SemVer": "0.0.0",
-  "DefaultFile": "",
-  "StaticAssetsPath": "./.serverless_nextjs/assets/appname/0.0.0/",
-  "LambdaARN": "arn:aws:lambda:us-east-1:123456789012:function:appname:v0_0_0",
-  "AWSAccountID": "123456789012",
-  "AWSRegion": "us-east-2",
-  "ServerlessNextRouterPath": "./node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js"
-}
+USAGE
+  $ microapps-publish publish-static
+
+OPTIONS
+  -a, --appName=appName                        MicroApps app name
+  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer lambda function
+
+  -i, --defaultFile=defaultFile                Default file to return when the app is loaded via the
+                                               router without a version (e.g. when app/ is requested).
+
+  -n, --newVersion=newVersion                  (required) New semantic version to apply
+
+  -o, --overwrite                              Allow overwrite - Warn but do not fail if version exists.
+                                               Discouraged outside of test envs if cacheable static files
+                                               have changed.
+
+  -s, --staticAssetsPath=staticAssetsPath      Path to files to be uploaded to S3 static bucket at
+                                               app/version/ path.  Do include app/version/ in path if
+                                               files are already "rooted" under that path locally.
+
+  -v, --version                                show CLI version
+
+  --help                                       show CLI help
+
+  --noCache                                    Force revalidation of CloudFront and browser caching of
+                                               static assets
+
+EXAMPLE
+  $ microapps-publish publish-static -d microapps-deployer-dev -l microapps-app-release-dev -a release -n
+   0.0.21
+  ✔ Get S3 Temp Credentials [1s]
+  ✔ Confirm Static Assets Folder Exists [0.0s]
+  ✔ Copy Static Files to Local Upload Dir [0.0s]
+  ✔ Enumerate Files to Upload to S3 [0.0s]
+  ✔ Upload Static Files to S3 [1s]
+  ✔ Creating MicroApp Application: release [0.0s]
+  ✔ Creating MicroApp Version: 0.0.21 [1s]
 ```
 
-### serverless.yaml
+## Command - nextjs-version
 
-Add this file to the root of the app.
+`npx microapps-publish nextjs-version help`
 
-```yaml
-nextApp:
-  component: './node_modules/@sls-next/serverless-component'
-  inputs:
-    deploy: false
-    uploadStaticAssetsFromBuild: false
+```
+Apply version to next.config.js overtop of 0.0.0 placeholder
+
+USAGE
+  $ microapps-publish nextjs-version
+
+OPTIONS
+  -l, --leaveCopy              Leave a copy of the modifed files as .modified
+  -n, --newVersion=newVersion  (required) New semantic version to apply
+  -v, --version                show CLI version
+  --help                       show CLI help
+
+EXAMPLE
+  $ microapps-publish nextjs-version -n 0.0.13
+  ✔ Modifying Config Files [0.0s]
+```
+
+## Command - nextjs-version-restore
+
+`npx microapps-publish nextjs-version-restore help`
+
+```
+Apply version to next.config.js overtop of 0.0.0 placeholder
+
+USAGE
+  $ microapps-publish nextjs-version
+
+OPTIONS
+  -l, --leaveCopy              Leave a copy of the modifed files as .modified
+  -n, --newVersion=newVersion  (required) New semantic version to apply
+  -v, --version                show CLI version
+  --help                       show CLI help
+
+EXAMPLE
+  $ microapps-publish nextjs-version -n 0.0.13
+  ✔ Modifying Config Files [0.0s]
+```
+
+## Command - delete
+
+`npx microapps-publish delete help`
+
+```
+Delete app/version
+
+USAGE
+  $ microapps-publish delete
+
+OPTIONS
+  -a, --appName=appName                        Name of the MicroApp
+
+  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer
+                                               lambda function
+
+  -n, --newVersion=newVersion                  (required) New semantic version
+                                               to apply
+
+  -v, --version                                show CLI version
+
+  --help                                       show CLI help
+
+EXAMPLE
+  $ microapps-publish delete -d microapps-deployer-dev -a release -n 0.0.13
+  ✔ App/Version deleted: release/0.0.13 [1.2s]
+```
+
+## Command - nextjs-docker-auto
+
+Note: semi-deprecated as of 2022-01-27. This command may still work but it performs too many tasks that needed to be split out into individual commands to allow for integration into various build processes.
+
+`npx microapps-publish nextjs-docker-auto help`
+
+```
+Fully automatic publishing of Docker-based Lambda function using Next.js and serverless-nextjs-router
+
+USAGE
+  $ microapps-publish nextjs-docker-auto
+
+OPTIONS
+  -a, --appName=appName
+      MicroApps app name
+
+  -d, --deployerLambdaName=deployerLambdaName
+      (required) Name of the deployer lambda function
+
+  -f, --leaveCopy
+      Leave a copy of the modifed files as .modified
+
+  -i, --defaultFile=defaultFile
+      Default file to return when the app is loaded via the router without a
+      version (e.g. when app/ is requested).
+
+  -l, --appLambdaName=appLambdaName
+      Name of the application lambda function
+
+  -n, --newVersion=newVersion
+      (required) New semantic version to apply
+
+  -o, --overwrite
+      Allow overwrite - Warn but do not fail if version exists. Discouraged
+      outside of test envs if cacheable static files have changed.
+
+  -r, --repoName=repoName
+      (required) Name (not URI) of the Docker repo for the app
+
+  -s, --staticAssetsPath=staticAssetsPath
+      Path to files to be uploaded to S3 static bucket at app/version/ path.  Do
+      include app/version/ in path if files are already "rooted" under that path
+      locally.
+
+  -v, --version
+      show CLI version
+
+  --help
+      show CLI help
+
+  --noCache
+      Force revalidation of CloudFront and browser caching of static assets
+
+EXAMPLE
+  $ microapps-publish nextjs-docker-auto -d microapps-deployer-dev -r
+  microapps-app-release-dev-repo -n 0.0.14
+  ✔ Logging into ECR [2s]
+  ✔ Modifying Config Files [0.0s]
+  ✔ Preflight Version Check [1s]
+  ✔ Serverless Next.js Build [1m16s]
+  ✔ Publish to ECR [32s]
+  ✔ Deploy to Lambda [11s]
+  ✔ Confirm Static Assets Folder Exists [0.0s]
+  ✔ Copy Static Files to Local Upload Dir [0.0s]
+  ✔ Enumerate Files to Upload to S3 [0.0s]
+  ✔ Upload Static Files to S3 [1s]
+  ✔ Creating MicroApp Application: release [0.2s]
+  ✔ Creating MicroApp Version: 0.0.14 [1s]
 ```
