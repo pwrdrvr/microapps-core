@@ -87,12 +87,12 @@ For internal sites, or logged-in-customer sites, different tools or products can
 - Release App
   - The Release app is an initial, rudimentary, release control console for setting the default version of an application
   - Built with Next.js
-  - [](https://github.com/pwrdrvr/microapps-app-release)
+  - [pwrdrvr/microapps-app-release](https://github.com/pwrdrvr/microapps-app-release)
 - Next.js Demo App
   - The Next.js Tutorial application deployed as a MicroApp
-  - [](https://github.com/pwrdrvr/serverless-nextjs-demo)
+  - [pwrdrvr/serverless-nextjs-demo](https://github.com/pwrdrvr/serverless-nextjs-demo)
 - Serverless Next.js Router
-  - [](https://github.com/pwrdrvr/serverless-nextjs-router)
+  - [pwrdrvr/serverless-nextjs-router](https://github.com/pwrdrvr/serverless-nextjs-router)
   - Complementary to [@sls-next/serverless-component](https://github.com/serverless-nextjs/serverless-next.js)
   - Allows Next.js apps to run as Lambda @ Origin for speed and cost improvements vs Lambda@Edge
   - Essentially the router translates CloudFront Lambda events to API Gateway Lambda events and vice versa for responses
