@@ -33,7 +33,7 @@ For development / testing purposes only, each version of an applicaton can be ac
 
 # Video Preview of the Deploying CDK Construct
 
-![Video Preview of Deploying](https://raw.githubusercontent.com/pwrdrvr/microapps-core/blob/main/assets/videos/microapps-core-demo-deploy.gif)
+![Video Preview of Deploying](https://raw.githubusercontent.com/pwrdrvr/microapps-core/main/assets/videos/microapps-core-demo-deploy.gif)
 
 # Installation / CDK Constructs
 

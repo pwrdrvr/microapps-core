@@ -19,7 +19,7 @@
 
 # Video Preview of Deploying an App
 
-![Video Preview of Deploying an App](https://raw.githubusercontent.com/pwrdrvr/microapps-core/blob/main/assets/videos/microapps-publish-demo-deploy.gif)
+![Video Preview of Deploying an App](https://raw.githubusercontent.com/pwrdrvr/microapps-core/main/assets/videos/microapps-publish-demo-deploy.gif)
 
 # Installation
 
