@@ -118,7 +118,7 @@ For internal sites, or logged-in-customer sites, different tools or products can
 
 # Architecure Diagram
 
-![Architecure Diagram](https://github.com/pwrdrvr/microapps-core/blob/main/assets/images/architecture-diagram.png)
+![Architecure Diagram](https://raw.githubusercontent.com/pwrdrvr/microapps-core/main/assets/images/architecture-diagram.png)
 
 # Project Layout
 
