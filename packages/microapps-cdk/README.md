@@ -13,7 +13,9 @@ For development / testing purposes only, each version of an applicaton can be ac
 # Table of Contents <!-- omit in toc -->
 
 - [Overview](#overview)
+- [Video Preview of the Deploying CDK Construct](#video-preview-of-the-deploying-cdk-construct)
 - [Installation / CDK Constructs](#installation--cdk-constructs)
+- [Tutorial - Bootstrapping a Deploy](#tutorial---bootstrapping-a-deploy)
 - [Why MicroApps](#why-microapps)
 - [Limitations / Future Development](#limitations--future-development)
 - [Related Projects / Components](#related-projects--components)
@@ -29,6 +31,10 @@ For development / testing purposes only, each version of an applicaton can be ac
     - [deploy.json](#deployjson)
     - [serverless.yaml](#serverlessyaml)
 
+# Video Preview of the Deploying CDK Construct
+
+![Video Preview of Deploying](https://raw.githubusercontent.com/pwrdrvr/microapps-core/blob/main/assets/videos/microapps-core-demo-deploy.gif)
+
 # Installation / CDK Constructs
 
 - `npm i --save-dev @pwrdrvr/microapps-cdk`
@@ -37,6 +43,31 @@ For development / testing purposes only, each version of an applicaton can be ac
 - [Construct Hub](https://constructs.dev/packages/@pwrdrvr/microapps-cdk/)
   - CDK API docs
   - Python, DotNet, Java, JS/TS installation instructions
+
+# Tutorial - Bootstrapping a Deploy
+
+- `git clone https://github.com/pwrdrvr/microapps-core.git`
+  - Note: the repo is only being for the example CDK Stack, it is not necessary to clone the repo when used in a custom CDK Stack
+- `cd microapps-core`
+- `npm i -g aws-cdk`
+  - Install AWS CDK v2 CLI
+- `asp [my-sso-profile-name]`
+  - Using the `aws` plugin from `oh-my-zsh` for AWS SSO
+  - Of course, there are other methods of setting env vars
+- `aws sso login`
+  - Establish an AWS SSO session
+- `cdk-sso-sync`
+  - Using `npm i -g cdk-sso-sync`
+  - Sets AWS SSO credentials in a way that CDK can use them
+  - Not necessary if not using AWS SSO
+- `export AWS_REGION=us-east-2`
+  - Region needs to be set for the Lambda invoke - This can be done other ways in `~/.aws/config` as well
+- `./deploy.sh`
+  - Deploys the CDK Stack
+  - Essentially runs two commands along with extraction of outputs:
+    - `npx cdk deploy --context @pwrdrvr/microapps:stackName=microapps-demo-deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic`
+    - `npx microapps-publish publish -a release -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache`
+  - URL will be printed as last output
 
 # Why MicroApps
 
