@@ -2,6 +2,25 @@
 
 `microapps-publish` is used to deploy new MicroApps and new versions for existing MicroApps using the [MicroApps framework](https://github.com/pwrdrvr/microapps-core/).
 
+# Table of Contents <!-- omit in toc -->
+
+- [Overview](#overview)
+- [Video Preview of Deploying an App](#video-preview-of-deploying-an-app)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Command - help](#command---help)
+  - [Command - preflight](#command---preflight)
+  - [Command - publish](#command---publish)
+  - [Command - publish-static](#command---publish-static)
+  - [Command - nextjs-version](#command---nextjs-version)
+  - [Command - nextjs-version-restore](#command---nextjs-version-restore)
+  - [Command - delete](#command---delete)
+  - [Command - nextjs-docker-auto](#command---nextjs-docker-auto)
+
+# Video Preview of Deploying an App
+
+![Video Preview of Deploying an App](https://raw.githubusercontent.com/pwrdrvr/microapps-core/blob/main/assets/videos/microapps-publish-demo-deploy.gif)
+
 # Installation
 
 `npm i -g @pwrdrvr/microapps-publish`

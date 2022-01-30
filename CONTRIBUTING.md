@@ -2,6 +2,20 @@
 
 Instructions, tools, and tips for those wishing to contribute.
 
+# Table of Contents <!-- omit in toc -->
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [TIP: Installing npm Modules](#tip-installing-npm-modules)
+  - [Creating a Dummy `.js` file for `npm i`](#creating-a-dummy-js-file-for-npm-i)
+  - [Log Output from Circular Dependency Failure](#log-output-from-circular-dependency-failure)
+- [Bootstrapping Projen Templates](#bootstrapping-projen-templates)
+- [Releasing NPM Packages](#releasing-npm-packages)
+  - [Get the Version that Projen Tagged](#get-the-version-that-projen-tagged)
+  - [Apply Version to microapps-publish Package.json](#apply-version-to-microapps-publish-packagejson)
+- [Cleaning Git History](#cleaning-git-history)
+  - [Example `filter.txt`](#example-filtertxt)
+
 # Prerequisites
 
 - `nvm`

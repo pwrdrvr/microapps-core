@@ -10,6 +10,31 @@ Users start applications via a URL such as `[/{prefix}]/{appname}/`, which hits 
 
 For development / testing purposes only, each version of an applicaton can be accessed directly via a URL of the pattern `[/{prefix}]/{appname}/{semver}/`. These "versioned" URLs are not intended to be advertised to end users as they would cause a user to be stuck on a particular version of the app if the URL was bookmarked. Note that the system does not limit access to particular versions of an application, as of 2022-01-26, but that can be added as a feature.
 
+# Table of Contents <!-- omit in toc -->
+
+- [Overview](#overview)
+- [Video Preview of the Deploying CDK Construct](#video-preview-of-the-deploying-cdk-construct)
+- [Installation / CDK Constructs](#installation--cdk-constructs)
+- [Tutorial - Bootstrapping a Deploy](#tutorial---bootstrapping-a-deploy)
+- [Why MicroApps](#why-microapps)
+- [Limitations / Future Development](#limitations--future-development)
+- [Related Projects / Components](#related-projects--components)
+- [Architecure Diagram](#architecure-diagram)
+- [Project Layout](#project-layout)
+- [Creating a MicroApp Using Zip Lambda Functions](#creating-a-microapp-using-zip-lambda-functions)
+- [Creating a MicroApp Using Docker Lambda Functions](#creating-a-microapp-using-docker-lambda-functions)
+  - [Next.js Apps](#nextjs-apps)
+    - [Modify package.json](#modify-packagejson)
+    - [Install Dependencies](#install-dependencies)
+    - [Dockerfile](#dockerfile)
+    - [next.config.js](#nextconfigjs)
+    - [deploy.json](#deployjson)
+    - [serverless.yaml](#serverlessyaml)
+
+# Video Preview of the Deploying CDK Construct
+
+![Video Preview of Deploying](https://raw.githubusercontent.com/pwrdrvr/microapps-core/blob/main/assets/videos/microapps-core-demo-deploy.gif)
+
 # Installation / CDK Constructs
 
 - `npm i --save-dev @pwrdrvr/microapps-cdk`
@@ -18,6 +43,31 @@ For development / testing purposes only, each version of an applicaton can be ac
 - [Construct Hub](https://constructs.dev/packages/@pwrdrvr/microapps-cdk/)
   - CDK API docs
   - Python, DotNet, Java, JS/TS installation instructions
+
+# Tutorial - Bootstrapping a Deploy
+
+- `git clone https://github.com/pwrdrvr/microapps-core.git`
+  - Note: the repo is only being for the example CDK Stack, it is not necessary to clone the repo when used in a custom CDK Stack
+- `cd microapps-core`
+- `npm i -g aws-cdk`
+  - Install AWS CDK v2 CLI
+- `asp [my-sso-profile-name]`
+  - Using the `aws` plugin from `oh-my-zsh` for AWS SSO
+  - Of course, there are other methods of setting env vars
+- `aws sso login`
+  - Establish an AWS SSO session
+- `cdk-sso-sync`
+  - Using `npm i -g cdk-sso-sync`
+  - Sets AWS SSO credentials in a way that CDK can use them
+  - Not necessary if not using AWS SSO
+- `export AWS_REGION=us-east-2`
+  - Region needs to be set for the Lambda invoke - This can be done other ways in `~/.aws/config` as well
+- `./deploy.sh`
+  - Deploys the CDK Stack
+  - Essentially runs two commands along with extraction of outputs:
+    - `npx cdk deploy --context @pwrdrvr/microapps:stackName=microapps-demo-deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic`
+    - `npx microapps-publish publish -a release -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache`
+  - URL will be printed as last output
 
 # Why MicroApps
 
@@ -68,12 +118,12 @@ For internal sites, or logged-in-customer sites, different tools or products can
 - Release App
   - The Release app is an initial, rudimentary, release control console for setting the default version of an application
   - Built with Next.js
-  - [](https://github.com/pwrdrvr/microapps-app-release)
+  - [pwrdrvr/microapps-app-release](https://github.com/pwrdrvr/microapps-app-release)
 - Next.js Demo App
   - The Next.js Tutorial application deployed as a MicroApp
-  - [](https://github.com/pwrdrvr/serverless-nextjs-demo)
+  - [pwrdrvr/serverless-nextjs-demo](https://github.com/pwrdrvr/serverless-nextjs-demo)
 - Serverless Next.js Router
-  - [](https://github.com/pwrdrvr/serverless-nextjs-router)
+  - [pwrdrvr/serverless-nextjs-router](https://github.com/pwrdrvr/serverless-nextjs-router)
   - Complementary to [@sls-next/serverless-component](https://github.com/serverless-nextjs/serverless-next.js)
   - Allows Next.js apps to run as Lambda @ Origin for speed and cost improvements vs Lambda@Edge
   - Essentially the router translates CloudFront Lambda events to API Gateway Lambda events and vice versa for responses
@@ -99,7 +149,7 @@ For internal sites, or logged-in-customer sites, different tools or products can
 
 # Architecure Diagram
 
-![Architecure Diagram](https://github.com/pwrdrvr/microapps-core/blob/main/assets/images/architecture-diagram.png)
+![Architecure Diagram](https://raw.githubusercontent.com/pwrdrvr/microapps-core/main/assets/images/architecture-diagram.png)
 
 # Project Layout
 
@@ -111,7 +161,6 @@ For internal sites, or logged-in-customer sites, different tools or products can
   - Example app with static resources and a Lambda function
   - Does not use any Web UI framework at all
 - [packages/microapps-cdk](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-cdk)
-
   - MicroApps
     - "Turn key" CDK Construct that creates all assets needed for a working MicroApps deployment
   - MicroAppsAPIGwy
@@ -125,7 +174,6 @@ For internal sites, or logged-in-customer sites, different tools or products can
     - Create DynamoDB table
     - Create Deployer Lambda function
     - Create Router Lambda function
-
 - [packages/microapps-datalib](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-datalib)
   - Installed from `npm`:
     - `npm i -g @pwrdrvr/microapps-datalib`
@@ -187,8 +235,6 @@ COPY config.json .
 RUN rm -rf image-lambda/node_modules/ && \
   mv image-lambda-npms/node_modules image-labmda/ && \
   rm -rf image-lambda-npms
-
-
 
 FROM public.ecr.aws/lambda/nodejs:14 AS final
 
