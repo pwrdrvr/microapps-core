@@ -88,6 +88,15 @@ Object {
     },
     "constructstage3B55CA4F": Object {
       "Properties": Object {
+        "AccessLogSettings": Object {
+          "DestinationArn": Object {
+            "Fn::GetAtt": Array [
+              "constructlogsBC77618C",
+              "Arn",
+            ],
+          },
+          "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"userAgent\\":\\"$context.identity.userAgent\\",\\"sourceIp\\":\\"$context.identity.sourceIp\\",\\"requestTime\\":\\"$context.requestTime\\",\\"requestTimeEpoch\\":\\"$context.requestTimeEpoch\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"path\\":\\"$context.path\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\",\\"domainName\\":\\"$context.domainName\\",\\"authorizerError\\":\\"$context.authorizer.error\\"}",
+        },
         "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
@@ -322,6 +331,15 @@ Object {
     },
     "constructstage3B55CA4F": Object {
       "Properties": Object {
+        "AccessLogSettings": Object {
+          "DestinationArn": Object {
+            "Fn::GetAtt": Array [
+              "constructlogsBC77618C",
+              "Arn",
+            ],
+          },
+          "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"userAgent\\":\\"$context.identity.userAgent\\",\\"sourceIp\\":\\"$context.identity.sourceIp\\",\\"requestTime\\":\\"$context.requestTime\\",\\"requestTimeEpoch\\":\\"$context.requestTimeEpoch\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"path\\":\\"$context.path\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\",\\"domainName\\":\\"$context.domainName\\",\\"authorizerError\\":\\"$context.authorizer.error\\"}",
+        },
         "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
