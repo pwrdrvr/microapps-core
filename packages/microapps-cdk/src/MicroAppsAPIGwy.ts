@@ -213,8 +213,8 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     if (removalPolicy !== undefined) {
       apiAccessLogs.applyRemovalPolicy(removalPolicy);
     }
-    // const stage = this._httpApi.defaultStage?.node.defaultChild as apigwy.CfnStage;
-    (stage as unknown as apigwycfn.CfnStage).accessLogSettings = {
+    const cfnStage = stage.node.defaultChild as apigwycfn.CfnStage;
+    cfnStage.accessLogSettings = {
       destinationArn: apiAccessLogs.logGroupArn,
       format: JSON.stringify({
         requestId: '$context.requestId',
@@ -228,6 +228,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
         protocol: '$context.protocol',
         responseLength: '$context.responseLength',
         domainName: '$context.domainName',
+        authorizerError: '$context.authorizer.error',
       }),
     };
 
