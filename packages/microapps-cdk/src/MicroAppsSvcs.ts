@@ -1,6 +1,7 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
+import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -10,47 +11,6 @@ import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-
-/**
- * Class missing from `@aws-cdk/aws-apigatewayv2-alpha`.
- */
-class HttpRouteIntegration extends apigwy.HttpRouteIntegration {
-  private httpIntegrationProps?: apigwy.HttpIntegrationProps;
-
-  constructor(
-    id: string,
-    opts: { integration?: apigwy.HttpIntegration; integrationProps?: apigwy.HttpIntegrationProps },
-  ) {
-    super(id);
-    this.httpIntegrationProps = opts.integrationProps;
-    this.integration = opts.integration;
-  }
-
-  /**
-   * (experimental) Bind this integration to the route.
-   *
-   * @experimental
-   */
-  public bind(_options: apigwy.HttpRouteIntegrationBindOptions): apigwy.HttpRouteIntegrationConfig {
-    if (this.httpIntegrationProps === undefined) {
-      throw new TypeError('bind called without IntegrationProps defined');
-    }
-
-    return {
-      type: this.httpIntegrationProps.integrationType,
-      payloadFormatVersion:
-        this.httpIntegrationProps.payloadFormatVersion ?? apigwy.PayloadFormatVersion.VERSION_2_0,
-      connectionType: this.httpIntegrationProps.connectionType,
-      connectionId: this.httpIntegrationProps.connectionId,
-      credentials: this.httpIntegrationProps.credentials,
-      method: this.httpIntegrationProps.method,
-      parameterMapping: this.httpIntegrationProps.parameterMapping,
-      secureServerName: this.httpIntegrationProps.secureServerName,
-      subtype: this.httpIntegrationProps.integrationSubtype,
-      uri: this.httpIntegrationProps.integrationUri,
-    };
-  }
-}
 
 /**
  * Properties to initialize an instance of `MicroAppsSvcs`.
@@ -343,6 +303,8 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       this._table.grantReadData(router);
       this._table.grant(router, 'dynamodb:DescribeTable');
     }
+    // Create alias for Router
+    const routerAlias = this._routerFunc.addAlias('CurrentVersion');
 
     //
     // Deployer Lambda Function
@@ -628,39 +590,20 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     });
     this._deployerFunc.addToRolePolicy(policyAPIManageLambdas);
 
-    // Create an integration for the Router
-    // All traffic without another route goes to the Router
-    const intRouter = new apigwy.HttpIntegration(this, 'router-integration', {
-      integrationType: apigwy.HttpIntegrationType.AWS_PROXY,
-      httpApi,
-      integrationUri: this._routerFunc.functionArn,
-      payloadFormatVersion: apigwy.PayloadFormatVersion.VERSION_2_0,
-    });
-    // new apigwycfn.CfnIntegration(this, 'router-integration', {
-    //   apiId: httpApi.httpApiId,
-    //   integrationType: 'AWS_PROXY',
-    //   integrationUri: routerFunc.functionArn,
-    // });
-    // new apigwycfn.CfnRoute(this, 'route-default', {
-    //   apiId: httpApi.httpApiId,
-    //   routeKey: apigwy.HttpRouteKey.DEFAULT.key,
-    //   target: `integrations/${intRouter.integrationId}`,
-    // });
-
     // This creates an integration and a router
     const route = new apigwy.HttpRoute(this, 'route-default', {
       httpApi,
       routeKey: apigwy.HttpRouteKey.DEFAULT,
       // @ts-expect-error null is needed to prevent this.bind call
       authorizer: apigwy.Auth,
-      integration: new HttpRouteIntegration('router-integration', {
-        integration: intRouter,
-      }),
+      integration: new apigwyint.HttpLambdaIntegration('router-integration', routerAlias),
     });
 
-    let routeArn = route.produceRouteArn(apigwy.HttpMethod.ANY);
+    let routeArn = route.routeArn;
     // Remove the trailing `/` on the ARN, which is not correct
-    routeArn = routeArn.slice(0, routeArn.length - 1);
+    if (routeArn.endsWith('/')) {
+      routeArn = routeArn.slice(0, routeArn.length - 1);
+    }
 
     // Grant API Gateway permission to invoke the Lambda
     new lambda.CfnPermission(this, 'router-invoke', {

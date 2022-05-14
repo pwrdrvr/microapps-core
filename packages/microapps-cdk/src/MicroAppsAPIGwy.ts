@@ -118,13 +118,8 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
       throw new Error('If either of r53Zone or domainNameEdge are set then the other must be set');
     }
 
-    if (
-      (props.domainNameOrigin === undefined && props.certOrigin !== undefined) ||
-      (props.domainNameOrigin !== undefined && props.certOrigin === undefined)
-    ) {
-      throw new Error(
-        'If either of domainNameOrigin or certOrigin are set then the other must be set',
-      );
+    if (props.domainNameOrigin !== undefined && props.certOrigin === undefined) {
+      throw new Error('If domainNameOrigin is set then certOrigin must be set');
     }
 
     if (
@@ -132,7 +127,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
       (props.domainNameEdge !== undefined && props.certOrigin === undefined)
     ) {
       throw new Error(
-        'If either of domainNameOrigin or certOrigin are set then the other must be set',
+        'If either of domainNameEdge or certOrigin are set then the other must be set',
       );
     }
 

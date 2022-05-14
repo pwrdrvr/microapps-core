@@ -3,8 +3,9 @@ const { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } = require('proje
 const project = new AwsCdkConstructLibrary({
   author: 'Harold Hunt',
   authorAddress: 'harold@pwrdrvr.com',
+  authorOrganization: 'PwrDrvr LLC',
   description: 'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '2.8.0',
+  cdkVersion: '2.23.0',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -43,8 +44,8 @@ const project = new AwsCdkConstructLibrary({
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
 
-  devDeps: ['aws-cdk-lib', 'esbuild', '@aws-cdk/aws-apigatewayv2-alpha@2.8.0-alpha.0', 'patch-package@^6.4.7'],
-  peerDeps: ['@aws-cdk/aws-apigatewayv2-alpha@2.8.0-alpha.0'],
+  devDeps: ['aws-cdk-lib', 'esbuild', '@aws-cdk/aws-apigatewayv2-alpha@^2.23.0-alpha.0', '@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.23.0-alpha.0', 'patch-package@^6.4.7'],
+  peerDeps: ['@aws-cdk/aws-apigatewayv2-alpha@^2.23.0-alpha.0', '@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.23.0-alpha.0'],
 
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */
