@@ -284,6 +284,10 @@ jobs:
       - name: Install Node Modules
         run: npm ci
 
+
+      - name: Install jsii
+        run: npm i -g jsii
+
       # - name: Generate Projen Files
       #   working-directory: packages/microapps-cdk/
       #   run: |
