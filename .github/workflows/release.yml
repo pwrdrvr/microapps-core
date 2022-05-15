@@ -112,7 +112,9 @@ jobs:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
     container:
-      image: jsii/superchain
+      # https://hub.docker.com/r/jsii/superchain
+      image: jsii/superchain:1-buster-slim-node16
+
 
   #
   # Publish Tool
@@ -324,4 +326,5 @@ jobs:
       #   run: npm publish
 
     container:
-      image: jsii/superchain
+      # https://hub.docker.com/r/jsii/superchain
+      image: jsii/superchain:1-buster-slim-node16
