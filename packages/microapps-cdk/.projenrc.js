@@ -1,9 +1,9 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } = require('projen');
 const project = new AwsCdkConstructLibrary({
-  author: 'Harold Hunt',
+  author: 'PwrDrvr LLC',
   authorAddress: 'harold@pwrdrvr.com',
-  authorOrganization: 'PwrDrvr LLC',
+  authorOrganization: true,
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
   cdkVersion: '2.23.0',
