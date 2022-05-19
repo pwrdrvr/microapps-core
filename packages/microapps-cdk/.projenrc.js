@@ -6,7 +6,7 @@ const project = new AwsCdkConstructLibrary({
   authorOrganization: true,
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '2.23.0',
+  cdkVersion: '2.24.1',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -44,15 +44,16 @@ const project = new AwsCdkConstructLibrary({
   // devDeps: [],                       /* Build dependencies for this module. */
 
   devDeps: [
-    'aws-cdk-lib@^2.23.0',
+    'aws-cdk-lib@2.24.1',
+    'constructs@10.0.36',
     'esbuild',
-    '@aws-cdk/aws-apigatewayv2-alpha@^2.23.0-alpha.0',
-    '@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.23.0-alpha.0',
+    '@aws-cdk/aws-apigatewayv2-alpha@2.24.1-alpha.0',
+    '@aws-cdk/aws-apigatewayv2-integrations-alpha@2.24.1-alpha.0',
     'patch-package@^6.4.7',
   ],
   peerDeps: [
-    '@aws-cdk/aws-apigatewayv2-alpha@^2.23.0-alpha.0',
-    '@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.23.0-alpha.0',
+    '@aws-cdk/aws-apigatewayv2-alpha@^2.24.1-alpha.0',
+    '@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.24.1-alpha.0',
   ],
 
   // packageName: undefined,            /* The "name" in package.json. */
@@ -74,14 +75,28 @@ const project = new AwsCdkConstructLibrary({
   },
 });
 
+//
+// Types from the monorepo that are not used by CDK are causing build failures
+// and `jsii` appears to not have a way to pass `skipLibCheck: true`
+//
+// Errors:
+// ../../node_modules/@types/convict-format-with-validator/index.d.ts:7:26 - error TS2306: File '/workspaces/microapps-core/node_modules/@types/convict/index.d.ts' is not a module.
+
+// 7 import * as convict from 'convict';
+// ~~~~~~~~~
+// ../../node_modules/@types/convict/index.d.ts:114:23 - error TS1110: Type expected.
+
+// 114                 ? K | `${K}.${PathImpl<T[K], Exclude<keyof T[K], keyof any[]>>}`
+//
 project.preCompileTask.exec(
-  'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
+  'rm -rf ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
+  // 'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
 );
 
 // Move the parent node_modules back into place now that jsii is done
-project.compileTask.exec(
-  'if [ -d ../../node_modules_hide ] ; then mv ../../node_modules_hide ../../node_modules; fi',
-);
+// project.compileTask.exec(
+//   'if [ -d ../../node_modules_hide ] ; then mv ../../node_modules_hide ../../node_modules; fi',
+// );
 
 project.compileTask.exec(
   'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',

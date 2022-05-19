@@ -9,14 +9,7 @@
   "license": "MIT",
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "workspaces": [
-    "./packages/demo-app/",
-    "./packages/microapps-datalib/",
-    "./packages/microapps-cdk/",
-    "./packages/microapps-deployer-lib/",
-    "./packages/microapps-deployer/",
-    "./packages/microapps-publish/",
-    "./packages/microapps-router/",
-    "./packages/cdk/"
+    "./packages/*/"
   ],
   "private": true,
   "scripts": {
@@ -47,7 +40,8 @@
     "@types/node": "^16.9.2",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",
-    "aws-cdk": "^2.8.0",
+    "aws-cdk": "^2.24.1",
+    "aws-cdk-lib": "^2.24.1",
     "cross-env": "^7.0.3",
     "esbuild": "^0.12.14",
     "eslint": "^7.15.0",

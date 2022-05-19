@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import '@aws-cdk/assert/jest';
 import { App } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import { MicroAppsStack } from '../lib/MicroApps';
 
 describe('MicroAppsStack', () => {
@@ -10,16 +10,14 @@ describe('MicroAppsStack', () => {
     const stack = new MicroAppsStack(app, stackName, {});
 
     expect(stack).toBeDefined();
-    const template = app.synth().getStackArtifact(stack.artifactId).template;
-    expect(template).toHaveResource('AWS::Lambda::Function');
-    expect(template).toHaveOutput({
-      exportName: `${stackName}-edge-domain-name`,
-      outputValue: { 'Fn::GetAtt': ['microappscft5FDF8AB8', 'DomainName'] },
+    Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    Template.fromStack(stack).hasOutput('edgedomainname', {
+      Value: { 'Fn::GetAtt': ['microappscft5FDF8AB8', 'DomainName'] },
+      Export: { Name: `${stackName}-edge-domain-name` },
     });
-    // Not sure why this is giving a Value Ref
-    expect(template).toHaveOutput({
-      exportName: `${stackName}-dynamodb-table-name`,
-      outputValue: { Ref: 'microappssvcstable1C50DC7E' },
+    Template.fromStack(stack).hasOutput('dynamodbtablename', {
+      Value: { Ref: 'microappssvcstable1C50DC7E' },
     });
   });
 
@@ -39,16 +37,15 @@ describe('MicroAppsStack', () => {
     });
 
     expect(stack).toBeDefined();
-    const template = app.synth().getStackArtifact(stack.artifactId).template;
-    expect(template).toHaveResource('AWS::Lambda::Function');
-    expect(template).toHaveOutput({
-      exportName: `${stackName}-edge-domain-name`,
-      outputValue: 'appz.pwrdrvr.com',
+    Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    Template.fromStack(stack).hasOutput('edgedomainname', {
+      Value: 'appz.pwrdrvr.com',
+      Export: { Name: `${stackName}-edge-domain-name` },
     });
-    // Not sure why this is giving a Value Ref
-    expect(template).toHaveOutput({
-      exportName: `${stackName}-dynamodb-table-name`,
-      outputValue: { Ref: 'microappssvcstable1C50DC7E' },
+    Template.fromStack(stack).hasOutput('dynamodbtablename', {
+      Value: { Ref: 'microappssvcstable1C50DC7E' },
+      Export: { Name: `${stackName}-dynamodb-table-name` },
     });
   });
 });

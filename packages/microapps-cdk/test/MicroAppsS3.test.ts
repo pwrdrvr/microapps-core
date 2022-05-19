@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import '@aws-cdk/assert/jest';
 import { App, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import { MicroAppsS3 } from '../src/MicroAppsS3';
 
 describe('MicroAppsS3', () => {
@@ -18,7 +18,7 @@ describe('MicroAppsS3', () => {
     expect(construct.bucketAppsOrigin).toBeDefined();
 
     expect(construct.node).toBeDefined();
-    // expect(stack).toHaveResource('AWS::S3::Bucket');
-    expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    Template.fromStack(stack).resourceCountIs('AWS::S3::Bucket', 3);
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 });

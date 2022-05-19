@@ -1,8 +1,8 @@
 /// <reference types="jest" />
-import '@aws-cdk/assert/jest';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
 // import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
 import { App, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -36,11 +36,10 @@ describe('MicroAppsCF', () => {
     expect(construct.cloudFrontDistro).toBeDefined();
     expect(construct.node).toBeDefined();
     // expect(stack).toHaveResource('AWS::S3::Bucket');
-    expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
 
-    const template = app.synth().getStackArtifact(stack.artifactId).template;
-    expect(template).toHaveResource('AWS::CloudFront::Distribution');
-    expect(template).toHaveResource('AWS::CloudFront::OriginRequestPolicy');
+    Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
+    Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 1);
   });
 
   it('works with params', () => {
@@ -78,10 +77,9 @@ describe('MicroAppsCF', () => {
     expect(construct.cloudFrontDistro).toBeDefined();
     expect(construct.node).toBeDefined();
     // expect(stack).toHaveResource('AWS::S3::Bucket');
-    expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
 
-    const template = app.synth().getStackArtifact(stack.artifactId).template;
-    expect(template).toHaveResource('AWS::CloudFront::Distribution');
-    expect(template).not.toHaveResource('AWS::CloudFront::OriginRequestPolicy');
+    Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
+    Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 0);
   });
 });

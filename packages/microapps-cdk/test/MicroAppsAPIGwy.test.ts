@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import '@aws-cdk/assert/jest';
 import { App, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { MicroAppsAPIGwy } from '../src/MicroAppsAPIGwy';
@@ -16,7 +16,7 @@ describe('MicroAppsAPIGwy', () => {
     expect(construct.httpApi).toBeDefined();
     expect(construct.node).toBeDefined();
 
-    expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 
   it('works with params', () => {
@@ -44,6 +44,6 @@ describe('MicroAppsAPIGwy', () => {
     expect(construct.httpApi).toBeDefined();
     expect(construct.node).toBeDefined();
 
-    expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 });

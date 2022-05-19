@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import '@aws-cdk/assert/jest';
 import { App, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { MicroApps } from '../src/MicroApps';
@@ -20,8 +20,7 @@ describe('MicroApps', () => {
     expect(construct.svcs).toBeDefined();
 
     expect(construct.node).toBeDefined();
-    // expect(stack).toHaveResource('AWS::S3::Bucket');
-    // expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 
   it('works with only edge params', () => {
@@ -48,7 +47,6 @@ describe('MicroApps', () => {
     expect(construct.svcs).toBeDefined();
 
     expect(construct.node).toBeDefined();
-    // expect(stack).toHaveResource('AWS::S3::Bucket');
-    // expect(app.synth().getStackArtifact(stack.artifactId).template).toMatchSnapshot();
+    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 });
