@@ -35,7 +35,12 @@ jobs:
         run: |-
           git config user.name "Automation"
           git config user.email "github-actions@github.com"
-      
+
+      - name: Fix Permissions
+        run: |
+          chown -R root ./
+          chmod -R 777 ./
+
       - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
