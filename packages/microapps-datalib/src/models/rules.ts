@@ -1,4 +1,4 @@
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { DBManager } from '..';
 import { IVersionRecord } from './version';
 
@@ -35,7 +35,7 @@ export class Rules implements IRulesRecord {
       TableName: dbManager.tableName,
       Key: { PK: `appName#${key.AppName}`.toLowerCase(), SK: 'rules' },
     });
-    const record = plainToClass<Rules, unknown>(Rules, Item);
+    const record = plainToInstance<Rules, unknown>(Rules, Item);
     return record;
   }
 

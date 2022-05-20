@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { AwsCdkConstructLibrary, NodePackageManager, NpmAccess } = require('projen');
-const project = new AwsCdkConstructLibrary({
+const { awscdk, javascript } = require('projen');
+const { NodePackageManager } = require('projen/lib/javascript');
+const project = new awscdk.AwsCdkConstructLibrary({
   author: 'PwrDrvr LLC',
   authorAddress: 'harold@pwrdrvr.com',
   authorOrganization: true,
@@ -12,8 +13,9 @@ const project = new AwsCdkConstructLibrary({
   defaultReleaseBranch: 'main',
   license: 'MIT',
   name: '@pwrdrvr/microapps-cdk',
-  npmAccess: NpmAccess.PUBLIC,
-  packageManager: NodePackageManager.NPM,
+  releaseToNpm: true,
+  npmAccess: javascript.NpmAccess.PUBLIC,
+  packageManager: javascript.NodePackageManager.YARN,
   minNodeVersion: '12.0.0',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
@@ -24,8 +26,8 @@ const project = new AwsCdkConstructLibrary({
   homepage: 'https://github.com/pwrdrvr/microapps-core',
   stability: 'experimental',
   jest: false,
-  projenVersion: '0.34.20',
   keywords: ['awscdk', 'microapps'],
+  docgen: true,
 
   // Can't do this because it's automatically invoked
   // when running `npm ci` at the top-level when there is no
@@ -34,27 +36,20 @@ const project = new AwsCdkConstructLibrary({
   //   postinstall: 'patch-package',
   // },
 
-  // Which AWS CDK modules (those that start with "@aws-cdk/") does this library require when consumed?
-  cdkDependencies: ['aws-cdk-lib'],
-
   // cdkTestDependencies: undefined,    /* AWS CDK modules required for testing. */
   // deps: [],                          /* Runtime dependencies of this module. */
+  deps: ['@aws-cdk/aws-apigatewayv2-alpha', '@aws-cdk/aws-apigatewayv2-integrations-alpha'],
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
 
   devDeps: [
-    'aws-cdk-lib@2.24.1',
-    'constructs@10.0.36',
     'esbuild',
-    '@aws-cdk/aws-apigatewayv2-alpha@2.24.1-alpha.0',
-    '@aws-cdk/aws-apigatewayv2-integrations-alpha@2.24.1-alpha.0',
-    'patch-package@^6.4.7',
+    // '@aws-cdk/aws-apigatewayv2-alpha@2.24.1-alpha.0',
+    // '@aws-cdk/aws-apigatewayv2-integrations-alpha@2.24.1-alpha.0',
+    // 'patch-package@^6.4.7',
   ],
-  peerDeps: [
-    '@aws-cdk/aws-apigatewayv2-alpha@^2.24.1-alpha.0',
-    '@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.24.1-alpha.0',
-  ],
+  peerDeps: ['@aws-cdk/aws-apigatewayv2-alpha', '@aws-cdk/aws-apigatewayv2-integrations-alpha'],
 
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */

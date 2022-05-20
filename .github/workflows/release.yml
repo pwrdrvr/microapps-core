@@ -45,33 +45,32 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Post Install Patch of api-gatewayv2
-        run: npm run postinstall
+        run: yarn postinstall
 
       # - name: Generate Projen Files
       #   working-directory: packages/microapps-cdk/
       #   run: |
-      #     npm run projen
+      #     yarn projen
 
       - name: Build All TypeScript
-        run: npm run build --if-present
+        run: yarn build --if-present
 
       - name: Run Node Tests
-        run: npm run test
+        run: yarn test
 
       # - name: Move root NPM modules out of the way
       #   run: mv node_modules node_modules_hide
 
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: |
-          npm ci
+        run: yarn install --frozen-lockfile
 
       # - name: Post Install Patch of api-gatewayv2
       #   working-directory: packages/microapps-cdk/
@@ -134,8 +133,8 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Check for new commits
         id: git_remote
@@ -154,18 +153,18 @@ jobs:
           npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
 
       - name: Install Node Modules
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       - name: Generate Projen Files
         working-directory: packages/microapps-cdk/
         run: |
-          npm run projen
+          yarn projen
 
       - name: Build Publish TypeScript
-        run: npm run build:publish --if-present
+        run: yarn build:publish --if-present
 
       - name: Run Lint
-        run: npm run lint
+        run: yarn lint
 
       - name: Upload Publish Tool artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}

@@ -1,4 +1,4 @@
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { DBManager } from '../manager';
 import { Rules } from './rules';
 import { Version, IVersionRecord } from './version';
@@ -69,7 +69,7 @@ export class Application implements IApplicationRecord {
       TableName: dbManager.tableName,
       Key: { PK: `appName#${key.AppName}`.toLowerCase(), SK: 'application' },
     });
-    const record = plainToClass<Application, unknown>(Application, Item);
+    const record = plainToInstance<Application, unknown>(Application, Item);
     return record;
   }
 
@@ -85,7 +85,7 @@ export class Application implements IApplicationRecord {
     const records = [] as Application[];
     if (Items !== undefined) {
       for (const item of Items) {
-        const record = plainToClass<Application, unknown>(Application, item);
+        const record = plainToInstance<Application, unknown>(Application, item);
         records.push(record);
       }
     }
