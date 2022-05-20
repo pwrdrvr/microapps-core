@@ -84,7 +84,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
 // 114                 ? K | `${K}.${PathImpl<T[K], Exclude<keyof T[K], keyof any[]>>}`
 //
 project.preCompileTask.exec(
-  'rm -rf ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
+  'rm -rf  ../../node_modules/@types/prettier/  ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
   // 'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
 );
 
