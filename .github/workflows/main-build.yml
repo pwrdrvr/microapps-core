@@ -56,7 +56,7 @@ jobs:
       #     yarn projen
 
       - name: Build All TypeScript
-        run: yarn build --if-present
+        run: yarn build 
 
       - name: Run Node Tests
         run: yarn test
@@ -127,7 +127,7 @@ jobs:
       #     yarn projen
 
       - name: Build Publish TypeScript
-        run: yarn build:publish --if-present
+        run: yarn build:publish 
 
       - name: Run Lint
         run: yarn lint
