@@ -215,39 +215,39 @@ jobs:
       #
       # PyPI
       #
-      # https://github.com/cdklabs/jsii-release#pypi
+      # https://github.com/cdklabs/publib#pypi
       - name: Release CDK Construct - PyPI
         working-directory: packages/microapps-cdk
         run: |
-          npx -p jsii-release@latest jsii-release-pypi
+          npx -p publib@latest publib-pypi
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
 
       # Docs for GitHub Nuget
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry
-      # Docs for jsii-release-nuget
-      # https://github.com/cdklabs/jsii-release#nuget
+      # Docs for publib-nuget
+      # https://github.com/cdklabs/publib#nuget
       # - name: Release CDK Construct - GitHub NuGet
-      #   run: cd packages/microapps-cdk && npx -p jsii-release@latest jsii-release-nuget
+      #   run: cd packages/microapps-cdk && npx -p publib@latest publib-nuget
       #   env:
       #     NUGET_SERVER: https://nuget.pkg.github.com/pwrdrvr/index.json
       #     NUGET_API_KEY: ${{ secrets.GITHUB_TOKEN }}
       - name: Release CDK Construct - NuGet.org
         working-directory: packages/microapps-cdk/
         run: |
-          npx -p jsii-release@latest jsii-release-nuget
+          npx -p publib@latest publib-nuget
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_MICROAPPS }}
 
       # Docs for GitHub Maven
       # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
-      # Docs for jsii-release-maven
-      # https://github.com/cdklabs/jsii-release#maven
+      # Docs for publib-maven
+      # https://github.com/cdklabs/publib#maven
       # - name: Release CDK Construct - GitHub Maven
       #   working-directory: packages/microapps-cdk/
       #   run: |
-      #     npx -p jsii-release@latest jsii-release-maven
+      #     npx -p publib@latest publib-maven
       #   env:
       #     MAVEN_SERVER_ID: github
       #     MAVEN_REPOSITORY_URL: https://maven.pkg.github.com/pwrdrvr/microapps-core
@@ -256,7 +256,7 @@ jobs:
       - name: Release CDK Construct - Maven Central
         working-directory: packages/microapps-cdk/
         run: |
-          npx -p jsii-release@latest jsii-release-maven
+          npx -p publib@latest publib-maven
         env:
           MAVEN_ENDPOINT: https://s01.oss.sonatype.org
           MAVEN_STAGING_PROFILE_ID: 3127710ac57dbb
@@ -266,11 +266,11 @@ jobs:
           MAVEN_GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.MAVEN_GPG_PRIVATE_KEY_PASSPHRASE }}
 
       # Docs for different release steps and params
-      # https://www.npmjs.com/package/jsii-release
-      # Docs for jsii-release-npm
-      # https://github.com/cdklabs/jsii-release#npm
+      # https://www.npmjs.com/package/publib
+      # Docs for publib-npm
+      # https://github.com/cdklabs/publib#npm
       # - name: Release CDK Construct - GitHub NPM
-      #   run: cd packages/microapps-cdk && npx -p jsii-release@latest jsii-release-npm
+      #   run: cd packages/microapps-cdk && npx -p publib@latest publib-npm
       #   env:
       #     NPM_DIST_TAG: latest
       #     NPM_REGISTRY: npm.pkg.github.com
@@ -278,9 +278,9 @@ jobs:
       - name: Release CDK Construct - npmjs.org
         working-directory: packages/microapps-cdk
         run: |
-          npx -p jsii-release@latest jsii-release-npm
+          npx -p publib@latest publib-npm
         env:
-          NPM_TOKEN: ${{ secrets.NPMJSORG_PUBLISH_TOKEN }} # jsii-release requires NPM_TOKEN as an env var
+          NPM_TOKEN: ${{ secrets.NPMJSORG_PUBLISH_TOKEN }} # publib requires NPM_TOKEN as an env var
 
       #
       # Publish other non-JSII Artifacts to GitHub Packages
