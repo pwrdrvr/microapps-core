@@ -171,7 +171,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPMJSORG_PUBLISH_TOKEN }} # publib requires NPM_TOKEN as an env var
   release_npm_publish_tool:
     name: Publish to npm
-    needs: [ release, release-publish-tool ]
+    needs: [ release, release_npm, release-publish-tool ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
