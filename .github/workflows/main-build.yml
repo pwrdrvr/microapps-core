@@ -71,7 +71,7 @@ jobs:
       - name: Upload CDK Construct artifact
         uses: actions/upload-artifact@v2.1.1
         with:
-          name: cdk-construct-dist
+          name: build-artifact
           path: packages/microapps-cdk/dist
   self-mutation:
     needs: build
@@ -107,9 +107,9 @@ jobs:
   # Publish Tool
   #
   build-publish-tool:
+    needs: build
     name: Build Publish Tool
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -122,6 +122,15 @@ jobs:
       - name: Check for new commits
         id: git_remote
         run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: version-txt
+          path: dist
+      - name: Apply Version to Everything
+        run: |
+          cat dist/version.txt
+          npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
       - name: Install Node Modules
         run: yarn install --frozen-lockfile
       - name: Build Publish TypeScript
@@ -142,7 +151,6 @@ jobs:
           path: |
             packages/microapps-datalib/
             !packages/microapps-datalib/node_modules/
-
   #
   # Release Assets - Dry Run Only
   #
@@ -167,11 +175,11 @@ jobs:
           path: packages/microapps-datalib
       - name: NPM registry authentication
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
-      - name: Release Publish Tool - NPM
+      - name: Release Publish Tool - NPM - Dry Run
         working-directory: packages/microapps-publish
         run: |
           npm publish --dry-run
-      - name: Release DataLib - NPM
+      - name: Release DataLib - NPM - Dry Run
         working-directory: packages/microapps-datalib
         run: |
           npm publish --dry-run
