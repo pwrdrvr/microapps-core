@@ -60,6 +60,8 @@ jobs:
         run: yarn lint
 
       - name: Run Node Tests
+        env:
+          NODE_ENV: test
         run: yarn test
 
   deploy:

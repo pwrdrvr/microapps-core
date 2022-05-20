@@ -59,6 +59,8 @@ jobs:
         run: yarn build 
 
       - name: Run Node Tests
+        env:
+          NODE_ENV: test
         run: yarn test
 
       # - name: Move root NPM modules out of the way
