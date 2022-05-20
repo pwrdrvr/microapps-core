@@ -594,8 +594,6 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     const route = new apigwy.HttpRoute(this, 'route-default', {
       httpApi,
       routeKey: apigwy.HttpRouteKey.DEFAULT,
-      // @ts-expect-error null is needed to prevent this.bind call
-      authorizer: apigwy.Auth,
       integration: new apigwyint.HttpLambdaIntegration('router-integration', routerAlias),
     });
 
