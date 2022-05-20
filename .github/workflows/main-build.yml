@@ -35,39 +35,40 @@ jobs:
           git config user.name "Automation"
           git config user.email "github-actions@github.com"
       
-      - name: Fix Permissions
-        run: |
-          chown -R root ./
-          chmod -R 777 ./
+      # - name: Fix Permissions
+      #   run: |
+      #     chown -R root ./
+      #     chmod -R 777 ./
 
       - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       # - name: Generate Projen Files
       #   working-directory: packages/microapps-cdk/
       #   run: |
-      #     npm run projen
+      #     yarn projen
 
       - name: Build All TypeScript
-        run: npm run build --if-present
+        run: yarn build 
 
       - name: Run Node Tests
-        run: npm run test
+        env:
+          NODE_ENV: test
+        run: yarn test
 
       # - name: Move root NPM modules out of the way
       #   run: mv node_modules node_modules_hide
 
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: |
-          npm ci
+        run: yarn install
 
       # - name: Post Install Patch of api-gatewayv2
       #   working-directory: packages/microapps-cdk/
@@ -76,7 +77,7 @@ jobs:
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
         run: |
-          npm run build
+          yarn build
 
       - name: Check for new commits
         id: git_remote
@@ -90,7 +91,9 @@ jobs:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
     container:
-      image: jsii/superchain
+      # https://hub.docker.com/r/jsii/superchain
+      image: jsii/superchain:1-buster-slim-node16
+
 
   #
   # Publish Tool
@@ -109,8 +112,8 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Check for new commits
         id: git_remote
@@ -118,18 +121,18 @@ jobs:
           github.ref }} | cut -f1)"
 
       - name: Install Node Modules
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
       # - name: Generate Projen Files
       #   working-directory: packages/microapps-cdk/
       #   run: |
-      #     npm run projen
+      #     yarn projen
 
       - name: Build Publish TypeScript
-        run: npm run build:publish --if-present
+        run: yarn build:publish 
 
       - name: Run Lint
-        run: npm run lint
+        run: yarn lint
 
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v2
@@ -194,4 +197,5 @@ jobs:
           npm publish --dry-run
 
     container:
-      image: jsii/superchain
+      # https://hub.docker.com/r/jsii/superchain
+      image: jsii/superchain:1-buster-slim-node16

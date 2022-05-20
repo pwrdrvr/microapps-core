@@ -1,5 +1,8 @@
 {
   "name": "@pwrdrvr/microapps-core",
+  "resolutions": {
+    "constructs": "10.0.5"
+  },
   "version": "0.0.0",
   "repository": {
     "type": "git",
@@ -8,16 +11,14 @@
   "author": "PwrDrvr LLC",
   "license": "MIT",
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "workspaces": [
-    "./packages/demo-app/",
-    "./packages/microapps-datalib/",
-    "./packages/microapps-cdk/",
-    "./packages/microapps-deployer-lib/",
-    "./packages/microapps-deployer/",
-    "./packages/microapps-publish/",
-    "./packages/microapps-router/",
-    "./packages/cdk/"
-  ],
+  "workspaces": {
+    "packages": [
+      "./packages/*/"
+    ],
+    "nohoist": [
+      "**/constructs"
+    ]
+  },
   "private": true,
   "scripts": {
     "clean": "npm run clean:dist && npm run clean:modules && npm run clean:tsbuildinfo",
@@ -47,9 +48,11 @@
     "@types/node": "^16.9.2",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",
-    "aws-cdk": "^2.8.0",
+    "aws-cdk": "^2.24.1",
+    "aws-cdk-lib": "^2.24.1",
+    "constructs": "10.0.5",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.12.14",
+    "esbuild": "^0.14.39",
     "eslint": "^7.15.0",
     "eslint-config-prettier": "^7.0.0",
     "eslint-import-resolver-node": "^0.3.6",
@@ -60,7 +63,7 @@
     "jest-dynalite": "^3.4.4",
     "patch-package": "^6.4.7",
     "prettier": "^2.2.1",
-    "projen": "~0.34.20",
+    "projen": "~0.56.19",
     "replace-in-file": "^6.3.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.39.0",

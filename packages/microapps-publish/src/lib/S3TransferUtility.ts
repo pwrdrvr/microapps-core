@@ -35,13 +35,13 @@ export default class S3TransferUtility {
       },
     });
 
-    console.log('Uploading files to S3');
+    // console.log('Uploading files to S3');
     const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
-    const pathWithoutAppAndVer = path.join(s3Path, destPrefixPath);
-    for (const filePath of files) {
-      const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
-      console.log(`  ${relFilePath}`);
-    }
+    // const pathWithoutAppAndVer = path.join(s3Path, destPrefixPath);
+    // for (const filePath of files) {
+    //   const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
+    //   console.log(`  ${relFilePath}`);
+    // }
 
     // Use p-map to limit upload parallelism
     await pMap(

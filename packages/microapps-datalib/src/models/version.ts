@@ -1,4 +1,4 @@
-import { plainToClass } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { DBManager } from '..';
 
 enum SaveBy {
@@ -59,7 +59,7 @@ export class Version implements IVersionRecord {
     const records = [] as Version[];
     if (Items !== undefined) {
       for (const item of Items) {
-        const record = plainToClass<Version, unknown>(Version, item);
+        const record = plainToInstance<Version, unknown>(Version, item);
         records.push(record);
       }
     }
@@ -83,7 +83,7 @@ export class Version implements IVersionRecord {
         SK: `version#${key.SemVer}`.toLowerCase(),
       },
     });
-    const record = plainToClass<Version, unknown>(Version, Item);
+    const record = plainToInstance<Version, unknown>(Version, Item);
     return record;
   }
 

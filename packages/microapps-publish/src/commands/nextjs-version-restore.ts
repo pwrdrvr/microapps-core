@@ -30,7 +30,8 @@ export class NextJSVersionRestoreCommand extends Command {
     // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
-    const { flags: parsedFlags } = this.parse(NextJSVersionRestoreCommand);
+    // const { flags: parsedFlags } =
+    this.parse(NextJSVersionRestoreCommand);
 
     this.VersionAndAlias = createVersions('0.0.0');
     const versionOnly = { version: this.VersionAndAlias.version };
