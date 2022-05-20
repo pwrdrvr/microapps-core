@@ -13,87 +13,95 @@ on:
       - main
 
 jobs:
-  #
-  # CDK Construct
-  #
-  build-cdk-construct:
+  build:
     name: Build CDK Construct
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: read
+      contents: write
+    outputs:
+      self_mutation_happened: ${{ steps.self_mutation.outputs.self_mutation_happened }}
     env:
       CI: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-
-      - name: Set git identity
-        run: |-
-          git config user.name "Automation"
-          git config user.email "github-actions@github.com"
-      
-      # - name: Fix Permissions
-      #   run: |
-      #     chown -R root ./
-      #     chmod -R 777 ./
-
-      - name: Use Node.js 16
-        uses: actions/setup-node@v2
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.2.0
         with:
           node-version: 16
           cache: 'yarn'
           cache-dependency-path: '**/yarn.lock'
-
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-
-      # - name: Generate Projen Files
-      #   working-directory: packages/microapps-cdk/
-      #   run: |
-      #     yarn projen
-
       - name: Build All TypeScript
         run: yarn build 
-
       - name: Run Node Tests
         env:
           NODE_ENV: test
         run: yarn test
-
-      # - name: Move root NPM modules out of the way
-      #   run: mv node_modules node_modules_hide
-
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: yarn install
-
-      # - name: Post Install Patch of api-gatewayv2
-      #   working-directory: packages/microapps-cdk/
-      #   run: npx patch-package
-
+        run: yarn install --frozen-lockfile
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
-        run: |
-          yarn build
-
-      - name: Check for new commits
-        id: git_remote
-        run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{
-          github.ref }} | cut -f1)"
-
-      - name: Upload CDK Construct Artifact
-        # if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
+        run: yarn build
+      - name: Projen build
+        working-directory: packages/microapps-cdk/
+        run: npx projen build
+      - id: self_mutation
+        name: Find mutations
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code > .repo.patch || echo "::set-output name=self_mutation_happened::true"
+      - if: steps.self_mutation.outputs.self_mutation_happened
+        name: Upload patch
         uses: actions/upload-artifact@v2
+        with:
+          name: .repo.patch
+          path: .repo.patch
+      - name: Fail build on mutation
+        if: steps.self_mutation.outputs.self_mutation_happened
+        run: |-
+          echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
+          cat .repo.patch
+          exit 1
+      - name: Upload CDK Construct artifact
+        uses: actions/upload-artifact@v2.1.1
         with:
           name: cdk-construct-dist
           path: packages/microapps-cdk/dist
-    container:
-      # https://hub.docker.com/r/jsii/superchain
-      image: jsii/superchain:1-buster-slim-node16
-
+  self-mutation:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: always() && needs.build.outputs.self_mutation_happened && !(github.event.pull_request.head.repo.full_name != github.repository)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Download patch
+        uses: actions/download-artifact@v2
+        with:
+          name: .repo.patch
+          path: ${{ runner.temp }}
+      - name: Apply patch
+        run: '[ -s ${{ runner.temp }}/.repo.patch ] && git apply ${{ runner.temp }}/.repo.patch || echo "Empty patch. Skipping."'
+      - name: Set git identity
+        run: |-
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+      - name: Push changes
+        run: |2-
+            git add .
+            git commit -s -m "chore: self mutation"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
 
   #
   # Publish Tool
@@ -105,35 +113,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
       - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
           node-version: 16
           cache: 'yarn'
           cache-dependency-path: '**/yarn.lock'
-
       - name: Check for new commits
         id: git_remote
-        run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{
-          github.ref }} | cut -f1)"
-
+        run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
       - name: Install Node Modules
         run: yarn install --frozen-lockfile
-
-      # - name: Generate Projen Files
-      #   working-directory: packages/microapps-cdk/
-      #   run: |
-      #     yarn projen
-
       - name: Build Publish TypeScript
         run: yarn build:publish 
-
       - name: Run Lint
         run: yarn lint
-
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v2
         with:
@@ -141,7 +135,6 @@ jobs:
           path: |
             packages/microapps-publish/
             !packages/microapps-publish/node_modules/
-
       - name: Upload Datalib artifact
         uses: actions/upload-artifact@v2
         with:
@@ -153,49 +146,131 @@ jobs:
   #
   # Release Assets - Dry Run Only
   #
-  release-assets:
-    # Release only on main branch
-    name: Release Assets - Dry Run
-    needs: [ build-cdk-construct, build-publish-tool ]
+  package-js-publish-tool:
+    needs: [ build, build-publish-tool ]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
+    permissions: {}
+    if: "! needs.build.outputs.self_mutation_happened"
     steps:
-      - name: Download CDK Construct build artifacts
-        uses: actions/download-artifact@v2
+      - uses: actions/setup-node@v2
         with:
-          name: cdk-construct-dist
-          path: packages/microapps-cdk/dist
-
+          node-version: 14.x
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v2
         with:
           name: publish-tool-dist
           path: packages/microapps-publish
-
       - name: Download Datalib build artifacts
         uses: actions/download-artifact@v2
         with:
           name: datalib-dist
           path: packages/microapps-datalib
-
-      #
-      # Publish other non-JSII Artifacts to NPM
-      #
       - name: NPM registry authentication
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
-
       - name: Release Publish Tool - NPM
         working-directory: packages/microapps-publish
         run: |
           npm publish --dry-run
-
       - name: Release DataLib - NPM
         working-directory: packages/microapps-datalib
         run: |
           npm publish --dry-run
 
-    container:
-      # https://hub.docker.com/r/jsii/superchain
-      image: jsii/superchain:1-buster-slim-node16
+  package-js:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: "! needs.build.outputs.self_mutation_happened"
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifact
+          path: dist
+      - name: Prepare Repository
+        run: mv dist .repo
+      - name: Install Dependencies
+        run: cd .repo && yarn install --check-files --frozen-lockfile
+      - name: Create js artifact
+        run: cd .repo && npx projen package:js
+      - name: Collect js Artifact
+        run: mv .repo/dist dist
+  package-java:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: "! needs.build.outputs.self_mutation_happened"
+    steps:
+      - uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 11.x
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifact
+          path: dist
+      - name: Prepare Repository
+        run: mv dist .repo
+      - name: Install Dependencies
+        run: cd .repo && yarn install --check-files --frozen-lockfile
+      - name: Create java artifact
+        run: cd .repo && npx projen package:java
+      - name: Collect java Artifact
+        run: mv .repo/dist dist
+  package-python:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: "! needs.build.outputs.self_mutation_happened"
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifact
+          path: dist
+      - name: Prepare Repository
+        run: mv dist .repo
+      - name: Install Dependencies
+        run: cd .repo && yarn install --check-files --frozen-lockfile
+      - name: Create python artifact
+        run: cd .repo && npx projen package:python
+      - name: Collect python Artifact
+        run: mv .repo/dist dist
+  package-dotnet:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: "! needs.build.outputs.self_mutation_happened"
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.x
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifact
+          path: dist
+      - name: Prepare Repository
+        run: mv dist .repo
+      - name: Install Dependencies
+        run: cd .repo && yarn install --check-files --frozen-lockfile
+      - name: Create dotnet artifact
+        run: cd .repo && npx projen package:dotnet
+      - name: Collect dotnet Artifact
+        run: mv .repo/dist dist
