@@ -220,7 +220,7 @@
       "description": "Prepare the project for compilation",
       "steps": [
         {
-          "exec": "rm -rf ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/"
+          "exec": "rm -rf  ../../node_modules/@types/prettier/  ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/"
         }
       ]
     },
