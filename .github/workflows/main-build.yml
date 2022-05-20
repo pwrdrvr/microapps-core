@@ -122,15 +122,6 @@ jobs:
       - name: Check for new commits
         id: git_remote
         run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
-      - name: Download version.txt
-        uses: actions/download-artifact@v2
-        with:
-          name: version-txt
-          path: dist
-      - name: Apply Version to Everything
-        run: |
-          cat dist/version.txt
-          npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
       - name: Install Node Modules
         run: yarn install --frozen-lockfile
       - name: Build Publish TypeScript
