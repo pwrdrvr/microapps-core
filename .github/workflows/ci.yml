@@ -27,6 +27,8 @@ jobs:
     outputs:
       prSuffix: ${{ steps.prSuffix.outputs.prSuffix }}
       prSuffixPackageVersion: ${{ steps.prSuffix.outputs.prSuffixPackageVersion }}
+      releaseAppPackageVersion: ${{ steps.appVersions.outputs.releaseAppPackageVersion }}
+      nextjsDemoAppPackageVersion: ${{ steps.appVersions.outputs.nextjsDemoAppPackageVersion }}
     steps:
       - uses: actions/checkout@v2
 
@@ -52,6 +54,19 @@ jobs:
 
       - name: Install Node Modules
         run: yarn install --frozen-lockfile
+
+      - name: Extract App NPM Versions
+        id: appVersions
+        run: |
+          echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json').version") >> $GITHUB_ENV
+          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
+          echo "::set-output name=nextjsDemoAppPackageVersion::$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json').version")"
+          echo "::set-output name=releaseAppPackageVersion::$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version")"
+
+      - name: Versions
+        run: |
+          echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION=${NEXTJS_DEMO_APP_PACKAGE_VERSION}'
+          echo 'RELEASE_APP_PACKAGE_VERSION=${RELEASE_APP_PACKAGE_VERSION}'
 
       - name: Build All TypeScript
         run: yarn build 
@@ -113,11 +128,6 @@ jobs:
       - name: Install Node Modules
         run: yarn install --frozen-lockfile
 
-      - name: Extract App NPM Versions
-        run: |
-          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
-          echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json').version") >> $GITHUB_ENV
-
       - name: Build All TypeScript
         run: yarn build 
     
@@ -131,13 +141,13 @@ jobs:
       - name: Stitch Prefix into Nextjs Demo App
         run: |
           if [ -n "${PREFIX}" ] ; then
-            npx replace-in-file "/\/${NEXTJS_DEMO_APP_NAME}\/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/g" ${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION} --configFile=.nextjs-demo-replace.config.js --isRegex
+            npx replace-in-file "/\/${NEXTJS_DEMO_APP_NAME}\/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/g" ${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }} --configFile=.nextjs-demo-replace.config.js --isRegex
           fi
 
       - name: Stitch Prefix into Release App
         run: |
           if [ -n "${PREFIX}" ] ; then
-            npx replace-in-file "/\/${RELEASE_APP_NAME}\/${RELEASE_APP_PACKAGE_VERSION}/g" ${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION} --configFile=.release-replace.config.js --isRegex
+            npx replace-in-file "/\/${RELEASE_APP_NAME}\/${{ needs.build.outputs.releaseAppPackageVersion }}/g" ${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }} --configFile=.release-replace.config.js --isRegex
           fi
 
       - name: Set Hotswap Flag
@@ -177,31 +187,31 @@ jobs:
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${NEXTJS_DEMO_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/ --overwrite --noCache
+          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ --overwrite --noCache
 
       - name: Test Nextjs Demo App
         run: |
           echo Testing App Frame Loading
           curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
           echo Testing Post Page Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/posts/pre-rendering
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/posts/pre-rendering
           echo Testing Image Rendering
-          curl --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${NEXTJS_DEMO_APP_PACKAGE_VERSION}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
+          curl --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
 
       - name: Publish Release App to MicroApps
         run: |
-          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
+          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${{ needs.build.outputs.releaseAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ --overwrite --noCache
 
       - name: Test Release App
         run: |
           echo Testing App Frame Loading
           curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${RELEASE_APP_PACKAGE_VERSION}/api/refresh/${DEMO_APP_NAME}
+          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
 
   delete-apps:
     if: github.event_name == 'pull_request' && false
@@ -241,11 +251,6 @@ jobs:
       - name: Install Node Modules
         run: yarn install --frozen-lockfile
 
-      - name: Extract App NPM Versions
-        run: |
-          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version") >> $GITHUB_ENV
-          echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json').version") >> $GITHUB_ENV
-
       - name: Build All TypeScript
         run: yarn build 
     
@@ -262,11 +267,11 @@ jobs:
 
       - name: Delete Nextjs Demo App from MicroApps
         run: |
-          npx microapps-publish delete -a ${NEXTJS_DEMO_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
+          npx microapps-publish delete -a ${NEXTJS_DEMO_APP_NAME} -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME}
 
       - name: Delete Release App from MicroApps
         run: |
-          npx microapps-publish delete -a ${RELEASE_APP_NAME} -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME}
+          npx microapps-publish delete -a ${RELEASE_APP_NAME} -n ${{ needs.build.outputs.releaseAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME}
   
   build-jsii:
     runs-on: ubuntu-latest
