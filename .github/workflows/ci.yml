@@ -188,7 +188,7 @@ jobs:
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ --overwrite --noCache
+          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ --overwrite --noCache
 
       - name: Test Nextjs Demo App
         run: |
@@ -203,7 +203,7 @@ jobs:
 
       - name: Publish Release App to MicroApps
         run: |
-          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${{ needs.build.outputs.releaseAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ --overwrite --noCache
+          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${{ needs.build.outputs.releaseAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ --overwrite --noCache
 
       - name: Test Release App
         run: |
