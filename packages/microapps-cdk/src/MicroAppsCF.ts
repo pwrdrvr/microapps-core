@@ -395,10 +395,14 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         new iam.PolicyStatement({
           actions: ['execute-api:Invoke'],
           resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
-          conditions: {
-            // TODO: Set this to a string unique to each stack
-            StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
-          },
+          // Unfortunately, API Gateway access cannot be restricted using
+          // tags on the target resource
+          // https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
+          // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#networking_svcs
+          // conditions: {
+          //   // TODO: Set this to a string unique to each stack
+          //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+          // },
         }),
       ],
     };

@@ -471,11 +471,6 @@ Object {
           "Statement": Array [
             Object {
               "Action": "execute-api:Invoke",
-              "Condition": Object {
-                "StringEquals": Object {
-                  "aws:ResourceTag/microapp-managed": "true",
-                },
-              },
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::Join": Array [
@@ -1925,11 +1920,6 @@ Object {
           "Statement": Array [
             Object {
               "Action": "execute-api:Invoke",
-              "Condition": Object {
-                "StringEquals": Object {
-                  "aws:ResourceTag/microapp-managed": "true",
-                },
-              },
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::Join": Array [
