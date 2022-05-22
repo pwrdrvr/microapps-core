@@ -77,7 +77,7 @@ describe('MicroAppsCF', () => {
     expect(construct.cloudFrontDistro).toBeDefined();
     expect(construct.node).toBeDefined();
     // expect(stack).toHaveResource('AWS::S3::Bucket');
-    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
+    // expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
 
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 1);
@@ -122,7 +122,7 @@ describe('MicroAppsCF', () => {
     expect(construct.cloudFrontDistro).toBeDefined();
     expect(construct.node).toBeDefined();
     // expect(stack).toHaveResource('AWS::S3::Bucket');
-    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
+    // expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
 
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 0);

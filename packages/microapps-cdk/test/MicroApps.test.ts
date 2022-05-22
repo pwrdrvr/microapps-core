@@ -24,7 +24,7 @@ describe('MicroApps', () => {
     expect(construct.svcs).toBeDefined();
 
     expect(construct.node).toBeDefined();
-    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
+    // expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 
   it('works with only edge params', () => {
@@ -55,6 +55,6 @@ describe('MicroApps', () => {
     expect(construct.svcs).toBeDefined();
 
     expect(construct.node).toBeDefined();
-    expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
+    // expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
   });
 });
