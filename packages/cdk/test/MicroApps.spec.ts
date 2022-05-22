@@ -6,12 +6,16 @@ import { MicroAppsStack } from '../lib/MicroApps';
 describe('MicroAppsStack', () => {
   it('works with no params', () => {
     const app = new App({});
-    const stackName = 'construct';
-    const stack = new MicroAppsStack(app, stackName, {});
+    const stackName = 'stack';
+    const stack = new MicroAppsStack(app, stackName, {
+      env: {
+        region: 'us-east-1',
+      },
+    });
 
     expect(stack).toBeDefined();
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
     Template.fromStack(stack).hasOutput('edgedomainname', {
       Value: { 'Fn::GetAtt': ['microappscft5FDF8AB8', 'DomainName'] },
       Export: { Name: `${stackName}-edge-domain-name` },
@@ -24,7 +28,10 @@ describe('MicroAppsStack', () => {
   it('stable names with params', () => {
     const app = new App({});
     const stackName = 'microapps-stack-name';
-    const stack = new MicroAppsStack(app, 'construct', {
+    const stack = new MicroAppsStack(app, 'stack', {
+      env: {
+        region: 'us-east-1',
+      },
       stackName,
       domainNameEdge: 'appz.pwrdrvr.com',
       domainNameOrigin: 'appz-origin.pwrdrvr.com',
@@ -38,7 +45,7 @@ describe('MicroAppsStack', () => {
 
     expect(stack).toBeDefined();
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
     Template.fromStack(stack).hasOutput('edgedomainname', {
       Value: 'appz.pwrdrvr.com',
       Export: { Name: `${stackName}-edge-domain-name` },

@@ -38,7 +38,11 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
   // cdkTestDependencies: undefined,    /* AWS CDK modules required for testing. */
   // deps: [],                          /* Runtime dependencies of this module. */
-  deps: ['@aws-cdk/aws-apigatewayv2-alpha', '@aws-cdk/aws-apigatewayv2-integrations-alpha'],
+  deps: [
+    '@aws-cdk/aws-apigatewayv2-alpha',
+    '@aws-cdk/aws-apigatewayv2-authorizers-alpha',
+    '@aws-cdk/aws-apigatewayv2-integrations-alpha',
+  ],
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
@@ -49,7 +53,11 @@ const project = new awscdk.AwsCdkConstructLibrary({
     // '@aws-cdk/aws-apigatewayv2-integrations-alpha@2.24.1-alpha.0',
     // 'patch-package@^6.4.7',
   ],
-  peerDeps: ['@aws-cdk/aws-apigatewayv2-alpha', '@aws-cdk/aws-apigatewayv2-integrations-alpha'],
+  peerDeps: [
+    '@aws-cdk/aws-apigatewayv2-alpha',
+    '@aws-cdk/aws-apigatewayv2-authorizers-alpha',
+    '@aws-cdk/aws-apigatewayv2-integrations-alpha',
+  ],
 
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */

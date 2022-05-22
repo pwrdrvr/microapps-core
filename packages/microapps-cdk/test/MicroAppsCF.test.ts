@@ -11,9 +11,18 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { MicroAppsCF } from '../src/MicroAppsCF';
 
 describe('MicroAppsCF', () => {
+  // beforeAll(() => {
+  //   process.env.AWS_REGION = 'us-east-2';
+  // });
+
   it('works with no params', () => {
     const app = new App({});
-    const stack = new Stack(app, 'stack');
+    const stack = new Stack(app, 'stack', {
+      env: {
+        region: 'us-east-1',
+      },
+    });
+
     const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
       apiName: 'some-api',
       // defaultDomainMapping: {
@@ -44,7 +53,11 @@ describe('MicroAppsCF', () => {
 
   it('works with params', () => {
     const app = new App({});
-    const stack = new Stack(app, 'stack');
+    const stack = new Stack(app, 'stack', {
+      env: {
+        region: 'us-east-1',
+      },
+    });
     const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
       apiName: 'some-api',
       // defaultDomainMapping: {

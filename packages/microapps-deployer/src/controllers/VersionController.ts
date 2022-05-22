@@ -250,7 +250,7 @@ export default class VersionController {
               }
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           if (error.name !== 'ResourceNotFoundException') {
             throw error;
           }
@@ -305,7 +305,7 @@ export default class VersionController {
             );
 
             integrationId = integration.IntegrationId as string;
-          } catch (error) {
+          } catch (error: any) {
             if (error.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException adding integration to API Gateway', {
                 error,
@@ -340,7 +340,7 @@ export default class VersionController {
             );
             Log.Instance.info('created RouteIDAppVersion', { result });
             record.RouteIDAppVersion = `${result.RouteId}`;
-          } catch (err) {
+          } catch (err: any) {
             if (err.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException adding route to API Gateway', {
                 error: err,
@@ -371,7 +371,7 @@ export default class VersionController {
             );
             Log.Instance.info('created RouteIDAppVersionSplat', { result });
             record.RouteIDAppVersionSplat = `${result.RouteId}`;
-          } catch (err) {
+          } catch (err: any) {
             if (err.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException adding route to API Gateway', {
                 error: err,
@@ -493,7 +493,7 @@ export default class VersionController {
                 RouteId: routeId,
               }),
             );
-          } catch (err) {
+          } catch (err: any) {
             if (err.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException removing route from API Gateway', {
                 error: err,
@@ -523,7 +523,7 @@ export default class VersionController {
                 IntegrationId: record.IntegrationID,
               }),
             );
-          } catch (error) {
+          } catch (error: any) {
             if (error.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException removing integration from API Gateway', {
                 error,

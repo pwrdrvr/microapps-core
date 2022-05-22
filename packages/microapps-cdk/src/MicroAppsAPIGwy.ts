@@ -1,5 +1,6 @@
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-import { RemovalPolicy, Stack } from 'aws-cdk-lib';
+import * as apigwyAuth from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
+import { RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -154,10 +155,13 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     this._httpApi = new apigwy.HttpApi(this, 'gwy', {
       apiName: apigatewayName,
       createDefaultStage: false,
+      defaultAuthorizer: new apigwyAuth.HttpIamAuthorizer(),
     });
     if (removalPolicy !== undefined) {
       this._httpApi.applyRemovalPolicy(removalPolicy);
     }
+    // This allows the Lambda @ Edge function to execute this api
+    Tags.of(this._httpApi).add('microapp-managed', 'true');
 
     // Create the stage
     const stage = new apigwy.HttpStage(this, 'stage', {

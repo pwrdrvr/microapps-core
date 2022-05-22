@@ -217,6 +217,12 @@ MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicy
 
 ---
 
+##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.edgeToOriginFunction"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
+
+---
+
 
 ### MicroAppsS3 <a name="@pwrdrvr/microapps-cdk.MicroAppsS3"></a>
 
@@ -399,6 +405,14 @@ S3 Bucket CloudFront Origin for static assets.
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
 CloudFront Distribution to add the Behaviors (Routes) to.
+
+---
+
+##### `apigwyEdgeFunctions`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyEdgeFunctions"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+
+Edge lambdas to associate with the API Gateway routes.
 
 ---
 
@@ -1167,6 +1181,12 @@ Represents a MicroApps CloudFront.
 ##### `cloudFrontDistro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.cloudFrontDistro"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
+
+---
+
+##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.edgeToOriginFunction"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 ---
 

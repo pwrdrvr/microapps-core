@@ -1,10 +1,17 @@
+import { existsSync, copyFileSync } from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { posix as posixPath } from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-import { Aws, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 // import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import * as r53targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -16,6 +23,8 @@ import { reverseDomain } from './utils/ReverseDomain';
  */
 export interface IMicroAppsCF {
   readonly cloudFrontDistro: cf.Distribution;
+
+  readonly edgeToOriginFunction?: lambda.Function | cf.experimental.EdgeFunction;
 }
 
 /**
@@ -180,6 +189,11 @@ export interface AddRoutesOptions {
    * @default true
    */
   readonly createAPIPathRoute?: boolean;
+
+  /**
+   * Edge lambdas to associate with the API Gateway routes
+   */
+  readonly apigwyEdgeFunctions?: cf.EdgeLambda[];
 }
 
 /**
@@ -303,6 +317,11 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     return this._cloudFrontDistro;
   }
 
+  private _edgeToOriginFunction?: lambda.Function | cf.experimental.EdgeFunction;
+  public get edgeToOriginFunction(): lambda.Function | cf.experimental.EdgeFunction | undefined {
+    return this._edgeToOriginFunction;
+  }
+
   constructor(scope: Construct, id: string, props: MicroAppsCFProps) {
     super(scope, id);
 
@@ -348,6 +367,98 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       httpOriginFQDN = `${httpApi.apiId}.execute-api.${Aws.REGION}.amazonaws.com`;
     }
 
+    // TODO: Emit the edge function config file from the construct options
+
+    //
+    // Create the Edge to Origin Function
+    //
+    const edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
+      functionName: assetNameRoot ? `${assetNameRoot}-edge-to-origin${assetNameSuffix}` : undefined,
+      memorySize: 1769,
+      logRetention: logs.RetentionDays.ONE_MONTH,
+      runtime: lambda.Runtime.NODEJS_14_X,
+      timeout: Duration.seconds(5),
+      initialPolicy: [
+        // This can't have a reference to the httpApi because it would mean
+        // the parent stack (this stack) has to be created before the us-east-1
+        // child stack for the Edge Lambda Function.
+        // That's why we use a tag-based policy to allow the Edge Function
+        // to invoke any API Gateway API that we apply a tag to
+        new iam.PolicyStatement({
+          actions: ['execute-api:Invoke'],
+          resources: [`arn:aws:execute-api:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/*/*`],
+          conditions: {
+            // TODO: Set this to a string unique to each stack
+            StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+          },
+        }),
+      ],
+    };
+    if (
+      process.env.NODE_ENV === 'test' ||
+      existsSync(path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'index.js'))
+    ) {
+      copyFileSync(
+        path.join(__dirname, '..', '..', '..', 'configs', 'microapps-edge-to-origin', 'config.yml'),
+        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
+      );
+      // This is for tests run under jest
+      // This is also for anytime when the edge function has already been bundled
+      this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
+        code: lambda.Code.fromAsset(
+          path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist'),
+        ),
+        handler: 'index.handler',
+        ...edgeToOriginFuncProps,
+      });
+    } else if (existsSync(path.join(__dirname, 'microapps-edge-to-origin', 'index.js'))) {
+      // This is for built apps packaged with the CDK construct
+      // The config file should already be present in the microapps-edge-to-origin directory
+      this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
+        code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-edge-to-origin')),
+        handler: 'index.handler',
+        ...edgeToOriginFuncProps,
+      });
+    } else {
+      // This builds the function for distribution with the CDK Construct
+      // and will be used during local builds and PR builds of microapps-core
+      // if the microapps-edge-to-origin function is not already bundled.
+      // This will fail to deploy in any region other than us-east-1
+      // We cannot use NodejsFunction because it will not create in us-east-1
+      this._edgeToOriginFunction = new lambdaNodejs.NodejsFunction(this, 'edge-to-apigwy-func', {
+        entry: path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'src', 'index.ts'),
+        handler: 'handler',
+        bundling: {
+          minify: true,
+          sourceMap: true,
+          commandHooks: {
+            beforeInstall: () => [],
+            beforeBundling: () => [],
+            afterBundling: (_inputDir: string, outputDir: string) => {
+              return [
+                `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
+                  __dirname,
+                  '..',
+                  '..',
+                  '..',
+                  'configs',
+                  'microapps-edge-to-origin',
+                  'config.yml',
+                )} ${outputDir}`,
+              ];
+            },
+          },
+        },
+        ...edgeToOriginFuncProps,
+      });
+
+      if (removalPolicy) {
+        this._edgeToOriginFunction.applyRemovalPolicy(removalPolicy);
+      }
+    }
+
+    // const edgeToOriginFuncAlias = this._edgeToOriginFunction.addAlias('CloudfrontVersion');
+
     //
     // CloudFront Distro
     //
@@ -367,6 +478,13 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originRequestPolicy: apigwyOriginRequestPolicy,
         origin: apiGwyOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        edgeLambdas: [
+          {
+            eventType: cf.LambdaEdgeEventType.ORIGIN_REQUEST,
+            functionVersion: this._edgeToOriginFunction.currentVersion,
+            includeBody: true,
+          },
+        ],
       },
       enableIpv6: true,
       priceClass: cf.PriceClass.PRICE_CLASS_100,

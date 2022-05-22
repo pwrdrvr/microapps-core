@@ -89,6 +89,10 @@
       "type": "peer"
     },
     {
+      "name": "@aws-cdk/aws-apigatewayv2-authorizers-alpha",
+      "type": "peer"
+    },
+    {
       "name": "@aws-cdk/aws-apigatewayv2-integrations-alpha",
       "type": "peer"
     },
@@ -104,6 +108,10 @@
     },
     {
       "name": "@aws-cdk/aws-apigatewayv2-alpha",
+      "type": "runtime"
+    },
+    {
+      "name": "@aws-cdk/aws-apigatewayv2-authorizers-alpha",
       "type": "runtime"
     },
     {

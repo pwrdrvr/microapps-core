@@ -14,6 +14,9 @@ Object {
       "Properties": Object {
         "Name": "stack-microapps",
         "ProtocolType": "HTTP",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Api",
     },
@@ -182,6 +185,9 @@ Object {
       "Properties": Object {
         "Name": "mydeploy-mysuffix",
         "ProtocolType": "HTTP",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Api",
       "UpdateReplacePolicy": "Delete",

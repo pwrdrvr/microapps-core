@@ -9,8 +9,8 @@ import { Database, IDatabase } from './Database';
  * Represents a Config
  */
 export interface IConfig {
-  db: IDatabase;
-  rootPathPrefix: string;
+  readonly db: IDatabase;
+  readonly rootPathPrefix: string;
 }
 
 /**

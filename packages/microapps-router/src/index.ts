@@ -6,10 +6,10 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import { pathExistsSync, readFileSync } from 'fs-extra';
-import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
+import Log from './lib/log';
 
-const localTesting = process.env.DEBUG ? true : false;
+const log = Log.Instance;
 
 let dbManager: DBManager;
 let dynamoClient = new DynamoDBClient({
@@ -55,19 +55,6 @@ function loadAppFrame(): string {
     '/opt/templates',
   ];
 
-  // Change the logger on each request
-  const log = new LambdaLog({
-    meta: {
-      source: 'microapps-router',
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dynamicMeta: (_message: LogMessage) => {
-      return {
-        timestamp: new Date().toISOString(),
-      };
-    },
-  });
-
   for (const pathRoot of paths) {
     const fullPath = path.join(pathRoot, 'appFrame.html');
     try {
@@ -87,18 +74,6 @@ function loadAppFrame(): string {
 const appFrame = loadAppFrame();
 const normalizedPathPrefix = normalizePathPrefix(Config.instance.rootPathPrefix);
 
-// Change the logger on each request
-const log = new LambdaLog({
-  dev: localTesting,
-  //debug: localTesting,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dynamicMeta: (_message: LogMessage) => {
-    return {
-      timestamp: new Date().toISOString(),
-    };
-  },
-});
-
 /**
  * Exported Lambda Handler
  * @param event
@@ -109,6 +84,15 @@ export async function handler(
   event: lambda.APIGatewayProxyEventV2,
   context: lambda.Context,
 ): Promise<lambda.APIGatewayProxyStructuredResultV2> {
+  // Set meta on each request
+  log.options.meta = {
+    source: 'microapps-router',
+    awsRequestId: context.awsRequestId,
+    rawPath: event.rawPath,
+  };
+
+  log.info('received request', { event });
+
   if (dbManager === undefined) {
     dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
   }
@@ -117,14 +101,6 @@ export async function handler(
     headers: {},
     isBase64Encoded: false,
   } as lambda.APIGatewayProxyStructuredResultV2;
-
-  log.options = {
-    meta: {
-      source: 'microapps-router',
-      awsRequestId: context.awsRequestId,
-      rawPath: event.rawPath,
-    },
-  };
 
   try {
     if (normalizedPathPrefix !== '' && !event.rawPath.startsWith(normalizedPathPrefix)) {
@@ -160,7 +136,7 @@ export async function handler(
       // This is an app and a version only
       // If the request got here it's likely a static app that has no
       // Lambda function (thus the API Gateway route fell through to the Router)
-      if (await RedirectToDefaultFile({ response, appName: parts[1], semVer: parts[2], log })) {
+      if (await RedirectToDefaultFile({ response, appName: parts[1], semVer: parts[2] })) {
         return response;
       }
     }
@@ -171,11 +147,11 @@ export async function handler(
       // ^  ^^^^^^^    ^^^^^^^^^
       // 0        1            2
       // Got at least an application name, try to route it
-      await RouteApp({ event, response, appName: parts[1], additionalParts, log });
+      await RouteApp({ event, response, appName: parts[1], additionalParts });
     } else {
       throw new Error('Unmatched route');
     }
-  } catch (error) {
+  } catch (error: any) {
     log.error('unexpected exception - returning 599', { statusCode: 599, error });
     response.statusCode = 599;
     response.headers = {};
@@ -200,9 +176,8 @@ async function RouteApp(opts: {
   response: lambda.APIGatewayProxyStructuredResultV2;
   appName: string;
   additionalParts: string;
-  log: LambdaLog;
 }) {
-  const { event, response, appName, additionalParts, log } = opts;
+  const { event, response, appName, additionalParts } = opts;
   let versionsAndRules: IVersionsAndRules;
 
   if (response.headers === undefined) {
@@ -311,9 +286,8 @@ async function RedirectToDefaultFile(opts: {
   response: lambda.APIGatewayProxyStructuredResultV2;
   appName: string;
   semVer: string;
-  log: LambdaLog;
 }): Promise<boolean> {
-  const { response, appName, semVer, log } = opts;
+  const { response, appName, semVer } = opts;
   let versionInfo: Version;
 
   if (response.headers === undefined) {

@@ -18,7 +18,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
           "S3Key": "558dc75fbdc793c8e2f64f85d2d7ed2cb820c727ec7e9b08666ad1af0103992e.zip",
         },
@@ -92,6 +92,9 @@ Object {
       "Properties": Object {
         "Name": "stack-microapps",
         "ProtocolType": "HTTP",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Api",
     },
@@ -251,6 +254,15 @@ Object {
             ],
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             "Compress": true,
+            "LambdaFunctionAssociations": Array [
+              Object {
+                "EventType": "origin-request",
+                "IncludeBody": true,
+                "LambdaFunctionARN": Object {
+                  "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                },
+              },
+            ],
             "OriginRequestPolicyId": Object {
               "Ref": "constructcftapigwyoriginpolicystack503928EE",
             },
@@ -341,6 +353,141 @@ Object {
         },
       },
       "Type": "AWS::CloudFront::OriginRequestPolicy",
+    },
+    "constructcftedgetoapigwyfuncFn92D126D9": Object {
+      "DependsOn": Array [
+        "constructcftedgetoapigwyfuncFnServiceRoleDefaultPolicy943079CE",
+        "constructcftedgetoapigwyfuncFnServiceRoleB939336C",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
+          },
+          "S3Key": "2d2af087c0d69358e51d48d53b3ec1f58c3f82466bf018552f24d0d43b144487.zip",
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1769,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "constructcftedgetoapigwyfuncFnServiceRoleB939336C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d": Object {
+      "Properties": Object {
+        "FunctionName": Object {
+          "Ref": "constructcftedgetoapigwyfuncFn92D126D9",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "constructcftedgetoapigwyfuncFnLogRetention255DBBE1": Object {
+      "Properties": Object {
+        "LogGroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/aws/lambda/",
+              Object {
+                "Ref": "constructcftedgetoapigwyfuncFn92D126D9",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 30,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
+    },
+    "constructcftedgetoapigwyfuncFnServiceRoleB939336C": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "edgelambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "constructcftedgetoapigwyfuncFnServiceRoleDefaultPolicy943079CE": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "execute-api:Invoke",
+              "Condition": Object {
+                "StringEquals": Object {
+                  "aws:ResourceTag/microapp-managed": "true",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:execute-api:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":*/*/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "constructcftedgetoapigwyfuncFnServiceRoleDefaultPolicy943079CE",
+        "Roles": Array [
+          Object {
+            "Ref": "constructcftedgetoapigwyfuncFnServiceRoleB939336C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "constructs3apps91016270": Object {
       "DeletionPolicy": "Retain",
@@ -450,9 +597,9 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "ea1737f593e3cabc933c53c83fbe9a17f2f7bcf851c5245eaa5c0e296f6dd12f.zip",
+          "S3Key": "f2c749ee232049cef03f817871bb29ed01088ef4b44fb32f057ddaee0f4c2acd.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -940,11 +1087,7 @@ Object {
               Object {
                 "Ref": "AWS::Partition",
               },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
+              ":execute-api:us-east-1:",
               Object {
                 "Ref": "AWS::AccountId",
               },
@@ -967,9 +1110,9 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "72c4806b9312b00870a271dde16f26fd51727271ea09f61cee7adffc868954f5.zip",
+          "S3Key": "13ece856758c6c997f0a1af5ba8820d5e32045a3a748799981ef194dfb36b114.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -1001,7 +1144,7 @@ Object {
         },
         "FunctionVersion": Object {
           "Fn::GetAtt": Array [
-            "constructsvcsrouterfuncCurrentVersion490033CB5ed3b6c97a298651b1e05b4ac87bd570",
+            "constructsvcsrouterfuncCurrentVersion490033CBd2572159b8a190edf05cdfb74c84912d",
             "Version",
           ],
         },
@@ -1009,7 +1152,7 @@ Object {
       },
       "Type": "AWS::Lambda::Alias",
     },
-    "constructsvcsrouterfuncCurrentVersion490033CB5ed3b6c97a298651b1e05b4ac87bd570": Object {
+    "constructsvcsrouterfuncCurrentVersion490033CBd2572159b8a190edf05cdfb74c84912d": Object {
       "Properties": Object {
         "FunctionName": Object {
           "Ref": "constructsvcsrouterfunc73102284",
@@ -1155,11 +1298,7 @@ Object {
           "Fn::Join": Array [
             "",
             Array [
-              "arn:aws:execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
+              "arn:aws:execute-api:us-east-1:",
               Object {
                 "Ref": "AWS::AccountId",
               },
@@ -1261,7 +1400,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
           "S3Key": "558dc75fbdc793c8e2f64f85d2d7ed2cb820c727ec7e9b08666ad1af0103992e.zip",
         },
@@ -1348,6 +1487,9 @@ Object {
       "Properties": Object {
         "Name": "stack-microapps",
         "ProtocolType": "HTTP",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Api",
     },
@@ -1537,6 +1679,15 @@ Object {
             ],
             "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             "Compress": true,
+            "LambdaFunctionAssociations": Array [
+              Object {
+                "EventType": "origin-request",
+                "IncludeBody": true,
+                "LambdaFunctionARN": Object {
+                  "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                },
+              },
+            ],
             "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
             "TargetOriginId": "stackconstructcftOrigin1DC49001F",
             "ViewerProtocolPolicy": "redirect-to-https",
@@ -1639,6 +1790,141 @@ Object {
         "Type": "A",
       },
       "Type": "AWS::Route53::RecordSet",
+    },
+    "constructcftedgetoapigwyfuncFn92D126D9": Object {
+      "DependsOn": Array [
+        "constructcftedgetoapigwyfuncFnServiceRoleDefaultPolicy943079CE",
+        "constructcftedgetoapigwyfuncFnServiceRoleB939336C",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
+          },
+          "S3Key": "2d2af087c0d69358e51d48d53b3ec1f58c3f82466bf018552f24d0d43b144487.zip",
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1769,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "constructcftedgetoapigwyfuncFnServiceRoleB939336C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d": Object {
+      "Properties": Object {
+        "FunctionName": Object {
+          "Ref": "constructcftedgetoapigwyfuncFn92D126D9",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "constructcftedgetoapigwyfuncFnLogRetention255DBBE1": Object {
+      "Properties": Object {
+        "LogGroupName": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "/aws/lambda/",
+              Object {
+                "Ref": "constructcftedgetoapigwyfuncFn92D126D9",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 30,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
+    },
+    "constructcftedgetoapigwyfuncFnServiceRoleB939336C": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "edgelambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "constructcftedgetoapigwyfuncFnServiceRoleDefaultPolicy943079CE": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "execute-api:Invoke",
+              "Condition": Object {
+                "StringEquals": Object {
+                  "aws:ResourceTag/microapp-managed": "true",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:aws:execute-api:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":*/*/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "constructcftedgetoapigwyfuncFnServiceRoleDefaultPolicy943079CE",
+        "Roles": Array [
+          Object {
+            "Ref": "constructcftedgetoapigwyfuncFnServiceRoleB939336C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "constructs3apps91016270": Object {
       "DeletionPolicy": "Retain",
@@ -1757,9 +2043,9 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "ea1737f593e3cabc933c53c83fbe9a17f2f7bcf851c5245eaa5c0e296f6dd12f.zip",
+          "S3Key": "f2c749ee232049cef03f817871bb29ed01088ef4b44fb32f057ddaee0f4c2acd.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2247,11 +2533,7 @@ Object {
               Object {
                 "Ref": "AWS::Partition",
               },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
+              ":execute-api:us-east-1:",
               Object {
                 "Ref": "AWS::AccountId",
               },
@@ -2274,9 +2556,9 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "72c4806b9312b00870a271dde16f26fd51727271ea09f61cee7adffc868954f5.zip",
+          "S3Key": "13ece856758c6c997f0a1af5ba8820d5e32045a3a748799981ef194dfb36b114.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2308,7 +2590,7 @@ Object {
         },
         "FunctionVersion": Object {
           "Fn::GetAtt": Array [
-            "constructsvcsrouterfuncCurrentVersion490033CB5ed3b6c97a298651b1e05b4ac87bd570",
+            "constructsvcsrouterfuncCurrentVersion490033CBd2572159b8a190edf05cdfb74c84912d",
             "Version",
           ],
         },
@@ -2316,7 +2598,7 @@ Object {
       },
       "Type": "AWS::Lambda::Alias",
     },
-    "constructsvcsrouterfuncCurrentVersion490033CB5ed3b6c97a298651b1e05b4ac87bd570": Object {
+    "constructsvcsrouterfuncCurrentVersion490033CBd2572159b8a190edf05cdfb74c84912d": Object {
       "Properties": Object {
         "FunctionName": Object {
           "Ref": "constructsvcsrouterfunc73102284",
@@ -2462,11 +2744,7 @@ Object {
           "Fn::Join": Array [
             "",
             Array [
-              "arn:aws:execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
+              "arn:aws:execute-api:us-east-1:",
               Object {
                 "Ref": "AWS::AccountId",
               },

@@ -42,7 +42,7 @@ module.exports = {
   //   "lcov",
   //   "clover"
   // ],
-  coverageReporters: ['html', 'text'],
+  coverageReporters: ['html', 'text', 'clover'],
 
   // An object that configures minimum threshold enforcement for coverage results
   // coverageThreshold: undefined,
@@ -67,6 +67,8 @@ module.exports = {
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.packages.json',
+      // Reduces test time from 85 seconds to 20-25 seconds on a 2018 MacBook Pro 13" Core i7
+      isolatedModules: true
     },
   },
 
@@ -130,9 +132,7 @@ module.exports = {
   // roots: [
   //   "<rootDir>"
   // ],
-  roots: [
-    '<rootDir>packages/',
-  ],
+  roots: ['<rootDir>packages/'],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",
