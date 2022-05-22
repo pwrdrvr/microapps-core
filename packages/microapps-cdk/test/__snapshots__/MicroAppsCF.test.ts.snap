@@ -139,11 +139,7 @@ Object {
             "CookieBehavior": "all",
           },
           "HeadersConfig": Object {
-            "HeaderBehavior": "whitelist",
-            "Headers": Array [
-              "user-agent",
-              "referer",
-            ],
+            "HeaderBehavior": "allViewer",
           },
           "Name": "stackconstructapigwyoriginpolicystack60399495",
           "QueryStringsConfig": Object {
@@ -169,6 +165,15 @@ Object {
               ],
               "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
               "Compress": true,
+              "LambdaFunctionAssociations": Array [
+                Object {
+                  "EventType": "origin-request",
+                  "IncludeBody": true,
+                  "LambdaFunctionARN": Object {
+                    "Ref": "constructedgetoapigwyfuncFnCurrentVersionDCFB227252a33abe52ae2ca440b4da8c25dabbca",
+                  },
+                },
+              ],
               "OriginRequestPolicyId": Object {
                 "Ref": "constructapigwyoriginpolicystack77776C6F",
               },
@@ -201,6 +206,15 @@ Object {
               ],
               "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
               "Compress": true,
+              "LambdaFunctionAssociations": Array [
+                Object {
+                  "EventType": "origin-request",
+                  "IncludeBody": true,
+                  "LambdaFunctionARN": Object {
+                    "Ref": "constructedgetoapigwyfuncFnCurrentVersionDCFB227252a33abe52ae2ca440b4da8c25dabbca",
+                  },
+                },
+              ],
               "OriginRequestPolicyId": Object {
                 "Ref": "constructapigwyoriginpolicystack77776C6F",
               },
@@ -657,6 +671,15 @@ Object {
               ],
               "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
               "Compress": true,
+              "LambdaFunctionAssociations": Array [
+                Object {
+                  "EventType": "origin-request",
+                  "IncludeBody": true,
+                  "LambdaFunctionARN": Object {
+                    "Ref": "constructedgetoapigwyfuncFnCurrentVersionDCFB227252a33abe52ae2ca440b4da8c25dabbca",
+                  },
+                },
+              ],
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "/*/*/api/*",
               "TargetOriginId": "stackconstructcftOrigin1D000029C",
@@ -687,6 +710,15 @@ Object {
               ],
               "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
               "Compress": true,
+              "LambdaFunctionAssociations": Array [
+                Object {
+                  "EventType": "origin-request",
+                  "IncludeBody": true,
+                  "LambdaFunctionARN": Object {
+                    "Ref": "constructedgetoapigwyfuncFnCurrentVersionDCFB227252a33abe52ae2ca440b4da8c25dabbca",
+                  },
+                },
+              ],
               "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3",
               "PathPattern": "/*",
               "TargetOriginId": "stackconstructcftOrigin1D000029C",

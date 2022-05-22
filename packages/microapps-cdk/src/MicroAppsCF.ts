@@ -240,7 +240,12 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
             : undefined,
           cookieBehavior: cf.OriginRequestCookieBehavior.all(),
           queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
-          headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
+          // TODO: If signing is enabled this should forward all signature headers
+          // TODO: If set to "cfront.OriginRequestHeaderBehavior.all()" then
+          // `replaceHostHeader` must be set to true to prevent API Gateway from rejecting
+          // the request
+          // headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
+          headerBehavior: cf.OriginRequestHeaderBehavior.all(),
         },
       );
     }
@@ -280,6 +285,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       compress: true,
       originRequestPolicy: apigwyOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: props.apigwyEdgeFunctions,
     };
 
     //
@@ -466,6 +472,13 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
+    const apiGwyOriginEdgeLambdas = [
+      {
+        eventType: cf.LambdaEdgeEventType.ORIGIN_REQUEST,
+        functionVersion: this._edgeToOriginFunction.currentVersion,
+        includeBody: true,
+      },
+    ];
     this._cloudFrontDistro = new cf.Distribution(this, 'cft', {
       comment: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : domainNameEdge,
       domainNames: domainNameEdge !== undefined ? [domainNameEdge] : undefined,
@@ -478,13 +491,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originRequestPolicy: apigwyOriginRequestPolicy,
         origin: apiGwyOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        edgeLambdas: [
-          {
-            eventType: cf.LambdaEdgeEventType.ORIGIN_REQUEST,
-            functionVersion: this._edgeToOriginFunction.currentVersion,
-            includeBody: true,
-          },
-        ],
+        edgeLambdas: apiGwyOriginEdgeLambdas,
       },
       enableIpv6: true,
       priceClass: cf.PriceClass.PRICE_CLASS_100,
@@ -505,6 +512,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       apigwyOriginRequestPolicy: apigwyOriginRequestPolicy,
       rootPathPrefix,
       createAPIPathRoute,
+      apigwyEdgeFunctions: apiGwyOriginEdgeLambdas,
     });
 
     //
