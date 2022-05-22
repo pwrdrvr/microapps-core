@@ -726,6 +726,15 @@ API Gateway custom origin domain name.
 
 ---
 
+##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.originRegion"></a>
+
+- *Type:* `string`
+- *Default:* undefined
+
+Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+---
+
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53Zone"></a>
 
 - *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
@@ -883,6 +892,15 @@ Optional custom domain name for the CloudFront distribution.
 - *Default:* auto-assigned
 
 Optional custom domain name for the API Gateway HTTPv2 API.
+
+---
+
+##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.originRegion"></a>
+
+- *Type:* `string`
+- *Default:* undefined
+
+Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
 
 ---
 

@@ -152,6 +152,15 @@ export interface MicroAppsCFProps {
    * @default 'sign'
    */
   readonly signingMode?: 'sign' | 'presign' | 'none';
+
+  /**
+   * Origin region that API Gateway will be deployed to, used
+   * for the config.yml on the Edge function to sign requests for
+   * the correct region
+   *
+   * @default undefined
+   */
+  readonly originRegion?: string;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -413,6 +422,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       signingMode = 'sign',
       addXForwardedHostHeader = true,
       replaceHostHeader = true,
+      originRegion,
     } = props;
 
     const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -433,7 +443,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
 
     // Create the edge function config file from the construct options
     const edgeToOriginConfigYaml = MicroAppsCF.generateEdgeToOriginConfig({
-      originRegion: Aws.REGION,
+      originRegion: originRegion || Aws.REGION,
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,

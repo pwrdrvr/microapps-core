@@ -126,6 +126,15 @@ export interface MicroAppsStackProps extends StackProps {
    * @example dev/
    */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Origin region that API Gateway will be deployed to, used
+   * for the config.yml on the Edge function to sign requests for
+   * the correct region
+   *
+   * @default undefined
+   */
+  readonly originRegion?: string;
 }
 
 export class MicroAppsStack extends Stack {
@@ -155,6 +164,7 @@ export class MicroAppsStack extends Stack {
       certARNEdge,
       certARNOrigin,
       rootPathPrefix,
+      originRegion,
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -228,6 +238,7 @@ export class MicroAppsStack extends Stack {
       removalPolicy,
       appEnv: nodeEnv,
       rootPathPrefix,
+      originRegion,
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,

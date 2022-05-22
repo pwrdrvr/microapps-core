@@ -223,6 +223,15 @@ export interface MicroAppsProps {
    * @default 'sign'
    */
   readonly signingMode?: 'sign' | 'presign' | 'none';
+
+  /**
+   * Origin region that API Gateway will be deployed to, used
+   * for the config.yml on the Edge function to sign requests for
+   * the correct region
+   *
+   * @default undefined
+   */
+  readonly originRegion?: string;
 }
 
 /**
@@ -302,6 +311,7 @@ export class MicroApps extends Construct implements IMicroApps {
       addXForwardedHostHeader = true,
       replaceHostHeader = true,
       signingMode = 'sign',
+      originRegion,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -341,6 +351,7 @@ export class MicroApps extends Construct implements IMicroApps {
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode,
+      originRegion,
     });
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,
