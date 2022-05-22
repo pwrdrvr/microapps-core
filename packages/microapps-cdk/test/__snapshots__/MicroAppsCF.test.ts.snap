@@ -386,7 +386,7 @@ Object {
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":*/*/*",
+                    ":*/*/*/*",
                   ],
                 ],
               },
@@ -907,7 +907,7 @@ Object {
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":*/*/*",
+                    ":*/*/*/*",
                   ],
                 ],
               },

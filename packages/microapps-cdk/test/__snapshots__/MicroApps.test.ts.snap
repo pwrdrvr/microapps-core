@@ -183,6 +183,9 @@ Object {
         },
         "AutoDeploy": true,
         "StageName": "$default",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
@@ -486,7 +489,7 @@ Object {
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":*/*/*",
+                    ":*/*/*/*",
                   ],
                 ],
               },
@@ -1622,6 +1625,9 @@ Object {
         },
         "AutoDeploy": true,
         "StageName": "$default",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
@@ -1941,7 +1947,7 @@ Object {
                     Object {
                       "Ref": "AWS::AccountId",
                     },
-                    ":*/*/*",
+                    ":*/*/*/*",
                   ],
                 ],
               },

@@ -170,6 +170,8 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
       // If rootPathPrefix is not defined this will be the $default stage
       stageName: rootPathPrefix,
     });
+    // This allows the Lambda @ Edge function to execute this api
+    Tags.of(stage).add('microapp-managed', 'true');
 
     if (domainNameEdge !== undefined && certOrigin !== undefined) {
       // Create Custom Domains for API Gateway

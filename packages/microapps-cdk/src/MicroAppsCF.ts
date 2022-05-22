@@ -392,7 +392,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // to invoke any API Gateway API that we apply a tag to
         new iam.PolicyStatement({
           actions: ['execute-api:Invoke'],
-          resources: [`arn:aws:execute-api:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/*/*`],
+          resources: [`arn:aws:execute-api:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/*/*/*`],
           conditions: {
             // TODO: Set this to a string unique to each stack
             StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },

@@ -105,6 +105,9 @@ Object {
         },
         "AutoDeploy": true,
         "StageName": "$default",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
@@ -351,6 +354,9 @@ Object {
         },
         "AutoDeploy": true,
         "StageName": "/myprefix/",
+        "Tags": Object {
+          "microapp-managed": "true",
+        },
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
