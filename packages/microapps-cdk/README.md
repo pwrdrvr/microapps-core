@@ -30,6 +30,9 @@ For development / testing purposes only, each version of an applicaton can be ac
     - [next.config.js](#nextconfigjs)
     - [deploy.json](#deployjson)
     - [serverless.yaml](#serverlessyaml)
+- [Troubleshooting](#troubleshooting)
+  - [CloudFront Requests to API Gateway are Rejected with 403 Forbidden](#cloudfront-requests-to-api-gateway-are-rejected-with-403-forbidden)
+    - [SignatureV4 Headers](#signaturev4-headers)
 
 # Video Preview of the Deploying CDK Construct
 
@@ -297,3 +300,29 @@ nextApp:
     deploy: false
     uploadStaticAssetsFromBuild: false
 ```
+
+# Troubleshooting
+
+## CloudFront Requests to API Gateway are Rejected with 403 Forbidden
+
+Requests to the API Gateway origin can be rejected with a 403 Forbidden error if the signed request headers are not sent to the origin by CloudFront.
+
+The error in the API Gateway CloudWatch logs will show up as:
+
+```log
+"authorizerError": "The request for the IAM Authorizer doesn't match the format that API Gateway expects."
+```
+
+This can be simulated by simply running `curl [api-gateway-url]`, with no headers.
+
+To confirm that API Gateway is allowing signed requests when the IAM Authorizer is configured, establish credentials as a user that is allowed to execute the API Gateay, install `awscurl` with `pip3 install awscurl`, then then use `awscurl --service execute-api --region [api-gateway-region] [api-gateway-url]`.
+
+Signature headers will not be sent from CloudFront to API Gateway unless the `OriginRequestPolicy` is set to specifically include those headers on requests to the origin, or the `headersBehavior` is set to `cfront.OriginRequestHeaderBehavior.all()`.
+
+Similarly, if `presign` is used, the `OriginRequestPolicy` must be set to `cfront.OriginRequestQueryStringBehavior.all()` or to specifically forward the query string parameters used by the presigned URL.
+
+### SignatureV4 Headers
+- `authorization`
+- `x-amz-date`
+- `x-amz-security-token`
+- `x-amz-content-sha256`

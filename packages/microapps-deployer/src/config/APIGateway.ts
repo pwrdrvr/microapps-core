@@ -7,7 +7,7 @@ export interface IAPIGateway {
   /**
    * ID of the API Gateway to integrate with
    */
-  apiId: string;
+  readonly apiId: string;
 }
 
 export class APIGateway implements IAPIGateway {

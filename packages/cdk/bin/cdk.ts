@@ -37,6 +37,9 @@ new MicroAppsStack(app, 'microapps-core', {
   deployDemoApp: shared.deployDemoApp,
   deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
+  // We need to know the origin region for signing requests
+  // Accessing Aws.REGION will end up writing a Token into the config file
+  originRegion: shared.region,
 });
 
 new MicroAppsStack(app, 'microapps-basic', {
@@ -47,6 +50,9 @@ new MicroAppsStack(app, 'microapps-basic', {
   deployDemoApp: shared.deployDemoApp,
   deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
+  // We need to know the origin region for signing requests
+  // Accessing Aws.REGION will end up writing a Token into the config file
+  originRegion: shared.region,
 });
 
 new MicroAppsStack(app, 'microapps-basic-prefix', {
@@ -58,6 +64,9 @@ new MicroAppsStack(app, 'microapps-basic-prefix', {
   deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
   rootPathPrefix: 'prefix',
+  // We need to know the origin region for signing requests
+  // Accessing Aws.REGION will end up writing a Token into the config file
+  originRegion: shared.region,
 });
 
 // Note: This is only run manually once per env to create build user

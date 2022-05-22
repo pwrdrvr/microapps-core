@@ -3,26 +3,29 @@ import 'reflect-metadata';
 import 'jest-dynalite/withDb';
 import { Config, IConfig } from '../config/Config';
 jest.mock('../config/Config');
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+const theConfig: Writeable<IConfig> = {
+  awsAccountID: 123456789,
+  awsRegion: 'mock',
+  db: {
+    tableName: 'microapps',
+  },
+  apigwy: {
+    apiId: '123',
+  },
+  filestore: {
+    stagingBucket: 'pwrdrvr-apps-staging',
+    destinationBucket: 'microapps-test-destination',
+  },
+  uploadRoleName: 'microapps-upload-test-role',
+  rootPathPrefix: 'dev',
+};
+const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
   configurable: false,
   enumerable: false,
   get: jest.fn((): IConfig => {
-    return {
-      awsAccountID: 123456789,
-      awsRegion: 'mock',
-      db: {
-        tableName: 'microapps',
-      },
-      apigwy: {
-        apiId: '123',
-      },
-      filestore: {
-        stagingBucket: 'microapps-test-staging',
-        destinationBucket: 'microapps-test-destination',
-      },
-      uploadRoleName: 'microapps-upload-test-role',
-      rootPathPrefix: 'dev',
-    };
+    return theConfig;
   }),
 });
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
@@ -64,13 +67,20 @@ describe('VersionController', () => {
       region: 'local',
     });
 
-    // Load the config files
-    Config.instance.filestore.stagingBucket = 'pwrdrvr-apps-staging';
     // Init the DB manager to point it at the right table
     dbManager = new DBManager({ dynamoClient, tableName: TEST_TABLE_NAME });
   });
 
   beforeEach(async () => {
+    jest.resetModules(); // Most important - it clears the cache
+
+    // Reset the config that's visible to the handler back to defaults
+    Object.keys(origConfig).forEach((key) => {
+      (theConfig as { [index: string]: unknown })[key] = (
+        origConfig as { [index: string]: unknown }
+      )[key];
+    });
+
     overrideDBManager({ dbManager, dynamoClient });
 
     // Create a test app

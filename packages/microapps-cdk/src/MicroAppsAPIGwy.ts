@@ -1,5 +1,6 @@
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-import { RemovalPolicy, Stack } from 'aws-cdk-lib';
+import * as apigwyAuth from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
+import { RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -73,6 +74,13 @@ export interface MicroAppsAPIGwyProps {
    * @default none
    */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Require IAM auth on API Gateway
+   *
+   * @default true
+   */
+  readonly requireIAMAuthorization?: boolean;
 }
 
 /**
@@ -104,7 +112,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     return this._httpApi;
   }
 
-  constructor(scope: Construct, id: string, props?: MicroAppsAPIGwyProps) {
+  constructor(scope: Construct, id: string, props: MicroAppsAPIGwyProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -140,6 +148,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
       assetNameRoot,
       assetNameSuffix,
       rootPathPrefix,
+      requireIAMAuthorization = true,
     } = props;
 
     // API Gateway uses the `id` string as the gateway name without
@@ -154,10 +163,13 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     this._httpApi = new apigwy.HttpApi(this, 'gwy', {
       apiName: apigatewayName,
       createDefaultStage: false,
+      defaultAuthorizer: requireIAMAuthorization ? new apigwyAuth.HttpIamAuthorizer() : undefined,
     });
     if (removalPolicy !== undefined) {
       this._httpApi.applyRemovalPolicy(removalPolicy);
     }
+    // This allows the Lambda @ Edge function to execute this api
+    Tags.of(this._httpApi).add('microapp-managed', 'true');
 
     // Create the stage
     const stage = new apigwy.HttpStage(this, 'stage', {
@@ -166,6 +178,8 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
       // If rootPathPrefix is not defined this will be the $default stage
       stageName: rootPathPrefix,
     });
+    // This allows the Lambda @ Edge function to execute this api
+    Tags.of(stage).add('microapp-managed', 'true');
 
     if (domainNameEdge !== undefined && certOrigin !== undefined) {
       // Create Custom Domains for API Gateway

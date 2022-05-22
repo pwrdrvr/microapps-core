@@ -4,7 +4,7 @@ import { Property } from 'ts-convict';
  * Represents a Database Config
  */
 export interface IDatabase {
-  tableName: string;
+  readonly tableName: string;
 }
 
 export class Database implements IDatabase {

@@ -1,6 +1,7 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
+import * as apigwyAuth from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
@@ -145,6 +146,13 @@ export interface MicroAppsSvcsProps {
    * @default none
    */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Require IAM auth on API Gateway
+   *
+   * @default true
+   */
+  readonly requireIAMAuthorization?: boolean;
 }
 
 /**
@@ -207,6 +215,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       assetNameRoot,
       assetNameSuffix,
       rootPathPrefix = '',
+      requireIAMAuthorization = true,
     } = props;
 
     if (s3StrictBucketPolicy === true) {
@@ -331,6 +340,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
         FILESTORE_DEST_BUCKET: bucketApps.bucketName,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
         ROOT_PATH_PREFIX: rootPathPrefix,
+        REQUIRE_IAM_AUTHORIZATION: requireIAMAuthorization ? 'true' : 'false',
       },
     };
     if (
@@ -595,6 +605,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       httpApi,
       routeKey: apigwy.HttpRouteKey.DEFAULT,
       integration: new apigwyint.HttpLambdaIntegration('router-integration', routerAlias),
+      authorizer: requireIAMAuthorization ? new apigwyAuth.HttpIamAuthorizer() : undefined,
     });
 
     let routeArn = route.routeArn;

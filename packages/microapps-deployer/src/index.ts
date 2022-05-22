@@ -12,13 +12,12 @@ import {
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
-import { LambdaLog, LogMessage } from 'lambda-log';
 import { Config } from './config/Config';
 import AppController from './controllers/AppController';
 import VersionController from './controllers/VersionController';
 import Log from './lib/Log';
 
-const localTesting = process.env.DEBUG ? true : false;
+const log = Log.Instance;
 
 let dbManager: DBManager;
 let dynamoClient = new DynamoDBClient({
@@ -36,22 +35,16 @@ dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableNam
 
 const config = Config.instance;
 
-// Change the logger on each request
-Log.Instance = new LambdaLog({
-  dev: localTesting,
-  debug: localTesting,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dynamicMeta: (_message: LogMessage) => {
-    return {
-      timestamp: new Date().toISOString(),
-    };
-  },
-});
-
 export async function handler(
   event: IRequestBase,
   context?: lambda.Context,
 ): Promise<IDeployerResponse> {
+  // Set meta on each request
+  log.options.meta = {
+    awsRequestId: context?.awsRequestId,
+    requestType: event.type,
+  };
+
   if (dbManager === undefined) {
     dbManager = new DBManager({
       dynamoClient,
@@ -59,19 +52,12 @@ export async function handler(
     });
   }
 
-  // Set meta on each request
-  Log.Instance.options = {
-    meta: {
-      awsRequestId: context?.awsRequestId,
-      requestType: event.type,
-    },
-  };
-
   // Get the current AWS Account ID, once, if not set as env var
   if (config.awsAccountID === 0 && context?.invokedFunctionArn !== undefined) {
     const parts = context.invokedFunctionArn.split(':');
     const accountIDStr = parts[4];
     if (accountIDStr !== '') {
+      // @ts-expect-error we want to overwrite this config value
       config.awsAccountID = parseInt(accountIDStr, 10);
     }
   }
@@ -106,7 +92,7 @@ export async function handler(
       default:
         return { statusCode: 400 };
     }
-  } catch (err) {
+  } catch (err: any) {
     Log.Instance.error('Caught unexpected exception in handler');
     Log.Instance.error(err);
     return { statusCode: 500 };

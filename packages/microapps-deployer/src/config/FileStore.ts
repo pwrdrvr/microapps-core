@@ -4,8 +4,8 @@ import { Property } from 'ts-convict';
  * Represents a FileStore Config
  */
 export interface IFileStore {
-  stagingBucket: string;
-  destinationBucket: string;
+  readonly stagingBucket: string;
+  readonly destinationBucket: string;
 }
 
 export class FileStore implements IFileStore {

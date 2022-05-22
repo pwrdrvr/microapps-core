@@ -92,7 +92,7 @@ Create a new MicroApps API Gateway HTTP API endpoint.
 ```typescript
 import { MicroAppsAPIGwy } from '@pwrdrvr/microapps-cdk'
 
-new MicroAppsAPIGwy(scope: Construct, id: string, props?: MicroAppsAPIGwyProps)
+new MicroAppsAPIGwy(scope: Construct, id: string, props: MicroAppsAPIGwyProps)
 ```
 
 ##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.scope"></a>
@@ -107,7 +107,7 @@ new MicroAppsAPIGwy(scope: Construct, id: string, props?: MicroAppsAPIGwyProps)
 
 ---
 
-##### `props`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.props"></a>
+##### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.props"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps)
 
@@ -209,11 +209,31 @@ MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicy
 
 ---
 
+##### `generateEdgeToOriginConfig` <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.generateEdgeToOriginConfig"></a>
+
+```typescript
+import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
+
+MicroAppsCF.generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions)
+```
+
+###### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions`](#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions)
+
+---
+
 #### Properties <a name="Properties"></a>
 
 ##### `cloudFrontDistro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.cloudFrontDistro"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
+
+---
+
+##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.edgeToOriginFunction"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 ---
 
@@ -402,6 +422,14 @@ CloudFront Distribution to add the Behaviors (Routes) to.
 
 ---
 
+##### `apigwyEdgeFunctions`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyEdgeFunctions"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+
+Edge lambdas to associate with the API Gateway routes.
+
+---
+
 ##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createAPIPathRoute"></a>
 
 - *Type:* `boolean`
@@ -459,6 +487,40 @@ Optional asset name suffix.
 - *Type:* `string`
 
 Edge domain name used by CloudFront - If set a custom OriginRequestPolicy will be created that prevents the Host header from being passed to the origin.
+
+---
+
+### GenerateEdgeToOriginConfigOptions <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions"></a>
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { GenerateEdgeToOriginConfigOptions } from '@pwrdrvr/microapps-cdk'
+
+const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { ... }
+```
+
+##### `addXForwardedHostHeader`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.addXForwardedHostHeader"></a>
+
+- *Type:* `boolean`
+
+---
+
+##### `originRegion`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.originRegion"></a>
+
+- *Type:* `string`
+
+---
+
+##### `replaceHostHeader`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.replaceHostHeader"></a>
+
+- *Type:* `boolean`
+
+---
+
+##### `signingMode`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.signingMode"></a>
+
+- *Type:* `string`
 
 ---
 
@@ -538,6 +600,15 @@ Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true
 
 ---
 
+##### `requireIAMAuthorization`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.requireIAMAuthorization"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Require IAM auth on API Gateway.
+
+---
+
 ##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.rootPathPrefix"></a>
 
 - *Type:* `string`
@@ -572,6 +643,20 @@ S3 bucket origin for deployed applications.
 - *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
 
 API Gateway v2 HTTP API for apps.
+
+---
+
+##### `addXForwardedHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.addXForwardedHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Adds an X-Forwarded-Host-Header when calling API Gateway.
+
+Can only be trusted if `signingMode` is enabled, which restricts
+access to API Gateway to only IAM signed requests.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
 
 ---
 
@@ -641,6 +726,15 @@ API Gateway custom origin domain name.
 
 ---
 
+##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.originRegion"></a>
+
+- *Type:* `string`
+- *Default:* undefined
+
+Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+---
+
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53Zone"></a>
 
 - *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
@@ -660,11 +754,43 @@ Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true
 
 ---
 
+##### `replaceHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.replaceHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Replaces Host header (which will be the Edge domain name) with the Origin domain name when enabled.
+
+This is necessary when API Gateway has not been configured
+with a custom domain name that matches the exact domain name used by the CloudFront
+Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
+to pass all headers to the origin.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
 ##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.rootPathPrefix"></a>
 
 - *Type:* `string`
 
 Path prefix on the root of the CloudFront distribution.
+
+---
+
+##### `signingMode`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.signingMode"></a>
+
+- *Type:* `string`
+- *Default:* 'sign'
+
+Requires IAM auth on the API Gateway origin if not set to 'none'.
+
+'sign' - Uses request headers for auth.
+'presign' - Uses query string for auth.
+
+If enabled,
+
+Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for API Gateway Origin
 
 ---
 
@@ -686,6 +812,20 @@ const microAppsProps: MicroAppsProps = { ... }
 - *Default:* dev
 
 Passed to NODE_ENV of Router and Deployer Lambda functions.
+
+---
+
+##### `addXForwardedHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.addXForwardedHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Adds an X-Forwarded-Host-Header when calling API Gateway.
+
+Can only be trusted if `signingMode` is enabled, which restricts
+access to API Gateway to only IAM signed requests.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
 
 ---
 
@@ -755,6 +895,15 @@ Optional custom domain name for the API Gateway HTTPv2 API.
 
 ---
 
+##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.originRegion"></a>
+
+- *Type:* `string`
+- *Default:* undefined
+
+Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+---
+
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.r53Zone"></a>
 
 - *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
@@ -771,6 +920,22 @@ Route53 zone in which to create optional `domainNameEdge` record.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `replaceHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.replaceHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Replaces Host header (which will be the Edge domain name) with the Origin domain name when enabled.
+
+This is necessary when API Gateway has not been configured
+with a custom domain name that matches the exact domain name used by the CloudFront
+Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
+to pass all headers to the origin.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
 
 ---
 
@@ -852,6 +1017,22 @@ Use a strict S3 Bucket Policy that prevents applications from reading/writing/mo
 
 This setting should be used when applications are less than
 fully trusted.
+
+---
+
+##### `signingMode`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.signingMode"></a>
+
+- *Type:* `string`
+- *Default:* 'sign'
+
+Requires IAM auth on the API Gateway origin if not set to 'none'.
+
+'sign' - Uses request headers for auth.
+'presign' - Uses query string for auth.
+
+If enabled,
+
+Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for API Gateway Origin
 
 ---
 
@@ -1001,6 +1182,15 @@ Optional asset name suffix.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `requireIAMAuthorization`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.requireIAMAuthorization"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Require IAM auth on API Gateway.
 
 ---
 
@@ -1167,6 +1357,12 @@ Represents a MicroApps CloudFront.
 ##### `cloudFrontDistro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.cloudFrontDistro"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
+
+---
+
+##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.edgeToOriginFunction"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 ---
 
