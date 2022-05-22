@@ -378,11 +378,7 @@ Object {
                 "Fn::Join": Array [
                   "",
                   Array [
-                    "arn:aws:execute-api:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
+                    "arn:aws:execute-api:*:",
                     Object {
                       "Ref": "AWS::AccountId",
                     },
@@ -899,11 +895,7 @@ Object {
                 "Fn::Join": Array [
                   "",
                   Array [
-                    "arn:aws:execute-api:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
+                    "arn:aws:execute-api:*:",
                     Object {
                       "Ref": "AWS::AccountId",
                     },

@@ -390,9 +390,11 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // child stack for the Edge Lambda Function.
         // That's why we use a tag-based policy to allow the Edge Function
         // to invoke any API Gateway API that we apply a tag to
+        // We allow the edge function to sign for all regions since
+        // we may use custom closest region in the future.
         new iam.PolicyStatement({
           actions: ['execute-api:Invoke'],
-          resources: [`arn:aws:execute-api:${Aws.REGION}:${Aws.ACCOUNT_ID}:*/*/*/*`],
+          resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
           conditions: {
             // TODO: Set this to a string unique to each stack
             StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
