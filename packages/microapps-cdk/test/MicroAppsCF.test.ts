@@ -15,6 +15,38 @@ describe('MicroAppsCF', () => {
   //   process.env.AWS_REGION = 'us-east-2';
   // });
 
+  describe('generateEdgeToOriginConfig', () => {
+    it('skips signing param', () => {
+      const config = MicroAppsCF.generateEdgeToOriginConfig({
+        signingMode: '',
+        addXForwardedHostHeader: true,
+        replaceHostHeader: true,
+        originRegion: 'us-west-1',
+      });
+
+      expect(config).toBeDefined();
+      expect(config).not.toContain('signingMode:');
+      expect(config).toContain('addXForwardedHostHeader: true');
+      expect(config).toContain('replaceHostHeader: true');
+      expect(config).toContain('originRegion: us-west-1');
+    });
+
+    it('skips signing param', () => {
+      const config = MicroAppsCF.generateEdgeToOriginConfig({
+        signingMode: 'sign',
+        addXForwardedHostHeader: false,
+        replaceHostHeader: false,
+        originRegion: 'us-west-1',
+      });
+
+      expect(config).toBeDefined();
+      expect(config).toContain('signingMode: sign');
+      expect(config).toContain('addXForwardedHostHeader: false');
+      expect(config).toContain('replaceHostHeader: false');
+      expect(config).toContain('originRegion: us-west-1');
+    });
+  });
+
   it('works with no params', () => {
     const app = new App({});
     const stack = new Stack(app, 'stack', {

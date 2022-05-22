@@ -74,6 +74,13 @@ export interface MicroAppsAPIGwyProps {
    * @default none
    */
   readonly rootPathPrefix?: string;
+
+  /**
+   * Require IAM auth on API Gateway
+   *
+   * @default true
+   */
+  readonly requireIAMAuthorization?: boolean;
 }
 
 /**
@@ -105,7 +112,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     return this._httpApi;
   }
 
-  constructor(scope: Construct, id: string, props?: MicroAppsAPIGwyProps) {
+  constructor(scope: Construct, id: string, props: MicroAppsAPIGwyProps) {
     super(scope, id);
 
     if (props === undefined) {
@@ -141,6 +148,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
       assetNameRoot,
       assetNameSuffix,
       rootPathPrefix,
+      requireIAMAuthorization = true,
     } = props;
 
     // API Gateway uses the `id` string as the gateway name without
@@ -155,7 +163,7 @@ export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
     this._httpApi = new apigwy.HttpApi(this, 'gwy', {
       apiName: apigatewayName,
       createDefaultStage: false,
-      defaultAuthorizer: new apigwyAuth.HttpIamAuthorizer(),
+      defaultAuthorizer: requireIAMAuthorization ? new apigwyAuth.HttpIamAuthorizer() : undefined,
     });
     if (removalPolicy !== undefined) {
       this._httpApi.applyRemovalPolicy(removalPolicy);

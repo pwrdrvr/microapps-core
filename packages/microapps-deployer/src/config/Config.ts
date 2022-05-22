@@ -21,6 +21,8 @@ export interface IConfig {
   readonly uploadRoleName: string;
 
   readonly rootPathPrefix: string;
+
+  readonly requireIAMAuthorization: boolean;
 }
 
 @convict.Config({
@@ -118,4 +120,11 @@ export class Config implements IConfig {
     env: 'ROOT_PATH_PREFIX',
   })
   public rootPathPrefix!: string;
+
+  @convict.Property({
+    doc: 'Require IAM Authorization on all created routes',
+    default: true,
+    env: 'REQUIRE_IAM_AUTHORIZATION',
+  })
+  public requireIAMAuthorization!: boolean;
 }

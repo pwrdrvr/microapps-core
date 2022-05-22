@@ -1,4 +1,4 @@
-import { existsSync, copyFileSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { posix as posixPath } from 'path';
@@ -116,6 +116,49 @@ export interface MicroAppsCFProps {
    * @default true
    */
   readonly createAPIPathRoute?: boolean;
+
+  /**
+   * Adds an X-Forwarded-Host-Header when calling API Gateway
+   *
+   * Can only be trusted if `signingMode` is enabled, which restricts
+   * access to API Gateway to only IAM signed requests.
+   *
+   * Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * @default true
+   */
+  readonly addXForwardedHostHeader?: boolean;
+
+  /**
+   * Replaces Host header (which will be the Edge domain name) with the Origin domain name
+   * when enabled.  This is necessary when API Gateway has not been configured
+   * with a custom domain name that matches the exact domain name used by the CloudFront
+   * Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
+   * to pass all headers to the origin.
+   *
+   * Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * @default true
+   */
+  readonly replaceHostHeader?: boolean;
+
+  /**
+   * Requires IAM auth on the API Gateway origin if not set to 'none'.
+   *
+   * 'sign' - Uses request headers for auth.
+   * 'presign' - Uses query string for auth.
+   *
+   * If enabled,
+   *
+   * Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * @default 'sign'
+   */
+  readonly signingMode?: 'sign' | 'presign' | 'none';
+}
+
+export interface GenerateEdgeToOriginConfigOptions {
+  readonly originRegion: string;
+  readonly signingMode: 'sign' | 'presign' | '';
+  readonly addXForwardedHostHeader: boolean;
+  readonly replaceHostHeader: boolean;
 }
 
 /**
@@ -200,6 +243,18 @@ export interface AddRoutesOptions {
  * Create a new MicroApps CloudFront Distribution.
  */
 export class MicroAppsCF extends Construct implements IMicroAppsCF {
+  /**
+   * Generate the yaml config for the edge lambda
+   * @param props
+   * @returns
+   */
+  public static generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions) {
+    return `originRegion: ${props.originRegion}
+${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
+addXForwardedHostHeader: ${props.addXForwardedHostHeader}
+replaceHostHeader: ${props.replaceHostHeader}`;
+  }
+
   /**
    * Create or get the origin request policy
    *
@@ -355,6 +410,9 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       bucketAppsOrigin,
       rootPathPrefix,
       createAPIPathRoute = true,
+      signingMode = 'sign',
+      addXForwardedHostHeader = true,
+      replaceHostHeader = true,
     } = props;
 
     const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -373,7 +431,13 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       httpOriginFQDN = `${httpApi.apiId}.execute-api.${Aws.REGION}.amazonaws.com`;
     }
 
-    // TODO: Emit the edge function config file from the construct options
+    // Create the edge function config file from the construct options
+    const edgeToOriginConfigYaml = MicroAppsCF.generateEdgeToOriginConfig({
+      originRegion: Aws.REGION,
+      addXForwardedHostHeader,
+      replaceHostHeader,
+      signingMode: signingMode === 'none' ? '' : signingMode,
+    });
 
     //
     // Create the Edge to Origin Function
@@ -410,10 +474,15 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       process.env.NODE_ENV === 'test' ||
       existsSync(path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'index.js'))
     ) {
-      copyFileSync(
-        path.join(__dirname, '..', '..', '..', 'configs', 'microapps-edge-to-origin', 'config.yml'),
+      // Emit the config file from the construct options
+      writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
+        edgeToOriginConfigYaml,
       );
+      // copyFileSync(
+      //   path.join(__dirname, '..', '..', '..', 'configs', 'microapps-edge-to-origin', 'config.yml'),
+      //   path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
+      // );
       // This is for tests run under jest
       // This is also for anytime when the edge function has already been bundled
       this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
@@ -424,14 +493,25 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         ...edgeToOriginFuncProps,
       });
     } else if (existsSync(path.join(__dirname, 'microapps-edge-to-origin', 'index.js'))) {
+      // Emit the config file from the construct options
+      writeFileSync(
+        path.join(__dirname, 'microapps-edge-to-origin', 'config.yml'),
+        edgeToOriginConfigYaml,
+      );
+
       // This is for built apps packaged with the CDK construct
-      // The config file should already be present in the microapps-edge-to-origin directory
       this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
         code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-edge-to-origin')),
         handler: 'index.handler',
         ...edgeToOriginFuncProps,
       });
     } else {
+      // Emit the config file from the construct options
+      writeFileSync(
+        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
+        edgeToOriginConfigYaml,
+      );
+
       // This builds the function for distribution with the CDK Construct
       // and will be used during local builds and PR builds of microapps-core
       // if the microapps-edge-to-origin function is not already bundled.

@@ -210,7 +210,7 @@ Object {
                   "EventType": "origin-request",
                   "IncludeBody": true,
                   "LambdaFunctionARN": Object {
-                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3",
                   },
                 },
               ],
@@ -251,7 +251,7 @@ Object {
                   "EventType": "origin-request",
                   "IncludeBody": true,
                   "LambdaFunctionARN": Object {
-                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3",
                   },
                 },
               ],
@@ -280,7 +280,7 @@ Object {
                 "EventType": "origin-request",
                 "IncludeBody": true,
                 "LambdaFunctionARN": Object {
-                  "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                  "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3",
                 },
               },
             ],
@@ -381,7 +381,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "2d2af087c0d69358e51d48d53b3ec1f58c3f82466bf018552f24d0d43b144487.zip",
+          "S3Key": "484e019db54e94cddebe16da44981eeb37d508e8cd070e561cea5457abce12cc.zip",
         },
         "Handler": "index.handler",
         "MemorySize": 1769,
@@ -396,7 +396,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d": Object {
+    "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3": Object {
       "Properties": Object {
         "FunctionName": Object {
           "Ref": "constructcftedgetoapigwyfuncFn92D126D9",
@@ -607,7 +607,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "f2c749ee232049cef03f817871bb29ed01088ef4b44fb32f057ddaee0f4c2acd.zip",
+          "S3Key": "7d8688bec49277936649697ecf3f091377e3fba946b7a1cf136d738514a4cfde.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -625,6 +625,7 @@ Object {
               "Ref": "constructs3staging7AA4BA4F",
             },
             "NODE_ENV": "dev",
+            "REQUIRE_IAM_AUTHORIZATION": "true",
             "ROOT_PATH_PREFIX": "",
             "UPLOAD_ROLE_NAME": Object {
               "Ref": "constructsvcsdeployeruploadroleBA23B595",
@@ -1051,7 +1052,7 @@ Object {
         "ApiId": Object {
           "Ref": "constructapigwy894904EC",
         },
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "AWS_IAM",
         "RouteKey": "$default",
         "Target": Object {
           "Fn::Join": Array [
@@ -1646,7 +1647,7 @@ Object {
                   "EventType": "origin-request",
                   "IncludeBody": true,
                   "LambdaFunctionARN": Object {
-                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3",
                   },
                 },
               ],
@@ -1685,7 +1686,7 @@ Object {
                   "EventType": "origin-request",
                   "IncludeBody": true,
                   "LambdaFunctionARN": Object {
-                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                    "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3",
                   },
                 },
               ],
@@ -1713,7 +1714,7 @@ Object {
                 "EventType": "origin-request",
                 "IncludeBody": true,
                 "LambdaFunctionARN": Object {
-                  "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d",
+                  "Ref": "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3",
                 },
               },
             ],
@@ -1830,7 +1831,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "2d2af087c0d69358e51d48d53b3ec1f58c3f82466bf018552f24d0d43b144487.zip",
+          "S3Key": "484e019db54e94cddebe16da44981eeb37d508e8cd070e561cea5457abce12cc.zip",
         },
         "Handler": "index.handler",
         "MemorySize": 1769,
@@ -1845,7 +1846,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A626e0383eb2f46bef6a7247475678e16d": Object {
+    "constructcftedgetoapigwyfuncFnCurrentVersion80EB92A60adeb3c6e914779c6dc6105b8b0f36f3": Object {
       "Properties": Object {
         "FunctionName": Object {
           "Ref": "constructcftedgetoapigwyfuncFn92D126D9",
@@ -2065,7 +2066,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-us-east-1",
           },
-          "S3Key": "f2c749ee232049cef03f817871bb29ed01088ef4b44fb32f057ddaee0f4c2acd.zip",
+          "S3Key": "7d8688bec49277936649697ecf3f091377e3fba946b7a1cf136d738514a4cfde.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2083,6 +2084,7 @@ Object {
               "Ref": "constructs3staging7AA4BA4F",
             },
             "NODE_ENV": "dev",
+            "REQUIRE_IAM_AUTHORIZATION": "true",
             "ROOT_PATH_PREFIX": "",
             "UPLOAD_ROLE_NAME": Object {
               "Ref": "constructsvcsdeployeruploadroleBA23B595",
@@ -2509,7 +2511,7 @@ Object {
         "ApiId": Object {
           "Ref": "constructapigwy894904EC",
         },
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "AWS_IAM",
         "RouteKey": "$default",
         "Target": Object {
           "Fn::Join": Array [

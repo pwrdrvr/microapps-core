@@ -336,6 +336,9 @@ export default class VersionController {
                 ApiId: apiId,
                 Target: `integrations/${integrationId}`,
                 RouteKey: `ANY /${request.appName}/${request.semVer}`,
+                AuthorizationType: config.requireIAMAuthorization
+                  ? apigwy.AuthorizationType.AWS_IAM
+                  : apigwy.AuthorizationType.NONE,
               }),
             );
             Log.Instance.info('created RouteIDAppVersion', { result });
@@ -367,6 +370,9 @@ export default class VersionController {
                 ApiId: apiId,
                 Target: `integrations/${integrationId}`,
                 RouteKey: `ANY /${request.appName}/${request.semVer}/{proxy+}`,
+                AuthorizationType: config.requireIAMAuthorization
+                  ? apigwy.AuthorizationType.AWS_IAM
+                  : apigwy.AuthorizationType.NONE,
               }),
             );
             Log.Instance.info('created RouteIDAppVersionSplat', { result });
