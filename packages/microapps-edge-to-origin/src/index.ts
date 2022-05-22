@@ -63,9 +63,13 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       request.headers['host'] = [{ key: 'host', value: request.origin.custom.domainName }];
     }
 
-    const signer = request.origin?.custom?.domainName.includes('.execute-api.')
-      ? executeApiSigner
-      : lambdaSigner;
+    // Lambda Function URLs cannot have a custom domain name
+    // Function URLs will always contain `.lambda-url.`
+    // API Gateway URLs can contain '.execute-api.' but will not
+    // when customized, so we can only rely on the Lambda URL check.
+    const signer = request.origin?.custom?.domainName.includes('.lambda-url.')
+      ? lambdaSigner
+      : executeApiSigner;
     if (config.signingMode === 'sign') {
       log.info('signing request');
       const signedRequest = await signRequest(request, context, signer);
