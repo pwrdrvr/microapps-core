@@ -187,6 +187,42 @@ export interface MicroAppsProps {
    * @default true
    */
   readonly createAPIPathRoute?: boolean;
+
+  /**
+   * Adds an X-Forwarded-Host-Header when calling API Gateway
+   *
+   * Can only be trusted if `signingMode` is enabled, which restricts
+   * access to API Gateway to only IAM signed requests.
+   *
+   * Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * @default true
+   */
+  readonly addXForwardedHostHeader?: boolean;
+
+  /**
+   * Replaces Host header (which will be the Edge domain name) with the Origin domain name
+   * when enabled.  This is necessary when API Gateway has not been configured
+   * with a custom domain name that matches the exact domain name used by the CloudFront
+   * Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
+   * to pass all headers to the origin.
+   *
+   * Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * @default true
+   */
+  readonly replaceHostHeader?: boolean;
+
+  /**
+   * Requires IAM auth on the API Gateway origin if not set to 'none'.
+   *
+   * 'sign' - Uses request headers for auth.
+   * 'presign' - Uses query string for auth.
+   *
+   * If enabled,
+   *
+   * Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * @default 'sign'
+   */
+  readonly signingMode?: 'sign' | 'presign' | 'none';
 }
 
 /**
@@ -263,6 +299,9 @@ export class MicroApps extends Construct implements IMicroApps {
       s3StrictBucketPolicy,
       rootPathPrefix,
       createAPIPathRoute = true,
+      addXForwardedHostHeader = true,
+      replaceHostHeader = true,
+      signingMode = 'sign',
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -284,6 +323,7 @@ export class MicroApps extends Construct implements IMicroApps {
       r53Zone,
       certOrigin,
       rootPathPrefix,
+      requireIAMAuthorization: signingMode !== 'none',
     });
     this._cf = new MicroAppsCF(this, 'cft', {
       removalPolicy,
@@ -298,6 +338,9 @@ export class MicroApps extends Construct implements IMicroApps {
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
+      addXForwardedHostHeader,
+      replaceHostHeader,
+      signingMode,
     });
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,
@@ -312,6 +355,7 @@ export class MicroApps extends Construct implements IMicroApps {
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
       rootPathPrefix,
+      requireIAMAuthorization: signingMode !== 'none',
     });
   }
 }

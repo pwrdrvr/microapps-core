@@ -806,6 +806,20 @@ Passed to NODE_ENV of Router and Deployer Lambda functions.
 
 ---
 
+##### `addXForwardedHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.addXForwardedHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Adds an X-Forwarded-Host-Header when calling API Gateway.
+
+Can only be trusted if `signingMode` is enabled, which restricts
+access to API Gateway to only IAM signed requests.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -891,6 +905,22 @@ Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true
 
 ---
 
+##### `replaceHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.replaceHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Replaces Host header (which will be the Edge domain name) with the Origin domain name when enabled.
+
+This is necessary when API Gateway has not been configured
+with a custom domain name that matches the exact domain name used by the CloudFront
+Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
+to pass all headers to the origin.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
 ##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.rootPathPrefix"></a>
 
 - *Type:* `string`
@@ -969,6 +999,22 @@ Use a strict S3 Bucket Policy that prevents applications from reading/writing/mo
 
 This setting should be used when applications are less than
 fully trusted.
+
+---
+
+##### `signingMode`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.signingMode"></a>
+
+- *Type:* `string`
+- *Default:* 'sign'
+
+Requires IAM auth on the API Gateway origin if not set to 'none'.
+
+'sign' - Uses request headers for auth.
+'presign' - Uses query string for auth.
+
+If enabled,
+
+Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for API Gateway Origin
 
 ---
 
