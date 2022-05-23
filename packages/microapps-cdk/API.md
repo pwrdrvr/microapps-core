@@ -80,6 +80,14 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 ---
 
+##### `edgeToOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.edgeToOrigin"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
+
+{@inheritdoc IMicroAppsEdgeToOrigin}.
+
+---
+
 
 ### MicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy"></a>
 
@@ -209,20 +217,6 @@ MicroAppsCF.createAPIOriginPolicy(_scope: Construct, _props: CreateAPIOriginPoli
 
 ---
 
-##### `generateEdgeToOriginConfig` <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.generateEdgeToOriginConfig"></a>
-
-```typescript
-import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
-
-MicroAppsCF.generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions)
-```
-
-###### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions`](#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions)
-
----
-
 #### Properties <a name="Properties"></a>
 
 ##### `cloudFrontDistro`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.cloudFrontDistro"></a>
@@ -233,13 +227,73 @@ The CloudFront distribution.
 
 ---
 
-##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.edgeToOriginFunction"></a>
+
+### MicroAppsEdgeToOrigin <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin"></a>
+
+- *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
+
+Create a new MicroApps Edge to Origin Function w/ `config.yml`.
+
+#### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.Initializer"></a>
+
+```typescript
+import { MicroAppsEdgeToOrigin } from '@pwrdrvr/microapps-cdk'
+
+new MicroAppsEdgeToOrigin(scope: Construct, id: string, props: MicroAppsEdgeToOriginProps)
+```
+
+##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.scope"></a>
+
+- *Type:* [`constructs.Construct`](#constructs.Construct)
+
+---
+
+##### `id`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.id"></a>
+
+- *Type:* `string`
+
+---
+
+##### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps`](#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps)
+
+---
+
+
+#### Static Functions <a name="Static Functions"></a>
+
+##### `generateEdgeToOriginConfig` <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.generateEdgeToOriginConfig"></a>
+
+```typescript
+import { MicroAppsEdgeToOrigin } from '@pwrdrvr/microapps-cdk'
+
+MicroAppsEdgeToOrigin.generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions)
+```
+
+###### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions`](#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions)
+
+---
+
+#### Properties <a name="Properties"></a>
+
+##### `edgeToOriginFunction`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.edgeToOriginFunction"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 The edge to origin function for API Gateway Request Origin Edge Lambda.
 
 The generated `config.yml` is included in the Lambda's code.
+
+---
+
+##### `edgeToOriginLambdas`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.edgeToOriginLambdas"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+
+Configuration of the edge to origin lambda functions.
 
 ---
 
@@ -700,20 +754,6 @@ API Gateway v2 HTTP API for apps.
 
 ---
 
-##### `addXForwardedHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.addXForwardedHostHeader"></a>
-
-- *Type:* `boolean`
-- *Default:* true
-
-Adds an X-Forwarded-Host-Header when calling API Gateway.
-
-Can only be trusted if `signingMode` is enabled, which restricts
-access to API Gateway to only IAM signed requests.
-
-Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
-
----
-
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -780,12 +820,11 @@ API Gateway custom origin domain name.
 
 ---
 
-##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.originRegion"></a>
+##### `edgeToOriginLambdas`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.edgeToOriginLambdas"></a>
 
-- *Type:* `string`
-- *Default:* undefined
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
 
-Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+Configuration of the edge to origin lambda functions.
 
 ---
 
@@ -808,7 +847,79 @@ Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true
 
 ---
 
-##### `replaceHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.replaceHostHeader"></a>
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+
+Path prefix on the root of the CloudFront distribution.
+
+---
+
+### MicroAppsEdgeToOriginProps <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps"></a>
+
+Properties to initialize an instance of `MicroAppsCF`.
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { MicroAppsEdgeToOriginProps } from '@pwrdrvr/microapps-cdk'
+
+const microAppsEdgeToOriginProps: MicroAppsEdgeToOriginProps = { ... }
+```
+
+##### `addXForwardedHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.addXForwardedHostHeader"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Adds an X-Forwarded-Host-Header when calling API Gateway.
+
+Can only be trusted if `signingMode` is enabled, which restricts
+access to API Gateway to only IAM signed requests.
+
+Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.assetNameRoot"></a>
+
+- *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
+
+---
+
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.assetNameSuffix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
+
+---
+
+##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.originRegion"></a>
+
+- *Type:* `string`
+- *Default:* undefined
+
+Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+---
+
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.removalPolicy"></a>
+
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
+- *Default:* per resource default
+
+RemovalPolicy override for child resources.
+
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `replaceHostHeader`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.replaceHostHeader"></a>
 
 - *Type:* `boolean`
 - *Default:* true
@@ -824,15 +935,7 @@ Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Orig
 
 ---
 
-##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.rootPathPrefix"></a>
-
-- *Type:* `string`
-
-Path prefix on the root of the CloudFront distribution.
-
----
-
-##### `signingMode`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.signingMode"></a>
+##### `signingMode`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.signingMode"></a>
 
 - *Type:* `string`
 - *Default:* 'sign'
@@ -1450,6 +1553,14 @@ Represents a MicroApps.
 
 ---
 
+##### `edgeToOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.edgeToOrigin"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
+
+{@inheritdoc IMicroAppsEdgeToOrigin}.
+
+---
+
 ### IMicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy"></a>
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwy), [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
@@ -1492,13 +1603,30 @@ The CloudFront distribution.
 
 ---
 
-##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.edgeToOriginFunction"></a>
+### IMicroAppsEdgeToOrigin <a name="@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin"></a>
+
+- *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin), [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
+
+Represents a MicroApps Edge to Origin Function.
+
+
+#### Properties <a name="Properties"></a>
+
+##### `edgeToOriginFunction`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin.edgeToOriginFunction"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 The edge to origin function for API Gateway Request Origin Edge Lambda.
 
 The generated `config.yml` is included in the Lambda's code.
+
+---
+
+##### `edgeToOriginLambdas`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin.edgeToOriginLambdas"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+
+Configuration of the edge to origin lambda functions.
 
 ---
 

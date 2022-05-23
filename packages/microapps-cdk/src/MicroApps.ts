@@ -5,6 +5,7 @@ import * as r53 from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { IMicroAppsAPIGwy, MicroAppsAPIGwy } from './MicroAppsAPIGwy';
 import { IMicroAppsCF, MicroAppsCF } from './MicroAppsCF';
+import { IMicroAppsEdgeToOrigin, MicroAppsEdgeToOrigin } from './MicroAppsEdgeToOrigin';
 import { IMicroAppsS3, MicroAppsS3 } from './MicroAppsS3';
 import { IMicroAppsSvcs, MicroAppsSvcs } from './MicroAppsSvcs';
 import { reverseDomain } from './utils/ReverseDomain';
@@ -258,6 +259,9 @@ export interface IMicroApps {
   /** {@inheritdoc IMicroAppsCF} */
   readonly cf: IMicroAppsCF;
 
+  /** {@inheritdoc IMicroAppsEdgeToOrigin} */
+  readonly edgeToOrigin?: IMicroAppsEdgeToOrigin;
+
   /** {@inheritdoc IMicroAppsS3} */
   readonly s3: IMicroAppsS3;
 
@@ -292,6 +296,11 @@ export class MicroApps extends Construct implements IMicroApps {
   private _cf: MicroAppsCF;
   public get cf(): IMicroAppsCF {
     return this._cf;
+  }
+
+  private _edgeToOrigin?: MicroAppsEdgeToOrigin;
+  public get edgeToOrigin(): IMicroAppsEdgeToOrigin | undefined {
+    return this._edgeToOrigin;
   }
 
   private _s3: MicroAppsS3;
@@ -359,6 +368,17 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
     });
+    if (signingMode !== 'none' || replaceHostHeader || addXForwardedHostHeader) {
+      this._edgeToOrigin = new MicroAppsEdgeToOrigin(this, 'edgeToOrigin', {
+        assetNameRoot,
+        assetNameSuffix,
+        removalPolicy,
+        addXForwardedHostHeader,
+        replaceHostHeader,
+        originRegion,
+        signingMode,
+      });
+    }
     this._cf = new MicroAppsCF(this, 'cft', {
       removalPolicy,
       assetNameRoot,
@@ -372,11 +392,9 @@ export class MicroApps extends Construct implements IMicroApps {
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
-      addXForwardedHostHeader,
-      replaceHostHeader,
-      signingMode,
-      originRegion,
+      edgeToOriginLambdas: this._edgeToOrigin ? this._edgeToOrigin.edgeToOriginLambdas : undefined,
     });
+
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,
       removalPolicy,
