@@ -27,13 +27,11 @@ export interface IMicroAppsEdgeToOrigin {
 }
 
 /**
- * Properties to initialize an instance of `MicroAppsCF`.
+ * Properties to initialize an instance of `MicroAppsEdgeToOrigin`.
  */
 export interface MicroAppsEdgeToOriginProps {
   /**
    * RemovalPolicy override for child resources
-   *
-   * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
    *
    * @default - per resource default
    */
@@ -189,6 +187,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
           // },
         }),
       ],
+      ...(removalPolicy ? { removalPolicy } : {}),
     };
     if (
       process.env.NODE_ENV === 'test' ||
@@ -263,10 +262,6 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         },
         ...edgeToOriginFuncProps,
       });
-
-      if (removalPolicy) {
-        this._edgeToOriginFunction.applyRemovalPolicy(removalPolicy);
-      }
     }
 
     this._edgeToOriginLambdas = [

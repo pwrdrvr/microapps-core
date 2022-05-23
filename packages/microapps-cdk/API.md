@@ -885,7 +885,7 @@ Path prefix on the root of the CloudFront distribution.
 
 ### MicroAppsEdgeToOriginProps <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps"></a>
 
-Properties to initialize an instance of `MicroAppsCF`.
+Properties to initialize an instance of `MicroAppsEdgeToOrigin`.
 
 #### Initializer <a name="[object Object].Initializer"></a>
 
@@ -942,8 +942,6 @@ Origin region that API Gateway will be deployed to, used for the config.yml on t
 - *Default:* per resource default
 
 RemovalPolicy override for child resources.
-
-Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
 
 ---
 
