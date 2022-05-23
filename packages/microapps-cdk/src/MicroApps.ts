@@ -394,7 +394,6 @@ export class MicroApps extends Construct implements IMicroApps {
       createAPIPathRoute,
       edgeToOriginLambdas: this._edgeToOrigin ? this._edgeToOrigin.edgeToOriginLambdas : undefined,
     });
-
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,
       removalPolicy,

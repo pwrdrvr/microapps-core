@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { MicroAppsEdgeToOrigin } from '../src/MicroAppsEdgeToOrigin';
@@ -64,7 +63,7 @@ describe('MicroAppsEdgeToOrigin', () => {
       });
       const construct = new MicroAppsEdgeToOrigin(stack, 'construct', {
         assetNameRoot: 'my-asset-name-root',
-        assetNameSuffix: '-suffix',
+        assetNameSuffix: '-some-suffix',
       });
 
       expect(construct).toBeDefined();
@@ -72,9 +71,10 @@ describe('MicroAppsEdgeToOrigin', () => {
       expect(construct.edgeToOriginLambdas).toBeDefined();
       expect(construct.node).toBeDefined();
       // I guess this is 2 for EdgeFunction even though only 1 is created?
+      // (probably log retention lambda)
       Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 2);
       Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
-        FunctionName: 'my-asset-name-root-edge-to-origin-suffix',
+        FunctionName: 'my-asset-name-root-edge-to-origin-some-suffix',
       });
     });
   });
