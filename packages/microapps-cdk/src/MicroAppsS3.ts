@@ -86,7 +86,10 @@ export interface MicroAppsS3Props {
 }
 
 /**
- * Create a new MicroApps S3 Bucket.
+ * Create the durable MicroApps S3 Buckets
+ *
+ * These should be created in a stack that will not be deleted if
+ * there are breaking changes to MicroApps in the future.
  */
 export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
   private _bucketApps: s3.IBucket;

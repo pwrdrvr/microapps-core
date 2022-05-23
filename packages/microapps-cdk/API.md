@@ -8,7 +8,7 @@
 
 Create a new MicroApps "turnkey" construct for simple deployments and for initial evaulation of the MicroApps framework.
 
-Use this construct to create a working entire stack.
+Use this construct to create a PoC working entire stack.
 
 Do not use this construct when adding MicroApps to an existing
 CloudFront, API Gateway, S3 Bucket, etc. or where access
@@ -85,7 +85,7 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
 
-Create a new MicroApps API Gateway HTTP API endpoint.
+Create a new MicroApps API Gateway HTTP API endpoint, optionally requiring IAM authorization.
 
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.Initializer"></a>
 
@@ -242,7 +242,10 @@ MicroAppsCF.generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions)
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsS3`](#@pwrdrvr/microapps-cdk.IMicroAppsS3)
 
-Create a new MicroApps S3 Bucket.
+Create the durable MicroApps S3 Buckets.
+
+These should be created in a stack that will not be deleted if
+there are breaking changes to MicroApps in the future.
 
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.Initializer"></a>
 

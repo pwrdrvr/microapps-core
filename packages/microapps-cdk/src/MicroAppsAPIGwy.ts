@@ -99,7 +99,8 @@ export interface IMicroAppsAPIGwy {
 }
 
 /**
- * Create a new MicroApps API Gateway HTTP API endpoint.
+ * Create a new MicroApps API Gateway HTTP API endpoint, optionally
+ * requiring IAM authorization
  */
 export class MicroAppsAPIGwy extends Construct implements IMicroAppsAPIGwy {
   private _dnAppsOrigin: apigwy.DomainName | undefined;

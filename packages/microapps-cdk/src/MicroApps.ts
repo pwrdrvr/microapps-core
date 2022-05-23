@@ -255,13 +255,19 @@ export interface IMicroApps {
  * Create a new MicroApps "turnkey" construct for simple
  * deployments and for initial evaulation of the MicroApps framework.
  *
- * Use this construct to create a working entire stack.
+ * Use this construct to create a PoC working entire stack.
  *
  * Do not use this construct when adding MicroApps to an existing
  * CloudFront, API Gateway, S3 Bucket, etc. or where access
  * to all features of the AWS Resources are needed (e.g. to
  * add additional Behaviors to the CloudFront distribution, set authorizors
  * on API Gateway, etc.).
+ *
+ * @warning This construct is not intended for production use.
+ * In a production stack the DynamoDB Table, API Gateway, S3 Buckets,
+ * etc. should be created in a "durable" stack where the IDs will not
+ * change and where changes to the MicroApps construct will not
+ * cause failures to deploy or data to be deleted.
  *
  *  @see {@link https://github.com/pwrdrvr/microapps-core/blob/main/packages/cdk/lib/MicroApps.ts | example usage in a CDK Stack }
  */
