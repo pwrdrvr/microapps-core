@@ -111,6 +111,21 @@ export interface MicroAppsCFProps {
   readonly createAPIPathRoute?: boolean;
 
   /**
+   * Create an extra Behavior (Route) for /_next/data/
+   * This route is used by Next.js to load data from the API Gateway
+   * on `getServerSideProps` calls.  The requests can end in `.json`,
+   * which would cause them to be routed to S3 if this route is not created.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createNextDataPathRoute?: boolean;
+
+  /**
    * Configuration of the edge to origin lambda functions
    *
    * @defaunt - no edge to API Gateway origin functions added
@@ -191,6 +206,21 @@ export interface AddRoutesOptions {
   readonly createAPIPathRoute?: boolean;
 
   /**
+   * Create an extra Behavior (Route) for /_next/data/
+   * This route is used by Next.js to load data from the API Gateway
+   * on `getServerSideProps` calls.  The requests can end in `.json`,
+   * which would cause them to be routed to S3 if this route is not created.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createNextDataPathRoute?: boolean;
+
+  /**
    * Edge lambdas to associate with the API Gateway routes
    */
   readonly apigwyEdgeFunctions?: cf.EdgeLambda[];
@@ -266,6 +296,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       apigwyOriginRequestPolicy,
       rootPathPrefix = '',
       createAPIPathRoute = true,
+      createNextDataPathRoute = true,
     } = props;
 
     //
@@ -296,6 +327,19 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     if (createAPIPathRoute) {
       distro.addBehavior(
         posixPath.join(rootPathPrefix, '/*/*/api/*'),
+        apiGwyOrigin,
+        apiGwyBehaviorOptions,
+      );
+    }
+
+    //
+    // If a route specifically has `/_next/data/` in it, send it to API Gateway
+    // This is needed to catch routes that have periods in the API path data,
+    // such as: /release/0.0.0/_next/data/app.json
+    //
+    if (createNextDataPathRoute) {
+      distro.addBehavior(
+        posixPath.join(rootPathPrefix, '/*/*/_next/data/*'),
         apiGwyOrigin,
         apiGwyBehaviorOptions,
       );
@@ -350,6 +394,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       bucketAppsOrigin,
       rootPathPrefix,
       createAPIPathRoute = true,
+      createNextDataPathRoute = true,
       edgeToOriginLambdas,
     } = props;
 
@@ -413,6 +458,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       apigwyOriginRequestPolicy: apigwyOriginRequestPolicy,
       rootPathPrefix,
       createAPIPathRoute,
+      createNextDataPathRoute,
       apigwyEdgeFunctions: edgeToOriginLambdas,
     });
 
