@@ -80,7 +80,7 @@ describe('MicroAppsCF', () => {
     // expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
 
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 1);
+    // Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 1);
   });
 
   it('works with params', () => {

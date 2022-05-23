@@ -194,16 +194,16 @@ MicroAppsCF.addRoutes(_scope: Construct, props: AddRoutesOptions)
 ```typescript
 import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
 
-MicroAppsCF.createAPIOriginPolicy(scope: Construct, props: CreateAPIOriginPolicyOptions)
+MicroAppsCF.createAPIOriginPolicy(_scope: Construct, _props: CreateAPIOriginPolicyOptions)
 ```
 
-###### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.scope"></a>
+###### `_scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF._scope"></a>
 
 - *Type:* [`constructs.Construct`](#constructs.Construct)
 
 ---
 
-###### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.props"></a>
+###### `_props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF._props"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions`](#@pwrdrvr/microapps-cdk.CreateAPIOriginPolicyOptions)
 
@@ -229,11 +229,17 @@ MicroAppsCF.generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions)
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
+The CloudFront distribution.
+
 ---
 
 ##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCF.edgeToOriginFunction"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
+
+The edge to origin function for API Gateway Request Origin Edge Lambda.
+
+The generated `config.yml` is included in the Lambda's code.
 
 ---
 
@@ -373,6 +379,51 @@ Lambda function for the Router.
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.table"></a>
 
 - *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+
+DynamoDB table used by Router, Deployer, and Release console app.
+
+---
+
+
+### MicroAppsTable <a name="@pwrdrvr/microapps-cdk.MicroAppsTable"></a>
+
+- *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsTable`](#@pwrdrvr/microapps-cdk.IMicroAppsTable)
+
+Create a new MicroApps Table for apps / versions / rules.
+
+#### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsTable.Initializer"></a>
+
+```typescript
+import { MicroAppsTable } from '@pwrdrvr/microapps-cdk'
+
+new MicroAppsTable(scope: Construct, id: string, props?: MicroAppsTableProps)
+```
+
+##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTable.scope"></a>
+
+- *Type:* [`constructs.Construct`](#constructs.Construct)
+
+---
+
+##### `id`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTable.id"></a>
+
+- *Type:* `string`
+
+---
+
+##### `props`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTable.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsTableProps`](#@pwrdrvr/microapps-cdk.MicroAppsTableProps)
+
+---
+
+
+
+#### Properties <a name="Properties"></a>
+
+##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTable.table"></a>
+
+- *Type:* [`aws-cdk-lib.aws_dynamodb.Table`](#aws-cdk-lib.aws_dynamodb.Table)
 
 DynamoDB table used by Router, Deployer, and Release console app.
 
@@ -1039,6 +1090,15 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 
 ---
 
+##### `table`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.table"></a>
+
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+- *Default:* created by construct
+
+Existing table for apps/versions/rules.
+
+---
+
 ### MicroAppsS3Props <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props"></a>
 
 Properties to initialize an instance of `MicroAppsS3`.
@@ -1279,6 +1339,73 @@ fully trusted.
 
 ---
 
+##### `table`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.table"></a>
+
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+- *Default:* created by construct
+
+Existing table for apps/versions/rules.
+
+---
+
+### MicroAppsTableProps <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps"></a>
+
+Properties to initialize an instance of `MicroAppsTable`.
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { MicroAppsTableProps } from '@pwrdrvr/microapps-cdk'
+
+const microAppsTableProps: MicroAppsTableProps = { ... }
+```
+
+##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.appEnv"></a>
+
+- *Type:* `string`
+
+Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda functions.
+
+---
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.assetNameRoot"></a>
+
+- *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
+
+---
+
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.assetNameSuffix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
+
+---
+
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.removalPolicy"></a>
+
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
+- *Default:* per resource default
+
+RemovalPolicy override for child resources.
+
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Path prefix on the root of the deployment.
+
+---
+
 
 ## Protocols <a name="Protocols"></a>
 
@@ -1361,11 +1488,17 @@ Represents a MicroApps CloudFront.
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
+The CloudFront distribution.
+
 ---
 
 ##### `edgeToOriginFunction`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsCF.edgeToOriginFunction"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
+
+The edge to origin function for API Gateway Request Origin Edge Lambda.
+
+The generated `config.yml` is included in the Lambda's code.
 
 ---
 
@@ -1446,6 +1579,23 @@ Lambda function for the Router.
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.table"></a>
 
 - *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+
+DynamoDB table used by Router, Deployer, and Release console app.
+
+---
+
+### IMicroAppsTable <a name="@pwrdrvr/microapps-cdk.IMicroAppsTable"></a>
+
+- *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsTable`](#@pwrdrvr/microapps-cdk.MicroAppsTable), [`@pwrdrvr/microapps-cdk.IMicroAppsTable`](#@pwrdrvr/microapps-cdk.IMicroAppsTable)
+
+Represents a MicroAppsTable.
+
+
+#### Properties <a name="Properties"></a>
+
+##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsTable.table"></a>
+
+- *Type:* [`aws-cdk-lib.aws_dynamodb.Table`](#aws-cdk-lib.aws_dynamodb.Table)
 
 DynamoDB table used by Router, Deployer, and Release console app.
 

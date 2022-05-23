@@ -1,5 +1,6 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { IMicroAppsAPIGwy, MicroAppsAPIGwy } from './MicroAppsAPIGwy';
@@ -232,6 +233,22 @@ export interface MicroAppsProps {
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * Existing table for apps/versions/rules
+   *
+   * @warning - It is *strongly* suggested that production stacks create
+   * their own DynamoDB Table and pass it into this construct, for protection
+   * against data loss due to logical ID changes, the ability to configure
+   * Provisioned capacity with Auto Scaling, the ability to add additional indices, etc.
+   *
+   * Requirements:
+   * - Hash Key: `PK`
+   * - Sort Key: `SK`
+   *
+   * @default created by construct
+   */
+  readonly table?: dynamodb.ITable;
 }
 
 /**
@@ -318,6 +335,7 @@ export class MicroApps extends Construct implements IMicroApps {
       replaceHostHeader = true,
       signingMode = 'sign',
       originRegion,
+      table,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -373,6 +391,7 @@ export class MicroApps extends Construct implements IMicroApps {
       s3StrictBucketPolicy,
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
+      table,
     });
   }
 }

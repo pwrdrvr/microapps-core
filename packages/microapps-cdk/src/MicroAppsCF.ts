@@ -3,8 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { posix as posixPath } from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
-// import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
+import { Aws, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -22,8 +21,16 @@ import { reverseDomain } from './utils/ReverseDomain';
  * Represents a MicroApps CloudFront
  */
 export interface IMicroAppsCF {
+  /**
+   * The CloudFront distribution
+   */
   readonly cloudFrontDistro: cf.Distribution;
 
+  /**
+   * The edge to origin function for API Gateway Request Origin Edge Lambda
+   *
+   * The generated `config.yml` is included in the Lambda's code.
+   */
   readonly edgeToOriginFunction?: lambda.Function | cf.experimental.EdgeFunction;
 }
 
@@ -274,47 +281,47 @@ replaceHostHeader: ${props.replaceHostHeader}`;
    * policy will be returned.  This policy passes the Host header to the
    * origin, which is fine when using a custom domain name on the origin.
    *
-   * @param scope
-   * @param props
+   * @param _scope
+   * @param _props
    */
   public static createAPIOriginPolicy(
-    scope: Construct,
-    props: CreateAPIOriginPolicyOptions,
+    _scope: Construct,
+    _props: CreateAPIOriginPolicyOptions,
   ): cf.IOriginRequestPolicy {
-    const { assetNameRoot, assetNameSuffix, domainNameEdge } = props;
+    // const { assetNameRoot, assetNameSuffix, domainNameEdge } = props;
 
-    let apigwyOriginRequestPolicy: cf.IOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
-    if (domainNameEdge === undefined) {
-      // When not using a custom domain name we must limit down the origin policy to
-      // prevent it from passing the Host header (distribution_id.cloudfront.net) to
-      // apigwy which will then reject it with a 403 because it does not match the
-      // execute-api name that apigwy is expecting.
-      //
-      // 2021-12-28 - There is a bug in the name generation that causes the same asset
-      // in different stacks to have the same generated name.  We have to make the id
-      // in all cases to ensure the generated name is unique.
-      apigwyOriginRequestPolicy = new cf.OriginRequestPolicy(
-        scope,
-        `apigwy-origin-policy-${Stack.of(scope).stackName}`,
-        {
-          comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
+    // let apigwyOriginRequestPolicy: cf.IOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
+    // if (domainNameEdge === undefined) {
+    //   // When not using a custom domain name we must limit down the origin policy to
+    //   // prevent it from passing the Host header (distribution_id.cloudfront.net) to
+    //   // apigwy which will then reject it with a 403 because it does not match the
+    //   // execute-api name that apigwy is expecting.
+    //   //
+    //   // 2021-12-28 - There is a bug in the name generation that causes the same asset
+    //   // in different stacks to have the same generated name.  We have to make the id
+    //   // in all cases to ensure the generated name is unique.
+    //   apigwyOriginRequestPolicy = new cf.OriginRequestPolicy(
+    //     scope,
+    //     `apigwy-origin-policy-${Stack.of(scope).stackName}`,
+    //     {
+    //       comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
 
-          originRequestPolicyName: assetNameRoot
-            ? `${assetNameRoot}-apigwy${assetNameSuffix}`
-            : undefined,
-          cookieBehavior: cf.OriginRequestCookieBehavior.all(),
-          queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
-          // TODO: If signing is enabled this should forward all signature headers
-          // TODO: If set to "cfront.OriginRequestHeaderBehavior.all()" then
-          // `replaceHostHeader` must be set to true to prevent API Gateway from rejecting
-          // the request
-          // headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
-          headerBehavior: cf.OriginRequestHeaderBehavior.all(),
-        },
-      );
-    }
+    //       originRequestPolicyName: assetNameRoot
+    //         ? `${assetNameRoot}-apigwy${assetNameSuffix}`
+    //         : undefined,
+    //       cookieBehavior: cf.OriginRequestCookieBehavior.all(),
+    //       queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
+    //       // TODO: If signing is enabled this should forward all signature headers
+    //       // TODO: If set to "cfront.OriginRequestHeaderBehavior.all()" then
+    //       // `replaceHostHeader` must be set to true to prevent API Gateway from rejecting
+    //       // the request
+    //       // headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
+    //       headerBehavior: cf.OriginRequestHeaderBehavior.all(),
+    //     },
+    //   );
+    // }
 
-    return apigwyOriginRequestPolicy;
+    return cf.OriginRequestPolicy.ALL_VIEWER;
   }
 
   /**
