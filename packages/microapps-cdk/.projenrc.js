@@ -102,6 +102,9 @@ project.preCompileTask.exec(
 // );
 
 project.compileTask.exec(
+  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
+);
+project.compileTask.exec(
   'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
 );
 project.compileTask.exec(

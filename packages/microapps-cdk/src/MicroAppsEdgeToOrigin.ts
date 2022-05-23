@@ -190,7 +190,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       ...(removalPolicy ? { removalPolicy } : {}),
     };
     if (
-      process.env.NODE_ENV === 'test' ||
+      process.env.NODE_ENV === 'test' &&
       existsSync(path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'index.js'))
     ) {
       // Emit the config file from the construct options

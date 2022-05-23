@@ -1,0 +1,4 @@
+originRegion: ${Token[AWS.Region.11]}
+signingMode: sign
+addXForwardedHostHeader: true
+replaceHostHeader: true
