@@ -1,9 +1,11 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 import { IMicroAppsAPIGwy, MicroAppsAPIGwy } from './MicroAppsAPIGwy';
 import { IMicroAppsCF, MicroAppsCF } from './MicroAppsCF';
+import { IMicroAppsEdgeToOrigin, MicroAppsEdgeToOrigin } from './MicroAppsEdgeToOrigin';
 import { IMicroAppsS3, MicroAppsS3 } from './MicroAppsS3';
 import { IMicroAppsSvcs, MicroAppsSvcs } from './MicroAppsSvcs';
 import { reverseDomain } from './utils/ReverseDomain';
@@ -232,6 +234,22 @@ export interface MicroAppsProps {
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * Existing table for apps/versions/rules
+   *
+   * @warning - It is *strongly* suggested that production stacks create
+   * their own DynamoDB Table and pass it into this construct, for protection
+   * against data loss due to logical ID changes, the ability to configure
+   * Provisioned capacity with Auto Scaling, the ability to add additional indices, etc.
+   *
+   * Requirements:
+   * - Hash Key: `PK`
+   * - Sort Key: `SK`
+   *
+   * @default created by construct
+   */
+  readonly table?: dynamodb.ITable;
 }
 
 /**
@@ -240,6 +258,9 @@ export interface MicroAppsProps {
 export interface IMicroApps {
   /** {@inheritdoc IMicroAppsCF} */
   readonly cf: IMicroAppsCF;
+
+  /** {@inheritdoc IMicroAppsEdgeToOrigin} */
+  readonly edgeToOrigin?: IMicroAppsEdgeToOrigin;
 
   /** {@inheritdoc IMicroAppsS3} */
   readonly s3: IMicroAppsS3;
@@ -255,7 +276,7 @@ export interface IMicroApps {
  * Create a new MicroApps "turnkey" construct for simple
  * deployments and for initial evaulation of the MicroApps framework.
  *
- * Use this construct to create a working entire stack.
+ * Use this construct to create a PoC working entire stack.
  *
  * Do not use this construct when adding MicroApps to an existing
  * CloudFront, API Gateway, S3 Bucket, etc. or where access
@@ -263,12 +284,23 @@ export interface IMicroApps {
  * add additional Behaviors to the CloudFront distribution, set authorizors
  * on API Gateway, etc.).
  *
+ * @warning This construct is not intended for production use.
+ * In a production stack the DynamoDB Table, API Gateway, S3 Buckets,
+ * etc. should be created in a "durable" stack where the IDs will not
+ * change and where changes to the MicroApps construct will not
+ * cause failures to deploy or data to be deleted.
+ *
  *  @see {@link https://github.com/pwrdrvr/microapps-core/blob/main/packages/cdk/lib/MicroApps.ts | example usage in a CDK Stack }
  */
 export class MicroApps extends Construct implements IMicroApps {
   private _cf: MicroAppsCF;
   public get cf(): IMicroAppsCF {
     return this._cf;
+  }
+
+  private _edgeToOrigin?: MicroAppsEdgeToOrigin;
+  public get edgeToOrigin(): IMicroAppsEdgeToOrigin | undefined {
+    return this._edgeToOrigin;
   }
 
   private _s3: MicroAppsS3;
@@ -312,6 +344,7 @@ export class MicroApps extends Construct implements IMicroApps {
       replaceHostHeader = true,
       signingMode = 'sign',
       originRegion,
+      table,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -335,6 +368,17 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
     });
+    if (signingMode !== 'none' || replaceHostHeader || addXForwardedHostHeader) {
+      this._edgeToOrigin = new MicroAppsEdgeToOrigin(this, 'edgeToOrigin', {
+        assetNameRoot,
+        assetNameSuffix,
+        removalPolicy,
+        addXForwardedHostHeader,
+        replaceHostHeader,
+        originRegion,
+        signingMode,
+      });
+    }
     this._cf = new MicroAppsCF(this, 'cft', {
       removalPolicy,
       assetNameRoot,
@@ -348,10 +392,7 @@ export class MicroApps extends Construct implements IMicroApps {
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
-      addXForwardedHostHeader,
-      replaceHostHeader,
-      signingMode,
-      originRegion,
+      edgeToOriginLambdas: this._edgeToOrigin ? this._edgeToOrigin.edgeToOriginLambdas : undefined,
     });
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
       httpApi: this.apigwy.httpApi,
@@ -367,6 +408,7 @@ export class MicroApps extends Construct implements IMicroApps {
       s3StrictBucketPolicy,
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
+      table,
     });
   }
 }

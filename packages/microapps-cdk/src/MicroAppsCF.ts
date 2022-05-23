@@ -1,17 +1,9 @@
-import { existsSync, writeFileSync } from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { posix as posixPath } from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
-// import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
+import { Aws, RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as logs from 'aws-cdk-lib/aws-logs';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import * as r53targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -22,9 +14,10 @@ import { reverseDomain } from './utils/ReverseDomain';
  * Represents a MicroApps CloudFront
  */
 export interface IMicroAppsCF {
+  /**
+   * The CloudFront distribution
+   */
   readonly cloudFrontDistro: cf.Distribution;
-
-  readonly edgeToOriginFunction?: lambda.Function | cf.experimental.EdgeFunction;
 }
 
 /**
@@ -118,56 +111,26 @@ export interface MicroAppsCFProps {
   readonly createAPIPathRoute?: boolean;
 
   /**
-   * Adds an X-Forwarded-Host-Header when calling API Gateway
+   * Create an extra Behavior (Route) for /_next/data/
+   * This route is used by Next.js to load data from the API Gateway
+   * on `getServerSideProps` calls.  The requests can end in `.json`,
+   * which would cause them to be routed to S3 if this route is not created.
    *
-   * Can only be trusted if `signingMode` is enabled, which restricts
-   * access to API Gateway to only IAM signed requests.
+   * When false API routes with a period in the path will get routed to S3.
    *
-   * Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
    * @default true
    */
-  readonly addXForwardedHostHeader?: boolean;
+  readonly createNextDataPathRoute?: boolean;
 
   /**
-   * Replaces Host header (which will be the Edge domain name) with the Origin domain name
-   * when enabled.  This is necessary when API Gateway has not been configured
-   * with a custom domain name that matches the exact domain name used by the CloudFront
-   * Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
-   * to pass all headers to the origin.
+   * Configuration of the edge to origin lambda functions
    *
-   * Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
-   * @default true
+   * @defaunt - no edge to API Gateway origin functions added
    */
-  readonly replaceHostHeader?: boolean;
-
-  /**
-   * Requires IAM auth on the API Gateway origin if not set to 'none'.
-   *
-   * 'sign' - Uses request headers for auth.
-   * 'presign' - Uses query string for auth.
-   *
-   * If enabled,
-   *
-   * Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for API Gateway Origin
-   * @default 'sign'
-   */
-  readonly signingMode?: 'sign' | 'presign' | 'none';
-
-  /**
-   * Origin region that API Gateway will be deployed to, used
-   * for the config.yml on the Edge function to sign requests for
-   * the correct region
-   *
-   * @default undefined
-   */
-  readonly originRegion?: string;
-}
-
-export interface GenerateEdgeToOriginConfigOptions {
-  readonly originRegion: string;
-  readonly signingMode: 'sign' | 'presign' | '';
-  readonly addXForwardedHostHeader: boolean;
-  readonly replaceHostHeader: boolean;
+  readonly edgeToOriginLambdas?: cf.EdgeLambda[];
 }
 
 /**
@@ -243,6 +206,21 @@ export interface AddRoutesOptions {
   readonly createAPIPathRoute?: boolean;
 
   /**
+   * Create an extra Behavior (Route) for /_next/data/
+   * This route is used by Next.js to load data from the API Gateway
+   * on `getServerSideProps` calls.  The requests can end in `.json`,
+   * which would cause them to be routed to S3 if this route is not created.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createNextDataPathRoute?: boolean;
+
+  /**
    * Edge lambdas to associate with the API Gateway routes
    */
   readonly apigwyEdgeFunctions?: cf.EdgeLambda[];
@@ -253,18 +231,6 @@ export interface AddRoutesOptions {
  */
 export class MicroAppsCF extends Construct implements IMicroAppsCF {
   /**
-   * Generate the yaml config for the edge lambda
-   * @param props
-   * @returns
-   */
-  public static generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions) {
-    return `originRegion: ${props.originRegion}
-${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
-addXForwardedHostHeader: ${props.addXForwardedHostHeader}
-replaceHostHeader: ${props.replaceHostHeader}`;
-  }
-
-  /**
    * Create or get the origin request policy
    *
    * If a custom domain name is NOT used for the origin then a policy
@@ -274,47 +240,47 @@ replaceHostHeader: ${props.replaceHostHeader}`;
    * policy will be returned.  This policy passes the Host header to the
    * origin, which is fine when using a custom domain name on the origin.
    *
-   * @param scope
-   * @param props
+   * @param _scope
+   * @param _props
    */
   public static createAPIOriginPolicy(
-    scope: Construct,
-    props: CreateAPIOriginPolicyOptions,
+    _scope: Construct,
+    _props: CreateAPIOriginPolicyOptions,
   ): cf.IOriginRequestPolicy {
-    const { assetNameRoot, assetNameSuffix, domainNameEdge } = props;
+    // const { assetNameRoot, assetNameSuffix, domainNameEdge } = props;
 
-    let apigwyOriginRequestPolicy: cf.IOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
-    if (domainNameEdge === undefined) {
-      // When not using a custom domain name we must limit down the origin policy to
-      // prevent it from passing the Host header (distribution_id.cloudfront.net) to
-      // apigwy which will then reject it with a 403 because it does not match the
-      // execute-api name that apigwy is expecting.
-      //
-      // 2021-12-28 - There is a bug in the name generation that causes the same asset
-      // in different stacks to have the same generated name.  We have to make the id
-      // in all cases to ensure the generated name is unique.
-      apigwyOriginRequestPolicy = new cf.OriginRequestPolicy(
-        scope,
-        `apigwy-origin-policy-${Stack.of(scope).stackName}`,
-        {
-          comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
+    // let apigwyOriginRequestPolicy: cf.IOriginRequestPolicy = cf.OriginRequestPolicy.ALL_VIEWER;
+    // if (domainNameEdge === undefined) {
+    //   // When not using a custom domain name we must limit down the origin policy to
+    //   // prevent it from passing the Host header (distribution_id.cloudfront.net) to
+    //   // apigwy which will then reject it with a 403 because it does not match the
+    //   // execute-api name that apigwy is expecting.
+    //   //
+    //   // 2021-12-28 - There is a bug in the name generation that causes the same asset
+    //   // in different stacks to have the same generated name.  We have to make the id
+    //   // in all cases to ensure the generated name is unique.
+    //   apigwyOriginRequestPolicy = new cf.OriginRequestPolicy(
+    //     scope,
+    //     `apigwy-origin-policy-${Stack.of(scope).stackName}`,
+    //     {
+    //       comment: assetNameRoot ? `${assetNameRoot}-apigwy${assetNameSuffix}` : undefined,
 
-          originRequestPolicyName: assetNameRoot
-            ? `${assetNameRoot}-apigwy${assetNameSuffix}`
-            : undefined,
-          cookieBehavior: cf.OriginRequestCookieBehavior.all(),
-          queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
-          // TODO: If signing is enabled this should forward all signature headers
-          // TODO: If set to "cfront.OriginRequestHeaderBehavior.all()" then
-          // `replaceHostHeader` must be set to true to prevent API Gateway from rejecting
-          // the request
-          // headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
-          headerBehavior: cf.OriginRequestHeaderBehavior.all(),
-        },
-      );
-    }
+    //       originRequestPolicyName: assetNameRoot
+    //         ? `${assetNameRoot}-apigwy${assetNameSuffix}`
+    //         : undefined,
+    //       cookieBehavior: cf.OriginRequestCookieBehavior.all(),
+    //       queryStringBehavior: cf.OriginRequestQueryStringBehavior.all(),
+    //       // TODO: If signing is enabled this should forward all signature headers
+    //       // TODO: If set to "cfront.OriginRequestHeaderBehavior.all()" then
+    //       // `replaceHostHeader` must be set to true to prevent API Gateway from rejecting
+    //       // the request
+    //       // headerBehavior: cf.OriginRequestHeaderBehavior.allowList('user-agent', 'referer'),
+    //       headerBehavior: cf.OriginRequestHeaderBehavior.all(),
+    //     },
+    //   );
+    // }
 
-    return apigwyOriginRequestPolicy;
+    return cf.OriginRequestPolicy.ALL_VIEWER;
   }
 
   /**
@@ -330,6 +296,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       apigwyOriginRequestPolicy,
       rootPathPrefix = '',
       createAPIPathRoute = true,
+      createNextDataPathRoute = true,
     } = props;
 
     //
@@ -366,6 +333,19 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     }
 
     //
+    // If a route specifically has `/_next/data/` in it, send it to API Gateway
+    // This is needed to catch routes that have periods in the API path data,
+    // such as: /release/0.0.0/_next/data/app.json
+    //
+    if (createNextDataPathRoute) {
+      distro.addBehavior(
+        posixPath.join(rootPathPrefix, '/*/*/_next/data/*'),
+        apiGwyOrigin,
+        apiGwyBehaviorOptions,
+      );
+    }
+
+    //
     // All static assets are assumed to have a dot in them
     //
     distro.addBehavior(
@@ -385,11 +365,6 @@ replaceHostHeader: ${props.replaceHostHeader}`;
   private _cloudFrontDistro: cf.Distribution;
   public get cloudFrontDistro(): cf.Distribution {
     return this._cloudFrontDistro;
-  }
-
-  private _edgeToOriginFunction?: lambda.Function | cf.experimental.EdgeFunction;
-  public get edgeToOriginFunction(): lambda.Function | cf.experimental.EdgeFunction | undefined {
-    return this._edgeToOriginFunction;
   }
 
   constructor(scope: Construct, id: string, props: MicroAppsCFProps) {
@@ -419,10 +394,8 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       bucketAppsOrigin,
       rootPathPrefix,
       createAPIPathRoute = true,
-      signingMode = 'sign',
-      addXForwardedHostHeader = true,
-      replaceHostHeader = true,
-      originRegion,
+      createNextDataPathRoute = true,
+      edgeToOriginLambdas,
     } = props;
 
     const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -441,125 +414,9 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       httpOriginFQDN = `${httpApi.apiId}.execute-api.${Aws.REGION}.amazonaws.com`;
     }
 
-    // Create the edge function config file from the construct options
-    const edgeToOriginConfigYaml = MicroAppsCF.generateEdgeToOriginConfig({
-      originRegion: originRegion || Aws.REGION,
-      addXForwardedHostHeader,
-      replaceHostHeader,
-      signingMode: signingMode === 'none' ? '' : signingMode,
-    });
-
     //
-    // Create the Edge to Origin Function
+    // Get the Edge to Origin Lambdas
     //
-    const edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
-      functionName: assetNameRoot ? `${assetNameRoot}-edge-to-origin${assetNameSuffix}` : undefined,
-      memorySize: 1769,
-      logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_14_X,
-      timeout: Duration.seconds(5),
-      initialPolicy: [
-        // This can't have a reference to the httpApi because it would mean
-        // the parent stack (this stack) has to be created before the us-east-1
-        // child stack for the Edge Lambda Function.
-        // That's why we use a tag-based policy to allow the Edge Function
-        // to invoke any API Gateway API that we apply a tag to
-        // We allow the edge function to sign for all regions since
-        // we may use custom closest region in the future.
-        new iam.PolicyStatement({
-          actions: ['execute-api:Invoke'],
-          resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
-          // Unfortunately, API Gateway access cannot be restricted using
-          // tags on the target resource
-          // https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
-          // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#networking_svcs
-          // conditions: {
-          //   // TODO: Set this to a string unique to each stack
-          //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
-          // },
-        }),
-      ],
-    };
-    if (
-      process.env.NODE_ENV === 'test' ||
-      existsSync(path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'index.js'))
-    ) {
-      // Emit the config file from the construct options
-      writeFileSync(
-        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
-        edgeToOriginConfigYaml,
-      );
-      // copyFileSync(
-      //   path.join(__dirname, '..', '..', '..', 'configs', 'microapps-edge-to-origin', 'config.yml'),
-      //   path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
-      // );
-      // This is for tests run under jest
-      // This is also for anytime when the edge function has already been bundled
-      this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist'),
-        ),
-        handler: 'index.handler',
-        ...edgeToOriginFuncProps,
-      });
-    } else if (existsSync(path.join(__dirname, 'microapps-edge-to-origin', 'index.js'))) {
-      // Emit the config file from the construct options
-      writeFileSync(
-        path.join(__dirname, 'microapps-edge-to-origin', 'config.yml'),
-        edgeToOriginConfigYaml,
-      );
-
-      // This is for built apps packaged with the CDK construct
-      this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
-        code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-edge-to-origin')),
-        handler: 'index.handler',
-        ...edgeToOriginFuncProps,
-      });
-    } else {
-      // Emit the config file from the construct options
-      writeFileSync(
-        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
-        edgeToOriginConfigYaml,
-      );
-
-      // This builds the function for distribution with the CDK Construct
-      // and will be used during local builds and PR builds of microapps-core
-      // if the microapps-edge-to-origin function is not already bundled.
-      // This will fail to deploy in any region other than us-east-1
-      // We cannot use NodejsFunction because it will not create in us-east-1
-      this._edgeToOriginFunction = new lambdaNodejs.NodejsFunction(this, 'edge-to-apigwy-func', {
-        entry: path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'src', 'index.ts'),
-        handler: 'handler',
-        bundling: {
-          minify: true,
-          sourceMap: true,
-          commandHooks: {
-            beforeInstall: () => [],
-            beforeBundling: () => [],
-            afterBundling: (_inputDir: string, outputDir: string) => {
-              return [
-                `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
-                  __dirname,
-                  '..',
-                  '..',
-                  '..',
-                  'configs',
-                  'microapps-edge-to-origin',
-                  'config.yml',
-                )} ${outputDir}`,
-              ];
-            },
-          },
-        },
-        ...edgeToOriginFuncProps,
-      });
-
-      if (removalPolicy) {
-        this._edgeToOriginFunction.applyRemovalPolicy(removalPolicy);
-      }
-    }
-
-    // const edgeToOriginFuncAlias = this._edgeToOriginFunction.addAlias('CloudfrontVersion');
 
     //
     // CloudFront Distro
@@ -568,13 +425,6 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
-    const apiGwyOriginEdgeLambdas = [
-      {
-        eventType: cf.LambdaEdgeEventType.ORIGIN_REQUEST,
-        functionVersion: this._edgeToOriginFunction.currentVersion,
-        includeBody: true,
-      },
-    ];
     this._cloudFrontDistro = new cf.Distribution(this, 'cft', {
       comment: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : domainNameEdge,
       domainNames: domainNameEdge !== undefined ? [domainNameEdge] : undefined,
@@ -587,7 +437,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         originRequestPolicy: apigwyOriginRequestPolicy,
         origin: apiGwyOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        edgeLambdas: apiGwyOriginEdgeLambdas,
+        edgeLambdas: edgeToOriginLambdas,
       },
       enableIpv6: true,
       priceClass: cf.PriceClass.PRICE_CLASS_100,
@@ -608,7 +458,8 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       apigwyOriginRequestPolicy: apigwyOriginRequestPolicy,
       rootPathPrefix,
       createAPIPathRoute,
-      apigwyEdgeFunctions: apiGwyOriginEdgeLambdas,
+      createNextDataPathRoute,
+      apigwyEdgeFunctions: edgeToOriginLambdas,
     });
 
     //

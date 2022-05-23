@@ -153,6 +153,22 @@ export interface MicroAppsSvcsProps {
    * @default true
    */
   readonly requireIAMAuthorization?: boolean;
+
+  /**
+   * Existing table for apps/versions/rules
+   *
+   * @warning - It is *strongly* suggested that production stacks create
+   * their own DynamoDB Table and pass it into this construct, for protection
+   * against data loss due to logical ID changes, the ability to configure
+   * Provisioned capacity with Auto Scaling, the ability to add additional indices, etc.
+   *
+   * Requirements:
+   * - Hash Key: `PK`
+   * - Sort Key: `SK`
+   *
+   * @default created by construct
+   */
+  readonly table?: dynamodb.ITable;
 }
 
 /**
@@ -180,7 +196,8 @@ export interface IMicroAppsSvcs {
  * and Router Lambda Functions, and the DynamoDB Table used by both.
  */
 export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
-  private _table: dynamodb.Table;
+  private _ownedTable?: dynamodb.Table;
+  private _table: dynamodb.ITable;
   public get table(): dynamodb.ITable {
     return this._table;
   }
@@ -229,19 +246,25 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     //
     // DynamoDB Table
     //
-    this._table = new dynamodb.Table(this, 'table', {
-      tableName: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : undefined,
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      partitionKey: {
-        name: 'PK',
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: 'SK',
-        type: dynamodb.AttributeType.STRING,
-      },
-      removalPolicy,
-    });
+    if (props.table === undefined) {
+      // Create able if none passed
+      this._ownedTable = new dynamodb.Table(this, 'table', {
+        tableName: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : undefined,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        partitionKey: {
+          name: 'PK',
+          type: dynamodb.AttributeType.STRING,
+        },
+        sortKey: {
+          name: 'SK',
+          type: dynamodb.AttributeType.STRING,
+        },
+        removalPolicy,
+      });
+      this._table = this._ownedTable;
+    } else {
+      this._table = props.table;
+    }
 
     //
     // Router Lambda Function
