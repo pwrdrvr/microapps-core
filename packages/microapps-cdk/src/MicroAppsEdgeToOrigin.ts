@@ -196,13 +196,25 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     if (process.env.NODE_ENV === 'test' && rootDistExists) {
       // This is for tests run under jest - Prefer root dist bundle
       // This is also for anytime when the edge function has already been bundled
-      this.createEdgeFunction(rootDistPath, edgeToOriginConfigYaml, edgeToOriginFuncProps);
+      this._edgeToOriginFunction = this.createEdgeFunction(
+        rootDistPath,
+        edgeToOriginConfigYaml,
+        edgeToOriginFuncProps,
+      );
     } else if (localDistExists) {
       // Prefer local dist above root dist if both exist (when buidling for distribution)
-      this.createEdgeFunction(localDistPath, edgeToOriginConfigYaml, edgeToOriginFuncProps);
+      this._edgeToOriginFunction = this.createEdgeFunction(
+        localDistPath,
+        edgeToOriginConfigYaml,
+        edgeToOriginFuncProps,
+      );
     } else if (rootDistExists) {
       // Use local dist if it exists (when deploying from CDK in this repo)
-      this.createEdgeFunction(rootDistPath, edgeToOriginConfigYaml, edgeToOriginFuncProps);
+      this._edgeToOriginFunction = this.createEdgeFunction(
+        rootDistPath,
+        edgeToOriginConfigYaml,
+        edgeToOriginFuncProps,
+      );
     } else {
       // 2022-07-30 - Does this actually get used at all anymore?
 
@@ -260,7 +272,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
   ) {
     writeFileSync(path.join(rootDistPath, 'config.yml'), edgeToOriginConfigYaml);
 
-    this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
+    return new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
       code: lambda.Code.fromAsset(rootDistPath),
       handler: 'index.handler',
       ...edgeToOriginFuncProps,
