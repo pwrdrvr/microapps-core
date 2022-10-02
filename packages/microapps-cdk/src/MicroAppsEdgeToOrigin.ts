@@ -202,7 +202,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         edgeToOriginFuncProps,
       );
     } else if (localDistExists) {
-      // Prefer local dist above root dist if both exist (when buidling for distribution)
+      // Prefer local dist above root dist if both exist (when building for distribution)
       this._edgeToOriginFunction = this.createEdgeFunction(
         localDistPath,
         edgeToOriginConfigYaml,
@@ -218,6 +218,11 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     } else {
       // 2022-07-30 - Does this actually get used at all anymore?
 
+      // 2022-10-02 - This is broken - it's emitting a config file but then
+      // usinga different config file in the bundling below.
+      // This may be ok if this is only used for the construct packaging
+      // as the consuming stack should select a different above which will
+      // use the correct config file.
       // Emit the config file from the construct options
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
@@ -238,6 +243,8 @@ replaceHostHeader: ${props.replaceHostHeader}`;
             beforeInstall: () => [],
             beforeBundling: () => [],
             afterBundling: (_inputDir: string, outputDir: string) => {
+              // 2022-10-02 - Note that this is ignoring the generated config
+              // file above and including the default template config file
               return [
                 `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
                   __dirname,

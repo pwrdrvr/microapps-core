@@ -1,7 +1,8 @@
 {
   "name": "@pwrdrvr/microapps-core",
   "resolutions": {
-    "constructs": "10.0.5"
+    "constructs": "10.0.5",
+    "terser": "^5.14.2"
   },
   "version": "0.0.0",
   "repository": {
@@ -21,7 +22,8 @@
   },
   "private": true,
   "scripts": {
-    "clean": "npm run clean:dist && npm run clean:modules && npm run clean:tsbuildinfo",
+    "clean": "npm run clean:dist && npm run clean:tsbuildinfo",
+    "clean:super": "npm run clean:dist && npm run clean:modules && npm run clean:tsbuildinfo",
     "clean:dist": "npm exec --workspaces -- npx rimraf dist && npx rimraf dist",
     "clean:modules": "npm exec --workspaces -- npx rimraf node_modules && npx rimraf node_modules",
     "clean:tsbuildinfo": "npm exec --workspaces -- npx rimraf *.tsbuildinfo",
