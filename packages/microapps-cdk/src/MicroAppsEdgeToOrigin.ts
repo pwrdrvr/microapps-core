@@ -164,7 +164,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       functionName: assetNameRoot ? `${assetNameRoot}-edge-to-origin${assetNameSuffix}` : undefined,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       timeout: Duration.seconds(5),
       initialPolicy: [
         // This can't have a reference to the httpApi because it would mean
@@ -273,14 +273,14 @@ replaceHostHeader: ${props.replaceHostHeader}`;
   }
 
   private createEdgeFunction(
-    rootDistPath: string,
+    distPath: string,
     edgeToOriginConfigYaml: string,
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
   ) {
-    writeFileSync(path.join(rootDistPath, 'config.yml'), edgeToOriginConfigYaml);
+    writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
 
     return new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
-      code: lambda.Code.fromAsset(rootDistPath),
+      code: lambda.Code.fromAsset(distPath),
       handler: 'index.handler',
       ...(edgeToOriginFuncProps.functionName
         ? { stackId: edgeToOriginFuncProps.functionName }
