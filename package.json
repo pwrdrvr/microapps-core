@@ -1,7 +1,8 @@
 {
   "name": "@pwrdrvr/microapps-core",
   "resolutions": {
-    "constructs": "10.0.5"
+    "constructs": "10.0.5",
+    "terser": "^5.14.2"
   },
   "version": "0.0.0",
   "repository": {
@@ -21,7 +22,8 @@
   },
   "private": true,
   "scripts": {
-    "clean": "npm run clean:dist && npm run clean:modules && npm run clean:tsbuildinfo",
+    "clean": "npm run clean:dist && npm run clean:tsbuildinfo",
+    "clean:super": "npm run clean:dist && npm run clean:modules && npm run clean:tsbuildinfo",
     "clean:dist": "npm exec --workspaces -- npx rimraf dist && npx rimraf dist",
     "clean:modules": "npm exec --workspaces -- npx rimraf node_modules && npx rimraf node_modules",
     "clean:tsbuildinfo": "npm exec --workspaces -- npx rimraf *.tsbuildinfo",
@@ -33,7 +35,7 @@
     "build:publish": "tsc --build tsconfig.publish.json",
     "esbuild:deployer": "esbuild packages/microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=packages/cdk/dist/microapps-deployer/index.js",
     "esbuild:router": "esbuild packages/microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=packages/cdk/dist/microapps-router/index.js",
-    "esbuild:edge-to-origin": "esbuild packages/microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=packages/microapps-edge-to-origin/dist/index.js",
+    "esbuild:edge-to-origin": "esbuild packages/microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=packages/microapps-cdk/lib/microapps-edge-to-origin/index.js",
     "build:deployer": "rollup --config rollup.deployer.js",
     "build:router": "rollup --config rollup.router.js && cp packages/microapps-router/appFrame.html distb/microapps-router/",
     "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local jest",

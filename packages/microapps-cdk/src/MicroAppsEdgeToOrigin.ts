@@ -164,7 +164,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       functionName: assetNameRoot ? `${assetNameRoot}-edge-to-origin${assetNameSuffix}` : undefined,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_14_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       timeout: Duration.seconds(5),
       initialPolicy: [
         // This can't have a reference to the httpApi because it would mean
@@ -189,42 +189,40 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       ],
       ...(removalPolicy ? { removalPolicy } : {}),
     };
-    if (
-      process.env.NODE_ENV === 'test' &&
-      existsSync(path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'index.js'))
-    ) {
-      // Emit the config file from the construct options
-      writeFileSync(
-        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
-        edgeToOriginConfigYaml,
-      );
-      // copyFileSync(
-      //   path.join(__dirname, '..', '..', '..', 'configs', 'microapps-edge-to-origin', 'config.yml'),
-      //   path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist', 'config.yml'),
-      // );
-      // This is for tests run under jest
+    const rootDistPath = path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist');
+    const rootDistExists = existsSync(path.join(rootDistPath, 'index.js'));
+    const localDistPath = path.join(__dirname, 'microapps-edge-to-origin');
+    const localDistExists = existsSync(path.join(localDistPath, 'index.js'));
+    if (process.env.NODE_ENV === 'test' && rootDistExists) {
+      // This is for tests run under jest - Prefer root dist bundle
       // This is also for anytime when the edge function has already been bundled
-      this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist'),
-        ),
-        handler: 'index.handler',
-        ...edgeToOriginFuncProps,
-      });
-    } else if (existsSync(path.join(__dirname, 'microapps-edge-to-origin', 'index.js'))) {
-      // Emit the config file from the construct options
-      writeFileSync(
-        path.join(__dirname, 'microapps-edge-to-origin', 'config.yml'),
+      this._edgeToOriginFunction = this.createEdgeFunction(
+        rootDistPath,
         edgeToOriginConfigYaml,
+        edgeToOriginFuncProps,
       );
-
-      // This is for built apps packaged with the CDK construct
-      this._edgeToOriginFunction = new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
-        code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-edge-to-origin')),
-        handler: 'index.handler',
-        ...edgeToOriginFuncProps,
-      });
+    } else if (localDistExists) {
+      // Prefer local dist above root dist if both exist (when building for distribution)
+      this._edgeToOriginFunction = this.createEdgeFunction(
+        localDistPath,
+        edgeToOriginConfigYaml,
+        edgeToOriginFuncProps,
+      );
+    } else if (rootDistExists) {
+      // Use local dist if it exists (when deploying from CDK in this repo)
+      this._edgeToOriginFunction = this.createEdgeFunction(
+        rootDistPath,
+        edgeToOriginConfigYaml,
+        edgeToOriginFuncProps,
+      );
     } else {
+      // 2022-07-30 - Does this actually get used at all anymore?
+
+      // 2022-10-02 - This is broken - it's emitting a config file but then
+      // usinga different config file in the bundling below.
+      // This may be ok if this is only used for the construct packaging
+      // as the consuming stack should select a different above which will
+      // use the correct config file.
       // Emit the config file from the construct options
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
@@ -235,7 +233,6 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       // and will be used during local builds and PR builds of microapps-core
       // if the microapps-edge-to-origin function is not already bundled.
       // This will fail to deploy in any region other than us-east-1
-      // We cannot use NodejsFunction because it will not create in us-east-1
       this._edgeToOriginFunction = new lambdaNodejs.NodejsFunction(this, 'edge-to-apigwy-func', {
         entry: path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'src', 'index.ts'),
         handler: 'handler',
@@ -246,6 +243,8 @@ replaceHostHeader: ${props.replaceHostHeader}`;
             beforeInstall: () => [],
             beforeBundling: () => [],
             afterBundling: (_inputDir: string, outputDir: string) => {
+              // 2022-10-02 - Note that this is ignoring the generated config
+              // file above and including the default template config file
               return [
                 `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
                   __dirname,
@@ -271,5 +270,22 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         includeBody: true,
       },
     ];
+  }
+
+  private createEdgeFunction(
+    distPath: string,
+    edgeToOriginConfigYaml: string,
+    edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
+  ) {
+    writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
+
+    return new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
+      code: lambda.Code.fromAsset(distPath),
+      handler: 'index.handler',
+      ...(edgeToOriginFuncProps.functionName
+        ? { stackId: edgeToOriginFuncProps.functionName }
+        : {}),
+      ...edgeToOriginFuncProps,
+    });
   }
 }

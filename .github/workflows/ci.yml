@@ -130,7 +130,10 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build All TypeScript
-        run: yarn build 
+        run: yarn build
+
+      - name: Build Edge-to-Origin for Local Deploy
+        run: yarn esbuild:edge-to-origin
     
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
