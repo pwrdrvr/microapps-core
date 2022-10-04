@@ -20,7 +20,7 @@ SharedTags.addSharedTags(app, { shared });
 
 new MicroAppsStack(app, 'microapps-core', {
   env,
-  stackName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+  stackName: `microapps-core-ghpublic${shared.envSuffix}${shared.prSuffix}`,
   ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   domainNameEdge: `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
@@ -32,7 +32,7 @@ new MicroAppsStack(app, 'microapps-core', {
   s3PolicyBypassAROAs: shared.s3PolicyBypassAROAs,
   s3PolicyBypassPrincipalARNs: shared.s3PolicyBypassPrincipalARNs,
   s3StrictBucketPolicy: shared.s3StrictBucketPolicy,
-  assetNameRoot: `${shared.stackName}`,
+  assetNameRoot: 'microapps-core-ghpublic',
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
   deployDemoApp: shared.deployDemoApp,
   deployNextjsDemoApp: shared.deployNextjsDemoApp,
@@ -44,7 +44,7 @@ new MicroAppsStack(app, 'microapps-core', {
 
 new MicroAppsStack(app, 'microapps-basic', {
   env,
-  stackName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+  stackName: `microapps-basic-ghpublic${shared.envSuffix}${shared.prSuffix}`,
   ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   deployDemoApp: shared.deployDemoApp,
@@ -57,7 +57,7 @@ new MicroAppsStack(app, 'microapps-basic', {
 
 new MicroAppsStack(app, 'microapps-basic-prefix', {
   env,
-  stackName: `${shared.stackName}${shared.envSuffix}${shared.prSuffix}`,
+  stackName: `microapps-basic-prefix-ghpublic${shared.envSuffix}${shared.prSuffix}`,
   ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   deployDemoApp: shared.deployDemoApp,
@@ -69,9 +69,8 @@ new MicroAppsStack(app, 'microapps-basic-prefix', {
   originRegion: shared.region,
 });
 
-// Note: This is only run manually once per env to create build user
 new MicroAppsBuilder(app, 'microapps-builder', {
-  stackName: `${shared.stackName}-builder${shared.envSuffix}`,
+  stackName: `microapps-ghpublic-builder${shared.envSuffix}`,
   shared,
   env,
 });

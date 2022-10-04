@@ -7,7 +7,7 @@ npm ci
 NODE_ENV=dev
 
 # Deploy CDK Stack
-npx cdk deploy --context @pwrdrvr/microapps:stackName=microapps-demo-deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic
+npx cdk deploy microapps-core --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic
 
 # Extract Release App version
 RELEASE_APP_PACKAGE_VERSION=$(node -p -e "require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json').version")

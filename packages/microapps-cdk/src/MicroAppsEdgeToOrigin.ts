@@ -1,7 +1,7 @@
 import { existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Aws, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -279,11 +279,9 @@ replaceHostHeader: ${props.replaceHostHeader}`;
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
 
-    const { stackName } = Stack.of(this);
-
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
-    return new cf.experimental.EdgeFunction(this, `${stackName}-edge-to-apigwy-func`, {
+    return new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
       code: lambda.Code.fromAsset(distPath),
       handler: 'index.handler',
       ...(edgeToOriginFuncProps.functionName

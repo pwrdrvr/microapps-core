@@ -1,4 +1,4 @@
-import { Tags } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 import { IConstruct } from 'constructs';
 import { SharedProps } from './SharedProps';
 import { Env } from './Types';
@@ -16,7 +16,7 @@ export class SharedTags {
       // Note: this value is excluded from the strict S3 deny rules in microapps-cdk,
       // which will allow the TTL deletion lambda in this construct to delete the S3
       // buckets - if these tags do not match then the delete by the lambda will fail.
-      `${shared.stackName}-core${shared.envSuffix}${shared.prSuffix}`,
+      `${Stack.of(construct).stackName}-core${shared.envSuffix}${shared.prSuffix}`,
     );
   }
 

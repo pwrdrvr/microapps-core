@@ -1,7 +1,6 @@
 {
   "app": "npx ts-node --project packages/cdk/tsconfig.json  --prefer-ts-exts packages/cdk/bin/cdk.ts",
   "context": {
-    "@pwrdrvr/microapps:stackName": "microapps-ghpublic",
     "@pwrdrvr/microapps:r53ZoneName": "ghpublic.pwrdrvr.com.",
     "@pwrdrvr/microapps:r53ZoneID": "Z005084420J9MD9JNBCUK",
     "@pwrdrvr/microapps:certIDEdge": "f0c4b317-8453-4bfa-b21b-b219bda53b45",
