@@ -162,6 +162,22 @@ jobs:
             echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
           fi
 
+      - name: Synth CDK Stack
+        run: npx cdk synth --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployNexjsDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true ${HOTSWAP_FLAG} --require-approval never ${{ matrix.deployName }}
+
+      # Upload Synth
+      - name: Zip Package
+        working-directory: .
+        run: zip -r cdk-out.zip cdk.out
+      - name: Upload Zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: cdk_out
+          path: cdk-out.zip
+
+      - name: Diff CDK Stack
+        run: npx cdk diff --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployNexjsDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true ${HOTSWAP_FLAG} --require-approval never ${{ matrix.deployName }}
+
       - name: Deploy CDK Stack
         run: npx cdk deploy --context @pwrdrvr/microapps:stackName=${{ matrix.deployName }}-ghpublic --context @pwrdrvr/microapps:deployDemoApp=true --context @pwrdrvr/microapps:deployNexjsDemoApp=true --context @pwrdrvr/microapps:deployReleaseApp=true ${HOTSWAP_FLAG} --require-approval never ${{ matrix.deployName }}
 
