@@ -155,10 +155,11 @@ jobs:
           fi
 
       - name: Synth CDK Stack
-        run: npx cdk synth --context @pwrdrvr/microapps:deployDemoApp=true \
-          --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
-          --context @pwrdrvr/microapps:deployReleaseApp=true \
-          --require-approval never ${{ matrix.deployName }}
+        run: |
+          npx cdk synth --context @pwrdrvr/microapps:deployDemoApp=true \
+            --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
+            --context @pwrdrvr/microapps:deployReleaseApp=true \
+            --require-approval never ${{ matrix.deployName }}
 
       # Upload Synth
       - name: Zip Package
@@ -171,16 +172,18 @@ jobs:
           path: cdk-out.zip
 
       - name: Diff CDK Stack
-        run: npx cdk diff --context @pwrdrvr/microapps:deployDemoApp=true \
-          --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
-          --context @pwrdrvr/microapps:deployReleaseApp=true \
-          --require-approval never ${{ matrix.deployName }}
+        run: |
+          npx cdk diff --context @pwrdrvr/microapps:deployDemoApp=true \
+            --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
+            --context @pwrdrvr/microapps:deployReleaseApp=true \
+            --require-approval never ${{ matrix.deployName }}
 
       - name: Deploy CDK Stack
-        run: npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true \
-          --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
-          --context @pwrdrvr/microapps:deployReleaseApp=true \
-          --require-approval never ${{ matrix.deployName }}
+        run: |
+          npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true \
+            --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
+            --context @pwrdrvr/microapps:deployReleaseApp=true \
+            --require-approval never ${{ matrix.deployName }}
 
       - name: Get CDK Exports
         id: getCDKExports
