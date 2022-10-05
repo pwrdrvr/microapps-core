@@ -293,11 +293,10 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
     return new cf.experimental.EdgeFunction(this, `edge-to-apigwy-func-${this.hashStackName()}`, {
+      stackId: `microapps-edge-to-origin-${this.hashStackName()}`,
       code: lambda.Code.fromAsset(distPath),
+      functionName: `microapps-edge-to-origin-${this.hashStackName()}`,
       handler: 'index.handler',
-      ...(edgeToOriginFuncProps.functionName
-        ? { stackId: edgeToOriginFuncProps.functionName }
-        : {}),
       ...edgeToOriginFuncProps,
     });
   }
