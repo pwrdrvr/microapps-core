@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -292,12 +292,19 @@ replaceHostHeader: ${props.replaceHostHeader}`;
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
-    return new cf.experimental.EdgeFunction(this, `edge-to-apigwy-func-${this.hashStackName()}`, {
-      stackId: `microapps-edge-to-origin-${this.hashStackName()}`,
-      code: lambda.Code.fromAsset(distPath),
-      functionName: `microapps-edge-to-origin-${this.hashStackName()}`,
-      handler: 'index.handler',
-      ...edgeToOriginFuncProps,
-    });
+    const edge = new cf.experimental.EdgeFunction(
+      this,
+      `edge-to-apigwy-func-${this.hashStackName()}`,
+      {
+        stackId: `microapps-edge-to-origin-${this.hashStackName()}`,
+        code: lambda.Code.fromAsset(distPath),
+        functionName: `microapps-edge-to-origin-${this.hashStackName()}`,
+        handler: 'index.handler',
+        ...edgeToOriginFuncProps,
+      },
+    );
+    Tags.of(edge).add('Name', Stack.of(this).stackName);
+
+    return edge;
   }
 }
