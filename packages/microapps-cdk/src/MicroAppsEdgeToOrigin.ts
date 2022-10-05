@@ -1,7 +1,8 @@
+import * as crypto from 'crypto';
 import { existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -272,6 +273,16 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     ];
   }
 
+  /**
+   * Hash the stack name to make the EdgeFunction parameter name unique
+   *
+   * @param stack
+   * @returns
+   */
+  private hashStackName(): string {
+    return crypto.createHash('sha1').update(Stack.of(this).stackName).digest('hex').substring(0, 8);
+  }
+
   private createEdgeFunction(
     distPath: string,
     edgeToOriginConfigYaml: string,
@@ -281,7 +292,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
-    return new cf.experimental.EdgeFunction(this, 'edge-to-apigwy-func', {
+    return new cf.experimental.EdgeFunction(this, `edge-to-apigwy-func-${this.hashStackName()}`, {
       code: lambda.Code.fromAsset(distPath),
       handler: 'index.handler',
       ...(edgeToOriginFuncProps.functionName

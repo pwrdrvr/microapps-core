@@ -261,7 +261,7 @@ describe('MicroApps', () => {
         constructsvcstable0311CF05: {
           Type: 'AWS::DynamoDB::Table',
         },
-        constructedgeToOriginedgetoapigwyfuncFn10C0FCC9: {
+        constructedgeToOriginedgetoapigwyfuncb26dc72dFn6A5A3CC7: {
           Type: 'AWS::Lambda::Function',
         },
         constructsvcsdeployerfunc88CC1526: {
