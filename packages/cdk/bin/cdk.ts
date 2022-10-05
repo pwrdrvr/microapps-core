@@ -16,8 +16,6 @@ const env: Environment = {
   account: shared.account,
 };
 
-SharedTags.addSharedTags(app, { shared });
-
 new MicroAppsStack(app, 'microapps-core', {
   env,
   stackName: `microapps-core-ghpublic${shared.envSuffix}${shared.prSuffix}`,

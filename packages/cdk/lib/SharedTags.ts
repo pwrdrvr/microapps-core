@@ -8,15 +8,14 @@ interface SharedTagsProps {
 }
 
 export class SharedTags {
-  public static addSharedTags(construct: IConstruct, props: SharedTagsProps): void {
-    const { shared } = props;
+  public static addSharedTags(construct: IConstruct): void {
     Tags.of(construct).add('repository', 'https://github.com/pwrdrvr/microapps-core/');
     Tags.of(construct).add(
       'application',
       // Note: this value is excluded from the strict S3 deny rules in microapps-cdk,
       // which will allow the TTL deletion lambda in this construct to delete the S3
       // buckets - if these tags do not match then the delete by the lambda will fail.
-      `${Stack.of(construct).stackName}-core${shared.envSuffix}${shared.prSuffix}`,
+      `${Stack.of(construct).stackName}`,
     );
   }
 
