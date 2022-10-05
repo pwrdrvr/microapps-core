@@ -1,28 +1,22 @@
 import { Stack, Tags } from 'aws-cdk-lib';
-import { IConstruct } from 'constructs';
-import { SharedProps } from './SharedProps';
 import { Env } from './Types';
 
-interface SharedTagsProps {
-  shared: SharedProps;
-}
-
 export class SharedTags {
-  public static addSharedTags(construct: IConstruct): void {
-    Tags.of(construct).add('repository', 'https://github.com/pwrdrvr/microapps-core/');
-    Tags.of(construct).add(
+  public static addSharedTags(stack: Stack): void {
+    Tags.of(stack).add('repository', 'https://github.com/pwrdrvr/microapps-core/');
+    Tags.of(stack).add(
       'application',
       // Note: this value is excluded from the strict S3 deny rules in microapps-cdk,
-      // which will allow the TTL deletion lambda in this construct to delete the S3
+      // which will allow the TTL deletion lambda in this stack to delete the S3
       // buckets - if these tags do not match then the delete by the lambda will fail.
-      `${Stack.of(construct).stackName}`,
+      `${stack.stackName}`,
     );
   }
 
-  public static addEnvTag(construct: IConstruct, env: Env | '', isEphemeral: boolean): void {
-    if (env !== '' && env !== undefined) Tags.of(construct).add('environment', env);
+  public static addEnvTag(stack: Stack, env: Env | '', isEphemeral: boolean): void {
+    if (env !== '' && env !== undefined) Tags.of(stack).add('environment', env);
     if (isEphemeral) {
-      Tags.of(construct).add('ephemeral', 'true');
+      Tags.of(stack).add('ephemeral', 'true');
       // Note: a dynamic timestamp tag causes all dependency stacks
       // to redeploy to update the timestamp tag, which takes forever with
       // CloudFront.  It may be possible to preserve this in `cdk.context.json`

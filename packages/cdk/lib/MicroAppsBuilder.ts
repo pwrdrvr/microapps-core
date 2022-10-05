@@ -28,10 +28,10 @@ export class MicroAppsBuilder extends Stack {
 
     const { shared } = props;
 
-    SharedTags.addSharedTags(this);
+    SharedTags.addSharedTags(Stack.of(this));
 
     // This stack is deployed manually once per env, it's never a temp stack
-    SharedTags.addEnvTag(this, shared.env, false);
+    SharedTags.addEnvTag(Stack.of(this), shared.env, false);
 
     const nameRoot = Stack.of(this).stackName;
 
