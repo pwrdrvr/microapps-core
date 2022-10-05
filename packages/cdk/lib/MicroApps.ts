@@ -8,6 +8,7 @@ import { DemoApp } from './DemoApp';
 import { Env } from './Types';
 import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
 import { MicroAppsAppNextjsDemo } from '@pwrdrvr/microapps-app-nextjs-demo-cdk';
+import { SharedTags } from './SharedTags';
 
 /**
  * Properties to initialize an instance of `MicroAppsStack`.
@@ -144,6 +145,8 @@ export class MicroAppsStack extends Stack {
     if (props === undefined) {
       throw new Error('props must be set');
     }
+
+    SharedTags.addSharedTags(this);
 
     const {
       ttl,

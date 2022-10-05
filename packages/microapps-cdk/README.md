@@ -68,7 +68,7 @@ For development / testing purposes only, each version of an applicaton can be ac
 - `./deploy.sh`
   - Deploys the CDK Stack
   - Essentially runs two commands along with extraction of outputs:
-    - `npx cdk deploy --context @pwrdrvr/microapps:stackName=microapps-demo-deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic`
+    - `npx cdk deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic`
     - `npx microapps-publish publish -a release -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache`
   - URL will be printed as last output
 

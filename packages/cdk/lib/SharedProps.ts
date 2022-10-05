@@ -51,11 +51,6 @@ export class SharedProps {
     return true;
   }
 
-  private _stackName: string;
-  public get stackName(): string {
-    return this._stackName;
-  }
-
   private _domainName: string;
   public get domainName(): string {
     return this._domainName;
@@ -140,7 +135,6 @@ export class SharedProps {
       scope.node.tryGetContext('@pwrdrvr/microapps:account') ?? process.env.CDK_DEFAULT_ACCOUNT;
     this._region =
       scope.node.tryGetContext('@pwrdrvr/microapps:region') ?? process.env.CDK_DEFAULT_REGION;
-    this._stackName = scope.node.tryGetContext('@pwrdrvr/microapps:stackName') ?? 'microapps';
     this._deployDemoApp =
       SharedProps.stringToBoolOrUndefined(
         scope.node.tryGetContext('@pwrdrvr/microapps:deployDemoApp'),
