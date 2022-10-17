@@ -89,7 +89,6 @@ describe('router - with prefix', () => {
 
     expect(response).toHaveProperty('statusCode');
     expect(response.statusCode).toBe(404);
-    expect(response).toBeDefined();
-    expect(response).not.toHaveProperty('body');
+    expect(response.errorMessage).toBe('Request not routable');
   });
 });
