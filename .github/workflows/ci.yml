@@ -28,7 +28,7 @@ jobs:
       releaseAppPackageVersion: ${{ steps.appVersions.outputs.releaseAppPackageVersion }}
       nextjsDemoAppPackageVersion: ${{ steps.appVersions.outputs.nextjsDemoAppPackageVersion }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Compute PR Suffix
         id: prSuffix
@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: Use Node.js 16
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'yarn'
@@ -99,7 +99,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Extract Current NPM Version
         run: |
@@ -118,7 +118,7 @@ jobs:
           fi
 
       - name: Use Node.js 16
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'yarn'
@@ -164,7 +164,7 @@ jobs:
         working-directory: .
         run: zip -r cdk-out.zip cdk.out
       - name: Upload Zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: cdk_out_${{ matrix.deployName }}
           path: cdk-out.zip
@@ -250,7 +250,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Extract Current NPM Version
         run: |
@@ -264,7 +264,7 @@ jobs:
           echo 'DEMO_APP_LAMBDA_NAME=microapps-ghpublic-app-'${DEMO_APP_NAME}-${NODE_ENV}${{ needs.build.outputs.prSuffix }} >> $GITHUB_ENV
 
       - name: Use Node.js 16
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'yarn'
@@ -298,10 +298,10 @@ jobs:
   build-jsii:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'yarn'
