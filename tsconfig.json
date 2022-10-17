@@ -17,7 +17,10 @@
       "path": "packages/microapps-router/"
     },
     {
-      "path": "packages/microapps-edge-to-origin/",
+      "path": "packages/microapps-router-lib/"
+    },
+    {
+      "path": "packages/microapps-edge-to-origin/"
     },
     {
       "path": "packages/microapps-cdk/"
