@@ -977,6 +977,16 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 
 ---
 
+##### `tableRules`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.tableRules"></a>
+
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+
+DynamoDB Table apps/versions/rules.
+
+Implies that 2nd generation routing is enabled.
+
+---
+
 ### MicroAppsProps <a name="@pwrdrvr/microapps-cdk.MicroAppsProps"></a>
 
 Properties to initialize an instance of `MicroApps`.

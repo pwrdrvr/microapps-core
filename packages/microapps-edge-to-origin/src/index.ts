@@ -9,12 +9,13 @@ import { Sha256 } from '@aws-crypto/sha256-browser';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
+export { IConfigFile } from './config/config';
 import Log from './lib/log';
 
 const log = Log.Instance;
 const config = Config.instance;
 
-log.info('loading config', { config });
+log.info('loaded config', { config });
 
 // TODO: get the target region from the config file
 const dynamoClient = config.tableName

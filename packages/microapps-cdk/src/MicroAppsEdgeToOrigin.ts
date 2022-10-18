@@ -1,7 +1,8 @@
 import * as crypto from 'crypto';
-import { existsSync, writeFileSync } from 'fs';
+import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import type { IConfigFile } from '@pwrdrvr/microapps-edge-to-origin';
 import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -108,12 +109,13 @@ export interface MicroAppsEdgeToOriginProps {
   readonly tableRules?: dynamodb.ITable;
 }
 
-export interface GenerateEdgeToOriginConfigOptions {
-  readonly originRegion: string;
-  readonly signingMode: 'sign' | 'presign' | '';
-  readonly addXForwardedHostHeader: boolean;
-  readonly replaceHostHeader: boolean;
-}
+// export interface GenerateEdgeToOriginConfigOptions {
+//   readonly originRegion: string;
+//   readonly signingMode: 'sign' | 'presign' | '';
+//   readonly addXForwardedHostHeader: boolean;
+//   readonly replaceHostHeader: boolean;
+//   readonly tableName: string;
+// }
 
 /**
  * Create a new MicroApps Edge to Origin Function w/ `config.yml`
@@ -124,7 +126,7 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
    * @param props
    * @returns
    */
-  public static generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions) {
+  public static generateEdgeToOriginConfig(props: IConfigFile) {
     return `originRegion: ${props.originRegion}
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
@@ -165,6 +167,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
+      ...(tableRules ? { tableName: tableRules?.tableName } : {}),
     });
 
     //
@@ -239,7 +242,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       // 2022-07-30 - Does this actually get used at all anymore?
 
       // 2022-10-02 - This is broken - it's emitting a config file but then
-      // usinga different config file in the bundling below.
+      // using a different config file in the bundling below.
       // This may be ok if this is only used for the construct packaging
       // as the consuming stack should select a different above which will
       // use the correct config file.
@@ -247,6 +250,12 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
         edgeToOriginConfigYaml,
+      );
+
+      // Copy the appFrame.html to the place where the bundling will find it
+      copyFileSync(
+        path.join(__dirname, 'packages', 'microapps-router', 'appFrame.html'),
+        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'appFrame.html'),
       );
 
       // This builds the function for distribution with the CDK Construct

@@ -45,6 +45,11 @@ export interface IConfig {
   readonly tableName: string;
 }
 
+/**
+ * Config fields written to the edge-to-origin config.yml file
+ */
+export type IConfigFile = Partial<Omit<IConfig, 'awsAccountID' | 'awsRegion'>>;
+
 @convict.Config({
   // optional default file to load, no errors if it doesn't exist
   file: 'config.yml', // relative to NODE_PATH or cwd()
