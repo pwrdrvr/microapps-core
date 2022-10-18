@@ -148,7 +148,7 @@ export default class DeployClient {
    */
   public static async DeployVersion(opts: {
     config: IConfig;
-    appType: 'lambda' | 'static';
+    appType: 'lambda' | 'static' | 'lambda-url' | 'url';
     overwrite: boolean;
     output: (message: string) => void;
   }): Promise<void> {
@@ -159,7 +159,7 @@ export default class DeployClient {
       appName: config.app.name,
       semVer: config.app.semVer,
       defaultFile: config.app.defaultFile,
-      lambdaARN: appType === 'lambda' ? config.app.lambdaARN : undefined,
+      lambdaARN: ['lambda', 'lambda-url'].includes(appType) ? config.app.lambdaARN : undefined,
       overwrite,
     } as IDeployVersionRequest;
     const response = await this._client.send(

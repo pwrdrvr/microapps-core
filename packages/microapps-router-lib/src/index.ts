@@ -27,22 +27,22 @@ export interface IGetRouteResult {
   /**
    * HTTP status code for immediate response, immediate redirect, and errors
    */
-  statusCode?: number;
+  readonly statusCode?: number;
 
   /**
    * Error message for errors
    */
-  errorMessage?: string;
+  readonly errorMessage?: string;
 
   /**
    * Location to redirect to
    */
-  redirectLocation?: string;
+  readonly redirectLocation?: string;
 
   /**
    * Optional headers for immediate response, immediate redirect, and errors
    */
-  headers?: Record<string, string>;
+  readonly headers?: Record<string, string>;
 
   /**
    *
@@ -51,21 +51,21 @@ export interface IGetRouteResult {
    * @example /myapp/1.0.1
    * @example /myapp/1.0.2/some/path?query=string
    */
-  iFrameAppVersionPath?: string;
+  readonly iFrameAppVersionPath?: string;
 }
 
 export interface IGetRouteEvent {
-  dbManager: DBManager;
+  readonly dbManager: DBManager;
 
   /**
    * rawPath from the Lambda event
    */
-  rawPath: string;
+  readonly rawPath: string;
 
   /**
    * Configured prefix of the deployment, must start with a / and not end with a /
    */
-  normalizedPathPrefix?: string;
+  readonly normalizedPathPrefix?: string;
 }
 
 /**

@@ -63,7 +63,7 @@ export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBas
  */
 export interface IDeployVersionRequest extends IDeployVersionRequestBase {
   readonly type: 'deployVersion';
-  readonly appType?: 'lambda' | 'static';
+  readonly appType?: 'lambda' | 'lambda-url' | 'url' | 'static';
   readonly lambdaARN?: string;
   readonly defaultFile: string;
 }

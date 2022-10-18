@@ -13,7 +13,7 @@ export type VersionStatus =
   | 'routed'
   | 'deployed';
 
-export type AppTypes = 'static' | 'lambda';
+export type AppTypes = 'static' | 'lambda' | 'lambda-url' | 'url';
 
 /**
  * Represents a Version Record
@@ -23,12 +23,41 @@ export interface IVersionRecord {
   SK: string;
   AppName: string;
   SemVer: string;
-  Type: 'lambda' | 'static';
+  /**
+   * @enum {string} static - Files only
+   * @enum {string} lambda - Lambda integrated via API Gateway
+   * @enum {string} lambda-url - Lambda integrated via Function URL w/IAM Auth
+   * @enum {string} url - Other URL without IAM Auth
+   */
+  Type: AppTypes;
+  /**
+   * @enum {string} pending - Version is being created
+   * @enum {string} assets-copied - Version assets have been copied to S3
+   * @enum {string} permissioned - API Gatewy - Permissions to invoke have been granted
+   * @enum {string} integrated - API Gateway - Lambda integration has been created
+   * @enum {string} routed - API Gateway - Lambe integration has been added to routes
+   * @enum {string} deployed - Version has been fully deployed
+   */
   Status: VersionStatus;
   DefaultFile: string;
+  /**
+   * API Gateway (type=lambda) only
+   */
   IntegrationID: string;
+  /**
+   * API Gateway (type=lambda) only
+   */
   RouteIDAppVersion: string;
+  /**
+   * API Gateway (type=lambda) only
+   */
   RouteIDAppVersionSplat: string;
+  /**
+   * Lambda Function URL (type=lambda-url) or URL (type=url) only
+   * @example https://[lambda-url-id].lambda-url.us-east-1.on.aws/
+   * @example https://www.example.com/
+   */
+  URL: string;
 }
 
 export type IVersionRecordNoKeysLoose = Partial<
@@ -123,9 +152,12 @@ export class Version implements IVersionRecord {
   private _type: AppTypes | undefined;
   private _status: VersionStatus;
   private _defaultFile: string;
+  // API Gateway Integration Properties
   private _integrationID: string;
   private _routeIDAppVersion: string;
   private _routeIDAppVersionSplat: string | undefined;
+  // Lambda URL and URL Properties
+  private _url: string;
 
   public constructor(init?: Partial<IVersionRecordNoKeysLoose>) {
     this._keyBy = SaveBy.AppName;
@@ -134,6 +166,7 @@ export class Version implements IVersionRecord {
     this._integrationID = '';
     this._routeIDAppVersion = '';
     this._routeIDAppVersionSplat = '';
+    this._url = '';
 
     // Save any passed in values over the defaults
     Object.assign(this, init);
@@ -151,6 +184,7 @@ export class Version implements IVersionRecord {
       IntegrationID: this.IntegrationID,
       RouteIDAppVersion: this.RouteIDAppVersion,
       RouteIDAppVersionSplat: this.RouteIDAppVersionSplat,
+      URL: this.URL,
     };
   }
 
@@ -232,5 +266,12 @@ export class Version implements IVersionRecord {
   }
   public set RouteIDAppVersionSplat(value: string) {
     this._routeIDAppVersionSplat = value;
+  }
+
+  public get URL(): string {
+    return this._url as string;
+  }
+  public set URL(value: string) {
+    this._url = value;
   }
 }

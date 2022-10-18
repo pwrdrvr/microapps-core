@@ -16,6 +16,7 @@ describe('config', () => {
       addXForwardedHostHeader: true,
       replaceHostHeader: true,
       signingMode: 'sign',
+      tableName: 'microapps',
     };
     const loader = new TSConvict<Config>(Config);
     const config = loader.load(rawConfig);

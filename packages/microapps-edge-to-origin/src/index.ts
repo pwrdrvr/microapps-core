@@ -2,9 +2,11 @@ import 'source-map-support/register';
 // Used by ts-convict
 import 'reflect-metadata';
 import type * as lambda from 'aws-lambda';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { Sha256 } from '@aws-crypto/sha256-browser';
+import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
 import Log from './lib/log';
@@ -15,6 +17,15 @@ const config = Config.instance;
 log.info('loading config', { config });
 
 // TODO: get the target region from the config file
+const dynamoClient = config.tableName
+  ? new DynamoDBClient({
+      maxAttempts: 8,
+    })
+  : undefined;
+const dbManager =
+  config.tableName && dynamoClient
+    ? new DBManager({ dynamoClient, tableName: config.tableName })
+    : undefined;
 
 // NOTE: signing requires that we know the target region so R53 names with balancing
 // across regions is not supported.  We could instead modify the target
@@ -55,21 +66,50 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       ];
     }
 
+    // Get the target if using direct to version routing
+    // This can use API Gateway per app or Lambda per version
+    // or ALBs or whatever you want (but it assumes IAM auth).
+    let originHost = request.origin?.custom?.domainName;
+    if (dbManager) {
+      // We've got a table name to lookup targets
+      const appName = 'release';
+      const semVer = '0.3.4';
+
+      // If there is no version in the path, then we need to get the default version
+      // from the rules
+      const rules = await Rules.Load({ dbManager, key: { AppName: appName } });
+
+      // Lookup the URL for this specific version (or fall through to API Gateway)
+      const version = await Version.LoadVersion({
+        dbManager,
+        key: { AppName: appName, SemVer: semVer },
+      });
+
+      originHost = 'TODO';
+    }
+
+    // Can't do anything without an origin
+    if (!originHost) {
+      log.error('No origin found', { request });
+      return {
+        status: '404',
+        statusDescription: 'Origin Domain Missing',
+      };
+    }
+
     // Replace the Host header with the target origin host
     // This prevents API Gateway and Function URLs from rejecting
     // the request when the OriginRequestPolicy is forwarding all
     // headers to the origin
-    if (config.replaceHostHeader && request.origin?.custom?.domainName) {
-      request.headers['host'] = [{ key: 'host', value: request.origin.custom.domainName }];
+    if (config.tableName || (config.replaceHostHeader && originHost)) {
+      request.headers['host'] = [{ key: 'host', value: originHost }];
     }
 
     // Lambda Function URLs cannot have a custom domain name
     // Function URLs will always contain `.lambda-url.`
     // API Gateway URLs can contain '.execute-api.' but will not
     // when customized, so we can only rely on the Lambda URL check.
-    const signer = request.origin?.custom?.domainName.includes('.lambda-url.')
-      ? lambdaSigner
-      : executeApiSigner;
+    const signer = originHost.includes('.lambda-url.') ? lambdaSigner : executeApiSigner;
     if (config.signingMode === 'sign') {
       log.info('signing request');
       const signedRequest = await signRequest(request, context, signer);

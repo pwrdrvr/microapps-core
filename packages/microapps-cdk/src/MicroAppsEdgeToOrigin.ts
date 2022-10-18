@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -98,6 +99,13 @@ export interface MicroAppsEdgeToOriginProps {
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * DynamoDB Table apps/versions/rules.
+   *
+   * Implies that 2nd generation routing is enabled.
+   */
+  readonly tableRules?: dynamodb.ITable;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -141,13 +149,14 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     }
 
     const {
-      removalPolicy,
+      addXForwardedHostHeader = true,
       assetNameRoot,
       assetNameSuffix,
-      signingMode = 'sign',
-      addXForwardedHostHeader = true,
-      replaceHostHeader = true,
       originRegion,
+      signingMode = 'sign',
+      removalPolicy,
+      replaceHostHeader = true,
+      tableRules,
     } = props;
 
     // Create the edge function config file from the construct options
@@ -186,6 +195,16 @@ replaceHostHeader: ${props.replaceHostHeader}`;
           //   // TODO: Set this to a string unique to each stack
           //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
           // },
+        }),
+        //
+        // Grant permission to invoke tagged Function URLs
+        //
+        new iam.PolicyStatement({
+          actions: ['lambda:InvokeFunctionUrl'],
+          resources: [`arn:aws:lambda:*:${Aws.ACCOUNT_ID}:*`],
+          conditions: {
+            StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+          },
         }),
       ],
       ...(removalPolicy ? { removalPolicy } : {}),
@@ -271,6 +290,12 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         includeBody: true,
       },
     ];
+
+    // Grant access to the rules table
+    if (tableRules) {
+      tableRules.grantReadData(this._edgeToOriginFunction);
+      tableRules.grant(this._edgeToOriginFunction, 'dynamodb:DescribeTable');
+    }
   }
 
   /**

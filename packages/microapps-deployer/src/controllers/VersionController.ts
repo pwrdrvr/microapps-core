@@ -187,7 +187,6 @@ export default class VersionController {
       // Save record with pending status
       await record.Save(dbManager);
     }
-
     // Only copy the files if not copied yet
     if (overwrite || record.Status === 'pending') {
       const { stagingBucket } = config.filestore;
@@ -210,6 +209,9 @@ export default class VersionController {
       await record.Save(dbManager);
     }
 
+    //
+    // BEGING: Type-specific handling
+    //
     if (appType === 'lambda') {
       // TODO: Confirm the Lambda Function exists
 
@@ -395,13 +397,66 @@ export default class VersionController {
         record.Status = 'routed';
         await record.Save(dbManager);
       }
-    } else {
+    } else if (appType === 'lambda-url') {
+      if (overwrite || record.Status === 'assets-copied') {
+        // Check if the lambda function has the microapp-managed tag
+        const tags = await lambdaClient.send(
+          new lambda.ListTagsCommand({
+            Resource: request.lambdaARN,
+          }),
+        );
+        // Add the tag if it is missing
+        if (tags.Tags === undefined || tags.Tags['microapp-managed'] !== 'true') {
+          await lambdaClient.send(
+            new lambda.TagResourceCommand({
+              Resource: request.lambdaARN,
+              Tags: {
+                'microapp-managed': 'true',
+              },
+            }),
+          );
+        }
+
+        record.Status = 'permissioned';
+        await record.Save(dbManager);
+      }
+
+      if (overwrite || record.Status === 'permissioned') {
+        let url: string | undefined = undefined;
+        const functionUrl = await lambdaClient.send(
+          new lambda.GetFunctionUrlConfigCommand({
+            FunctionName: request.lambdaARN,
+          }),
+        );
+        // Create the FunctionUrl if it doesn't already exist
+        if (functionUrl.FunctionUrl) {
+          url = functionUrl.FunctionUrl;
+        } else if (!functionUrl.FunctionUrl) {
+          const functionUrlNew = await lambdaClient.send(
+            new lambda.CreateFunctionUrlConfigCommand({
+              FunctionName: request.lambdaARN,
+              AuthType: 'AWS_IAM',
+            }),
+          );
+          url = functionUrlNew.FunctionUrl;
+        }
+
+        // Update the status - Final status
+        record.Status = 'routed';
+        if (url) {
+          record.URL = url;
+        }
+        await record.Save(dbManager);
+      }
+    } else if (appType === 'static') {
       // static app
       if (record.Status === 'assets-copied') {
         // Update the status - Final status
         record.Status = 'routed';
         await record.Save(dbManager);
       }
+    } else {
+      throw new Error(`Unknown app type: ${appType}`);
     }
 
     // Check if there are any release rules
@@ -546,7 +601,12 @@ export default class VersionController {
             });
           }
         }
+
+        // TODO: Remove the Alias from the Lambda Function
       }
+    } else if (record.Type === 'lambda-url') {
+      // TODO: Remove the Function URL and Alias from the Lambda Function
+      throw new Error('Not implemented');
     }
 
     // Delete DynamoDB record

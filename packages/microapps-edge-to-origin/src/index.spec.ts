@@ -11,6 +11,7 @@ const theConfig: Writeable<IConfig> = {
   originRegion: 'us-west-1',
   replaceHostHeader: false,
   signingMode: 'sign',
+  tableName: '',
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
@@ -191,6 +192,10 @@ describe('handler', () => {
         ],
       },
       method: 'GET',
+      origin: {
+        // @ts-expect-error do not need full object for this test
+        custom: { domainName: 'random-but-account-specific-name.lambda-url.us-east-2.on.aws' },
+      },
       querystring: 'param1=value1&param2=value2',
       uri: '/test/test.html',
     };
@@ -249,6 +254,10 @@ describe('handler', () => {
       method: 'GET',
       querystring: 'param1=value1&param2=value2',
       uri: '/test/test.html',
+      origin: {
+        // @ts-expect-error do not need full object for this test
+        custom: { domainName: 'random-but-account-specific-name.lambda-url.us-east-2.on.aws' },
+      },
     };
 
     const signedRequest = await handler(
@@ -306,6 +315,10 @@ describe('handler', () => {
       method: 'GET',
       querystring: 'param1=value1&param2=value2',
       uri: '/test/test.html',
+      origin: {
+        // @ts-expect-error do not need full object for this test
+        custom: { domainName: 'random-but-account-specific-name.lambda-url.us-east-2.on.aws' },
+      },
     };
 
     const unsignedRequest = await handler(

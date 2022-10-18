@@ -9,10 +9,40 @@ import { FilesExist } from '../lib/files-exist';
 export interface IConfig {
   readonly awsAccountID: number;
   readonly awsRegion: string;
+
+  /**
+   * AWS Origin Region for signing requests with SigV4
+   */
   readonly originRegion: string;
+
+  /**
+   * SigV4 signing mode for origin requests
+   */
   readonly signingMode: 'sign' | 'presign' | '';
+
+  /**
+   * Add X-Forwarded-Host header with incoming Host header
+   * received by CloudFront
+   */
   readonly addXForwardedHostHeader: boolean;
+
+  /**
+   * Replace the Host header with the origin host to prevent rejection by API Gateway
+   * when forwarding all headers to origin
+   */
   readonly replaceHostHeader: boolean;
+
+  /**
+   * Allow 2nd generation routing by forwarding the request
+   * directly to the Lambda Function URL of the target version,
+   * using the rules in the rules table.
+   *
+   * This resolves issues due to the 300 route limit in API Gateway
+   * and allows optional SEO-friendly routing without iFrames.
+   *
+   * @default none
+   */
+  readonly tableName: string;
 }
 
 @convict.Config({
@@ -117,4 +147,11 @@ export class Config implements IConfig {
     env: 'REPLACE_HOST_HEADER',
   })
   public replaceHostHeader!: boolean;
+
+  @convict.Property({
+    doc: `Allow 2nd generation routing by forwarding the request to the Lambda Function URL of the target version.`,
+    env: 'TABLE_NAME',
+    default: '',
+  })
+  public tableName!: string;
 }

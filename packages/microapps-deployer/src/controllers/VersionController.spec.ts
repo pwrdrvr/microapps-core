@@ -19,6 +19,7 @@ const theConfig: Writeable<IConfig> = {
   },
   uploadRoleName: 'microapps-upload-test-role',
   rootPathPrefix: 'dev',
+  requireIAMAuthorization: true,
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
