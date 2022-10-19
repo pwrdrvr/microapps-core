@@ -646,6 +646,12 @@ const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { .
 
 ---
 
+##### `tableName`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.tableName"></a>
+
+- *Type:* `string`
+
+---
+
 ### MicroAppsAPIGwyProps <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps"></a>
 
 Properties to initialize an instance of `MicroAppsAPIGwy`.

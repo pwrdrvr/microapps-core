@@ -238,14 +238,8 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         edgeToOriginFuncProps,
       );
     } else {
-      // 2022-07-30 - Does this actually get used at all anymore?
-
-      // 2022-10-02 - This is broken - it's emitting a config file but then
-      // using a different config file in the bundling below.
-      // This may be ok if this is only used for the construct packaging
-      // as the consuming stack should select a different above which will
-      // use the correct config file.
-      // Emit the config file from the construct options
+      // This is used when bundling the app and building the CDK module
+      // for distribution.
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
         edgeToOriginConfigYaml,
@@ -282,6 +276,13 @@ replaceHostHeader: ${props.replaceHostHeader}`;
                   'configs',
                   'microapps-edge-to-origin',
                   'config.yml',
+                )} ${outputDir}`,
+                `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
+                  __dirname,
+                  '..',
+                  '..',
+                  'microapps-router',
+                  'appFrame.html',
                 )} ${outputDir}`,
               ];
             },
