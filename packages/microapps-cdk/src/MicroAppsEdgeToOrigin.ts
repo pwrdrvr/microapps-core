@@ -103,9 +103,11 @@ export interface MicroAppsEdgeToOriginProps {
   /**
    * DynamoDB Table apps/versions/rules.
    *
+   * Must be a weak name reference since this stack deploys into US-East-1
+   *
    * Implies that 2nd generation routing is enabled.
    */
-  readonly tableRules?: dynamodb.ITable;
+  readonly table?: dynamodb.ITable;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -127,9 +129,10 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
    */
   public static generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions) {
     return `originRegion: ${props.originRegion}
-${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
+${props.signingMode ? `signingMode: ${props.signingMode}` : ''}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
-replaceHostHeader: ${props.replaceHostHeader}`;
+replaceHostHeader: ${props.replaceHostHeader}
+${props.tableName ? `tableName: ${props.tableName}` : ''}`;
   }
 
   private _edgeToOriginFunction: lambda.Function | cf.experimental.EdgeFunction;
@@ -157,7 +160,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       signingMode = 'sign',
       removalPolicy,
       replaceHostHeader = true,
-      tableRules,
+      table,
     } = props;
 
     // Create the edge function config file from the construct options
@@ -166,7 +169,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
-      ...(tableRules ? { tableName: tableRules?.tableName } : {}),
+      ...(table ? { tableName: table.tableName } : {}),
     });
 
     //
@@ -282,6 +285,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
                   '..',
                   '..',
                   'microapps-router',
+                  'templates',
                   'appFrame.html',
                 )} ${outputDir}`,
               ];
@@ -301,9 +305,9 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     ];
 
     // Grant access to the rules table
-    if (tableRules) {
-      tableRules.grantReadData(this._edgeToOriginFunction);
-      tableRules.grant(this._edgeToOriginFunction, 'dynamodb:DescribeTable');
+    if (table) {
+      table.grantReadData(this._edgeToOriginFunction);
+      table.grant(this._edgeToOriginFunction, 'dynamodb:DescribeTable');
     }
   }
 

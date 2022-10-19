@@ -67,8 +67,12 @@
   "dependencies": {
     "@aws-cdk/aws-apigatewayv2-alpha": "^2.24.1-alpha.0",
     "@aws-cdk/aws-apigatewayv2-authorizers-alpha": "^2.24.1-alpha.0",
-    "@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.24.1-alpha.0"
+    "@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.24.1-alpha.0",
+    "@henrist/cdk-cross-region-params": "^2.0.0"
   },
+  "bundledDependencies": [
+    "@henrist/cdk-cross-region-params"
+  ],
   "keywords": [
     "awscdk",
     "cdk",

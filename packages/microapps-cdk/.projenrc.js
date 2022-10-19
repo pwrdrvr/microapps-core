@@ -47,6 +47,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
 
+  bundledDeps: [
+    '@henrist/cdk-cross-region-params',
+  ],
   devDeps: [
     'esbuild',
     // '@aws-cdk/aws-apigatewayv2-alpha@2.24.1-alpha.0',

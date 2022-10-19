@@ -1,4 +1,5 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { ParameterResource } from '@henrist/cdk-cross-region-params';
+import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as r53 from 'aws-cdk-lib/aws-route53';
@@ -368,6 +369,40 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
     });
+    this._svcs = new MicroAppsSvcs(this, 'svcs', {
+      httpApi: this.apigwy.httpApi,
+      removalPolicy,
+      bucketApps: this._s3.bucketApps,
+      bucketAppsOAI: this._s3.bucketAppsOAI,
+      bucketAppsStaging: this._s3.bucketAppsStaging,
+      assetNameRoot,
+      assetNameSuffix,
+      appEnv,
+      s3PolicyBypassAROAs,
+      s3PolicyBypassPrincipalARNs,
+      s3StrictBucketPolicy,
+      rootPathPrefix,
+      requireIAMAuthorization: signingMode !== 'none',
+      table,
+    });
+
+    // Save table name in us-east-1 region (where the Origin Request Lambda is deployed)
+    const tableNameParamName = `/microapps/${Stack.of(this).stackName}-TableName`;
+    // new CrossRegionParameter(this, 'table-name-param', {
+    //   name: tableNameParamName,
+    //   region: 'us-east-1',
+    //   value: this._svcs.table.tableName,
+    // });
+    const tableParam = new ParameterResource(this, 'TableParam', {
+      nonce: '123',
+      parameterName: tableNameParamName,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      referenceToResource: dynamodb.Table.fromTableName,
+      resource: this._svcs.table,
+      resourceToReference: (resource) => resource.tableName,
+      regions: ['us-east-1'],
+    });
+
     if (signingMode !== 'none' || replaceHostHeader || addXForwardedHostHeader) {
       this._edgeToOrigin = new MicroAppsEdgeToOrigin(this, 'edgeToOrigin', {
         assetNameRoot,
@@ -377,7 +412,7 @@ export class MicroApps extends Construct implements IMicroApps {
         replaceHostHeader,
         originRegion,
         signingMode,
-        tableRules: table,
+        table: tableParam.get(this, 'table'),
       });
     }
     this._cf = new MicroAppsCF(this, 'cft', {
@@ -394,22 +429,6 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       createAPIPathRoute,
       edgeToOriginLambdas: this._edgeToOrigin ? this._edgeToOrigin.edgeToOriginLambdas : undefined,
-    });
-    this._svcs = new MicroAppsSvcs(this, 'svcs', {
-      httpApi: this.apigwy.httpApi,
-      removalPolicy,
-      bucketApps: this._s3.bucketApps,
-      bucketAppsOAI: this._s3.bucketAppsOAI,
-      bucketAppsStaging: this._s3.bucketAppsStaging,
-      assetNameRoot,
-      assetNameSuffix,
-      appEnv,
-      s3PolicyBypassAROAs,
-      s3PolicyBypassPrincipalARNs,
-      s3StrictBucketPolicy,
-      rootPathPrefix,
-      requireIAMAuthorization: signingMode !== 'none',
-      table,
     });
   }
 }
