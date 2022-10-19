@@ -377,6 +377,7 @@ export class MicroApps extends Construct implements IMicroApps {
         replaceHostHeader,
         originRegion,
         signingMode,
+        tableRules: table,
       });
     }
     this._cf = new MicroAppsCF(this, 'cft', {
