@@ -100,6 +100,9 @@
         },
         {
           "exec": "cp -R ../microapps-router/templates lib/microapps-router/"
+        },
+        {
+          "exec": "cp ../microapps-router/templates/* lib/microapps-edge-to-origin/"
         }
       ]
     },

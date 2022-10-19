@@ -247,7 +247,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
 
       // Copy the appFrame.html to the place where the bundling will find it
       copyFileSync(
-        path.join(__dirname, 'packages', 'microapps-router', 'appFrame.html'),
+        path.join(__dirname, '..', '..', 'microapps-router', 'appFrame.html'),
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'appFrame.html'),
       );
 
