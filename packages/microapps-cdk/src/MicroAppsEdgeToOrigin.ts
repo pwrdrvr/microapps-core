@@ -2,7 +2,6 @@ import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import type { IConfigFile } from '@pwrdrvr/microapps-edge-to-origin';
 import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
@@ -109,13 +108,13 @@ export interface MicroAppsEdgeToOriginProps {
   readonly tableRules?: dynamodb.ITable;
 }
 
-// export interface GenerateEdgeToOriginConfigOptions {
-//   readonly originRegion: string;
-//   readonly signingMode: 'sign' | 'presign' | '';
-//   readonly addXForwardedHostHeader: boolean;
-//   readonly replaceHostHeader: boolean;
-//   readonly tableName: string;
-// }
+export interface GenerateEdgeToOriginConfigOptions {
+  readonly originRegion: string;
+  readonly signingMode: 'sign' | 'presign' | '';
+  readonly addXForwardedHostHeader: boolean;
+  readonly replaceHostHeader: boolean;
+  readonly tableName?: string;
+}
 
 /**
  * Create a new MicroApps Edge to Origin Function w/ `config.yml`
@@ -126,7 +125,7 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
    * @param props
    * @returns
    */
-  public static generateEdgeToOriginConfig(props: IConfigFile) {
+  public static generateEdgeToOriginConfig(props: GenerateEdgeToOriginConfigOptions) {
     return `originRegion: ${props.originRegion}
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
