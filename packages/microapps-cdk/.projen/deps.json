@@ -85,10 +85,6 @@
       "type": "build"
     },
     {
-      "name": "@henrist/cdk-cross-region-params",
-      "type": "bundled"
-    },
-    {
       "name": "@aws-cdk/aws-apigatewayv2-alpha",
       "type": "peer"
     },
