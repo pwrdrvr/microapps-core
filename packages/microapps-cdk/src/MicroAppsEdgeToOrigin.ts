@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/indent */
 import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
+import { Aws, Duration, Lazy, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -171,7 +172,15 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
-      ...(tableRulesArn ? { tableName: tableRulesArn } : {}),
+      ...(tableRulesArn
+        ? {
+            tableName: Lazy.string({
+              produce: () => {
+                return tableRulesArn;
+              },
+            }),
+          }
+        : {}),
     });
     const edgeToOriginConfigJson = stack.toJsonString(edgeToOriginConfigYaml);
 
