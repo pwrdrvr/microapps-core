@@ -101,11 +101,13 @@ export interface MicroAppsEdgeToOriginProps {
   readonly originRegion?: string;
 
   /**
-   * DynamoDB Table apps/versions/rules.
+   * DynamoDB Table Name for apps/versions/rules.
+   *
+   * Must be a full ARN as this can be cross region.
    *
    * Implies that 2nd generation routing is enabled.
    */
-  readonly tableRules?: dynamodb.ITable;
+  readonly tableRulesArn?: string;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -157,7 +159,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       signingMode = 'sign',
       removalPolicy,
       replaceHostHeader = true,
-      tableRules,
+      tableRulesArn,
     } = props;
 
     // Create the edge function config file from the construct options
@@ -166,7 +168,7 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
-      ...(tableRules ? { tableName: tableRules?.tableName } : {}),
+      ...(tableRulesArn ? { tableName: tableRulesArn } : {}),
     });
 
     //
@@ -301,7 +303,8 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     ];
 
     // Grant access to the rules table
-    if (tableRules) {
+    if (tableRulesArn) {
+      const tableRules = dynamodb.Table.fromTableArn(this, 'tableRules', tableRulesArn);
       tableRules.grantReadData(this._edgeToOriginFunction);
       tableRules.grant(this._edgeToOriginFunction, 'dynamodb:DescribeTable');
     }

@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
 import * as apigwyAuth from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import { Aws, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Aws, Duration, PhysicalName, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -249,7 +249,9 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     if (props.table === undefined) {
       // Create able if none passed
       this._ownedTable = new dynamodb.Table(this, 'table', {
-        tableName: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : undefined,
+        tableName: assetNameRoot
+          ? `${assetNameRoot}${assetNameSuffix}`
+          : PhysicalName.GENERATE_IF_NEEDED,
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
         partitionKey: {
           name: 'PK',

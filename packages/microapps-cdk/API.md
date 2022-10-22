@@ -983,11 +983,13 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 
 ---
 
-##### `tableRules`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.tableRules"></a>
+##### `tableRulesArn`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.tableRulesArn"></a>
 
-- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+- *Type:* `string`
 
-DynamoDB Table apps/versions/rules.
+DynamoDB Table Name for apps/versions/rules.
+
+Must be a full ARN as this can be cross region.
 
 Implies that 2nd generation routing is enabled.
 
