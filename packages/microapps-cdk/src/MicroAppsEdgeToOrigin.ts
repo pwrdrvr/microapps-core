@@ -132,7 +132,7 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
 replaceHostHeader: ${props.replaceHostHeader}
-${props.tableName ? `tableName: ${props.tableName}` : ''}`;
+${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
   }
 
   private _edgeToOriginFunction: lambda.Function | cf.experimental.EdgeFunction;
@@ -163,6 +163,8 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       tableRulesArn,
     } = props;
 
+    const stack = Stack.of(this);
+
     // Create the edge function config file from the construct options
     const edgeToOriginConfigYaml = MicroAppsEdgeToOrigin.generateEdgeToOriginConfig({
       originRegion: originRegion || Aws.REGION,
@@ -171,6 +173,7 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       signingMode: signingMode === 'none' ? '' : signingMode,
       ...(tableRulesArn ? { tableName: tableRulesArn } : {}),
     });
+    const edgeToOriginConfigJson = stack.toJsonString(edgeToOriginConfigYaml);
 
     //
     // Create the Edge to Origin Function
@@ -224,6 +227,7 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       this._edgeToOriginFunction = this.createEdgeFunction(
         rootDistPath,
         edgeToOriginConfigYaml,
+        edgeToOriginConfigJson,
         edgeToOriginFuncProps,
       );
     } else if (localDistExists) {
@@ -231,6 +235,7 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       this._edgeToOriginFunction = this.createEdgeFunction(
         localDistPath,
         edgeToOriginConfigYaml,
+        edgeToOriginConfigJson,
         edgeToOriginFuncProps,
       );
     } else if (rootDistExists) {
@@ -238,6 +243,7 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       this._edgeToOriginFunction = this.createEdgeFunction(
         rootDistPath,
         edgeToOriginConfigYaml,
+        edgeToOriginConfigJson,
         edgeToOriginFuncProps,
       );
     } else {
@@ -246,6 +252,10 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
         edgeToOriginConfigYaml,
+      );
+      writeFileSync(
+        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.json'),
+        edgeToOriginConfigJson,
       );
 
       // Copy the appFrame.html to the place where the bundling will find it
@@ -279,6 +289,15 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
                   'configs',
                   'microapps-edge-to-origin',
                   'config.yml',
+                )} ${outputDir}`,
+                `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
+                  __dirname,
+                  '..',
+                  '..',
+                  '..',
+                  'configs',
+                  'microapps-edge-to-origin',
+                  'config.json',
                 )} ${outputDir}`,
                 `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
                   __dirname,
@@ -324,9 +343,11 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
   private createEdgeFunction(
     distPath: string,
     edgeToOriginConfigYaml: string,
+    edgeToOriginConfigJson: string,
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
+    writeFileSync(path.join(distPath, 'config.json'), edgeToOriginConfigJson);
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
