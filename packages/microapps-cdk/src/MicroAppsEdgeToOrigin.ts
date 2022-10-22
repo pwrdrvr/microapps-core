@@ -131,7 +131,8 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
     return `originRegion: ${props.originRegion}
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
-replaceHostHeader: ${props.replaceHostHeader}`;
+replaceHostHeader: ${props.replaceHostHeader}
+${props.tableName ? `tableName: ${props.tableName}` : ''}`;
   }
 
   private _edgeToOriginFunction: lambda.Function | cf.experimental.EdgeFunction;
