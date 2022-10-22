@@ -16,12 +16,6 @@ export interface MicroAppsTableProps {
   readonly removalPolicy?: RemovalPolicy;
 
   /**
-   * Application environment, passed as `NODE_ENV`
-   * to the Router and Deployer Lambda functions
-   */
-  readonly appEnv: string;
-
-  /**
    * Optional asset name root
    *
    * @example microapps
@@ -36,14 +30,6 @@ export interface MicroAppsTableProps {
    * @default none
    */
   readonly assetNameSuffix?: string;
-
-  /**
-   * Path prefix on the root of the deployment
-   *
-   * @example dev/
-   * @default none
-   */
-  readonly rootPathPrefix?: string;
 }
 
 /**

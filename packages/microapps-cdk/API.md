@@ -1507,14 +1507,6 @@ import { MicroAppsTableProps } from '@pwrdrvr/microapps-cdk'
 const microAppsTableProps: MicroAppsTableProps = { ... }
 ```
 
-##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.appEnv"></a>
-
-- *Type:* `string`
-
-Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda functions.
-
----
-
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -1541,15 +1533,6 @@ Optional asset name suffix.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
-
----
-
-##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.rootPathPrefix"></a>
-
-- *Type:* `string`
-- *Default:* none
-
-Path prefix on the root of the deployment.
 
 ---
 
