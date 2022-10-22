@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
+import { ParameterResource } from '@henrist/cdk-cross-region-params';
 import * as path from 'path';
 import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
@@ -107,7 +108,7 @@ export interface MicroAppsEdgeToOriginProps {
    *
    * Implies that 2nd generation routing is enabled.
    */
-  readonly table?: dynamodb.ITable;
+  readonly tableParam?: ParameterResource<dynamodb.ITable>;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -160,8 +161,10 @@ ${props.tableName ? `tableName: ${props.tableName}` : ''}`;
       signingMode = 'sign',
       removalPolicy,
       replaceHostHeader = true,
-      table,
+      tableParam,
     } = props;
+
+    const table = tableParam?.get(this, 'table');
 
     // Create the edge function config file from the construct options
     const edgeToOriginConfigYaml = MicroAppsEdgeToOrigin.generateEdgeToOriginConfig({

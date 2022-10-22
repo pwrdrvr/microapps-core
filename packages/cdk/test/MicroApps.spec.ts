@@ -15,7 +15,7 @@ describe('MicroAppsStack', () => {
 
     expect(stack).toBeDefined();
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 5);
     Template.fromStack(stack).hasOutput('edgedomainname', {
       Value: { 'Fn::GetAtt': ['microappscft5FDF8AB8', 'DomainName'] },
       Export: { Name: `${stackName}-edge-domain-name` },
@@ -45,7 +45,7 @@ describe('MicroAppsStack', () => {
 
     expect(stack).toBeDefined();
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 5);
     Template.fromStack(stack).hasOutput('edgedomainname', {
       Value: 'appz.pwrdrvr.com',
       Export: { Name: `${stackName}-edge-domain-name` },

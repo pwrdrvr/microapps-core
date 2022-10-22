@@ -412,7 +412,8 @@ export class MicroApps extends Construct implements IMicroApps {
         replaceHostHeader,
         originRegion,
         signingMode,
-        table: tableParam.get(this, 'table'),
+        // table: tableParam.get(this, 'table'),
+        tableParam,
       });
     }
     this._cf = new MicroAppsCF(this, 'cft', {
