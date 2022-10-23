@@ -25,7 +25,10 @@ const dynamoClient = config.tableName
   : undefined;
 const dbManager =
   config.tableName && dynamoClient
-    ? new DBManager({ dynamoClient, tableName: config.tableName })
+    ? new DBManager({
+        dynamoClient,
+        tableName: `arn:aws:dynamodb:${config.awsRegion}:${config.awsAccountID}:table/${config.tableName}`,
+      })
     : undefined;
 
 // NOTE: signing requires that we know the target region so R53 names with balancing

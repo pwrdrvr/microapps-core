@@ -312,7 +312,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
     if (tableRulesArn) {
       const tableRules = dynamodb.Table.fromTableName(this, 'tableRules', tableRulesArn);
       tableRules.grantReadData(this._edgeToOriginFunction);
-      tableRules.grant(this._edgeToOriginFunction, 'dynamodb:DescribeTable');
     }
   }
 
