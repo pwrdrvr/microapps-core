@@ -74,7 +74,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // Get the target if using direct to version routing
     // This can use API Gateway per app or Lambda per version
     // or ALBs or whatever you want (but it assumes IAM auth).
-    let originHost = request.origin?.custom?.domainName;
+    const originHost = request.origin?.custom?.domainName;
     if (dbManager) {
       // We've got a table name to lookup targets
       const appName = 'release';
@@ -90,7 +90,10 @@ export const handler: lambda.CloudFrontRequestHandler = async (
         key: { AppName: appName, SemVer: semVer },
       });
 
-      originHost = 'TODO';
+      // Dump the info
+      log.info('rules and version', { rules, version, event });
+
+      // originHost = 'TODO';
     }
 
     // Can't do anything without an origin
