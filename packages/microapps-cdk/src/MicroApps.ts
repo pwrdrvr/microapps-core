@@ -250,6 +250,13 @@ export interface MicroAppsProps {
    * @default created by construct
    */
   readonly table?: dynamodb.ITable;
+
+  /**
+   * Pre-set table name for apps/versions/rules
+   *
+   * This is required when using v2 routing
+   */
+  readonly tableNameForEdgeToOrigin?: string;
 }
 
 /**
@@ -345,6 +352,7 @@ export class MicroApps extends Construct implements IMicroApps {
       signingMode = 'sign',
       originRegion,
       table,
+      tableNameForEdgeToOrigin,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -393,7 +401,7 @@ export class MicroApps extends Construct implements IMicroApps {
         replaceHostHeader,
         originRegion,
         signingMode,
-        tableRulesArn: this._svcs.table.tableArn,
+        tableRulesArn: tableNameForEdgeToOrigin || this._svcs.table.tableName,
       });
     }
     this._cf = new MicroAppsCF(this, 'cft', {

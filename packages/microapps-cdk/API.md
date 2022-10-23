@@ -1246,6 +1246,16 @@ Existing table for apps/versions/rules.
 
 ---
 
+##### `tableNameForEdgeToOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.tableNameForEdgeToOrigin"></a>
+
+- *Type:* `string`
+
+Pre-set table name for apps/versions/rules.
+
+This is required when using v2 routing
+
+---
+
 ### MicroAppsS3Props <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props"></a>
 
 Properties to initialize an instance of `MicroAppsS3`.

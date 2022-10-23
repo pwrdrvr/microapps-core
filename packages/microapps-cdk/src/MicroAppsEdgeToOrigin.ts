@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, Lazy, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
+import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -164,8 +164,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       tableRulesArn,
     } = props;
 
-    const stack = Stack.of(this);
-
     // Create the edge function config file from the construct options
     const edgeToOriginConfigYaml = MicroAppsEdgeToOrigin.generateEdgeToOriginConfig({
       originRegion: originRegion || Aws.REGION,
@@ -174,15 +172,10 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       signingMode: signingMode === 'none' ? '' : signingMode,
       ...(tableRulesArn
         ? {
-            tableName: Lazy.string({
-              produce: () => {
-                return tableRulesArn;
-              },
-            }),
+            tableName: tableRulesArn,
           }
         : {}),
     });
-    const edgeToOriginConfigJson = stack.toJsonString(edgeToOriginConfigYaml);
 
     //
     // Create the Edge to Origin Function
@@ -236,7 +229,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       this._edgeToOriginFunction = this.createEdgeFunction(
         rootDistPath,
         edgeToOriginConfigYaml,
-        edgeToOriginConfigJson,
         edgeToOriginFuncProps,
       );
     } else if (localDistExists) {
@@ -244,7 +236,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       this._edgeToOriginFunction = this.createEdgeFunction(
         localDistPath,
         edgeToOriginConfigYaml,
-        edgeToOriginConfigJson,
         edgeToOriginFuncProps,
       );
     } else if (rootDistExists) {
@@ -252,7 +243,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       this._edgeToOriginFunction = this.createEdgeFunction(
         rootDistPath,
         edgeToOriginConfigYaml,
-        edgeToOriginConfigJson,
         edgeToOriginFuncProps,
       );
     } else {
@@ -261,10 +251,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
         edgeToOriginConfigYaml,
-      );
-      writeFileSync(
-        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.json'),
-        edgeToOriginConfigJson,
       );
 
       // Copy the appFrame.html to the place where the bundling will find it
@@ -303,15 +289,6 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
                   __dirname,
                   '..',
                   '..',
-                  '..',
-                  'configs',
-                  'microapps-edge-to-origin',
-                  'config.json',
-                )} ${outputDir}`,
-                `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
-                  __dirname,
-                  '..',
-                  '..',
                   'microapps-router',
                   'appFrame.html',
                 )} ${outputDir}`,
@@ -333,7 +310,7 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
 
     // Grant access to the rules table
     if (tableRulesArn) {
-      const tableRules = dynamodb.Table.fromTableArn(this, 'tableRules', tableRulesArn);
+      const tableRules = dynamodb.Table.fromTableName(this, 'tableRules', tableRulesArn);
       tableRules.grantReadData(this._edgeToOriginFunction);
       tableRules.grant(this._edgeToOriginFunction, 'dynamodb:DescribeTable');
     }
@@ -352,11 +329,9 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
   private createEdgeFunction(
     distPath: string,
     edgeToOriginConfigYaml: string,
-    edgeToOriginConfigJson: string,
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
-    writeFileSync(path.join(distPath, 'config.json'), edgeToOriginConfigJson);
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant

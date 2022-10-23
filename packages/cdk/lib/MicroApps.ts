@@ -250,6 +250,7 @@ export class MicroAppsStack extends Stack {
       rootPathPrefix,
       originRegion,
       table: table.table,
+      tableNameForEdgeToOrigin: `${assetNameRoot}${assetNameSuffix}`,
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,
