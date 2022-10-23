@@ -21,13 +21,14 @@ log.info('loaded config', { config });
 const dynamoClient = config.tableName
   ? new DynamoDBClient({
       maxAttempts: 8,
+      region: config.originRegion,
     })
   : undefined;
 const dbManager =
   config.tableName && dynamoClient
     ? new DBManager({
         dynamoClient,
-        tableName: `arn:aws:dynamodb:${config.awsRegion}:${config.awsAccountID}:table/${config.tableName}`,
+        tableName: config.tableName,
       })
     : undefined;
 
