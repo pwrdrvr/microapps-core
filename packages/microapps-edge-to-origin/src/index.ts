@@ -78,7 +78,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     if (dbManager) {
       // We've got a table name to lookup targets
       const appName = 'release';
-      const semVer = '0.3.4';
+      const semVer = '0.2.4';
 
       // TODO: If there is a verion in the path, bail out of this check
       // (e.g. /app1/0.3.4/...)
