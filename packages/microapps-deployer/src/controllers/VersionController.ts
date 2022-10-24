@@ -427,16 +427,26 @@ export default class VersionController {
 
       if (overwrite || record.Status === 'permissioned') {
         let url: string | undefined = undefined;
-        const functionUrl = await lambdaClient.send(
-          new lambda.GetFunctionUrlConfigCommand({
-            FunctionName: lambdaARNBase,
-            Qualifier: lambdaARNVersion,
-          }),
-        );
+        let functionUrl: lambda.GetFunctionUrlConfigResponse | undefined = undefined;
+        try {
+          functionUrl = await lambdaClient.send(
+            new lambda.GetFunctionUrlConfigCommand({
+              FunctionName: lambdaARNBase,
+              Qualifier: lambdaARNVersion,
+            }),
+          );
+          // Create the FunctionUrl if it doesn't already exist
+          if (functionUrl.FunctionUrl) {
+            url = functionUrl.FunctionUrl;
+          }
+        } catch (error: any) {
+          if (error.name !== 'ResourceNotFoundException') {
+            throw error;
+          }
+        }
+
         // Create the FunctionUrl if it doesn't already exist
-        if (functionUrl.FunctionUrl) {
-          url = functionUrl.FunctionUrl;
-        } else if (!functionUrl.FunctionUrl) {
+        if (!functionUrl?.FunctionUrl) {
           const functionUrlNew = await lambdaClient.send(
             new lambda.CreateFunctionUrlConfigCommand({
               FunctionName: lambdaARNBase,
