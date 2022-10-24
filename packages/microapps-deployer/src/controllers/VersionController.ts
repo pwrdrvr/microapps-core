@@ -400,7 +400,7 @@ export default class VersionController {
     } else if (appType === 'lambda-url') {
       if (overwrite || record.Status === 'assets-copied') {
         // Get base of lambda arn
-        const lambdaARNBase = request.lambdaARN.substring(0, request.lambdaARN.lastIndexOf(':'));
+        const lambdaARNBase = request.lambdaARN?.substring(0, request.lambdaARN.lastIndexOf(':'));
         // Check if the lambda function has the microapp-managed tag
         const tags = await lambdaClient.send(
           new lambda.ListTagsCommand({
