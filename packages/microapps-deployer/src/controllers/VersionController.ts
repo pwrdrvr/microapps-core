@@ -399,17 +399,19 @@ export default class VersionController {
       }
     } else if (appType === 'lambda-url') {
       if (overwrite || record.Status === 'assets-copied') {
+        // Get base of lambda arn
+        const lambdaARNBase = request.lambdaARN.substring(0, request.lambdaARN.lastIndexOf(':'));
         // Check if the lambda function has the microapp-managed tag
         const tags = await lambdaClient.send(
           new lambda.ListTagsCommand({
-            Resource: request.lambdaARN,
+            Resource: lambdaARNBase,
           }),
         );
         // Add the tag if it is missing
         if (tags.Tags === undefined || tags.Tags['microapp-managed'] !== 'true') {
           await lambdaClient.send(
             new lambda.TagResourceCommand({
-              Resource: request.lambdaARN,
+              Resource: lambdaARNBase,
               Tags: {
                 'microapp-managed': 'true',
               },
