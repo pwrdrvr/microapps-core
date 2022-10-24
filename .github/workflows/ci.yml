@@ -83,8 +83,8 @@ jobs:
       matrix:
         deployName:
           - microapps-core
-          - microapps-basic
-          - microapps-basic-prefix
+          # - microapps-basic
+          # - microapps-basic-prefix
     name: deploy-${{ matrix.deployName }}
     concurrency:
       group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -196,7 +196,13 @@ jobs:
 
       - name: Publish Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${DEMO_APP_NAME} -n ${PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${DEMO_APP_LAMBDA_NAME} -s packages/demo-app/static_files -i index.html --overwrite --noCache
+          npx microapps-publish publish -a ${DEMO_APP_NAME} \
+            -t lambda-url \
+            -n ${PACKAGE_VERSION} \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -l ${DEMO_APP_LAMBDA_NAME} \
+            -s packages/demo-app/static_files \
+            -i index.html --overwrite --noCache
 
       - name: Test Demo App
         run: |
@@ -209,7 +215,14 @@ jobs:
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${NEXTJS_DEMO_APP_NAME} -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ --overwrite --noCache
+          npx microapps-publish publish \
+            -t lambda-url \
+            -a ${NEXTJS_DEMO_APP_NAME} \
+            -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ \
+            --overwrite --noCache
 
       - name: Test Nextjs Demo App
         run: |
@@ -224,7 +237,14 @@ jobs:
 
       - name: Publish Release App to MicroApps
         run: |
-          npx microapps-publish publish -a ${RELEASE_APP_NAME} -n ${{ needs.build.outputs.releaseAppPackageVersion }} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ --overwrite --noCache
+          npx microapps-publish publish \
+            -t lambda-url \
+            -a ${RELEASE_APP_NAME} \
+            -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -l ${RELEASE_APP_LAMBDA_NAME} \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ \
+            --overwrite --noCache
 
       - name: Test Release App
         run: |

@@ -80,8 +80,18 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       const appName = 'release';
       const semVer = '0.3.4';
 
-      // If there is no version in the path, then we need to get the default version
-      // from the rules
+      // TODO: If there is a verion in the path, bail out of this check
+      // (e.g. /app1/0.3.4/...)
+
+      // TODO: If there is a version in a cookie for this app and the request is not
+      // for the root of the app, route to the version in the cookie
+
+      // TODO: If the path has a version in a sub-path, route to that version
+      // (e.g. /app1/_next/data/0.3.4/...)
+
+      // TODO: Rules should have the version info denormalized onto each Rule
+      // to make it one hit to the DB to get the target info.
+
       const rules = await Rules.Load({ dbManager, key: { AppName: appName } });
 
       // Lookup the URL for this specific version (or fall through to API Gateway)
@@ -92,6 +102,9 @@ export const handler: lambda.CloudFrontRequestHandler = async (
 
       // Dump the info
       log.info('rules and version', { rules, version, event });
+
+      // TODO: Check the rule - If it points to a Function URL, then change the origin
+      // to the Function URL
 
       // originHost = 'TODO';
     }
