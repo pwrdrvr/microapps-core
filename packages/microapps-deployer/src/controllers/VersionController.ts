@@ -398,9 +398,11 @@ export default class VersionController {
         await record.Save(dbManager);
       }
     } else if (appType === 'lambda-url') {
+      // Get base of lambda arn
+      const lambdaARNBase = request.lambdaARN?.substring(0, request.lambdaARN.lastIndexOf(':'));
+      const lambdaARNVersion = request.lambdaARN?.substring(request.lambdaARN.lastIndexOf(':') + 1);
+
       if (overwrite || record.Status === 'assets-copied') {
-        // Get base of lambda arn
-        const lambdaARNBase = request.lambdaARN?.substring(0, request.lambdaARN.lastIndexOf(':'));
         // Check if the lambda function has the microapp-managed tag
         const tags = await lambdaClient.send(
           new lambda.ListTagsCommand({
@@ -427,7 +429,8 @@ export default class VersionController {
         let url: string | undefined = undefined;
         const functionUrl = await lambdaClient.send(
           new lambda.GetFunctionUrlConfigCommand({
-            FunctionName: request.lambdaARN,
+            FunctionName: lambdaARNBase,
+            Qualifier: lambdaARNVersion,
           }),
         );
         // Create the FunctionUrl if it doesn't already exist
@@ -436,7 +439,8 @@ export default class VersionController {
         } else if (!functionUrl.FunctionUrl) {
           const functionUrlNew = await lambdaClient.send(
             new lambda.CreateFunctionUrlConfigCommand({
-              FunctionName: request.lambdaARN,
+              FunctionName: lambdaARNBase,
+              Qualifier: lambdaARNVersion,
               AuthType: 'AWS_IAM',
             }),
           );
