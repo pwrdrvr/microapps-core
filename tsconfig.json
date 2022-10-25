@@ -14,10 +14,10 @@
       "path": "packages/microapps-deployer/"
     },
     {
-      "path": "packages/microapps-router/"
+      "path": "packages/microapps-router-lib/"
     },
     {
-      "path": "packages/microapps-router-lib/"
+      "path": "packages/microapps-router/"
     },
     {
       "path": "packages/microapps-edge-to-origin/"
