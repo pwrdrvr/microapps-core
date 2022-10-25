@@ -331,6 +331,10 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
+    copyFileSync(
+      path.join(__dirname, '..', '..', 'microapps-router', 'appFrame.html'),
+      path.join(distPath, 'appFrame.html'),
+    );
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant

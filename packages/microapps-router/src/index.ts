@@ -1,11 +1,10 @@
 // Used by ts-convict
 import 'source-map-support/register';
 import 'reflect-metadata';
-import path from 'path';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
+import { loadAppFrame } from '@pwrdrvr/microapps-router-lib';
 import type * as lambda from 'aws-lambda';
-import { pathExistsSync, readFileSync } from 'fs-extra';
 import { Config } from './config/Config';
 import Log from './lib/log';
 
@@ -42,36 +41,7 @@ function normalizePathPrefix(pathPrefix: string): string {
   return normalizedPathPrefix;
 }
 
-/**
- * Find and load the appFrame file
- * @returns
- */
-function loadAppFrame(): string {
-  const paths = [
-    __dirname,
-    path.join(__dirname, '..'),
-    path.join(__dirname, 'templates'),
-    '/opt',
-    '/opt/templates',
-  ];
-
-  for (const pathRoot of paths) {
-    const fullPath = path.join(pathRoot, 'appFrame.html');
-    try {
-      if (pathExistsSync(fullPath)) {
-        log.info('found html file', { fullPath });
-        return readFileSync(fullPath, 'utf-8');
-      }
-    } catch {
-      // Don't care - we get here if stat throws because the file does not exist
-    }
-  }
-
-  log.error('appFrame.html not found');
-  throw new Error('appFrame.html not found');
-}
-
-const appFrame = loadAppFrame();
+const appFrame = loadAppFrame({ basePath: __dirname });
 const normalizedPathPrefix = normalizePathPrefix(Config.instance.rootPathPrefix);
 
 /**

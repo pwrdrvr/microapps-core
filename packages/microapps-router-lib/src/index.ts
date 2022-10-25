@@ -1,9 +1,41 @@
 // Used by ts-convict
 import 'source-map-support/register';
+import path from 'path';
+import { pathExistsSync, readFileSync } from 'fs-extra';
 import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
 import Log from './lib/log';
 
 const log = Log.Instance;
+
+/**
+ * Find and load the appFrame file
+ * @returns
+ */
+export function loadAppFrame({ basePath = '.' }: { basePath?: string }): string {
+  const paths = [
+    basePath,
+    path.join(basePath, '..'),
+    path.join(basePath, 'templates'),
+    basePath,
+    '/opt',
+    '/opt/templates',
+  ];
+
+  for (const pathRoot of paths) {
+    const fullPath = path.join(pathRoot, 'appFrame.html');
+    try {
+      if (pathExistsSync(fullPath)) {
+        log.info('found html file', { fullPath });
+        return readFileSync(fullPath, 'utf-8');
+      }
+    } catch {
+      // Don't care - we get here if stat throws because the file does not exist
+    }
+  }
+
+  log.error('appFrame.html not found');
+  throw new Error('appFrame.html not found');
+}
 
 /**
  * Ensure that the path starts with a / and does not end with a /
@@ -52,6 +84,26 @@ export interface IGetRouteResult {
    * @example /myapp/1.0.2/some/path?query=string
    */
   readonly iFrameAppVersionPath?: string;
+
+  /**
+   * Name of the app if resolved
+   */
+  readonly appName?: string;
+
+  /**
+   * Version of the app if resolved
+   */
+  readonly semVer?: string;
+
+  /**
+   * Type of the app
+   */
+  readonly type?: 'apigwy' | 'lambda-url' | 'url' | 'static';
+
+  /**
+   * URL to the app if resolved
+   */
+  readonly url?: string;
 }
 
 export interface IGetRouteEvent {
@@ -247,6 +299,12 @@ async function RouteApp(opts: {
 
   return {
     statusCode: 200,
+    appName,
+    semVer: defaultVersion,
+    ...(defaultVersionInfo?.URL ? { url: defaultVersionInfo?.URL } : {}),
+    ...(defaultVersionInfo?.Type
+      ? { type: defaultVersionInfo?.Type === 'lambda' ? 'apigwy' : defaultVersionInfo?.Type }
+      : {}),
     iFrameAppVersionPath: appVersionPath,
   };
 }

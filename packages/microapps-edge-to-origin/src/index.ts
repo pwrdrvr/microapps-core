@@ -7,6 +7,7 @@ import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { Sha256 } from '@aws-crypto/sha256-browser';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { GetRoute, loadAppFrame } from '@pwrdrvr/microapps-router-lib';
 import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
 export { IConfigFile } from './config/config';
@@ -14,6 +15,7 @@ import Log from './lib/log';
 
 const log = Log.Instance;
 const config = Config.instance;
+const appFrame = loadAppFrame({ basePath: __dirname });
 
 log.info('loaded config', { config });
 
@@ -74,11 +76,44 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // Get the target if using direct to version routing
     // This can use API Gateway per app or Lambda per version
     // or ALBs or whatever you want (but it assumes IAM auth).
-    const originHost = request.origin?.custom?.domainName;
+    let originHost = request.origin?.custom?.domainName;
     if (dbManager) {
+      // TODO: Get the prefix from the config file
+
+      const route = await GetRoute({
+        dbManager,
+        rawPath: event.Records[0].cf.request.uri,
+      });
+
+      log.info('got route info', { route });
+
+      // Write the app iframe to start an iframe-based app
+      if (route.iFrameAppVersionPath) {
+        const frameHTML = appFrame.replace('{{iframeSrc}}', route.iFrameAppVersionPath);
+
+        log.info('returning app frame', { frameHTML });
+
+        return {
+          status: '200',
+          headers: {
+            'content-type': [{ key: 'Content-Type', value: 'text/html; charset=UTF-8' }],
+            'cache-control': [{ key: 'Cache-Control', value: 'no-store; private' }],
+          },
+          body: frameHTML,
+          bodyEncoding: 'text',
+        };
+      }
+
+      // Fall through to apigwy handling if type is not url
+      if (route.type === 'url') {
+        log.info('rewriting to url', { url: route.url });
+        // Set the origin host to point to the Lambda Function URL for this version
+        originHost = route.url;
+      }
+
       // We've got a table name to lookup targets
-      const appName = 'release';
-      const semVer = '0.2.4';
+      // const appName = 'release';
+      // const semVer = '0.2.4';
 
       // TODO: If there is a verion in the path, bail out of this check
       // (e.g. /app1/0.3.4/...)
@@ -92,21 +127,22 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       // TODO: Rules should have the version info denormalized onto each Rule
       // to make it one hit to the DB to get the target info.
 
-      const rules = await Rules.Load({ dbManager, key: { AppName: appName } });
+      // const rules = await Rules.Load({ dbManager, key: { AppName: appName } });
 
-      // Lookup the URL for this specific version (or fall through to API Gateway)
-      const version = await Version.LoadVersion({
-        dbManager,
-        key: { AppName: appName, SemVer: semVer },
-      });
+      // // Lookup the URL for this specific version (or fall through to API Gateway)
+      // const version = await Version.LoadVersion({
+      //   dbManager,
+      //   key: { AppName: appName, SemVer: semVer },
+      // });
 
       // Dump the info
-      log.info('rules and version', { rules, version, event });
+      // log.info('rules and version', { rules, version, event });
 
       // TODO: Check the rule - If it points to a Function URL, then change the origin
       // to the Function URL
 
-      // originHost = 'TODO';
+      // Just pass everything through to this one app
+      // originHost = version?.URL;
     }
 
     // Can't do anything without an origin

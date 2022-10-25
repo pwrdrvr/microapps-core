@@ -19,6 +19,7 @@
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.21.0",
+    "@pwrdrvr/microapps-router-lib": "*",
     "convict": "^6.1.0",
     "convict-format-with-validator": "^6.0.1",
     "fs-extra": "^9.1.0",
