@@ -6,7 +6,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { Sha256 } from '@aws-crypto/sha256-browser';
-import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { DBManager } from '@pwrdrvr/microapps-datalib';
 import { GetRoute, loadAppFrame } from '@pwrdrvr/microapps-router-lib';
 import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
@@ -19,14 +19,20 @@ const appFrame = loadAppFrame({ basePath: __dirname });
 
 log.info('loaded config', { config });
 
-// TODO: get the target region from the config file
-const dynamoClient = config.tableName
-  ? new DynamoDBClient({
-      maxAttempts: 8,
-      region: config.originRegion,
-    })
-  : undefined;
-const dbManager =
+let dbManager: DBManager;
+let dynamoClient = new DynamoDBClient({
+  maxAttempts: 8,
+  region: config.originRegion,
+});
+
+export function overrideDBManager(opts: {
+  dbManager: DBManager;
+  dynamoClient: DynamoDBClient;
+}): void {
+  dbManager = opts.dbManager;
+  dynamoClient = opts.dynamoClient;
+}
+dbManager =
   config.tableName && dynamoClient
     ? new DBManager({
         dynamoClient,
@@ -101,6 +107,16 @@ export const handler: lambda.CloudFrontRequestHandler = async (
           },
           body: frameHTML,
           bodyEncoding: 'text',
+        };
+      }
+
+      // Handle redirect if we got one
+      if (route.redirectLocation) {
+        return {
+          status: `${route.statusCode}`,
+          headers: {
+            location: [{ key: 'Location', value: route.redirectLocation }],
+          },
         };
       }
 
