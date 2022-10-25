@@ -200,6 +200,11 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       requestToReturn,
     });
 
+    // Overwrite the origin
+    if (requestToReturn.origin?.custom?.domainName) {
+      requestToReturn.origin.custom.domainName = originHost;
+    }
+
     return requestToReturn as unknown as lambda.CloudFrontResultResponse;
   } catch (error) {
     log.error('caught exception at top level', { error });
