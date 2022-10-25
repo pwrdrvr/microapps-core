@@ -292,6 +292,10 @@ async function RedirectToDefaultFile(opts: {
     return false;
   }
 
+  if (!versionInfo.DefaultFile) {
+    return false;
+  }
+
   response.statusCode = 302;
   response.headers['Cache-Control'] = 'no-store; private';
   response.headers[

@@ -354,6 +354,10 @@ async function RedirectToDefaultFile(opts: {
     return undefined;
   }
 
+  if (!versionInfo.DefaultFile) {
+    return undefined;
+  }
+
   log.info(
     `found '${normalizedPathPrefix}/${appName}/${semVer}' - returning 302 to ${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`,
     {

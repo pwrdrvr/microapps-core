@@ -80,6 +80,40 @@ describe('router - without prefix', () => {
     expect(response.body).toContain('<iframe src="/bat/3.2.1-beta.1/bat.html" seamless');
   });
 
+  it('static app - request to app/x.y.z/ should not redirect if no defaultFile', async () => {
+    const app = new Application({
+      AppName: 'Bat',
+      DisplayName: 'Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName: 'Bat',
+      IntegrationID: 'abcd',
+      SemVer: '3.2.1-beta.1',
+      Status: 'deployed',
+      Type: 'static',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName: 'Bat',
+      Version: 0,
+      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    const response = await handler(
+      { rawPath: '/bat/3.2.1-beta.1' } as lambda.APIGatewayProxyEventV2,
+      {} as lambda.Context,
+    );
+
+    expect(response).toHaveProperty('statusCode');
+    expect(response.statusCode).toBe(200);
+    expect(response.headers?.Location).not.toBeDefined();
+  });
+
   it('static app - request to app/x.y.z should redirect to defaultFile', async () => {
     const app = new Application({
       AppName: 'Bat',
