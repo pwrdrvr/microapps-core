@@ -113,9 +113,10 @@ describe('router - without prefix', () => {
     // Call the handler
     const response = await GetRoute({ dbManager, rawPath: '/bat/3.2.1-beta.1/' });
 
-    expect(response).toHaveProperty('statusCode');
-    expect(response.statusCode).toBe(200);
-    expect(response.redirectLocation).not.toBeDefined();
+    expect(response).toHaveProperty('appName');
+    expect(response.appName).toBe('bat');
+    expect(response).toHaveProperty('semVer');
+    expect(response.semVer).toBe('3.2.1-beta.1');
   });
 
   it('static app - request to app/x.y.z/ should redirect to defaultFile', async () => {
