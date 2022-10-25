@@ -19,7 +19,7 @@ const appFrame = loadAppFrame({ basePath: __dirname });
 
 log.info('loaded config', { config });
 
-let dbManager: DBManager;
+let dbManager: DBManager | undefined;
 let dynamoClient = new DynamoDBClient({
   maxAttempts: 8,
   region: config.originRegion,
@@ -121,7 +121,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       }
 
       // Fall through to apigwy handling if type is not url
-      if (route.type === 'url') {
+      if (route.type === 'url' || route.type === 'lambda-url') {
         log.info('rewriting to url', { url: route.url });
         // Set the origin host to point to the Lambda Function URL for this version
         originHost = route.url;

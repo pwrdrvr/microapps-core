@@ -4,8 +4,8 @@ import 'jest-dynalite/withDb';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
-import { Config, IConfig } from './config/Config';
-jest.mock('./config/Config');
+import { Config, IConfig } from './config/config';
+jest.mock('./config/config');
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 const theConfig: Writeable<IConfig> = {
   awsAccountID: 123456,
@@ -114,6 +114,70 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta.1/bat.html" seamless');
   });
 
+  it('should route appframe with version and default file to origin', async () => {
+    const app = new Application({
+      AppName: 'Bat',
+      DisplayName: 'Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName: 'Bat',
+      IntegrationID: 'abcd',
+      SemVer: '4.2.1-beta.1',
+      Status: 'deployed',
+      Type: 'lambda-url',
+      URL: 'https://abc123.lambda-url.us-east-1.on.aws/',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName: 'Bat',
+      Version: 0,
+      RuleSet: { default: { SemVer: '4.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    // @ts-expect-error no callback
+    const response = await handler(
+      {
+        Records: [
+          {
+            cf: {
+              config: {
+                distributionDomainName: 'zyz.cloudfront.net',
+                distributionId: '123',
+                eventType: 'origin-request',
+                requestId: '123',
+              },
+              request: {
+                headers: {
+                  host: [
+                    {
+                      key: 'Host',
+                      value: 'zyz.cloudfront.net',
+                    },
+                  ],
+                },
+                method: 'GET',
+                querystring: '',
+                clientIp: '1.1.1.1',
+                uri: '/bat/4.2.1-beta.1',
+              },
+            },
+          },
+        ],
+      } as lambda.CloudFrontRequestEvent,
+      {} as lambda.Context,
+    );
+
+    const responseResponse = response as lambda.CloudFrontResultResponse;
+    expect(responseResponse).toBeDefined();
+    expect(responseResponse).not.toHaveProperty('status');
+    expect(responseResponse).not.toHaveProperty('body');
+  });
+
   it('static app - request to app/x.y.z/ should not redirect if no defaultFile', async () => {
     const app = new Application({
       AppName: 'Bat',
@@ -166,8 +230,8 @@ describe('edge-to-origin - routing - without prefix', () => {
 
     const responseResponse = response as lambda.CloudFrontResultResponse;
     expect(responseResponse).toHaveProperty('status');
-    expect(responseResponse.status).toBe('200');
-    expect(responseResponse.headers).not.toHaveProperty('location');
+    expect(responseResponse.status).toBe('404');
+    expect(responseResponse).not.toHaveProperty('headers');
   });
 
   it('static app - request to app/x.y.z should redirect to defaultFile', async () => {
@@ -406,7 +470,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta1" seamless');
   });
 
-  it('should serve appframe with sub-route', async () => {
+  it('should serve appframe with sub-sub-route - beta2', async () => {
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -466,7 +530,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta2/demo/grid" seamless');
   });
 
-  it('should serve appframe with sub-route', async () => {
+  it('should serve appframe with sub-route - beta3', async () => {
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',

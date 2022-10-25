@@ -157,7 +157,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // Route an app and version (only) to include the defaultFile
     // If the second part is not a version that exists, fall through to
     // routing the app and glomming the rest of the path on to the end
-    if (parts.length === 3 || parts.length === 4) {
+    if (parts.length === 3 || (parts.length === 4 && !parts[3])) {
       //   / appName / semVer /
       // ^   ^^^^^^^   ^^^^^^   ^
       // 0         1        2   3
@@ -186,6 +186,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
         normalizedPathPrefix,
         event,
         appName: parts[1],
+        possibleSemVer: parts[2],
         additionalParts,
       });
       if (response) {
@@ -219,10 +220,18 @@ async function RouteApp(opts: {
   dbManager: DBManager;
   event: IGetRouteEvent;
   appName: string;
+  possibleSemVer: string;
   additionalParts: string;
   normalizedPathPrefix?: string;
 }): Promise<IGetRouteResult> {
-  const { dbManager, event, normalizedPathPrefix = '', appName, additionalParts } = opts;
+  const {
+    dbManager,
+    event,
+    normalizedPathPrefix = '',
+    appName,
+    possibleSemVer,
+    additionalParts,
+  } = opts;
   let versionsAndRules: IVersionsAndRules;
 
   try {
@@ -243,6 +252,27 @@ async function RouteApp(opts: {
     return {
       statusCode: 404,
       errorMessage: `Router - Could not find app: ${event.rawPath}, ${appName}`,
+    };
+  }
+
+  // Check if the semver placeholder is actually a defined version
+  const possibleSemVerVersionInfo = versionsAndRules.Versions.find(
+    (item) => item.SemVer === possibleSemVer,
+  );
+  if (possibleSemVerVersionInfo) {
+    // This is a version, route the request to it
+    return {
+      appName,
+      semVer: possibleSemVer,
+      ...(possibleSemVerVersionInfo?.URL ? { url: possibleSemVerVersionInfo?.URL } : {}),
+      ...(possibleSemVerVersionInfo?.Type
+        ? {
+            type:
+              possibleSemVerVersionInfo?.Type === 'lambda'
+                ? 'apigwy'
+                : possibleSemVerVersionInfo?.Type,
+          }
+        : {}),
     };
   }
 
