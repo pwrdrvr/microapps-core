@@ -83,6 +83,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // This can use API Gateway per app or Lambda per version
     // or ALBs or whatever you want (but it assumes IAM auth).
     let originHost = request.origin?.custom?.domainName;
+    let routeType = 'api-gateway';
     if (dbManager) {
       // TODO: Get the prefix from the config file
 
@@ -121,10 +122,15 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       }
 
       // Fall through to apigwy handling if type is not url
-      if (route.type === 'url' || route.type === 'lambda-url') {
+      if (route.url && (route.type === 'url' || route.type === 'lambda-url')) {
         log.info('rewriting to url', { url: route.url });
+
+        routeType = route.type;
+
+        const url = new URL(route.url);
+
         // Set the origin host to point to the Lambda Function URL for this version
-        originHost = route.url;
+        originHost = url.hostname;
       }
 
       // We've got a table name to lookup targets
@@ -174,8 +180,13 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // This prevents API Gateway and Function URLs from rejecting
     // the request when the OriginRequestPolicy is forwarding all
     // headers to the origin
-    if (config.tableName || (config.replaceHostHeader && originHost)) {
-      request.headers['host'] = [{ key: 'host', value: originHost }];
+    if (
+      config.tableName ||
+      (config.replaceHostHeader && originHost) ||
+      routeType === 'lambda-url' ||
+      routeType === 'url'
+    ) {
+      request.headers['host'] = [{ key: 'Host', value: originHost }];
     }
 
     // Lambda Function URLs cannot have a custom domain name
@@ -201,7 +212,8 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     });
 
     // Overwrite the origin
-    if (requestToReturn.origin?.custom?.domainName) {
+    if (request.origin?.custom?.domainName) {
+      requestToReturn.origin = { ...request.origin };
       requestToReturn.origin.custom.domainName = originHost;
     }
 

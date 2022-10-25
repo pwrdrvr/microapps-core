@@ -114,7 +114,9 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta.1/bat.html" seamless');
   });
 
-  it('should route appframe with version and default file to origin', async () => {
+  it('should route request with appName/version to origin', async () => {
+    theConfig.replaceHostHeader = true;
+
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -164,6 +166,18 @@ describe('edge-to-origin - routing - without prefix', () => {
                 querystring: '',
                 clientIp: '1.1.1.1',
                 uri: '/bat/4.2.1-beta.1',
+                origin: {
+                  custom: {
+                    customHeaders: {},
+                    domainName: 'zyz.cloudfront.net',
+                    keepaliveTimeout: 5,
+                    path: '',
+                    port: 443,
+                    protocol: 'https',
+                    readTimeout: 30,
+                    sslProtocols: ['TLSv1.2'],
+                  },
+                },
               },
             },
           },
@@ -172,10 +186,19 @@ describe('edge-to-origin - routing - without prefix', () => {
       {} as lambda.Context,
     );
 
-    const responseResponse = response as lambda.CloudFrontResultResponse;
-    expect(responseResponse).toBeDefined();
-    expect(responseResponse).not.toHaveProperty('status');
-    expect(responseResponse).not.toHaveProperty('body');
+    const requestResponse = response as lambda.CloudFrontRequest;
+    expect(requestResponse).toBeDefined();
+    expect(requestResponse).not.toHaveProperty('status');
+    expect(requestResponse).not.toHaveProperty('body');
+    expect(requestResponse).toHaveProperty('headers');
+    expect(requestResponse.headers).toHaveProperty('host');
+    expect(requestResponse.headers.host).toHaveLength(1);
+    expect(requestResponse.headers.host[0].key).toBe('Host');
+    expect(requestResponse.headers.host[0].value).toBe('abc123.lambda-url.us-east-1.on.aws');
+    expect(requestResponse).toHaveProperty('origin');
+    expect(requestResponse.origin).toHaveProperty('custom');
+    expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
+    expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
   });
 
   it('static app - request to app/x.y.z/ should not redirect if no defaultFile', async () => {
