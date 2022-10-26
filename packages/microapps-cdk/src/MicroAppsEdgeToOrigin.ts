@@ -57,6 +57,14 @@ export interface MicroAppsEdgeToOriginProps {
   readonly assetNameSuffix?: string;
 
   /**
+   * Path prefix on the root of the API Gateway Stage
+   *
+   * @example dev/
+   * @default none
+   */
+  readonly rootPathPrefix?: string;
+
+  /**
    * Adds an X-Forwarded-Host-Header when calling API Gateway
    *
    * Can only be trusted if `signingMode` is enabled, which restricts
@@ -117,6 +125,7 @@ export interface GenerateEdgeToOriginConfigOptions {
   readonly addXForwardedHostHeader: boolean;
   readonly replaceHostHeader: boolean;
   readonly tableName?: string;
+  readonly rootPathPrefix?: string;
 }
 
 /**
@@ -133,7 +142,8 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
 replaceHostHeader: ${props.replaceHostHeader}
-${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
+${props.tableName ? `tableName: '${props.tableName}'` : ''}
+${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
   }
 
   private _edgeToOriginFunction: lambda.Function | cf.experimental.EdgeFunction;
@@ -160,6 +170,7 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       originRegion,
       signingMode = 'sign',
       removalPolicy,
+      rootPathPrefix,
       replaceHostHeader = true,
       tableRulesArn,
     } = props;
@@ -170,6 +181,7 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
+      rootPathPrefix,
       ...(tableRulesArn
         ? {
             tableName: tableRulesArn,

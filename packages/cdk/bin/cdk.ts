@@ -4,7 +4,6 @@ import { App, Environment } from 'aws-cdk-lib';
 import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 import { SharedProps } from '../lib/SharedProps';
-import { SharedTags } from '../lib/SharedTags';
 
 const app = new App();
 
@@ -51,6 +50,7 @@ new MicroAppsStack(app, 'microapps-basic', {
   // We need to know the origin region for signing requests
   // Accessing Aws.REGION will end up writing a Token into the config file
   originRegion: shared.region,
+  tableName: `microapps-basic-ghpublic${shared.envSuffix}${shared.prSuffix}`,
 });
 
 new MicroAppsStack(app, 'microapps-basic-prefix', {
@@ -65,6 +65,7 @@ new MicroAppsStack(app, 'microapps-basic-prefix', {
   // We need to know the origin region for signing requests
   // Accessing Aws.REGION will end up writing a Token into the config file
   originRegion: shared.region,
+  tableName: `microapps-basic-prefix-ghpublic${shared.envSuffix}${shared.prSuffix}`,
 });
 
 new MicroAppsBuilder(app, 'microapps-builder', {

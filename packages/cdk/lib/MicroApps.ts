@@ -136,6 +136,11 @@ export interface MicroAppsStackProps extends StackProps {
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * DynamoDB Table name - Needed for Edge routing
+   */
+  readonly tableName?: string;
 }
 
 export class MicroAppsStack extends Stack {
@@ -168,6 +173,7 @@ export class MicroAppsStack extends Stack {
       certARNOrigin,
       rootPathPrefix,
       originRegion,
+      tableName,
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -233,8 +239,8 @@ export class MicroAppsStack extends Stack {
     };
 
     const optionalAssetNameOpts: Partial<MicroAppsProps> = {
-      assetNameRoot,
-      assetNameSuffix,
+      assetNameRoot: tableName ? tableName : assetNameRoot,
+      assetNameSuffix: tableName ? undefined : assetNameSuffix,
     };
 
     // The table has to be created with a defined name for
@@ -250,7 +256,7 @@ export class MicroAppsStack extends Stack {
       rootPathPrefix,
       originRegion,
       table: table.table,
-      tableNameForEdgeToOrigin: `${assetNameRoot}${assetNameSuffix}`,
+      tableNameForEdgeToOrigin: tableName ? tableName : `${assetNameRoot}${assetNameSuffix}`,
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,
@@ -318,7 +324,7 @@ export class MicroAppsStack extends Stack {
       exportName: `${this.stackName}-edge-domain-name`,
     });
     new CfnOutput(this, 'dynamodb-table-name', {
-      value: `${microapps.svcs.table.tableName}`,
+      value: `${tableName ? tableName : microapps.svcs.table.tableName}`,
       exportName: `${this.stackName}-dynamodb-table-name`,
     });
     new CfnOutput(this, 'deployer-func-name', {

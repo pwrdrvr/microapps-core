@@ -7,7 +7,7 @@ import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { Sha256 } from '@aws-crypto/sha256-browser';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
-import { GetRoute, loadAppFrame } from '@pwrdrvr/microapps-router-lib';
+import { GetRoute, loadAppFrame, normalizePathPrefix } from '@pwrdrvr/microapps-router-lib';
 import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
 export { IConfigFile } from './config/config';
@@ -15,6 +15,7 @@ import Log from './lib/log';
 
 const log = Log.Instance;
 const config = Config.instance;
+const normalizedPathPrefix = normalizePathPrefix(Config.instance.rootPathPrefix);
 const appFrame = loadAppFrame({ basePath: __dirname });
 
 log.info('loaded config', { config });
@@ -90,6 +91,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       const route = await GetRoute({
         dbManager,
         rawPath: event.Records[0].cf.request.uri,
+        normalizedPathPrefix,
       });
 
       log.info('got route info', { route });

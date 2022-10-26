@@ -12,6 +12,7 @@ const theConfig: Writeable<IConfig> = {
   replaceHostHeader: false,
   signingMode: 'sign',
   tableName: '',
+  rootPathPrefix: '',
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {

@@ -3,7 +3,7 @@ import 'source-map-support/register';
 import 'reflect-metadata';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
-import { loadAppFrame } from '@pwrdrvr/microapps-router-lib';
+import { loadAppFrame, normalizePathPrefix } from '@pwrdrvr/microapps-router-lib';
 import type * as lambda from 'aws-lambda';
 import { Config } from './config/Config';
 import Log from './lib/log';
@@ -23,23 +23,6 @@ export function overrideDBManager(opts: {
   dynamoClient = opts.dynamoClient;
 }
 dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableName });
-
-/**
- * Ensure that the path starts with a / and does not end with a /
- * @param pathPrefix
- * @returns
- */
-function normalizePathPrefix(pathPrefix: string): string {
-  let normalizedPathPrefix = pathPrefix;
-  if (normalizedPathPrefix !== '' && !normalizedPathPrefix.startsWith('/')) {
-    normalizedPathPrefix = '/' + pathPrefix;
-  }
-  if (normalizedPathPrefix.endsWith('/')) {
-    normalizedPathPrefix.substring(0, normalizedPathPrefix.length - 1);
-  }
-
-  return normalizedPathPrefix;
-}
 
 const appFrame = loadAppFrame({ basePath: __dirname });
 const normalizedPathPrefix = normalizePathPrefix(Config.instance.rootPathPrefix);

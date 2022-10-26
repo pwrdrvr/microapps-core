@@ -15,6 +15,7 @@ const theConfig: Writeable<IConfig> = {
   replaceHostHeader: false,
   signingMode: 'sign',
   tableName: '',
+  rootPathPrefix: '',
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
@@ -44,6 +45,8 @@ describe('edge-to-origin - routing - without prefix', () => {
   });
 
   beforeEach(() => {
+    jest.resetModules(); // Most important - it clears the cache
+
     overrideDBManager({ dbManager, dynamoClient });
 
     // Reset the config that's visible to the handler back to defaults

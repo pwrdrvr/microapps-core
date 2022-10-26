@@ -43,6 +43,11 @@ export interface IConfig {
    * @default none
    */
   readonly tableName: string;
+
+  /**
+   * Path prefix on the root of the MicroApps deployment
+   */
+  readonly rootPathPrefix: string;
 }
 
 /**
@@ -159,4 +164,11 @@ export class Config implements IConfig {
     default: '',
   })
   public tableName!: string;
+
+  @convict.Property({
+    doc: 'Path prefix for this deployment',
+    default: '',
+    env: 'ROOT_PATH_PREFIX',
+  })
+  public rootPathPrefix!: string;
 }

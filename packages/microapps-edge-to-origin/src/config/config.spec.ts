@@ -17,6 +17,7 @@ describe('config', () => {
       replaceHostHeader: true,
       signingMode: 'sign',
       tableName: 'microapps',
+      rootPathPrefix: '',
     };
     const loader = new TSConvict<Config>(Config);
     const config = loader.load(rawConfig);

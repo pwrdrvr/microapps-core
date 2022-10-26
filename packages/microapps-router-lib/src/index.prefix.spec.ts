@@ -3,7 +3,6 @@ import 'reflect-metadata';
 import 'jest-dynalite/withDb';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, Version, Rules } from '@pwrdrvr/microapps-datalib';
-import * as lambda from 'aws-lambda';
 import { GetRoute } from './index';
 
 let dynamoClient: dynamodb.DynamoDBClient;
