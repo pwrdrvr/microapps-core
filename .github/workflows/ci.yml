@@ -140,6 +140,10 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Stitch Version and Prefix into Simple Demo App
+        run: |
+            npx replace-in-file "/\/${DEMO_APP_NAME}\/0\.0\.0/g" ${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+
       - name: Stitch Prefix into Nextjs Demo App
         run: |
           if [ -n "${PREFIX}" ] ; then
@@ -198,6 +202,7 @@ jobs:
         run: |
           npx microapps-publish publish -a ${DEMO_APP_NAME} \
             -t lambda-url \
+            --startup-type direct \
             -n ${PACKAGE_VERSION} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${DEMO_APP_LAMBDA_NAME} \

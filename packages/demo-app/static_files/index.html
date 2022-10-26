@@ -3,7 +3,16 @@
   <head>
     <title>Demo App</title>
   </head>
+
   <body>
-    This is a simple demo app
+    <div>This is a simple demo app</div>
+    <div>
+      <button
+        onclick="fetch(`/demo-app/0.0.0/serverIncrement?currValue=${document.getElementById('output').innerText}`).then((response) => response.json()).then((data) => {document.getElementById('output').innerText = data.newValue })"
+      >
+        Run Server Increment
+      </button>
+    </div>
+    <div id="output">1</div>
   </body>
 </html>
