@@ -99,12 +99,20 @@ export class PublishCommand extends Command {
       default: false,
       description: 'Force revalidation of CloudFront and browser caching of static assets',
     }),
+    'startup-type': flagsParser.enum({
+      multiple: false,
+      required: false,
+      options: ['iframe', 'direct'],
+      default: 'iframe',
+      description: 'How the app should be loaded',
+    }),
     type: flagsParser.enum({
       char: 't',
       multiple: false,
       required: false,
       options: ['apigwy', 'lambda-url'],
       default: 'apigwy',
+      description: 'Type of the application and how its requests are routed',
     }),
   };
 
@@ -349,6 +357,7 @@ export class PublishCommand extends Command {
             await DeployClient.DeployVersion({
               config,
               appType,
+              startupType: parsedFlags['startup-type'] as 'iframe' | 'direct',
               overwrite,
               output: (message: string) => (task.output = message),
             });

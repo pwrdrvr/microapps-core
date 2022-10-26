@@ -95,7 +95,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       log.info('got route info', { route });
 
       // Write the app iframe to start an iframe-based app
-      if (route.iFrameAppVersionPath) {
+      if (route.startupType === 'iframe' && route.iFrameAppVersionPath) {
         const frameHTML = appFrame.replace('{{iframeSrc}}', route.iFrameAppVersionPath);
 
         log.info('returning app frame', { frameHTML });

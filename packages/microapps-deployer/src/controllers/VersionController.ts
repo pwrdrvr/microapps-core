@@ -146,7 +146,7 @@ export default class VersionController {
     config: IConfig;
   }): Promise<IDeployerResponse> {
     const { dbManager, request, config } = opts;
-    const { overwrite = false } = request;
+    const { appType = 'lambda', overwrite = false, startupType = 'iframe' } = request;
 
     Log.Instance.debug('Got Body:', request);
 
@@ -171,22 +171,40 @@ export default class VersionController {
       }
     }
 
-    const { appType = 'lambda' } = request;
+    // Check for incompatible app types and startup types
+    if (startupType === 'direct' && ['lambda'].includes(appType)) {
+      // 'lambda' (aka 'apigwy') cannot have direct routing because
+      // we don't deploy a proxy to API Gateway on the /appName routes
+      Log.Instance.info('Error: Incompatible app type and startup type', {
+        appType,
+        startupType,
+      });
+
+      return { statusCode: 400 };
+    }
+
+    // Update the version record if overwriting
+    if (overwrite && record) {
+      record.DefaultFile = request.defaultFile;
+      record.Type = appType;
+      record.StartupType = startupType;
+    }
 
     // Create the version record
     if (record === undefined) {
       record = new Version({
         AppName: request.appName,
         SemVer: request.semVer,
-        IntegrationID: '',
         Type: appType,
         Status: 'pending',
         DefaultFile: request.defaultFile,
+        StartupType: startupType,
       });
 
       // Save record with pending status
       await record.Save(dbManager);
     }
+
     // Only copy the files if not copied yet
     if (overwrite || record.Status === 'pending') {
       const { stagingBucket } = config.filestore;
@@ -210,7 +228,7 @@ export default class VersionController {
     }
 
     //
-    // BEGING: Type-specific handling
+    // BEGIN: Type-specific handling
     //
     if (appType === 'lambda') {
       // TODO: Confirm the Lambda Function exists

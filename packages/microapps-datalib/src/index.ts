@@ -1,6 +1,4 @@
-import { DBManager } from './manager';
-import { Application, IVersionsAndRules } from './models/application';
-import { Rules } from './models/rules';
-import { Version } from './models/version';
-
-export { Application, DBManager, Version, Rules, IVersionsAndRules };
+export { DBManager } from './manager';
+export { Application, IVersionsAndRules } from './models/application';
+export { Rules } from './models/rules';
+export { Version } from './models/version';

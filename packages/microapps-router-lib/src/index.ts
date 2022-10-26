@@ -101,6 +101,11 @@ export interface IGetRouteResult {
   readonly type?: 'apigwy' | 'lambda-url' | 'url' | 'static';
 
   /**
+   * Startup type of the app (indirect with iframe or direct)
+   */
+  readonly startupType?: 'iframe' | 'direct';
+
+  /**
    * URL to the app if resolved
    */
   readonly url?: string;
@@ -306,37 +311,57 @@ async function RouteApp(opts: {
     (item) => item.SemVer === defaultVersion,
   );
 
-  // Prepare the iframe contents
-  let appVersionPath: string;
-  if (
-    defaultVersionInfo?.Type !== 'static' &&
-    (defaultVersionInfo?.DefaultFile === undefined ||
-      defaultVersionInfo?.DefaultFile === '' ||
-      additionalParts !== '')
-  ) {
-    // KLUDGE: We're going to take a missing default file to mean that the
-    // app type is Next.js (or similar) and that it wants no trailing slash after the version
-    // TODO: Move this to an attribute of the version
-    appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}`;
-    if (additionalParts !== '') {
-      appVersionPath += `/${additionalParts}`;
+  if (defaultVersionInfo?.StartupType === 'iframe' || !defaultVersionInfo?.StartupType) {
+    // Prepare the iframe contents
+    let appVersionPath: string;
+    if (
+      defaultVersionInfo?.Type !== 'static' &&
+      (defaultVersionInfo?.DefaultFile === undefined ||
+        defaultVersionInfo?.DefaultFile === '' ||
+        additionalParts !== '')
+    ) {
+      // KLUDGE: We're going to take a missing default file to mean that the
+      // app type is Next.js (or similar) and that it wants no trailing slash after the version
+      // TODO: Move this to an attribute of the version
+      appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}`;
+      if (additionalParts !== '') {
+        appVersionPath += `/${additionalParts}`;
+      }
+    } else {
+      // Linking to the file directly means this will be peeled off by the S3 route
+      // That means we won't have to proxy this from S3
+      appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}/${defaultVersionInfo.DefaultFile}`;
     }
-  } else {
-    // Linking to the file directly means this will be peeled off by the S3 route
-    // That means we won't have to proxy this from S3
-    appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}/${defaultVersionInfo.DefaultFile}`;
-  }
 
-  return {
-    statusCode: 200,
-    appName,
-    semVer: defaultVersion,
-    ...(defaultVersionInfo?.URL ? { url: defaultVersionInfo?.URL } : {}),
-    ...(defaultVersionInfo?.Type
-      ? { type: defaultVersionInfo?.Type === 'lambda' ? 'apigwy' : defaultVersionInfo?.Type }
-      : {}),
-    iFrameAppVersionPath: appVersionPath,
-  };
+    return {
+      statusCode: 200,
+      appName,
+      semVer: defaultVersion,
+      startupType: 'iframe',
+      ...(defaultVersionInfo?.URL ? { url: defaultVersionInfo?.URL } : {}),
+      ...(defaultVersionInfo?.Type
+        ? { type: defaultVersionInfo?.Type === 'lambda' ? 'apigwy' : defaultVersionInfo?.Type }
+        : {}),
+      iFrameAppVersionPath: appVersionPath,
+    };
+  } else {
+    // This is a direct app version, no iframe needed
+
+    if (defaultVersionInfo?.Type === 'lambda') {
+      throw new Error('Invalid type for direct app version');
+    }
+    if (['apigwy', 'static'].includes(defaultVersionInfo?.Type || '')) {
+      throw new Error('Invalid type for direct app version');
+    }
+
+    return {
+      appName,
+      semVer: possibleSemVer,
+      startupType: 'direct',
+      ...(defaultVersionInfo?.URL ? { url: defaultVersionInfo?.URL } : {}),
+      ...(defaultVersionInfo?.Type ? { type: defaultVersionInfo?.Type } : {}),
+    };
+  }
 }
 
 /**

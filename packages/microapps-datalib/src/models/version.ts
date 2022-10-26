@@ -15,21 +15,42 @@ export type VersionStatus =
 
 export type AppTypes = 'static' | 'lambda' | 'lambda-url' | 'url';
 
+export type AppStartupTypes = 'iframe' | 'direct';
+
 /**
  * Represents a Version Record
  */
 export interface IVersionRecord {
   PK: string;
   SK: string;
+  /**
+   * Name of the app
+   */
   AppName: string;
+  /**
+   * SemVer for this version
+   */
   SemVer: string;
   /**
+   * Type of app (which implies how it's routed)
+   *
    * @enum {string} static - Files only
    * @enum {string} lambda - Lambda integrated via API Gateway
    * @enum {string} lambda-url - Lambda integrated via Function URL w/IAM Auth
    * @enum {string} url - Other URL without IAM Auth
    */
   Type: AppTypes;
+  /**
+   * Startup type of the app
+   * This currently indicates whether `/appName` will render an iframe
+   * that points to `/appName/semVer` or if `/appName` will proxy
+   * directly to a specific version of the app, which will render itself at
+   * `/appName` but will write all of it's static/api requests as
+   * `/appName/semVer/...`
+   * @enum {string} iframe - Render an iframe that points to the version
+   * @enum {string} direct - Proxy directly to the version, incompatible with `static` and `apigwy` (`lambda`)
+   */
+  StartupType: AppStartupTypes;
   /**
    * @enum {string} pending - Version is being created
    * @enum {string} assets-copied - Version assets have been copied to S3
@@ -39,6 +60,13 @@ export interface IVersionRecord {
    * @enum {string} deployed - Version has been fully deployed
    */
   Status: VersionStatus;
+  /**
+   * Default file or path to redirect to if the app is started without
+   * a specific file or path below the appName or appName/semVer,
+   * particularly useful for `static` apps.
+   *
+   * @example 'index.html'
+   */
   DefaultFile: string;
   /**
    * API Gateway (type=lambda) only
@@ -150,6 +178,7 @@ export class Version implements IVersionRecord {
   private _appName: string | undefined;
   private _semVer: string | undefined;
   private _type: AppTypes | undefined;
+  private _startupType: AppStartupTypes | undefined;
   private _status: VersionStatus;
   private _defaultFile: string;
   // API Gateway Integration Properties
@@ -162,6 +191,7 @@ export class Version implements IVersionRecord {
   public constructor(init?: Partial<IVersionRecordNoKeysLoose>) {
     this._keyBy = SaveBy.AppName;
     this._status = 'pending';
+    this._startupType = 'iframe';
     this._defaultFile = '';
     this._integrationID = '';
     this._routeIDAppVersion = '';
@@ -179,6 +209,7 @@ export class Version implements IVersionRecord {
       AppName: this.AppName,
       SemVer: this.SemVer,
       Type: this.Type,
+      StartupType: this.StartupType,
       Status: this.Status,
       DefaultFile: this.DefaultFile,
       IntegrationID: this.IntegrationID,
@@ -231,6 +262,13 @@ export class Version implements IVersionRecord {
   }
   public set Type(value: AppTypes) {
     this._type = value;
+  }
+
+  public get StartupType(): AppStartupTypes {
+    return this._startupType as AppStartupTypes;
+  }
+  public set StartupType(value: AppStartupTypes) {
+    this._startupType = value;
   }
 
   public get Status(): VersionStatus {

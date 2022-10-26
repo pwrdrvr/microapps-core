@@ -63,9 +63,31 @@ export interface IDeployVersionPreflightRequest extends IDeployVersionRequestBas
  */
 export interface IDeployVersionRequest extends IDeployVersionRequestBase {
   readonly type: 'deployVersion';
+  /**
+   * Type of the app (which implies how it's routed)
+   */
   readonly appType?: 'lambda' | 'lambda-url' | 'url' | 'static';
+  /**
+   * Render the `/appName` route as an iframe pointing to `/appName/semVer`
+   * or proxy directly to `/appName/semVer` and render the app at `/appName`
+   *
+   * @default 'iframe'
+   */
+  readonly startupType?: 'iframe' | 'direct';
+  /**
+   * Used for `lambda` and `lambda-url` apps
+   */
   readonly lambdaARN?: string;
+  /**
+   * Default file or path
+   * Typically used for `static` apps, but can be used for non-static apps
+   */
   readonly defaultFile: string;
+  /**
+   * Used for `url` not for `lambda-url` (as the Function URL is created by the
+   * DeployVersion action in that case)
+   */
+  readonly url?: string;
 }
 
 /**
