@@ -186,41 +186,21 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       }
     }
 
-    if (queryStringParameters?.get('appver')) {
-      //  / appName (/ something)?
-      // ^  ^^^^^^^    ^^^^^^^^^
-      // 0        1            2
-      // Got at least an application name, try to route it
-      const response = await RouteApp({
-        dbManager,
-        normalizedPathPrefix,
-        event,
-        appName: parts[1],
-        possibleSemVer: queryStringParameters.get('appver') || '',
-        additionalParts,
-      });
-      if (response) {
-        return response;
-      }
-    }
-
-    // Remember the first element is '' (nothing to the left of /)
-    if (parts.length >= 2) {
-      //  / appName (/ something)?
-      // ^  ^^^^^^^    ^^^^^^^^^
-      // 0        1            2
-      // Got at least an application name, try to route it
-      const response = await RouteApp({
-        dbManager,
-        normalizedPathPrefix,
-        event,
-        appName: parts[1],
-        possibleSemVer: parts[2],
-        additionalParts,
-      });
-      if (response) {
-        return response;
-      }
+    //  / appName (/ something)?
+    // ^  ^^^^^^^    ^^^^^^^^^
+    // 0        1            2
+    // Got at least an application name, try to route it
+    const response = await RouteApp({
+      dbManager,
+      normalizedPathPrefix,
+      event,
+      appName: parts[1],
+      possibleSemVerPath: parts.length >= 3 ? parts[2] : '',
+      possibleSemVerQuery: queryStringParameters?.get('appver') || '',
+      additionalParts,
+    });
+    if (response) {
+      return response;
     }
 
     return {
@@ -249,7 +229,8 @@ async function RouteApp(opts: {
   dbManager: DBManager;
   event: IGetRouteEvent;
   appName: string;
-  possibleSemVer: string;
+  possibleSemVerPath?: string;
+  possibleSemVerQuery?: string;
   additionalParts: string;
   normalizedPathPrefix?: string;
 }): Promise<IGetRouteResult> {
@@ -258,7 +239,8 @@ async function RouteApp(opts: {
     event,
     normalizedPathPrefix = '',
     appName,
-    possibleSemVer,
+    possibleSemVerPath,
+    possibleSemVerQuery,
     additionalParts,
   } = opts;
   let versionsAndRules: IVersionsAndRules;
@@ -287,29 +269,34 @@ async function RouteApp(opts: {
   let versionInfoToUse: Version | undefined;
 
   // Check if the semver placeholder is actually a defined version
-  const possibleSemVerVersionInfo = versionsAndRules.Versions.find(
-    (item) => item.SemVer === possibleSemVer,
-  );
-  if (possibleSemVerVersionInfo && additionalParts.startsWith(`${possibleSemVer}`)) {
+  const possibleSemVerPathVersionInfo = possibleSemVerPath
+    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPath)
+    : undefined;
+  const possibleSemVerQueryVersionInfo = possibleSemVerQuery
+    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerQuery)
+    : undefined;
+
+  // If there is a version in the path, use it
+  if (possibleSemVerPathVersionInfo) {
     // This is a version, and it's in the path already, route the request to it
     // without creating iframe
     return {
       appName,
-      semVer: possibleSemVer,
-      ...(possibleSemVerVersionInfo?.URL ? { url: possibleSemVerVersionInfo?.URL } : {}),
-      ...(possibleSemVerVersionInfo?.Type
+      semVer: possibleSemVerPath,
+      ...(possibleSemVerPathVersionInfo?.URL ? { url: possibleSemVerPathVersionInfo?.URL } : {}),
+      ...(possibleSemVerPathVersionInfo?.Type
         ? {
             type:
-              possibleSemVerVersionInfo?.Type === 'lambda'
+              possibleSemVerPathVersionInfo?.Type === 'lambda'
                 ? 'apigwy'
-                : possibleSemVerVersionInfo?.Type,
+                : possibleSemVerPathVersionInfo?.Type,
           }
         : {}),
     };
-  } else if (possibleSemVerVersionInfo) {
+  } else if (possibleSemVerQueryVersionInfo) {
     // We got a version for the query string, but it's not in the path,
     // so fall back to normal routing (create an iframe or direct route)
-    versionInfoToUse = possibleSemVerVersionInfo;
+    versionInfoToUse = possibleSemVerQueryVersionInfo;
   } else {
     //
     // TODO: Get the incoming attributes of user
@@ -403,7 +390,7 @@ async function RouteApp(opts: {
 
     return {
       appName,
-      semVer: possibleSemVer,
+      semVer: versionInfoToUse.SemVer,
       startupType: 'direct',
       ...(versionInfoToUse?.URL ? { url: versionInfoToUse?.URL } : {}),
       ...(versionInfoToUse?.Type ? { type: versionInfoToUse?.Type } : {}),

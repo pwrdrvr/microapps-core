@@ -291,7 +291,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
   });
 
-  it('should route `iframe` app request with appName to origin for ?appver=[version]', async () => {
+  it('should route `iframe` app request with appName by creating iframe response for ?appver=[version]', async () => {
     theConfig.replaceHostHeader = true;
 
     const app = new Application({
@@ -379,6 +379,125 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('body');
     expect(responseResponse.body?.length).toBeGreaterThan(80);
     expect(responseResponse.body).toContain('<iframe src="/batiframeappver/1.2.3" seamless');
+
+    //
+    // Make sure request with version in path AND ?appver does not add to the path
+    //
+    {
+      // Call the handler
+      // @ts-expect-error no callback
+      const response = await handler(
+        {
+          Records: [
+            {
+              cf: {
+                config: {
+                  distributionDomainName: 'zyz.cloudfront.net',
+                  distributionId: '123',
+                  eventType: 'origin-request',
+                  requestId: '123',
+                },
+                request: {
+                  headers: {
+                    host: [
+                      {
+                        key: 'Host',
+                        value: 'zyz.cloudfront.net',
+                      },
+                    ],
+                  },
+                  method: 'GET',
+                  querystring: 'appver=1.2.3',
+                  clientIp: '1.1.1.1',
+                  uri: '/batiframeappver/1.2.3',
+                  origin: {
+                    custom: {
+                      customHeaders: {},
+                      domainName: 'zyz.cloudfront.net',
+                      keepaliveTimeout: 5,
+                      path: '',
+                      port: 443,
+                      protocol: 'https',
+                      readTimeout: 30,
+                      sslProtocols: ['TLSv1.2'],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        } as lambda.CloudFrontRequestEvent,
+        {} as lambda.Context,
+      );
+
+      const requestResponse = response as lambda.CloudFrontRequest;
+      expect(requestResponse).toBeDefined();
+      expect(requestResponse.uri).toBe('/batiframeappver/1.2.3');
+      expect(requestResponse.origin?.custom?.domainName).toBe(
+        'abc123456.lambda-url.us-east-1.on.aws',
+      );
+      expect(requestResponse).not.toHaveProperty('status');
+      expect(requestResponse).not.toHaveProperty('body');
+    }
+
+    //
+    // Request with non-matching version in path and conflicting
+    // ?appver should use version in path already
+    //
+    {
+      // Call the handler
+      // @ts-expect-error no callback
+      const response = await handler(
+        {
+          Records: [
+            {
+              cf: {
+                config: {
+                  distributionDomainName: 'zyz.cloudfront.net',
+                  distributionId: '123',
+                  eventType: 'origin-request',
+                  requestId: '123',
+                },
+                request: {
+                  headers: {
+                    host: [
+                      {
+                        key: 'Host',
+                        value: 'zyz.cloudfront.net',
+                      },
+                    ],
+                  },
+                  method: 'GET',
+                  querystring: 'appver=1.2.3',
+                  clientIp: '1.1.1.1',
+                  uri: '/batiframeappver/1.2.1-beta.1',
+                  origin: {
+                    custom: {
+                      customHeaders: {},
+                      domainName: 'zyz.cloudfront.net',
+                      keepaliveTimeout: 5,
+                      path: '',
+                      port: 443,
+                      protocol: 'https',
+                      readTimeout: 30,
+                      sslProtocols: ['TLSv1.2'],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        } as lambda.CloudFrontRequestEvent,
+        {} as lambda.Context,
+      );
+
+      const requestResponse = response as lambda.CloudFrontRequest;
+      expect(requestResponse).toBeDefined();
+      expect(requestResponse.uri).toBe('/batiframeappver/1.2.1-beta.1');
+      expect(requestResponse.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
+      expect(requestResponse).not.toHaveProperty('status');
+      expect(requestResponse).not.toHaveProperty('body');
+    }
   });
 
   it('should route `direct` app request with appName to origin for ?appver=[version]', async () => {
@@ -477,6 +596,140 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse?.origin?.custom?.domainName).toBe(
       'abc123456.lambda-url.us-east-1.on.aws',
     );
+
+    //
+    // ?appver=[defaultversion] should select the default version correctly
+    //
+    {
+      // Call the handler
+      // @ts-expect-error no callback
+      const response = await handler(
+        {
+          Records: [
+            {
+              cf: {
+                config: {
+                  distributionDomainName: 'zyz.cloudfront.net',
+                  distributionId: '123',
+                  eventType: 'origin-request',
+                  requestId: '123',
+                },
+                request: {
+                  headers: {
+                    host: [
+                      {
+                        key: 'Host',
+                        value: 'zyz.cloudfront.net',
+                      },
+                    ],
+                  },
+                  method: 'GET',
+                  querystring: 'appver=1.2.1-beta.1',
+                  clientIp: '1.1.1.1',
+                  uri: '/batdirectappver',
+                  origin: {
+                    custom: {
+                      customHeaders: {},
+                      domainName: 'zyz.cloudfront.net',
+                      keepaliveTimeout: 5,
+                      path: '',
+                      port: 443,
+                      protocol: 'https',
+                      readTimeout: 30,
+                      sslProtocols: ['TLSv1.2'],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        } as lambda.CloudFrontRequestEvent,
+        {} as lambda.Context,
+      );
+
+      const requestResponse = response as lambda.CloudFrontRequest;
+      expect(requestResponse).toBeDefined();
+      expect(requestResponse).not.toHaveProperty('status');
+      expect(requestResponse).not.toHaveProperty('body');
+      expect(requestResponse).toHaveProperty('headers');
+      expect(requestResponse.headers).toHaveProperty('host');
+      expect(requestResponse.headers.host).toHaveLength(1);
+      expect(requestResponse.headers.host[0].key).toBe('Host');
+      expect(requestResponse.headers.host[0].value).toBe('abc123.lambda-url.us-east-1.on.aws');
+      expect(requestResponse).toHaveProperty('origin');
+      expect(requestResponse.origin).toHaveProperty('custom');
+      expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
+      expect(requestResponse?.origin?.custom?.domainName).toBe(
+        'abc123.lambda-url.us-east-1.on.aws',
+      );
+    }
+
+    //
+    // ?appver=[defaultversion] should select the default version correctly
+    //
+    {
+      // Call the handler
+      // @ts-expect-error no callback
+      const response = await handler(
+        {
+          Records: [
+            {
+              cf: {
+                config: {
+                  distributionDomainName: 'zyz.cloudfront.net',
+                  distributionId: '123',
+                  eventType: 'origin-request',
+                  requestId: '123',
+                },
+                request: {
+                  headers: {
+                    host: [
+                      {
+                        key: 'Host',
+                        value: 'zyz.cloudfront.net',
+                      },
+                    ],
+                  },
+                  method: 'GET',
+                  querystring: 'appver=1.2.1-beta.1',
+                  clientIp: '1.1.1.1',
+                  uri: '/batdirectappver',
+                  origin: {
+                    custom: {
+                      customHeaders: {},
+                      domainName: 'zyz.cloudfront.net',
+                      keepaliveTimeout: 5,
+                      path: '',
+                      port: 443,
+                      protocol: 'https',
+                      readTimeout: 30,
+                      sslProtocols: ['TLSv1.2'],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        } as lambda.CloudFrontRequestEvent,
+        {} as lambda.Context,
+      );
+
+      const requestResponse = response as lambda.CloudFrontRequest;
+      expect(requestResponse).toBeDefined();
+      expect(requestResponse).not.toHaveProperty('status');
+      expect(requestResponse).not.toHaveProperty('body');
+      expect(requestResponse).toHaveProperty('headers');
+      expect(requestResponse.headers).toHaveProperty('host');
+      expect(requestResponse.headers.host).toHaveLength(1);
+      expect(requestResponse.headers.host[0].key).toBe('Host');
+      expect(requestResponse.headers.host[0].value).toBe('abc123.lambda-url.us-east-1.on.aws');
+      expect(requestResponse).toHaveProperty('origin');
+      expect(requestResponse.origin).toHaveProperty('custom');
+      expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
+      expect(requestResponse?.origin?.custom?.domainName).toBe(
+        'abc123.lambda-url.us-east-1.on.aws',
+      );
+    }
   });
 
   it('static app - request to app/x.y.z/ should not redirect if no defaultFile', async () => {
