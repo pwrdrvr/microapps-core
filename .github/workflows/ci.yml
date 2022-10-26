@@ -83,8 +83,8 @@ jobs:
       matrix:
         deployName:
           - microapps-core
-          # - microapps-basic
-          # - microapps-basic-prefix
+          - microapps-basic
+          - microapps-basic-prefix
     name: deploy-${{ matrix.deployName }}
     concurrency:
       group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
