@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/indent */
 import * as crypto from 'crypto';
-import { existsSync, writeFileSync } from 'fs';
+import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -98,6 +100,15 @@ export interface MicroAppsEdgeToOriginProps {
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * DynamoDB Table Name for apps/versions/rules.
+   *
+   * Must be a full ARN as this can be cross region.
+   *
+   * Implies that 2nd generation routing is enabled.
+   */
+  readonly tableRulesArn?: string;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -105,6 +116,7 @@ export interface GenerateEdgeToOriginConfigOptions {
   readonly signingMode: 'sign' | 'presign' | '';
   readonly addXForwardedHostHeader: boolean;
   readonly replaceHostHeader: boolean;
+  readonly tableName?: string;
 }
 
 /**
@@ -120,7 +132,8 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
     return `originRegion: ${props.originRegion}
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
-replaceHostHeader: ${props.replaceHostHeader}`;
+replaceHostHeader: ${props.replaceHostHeader}
+${props.tableName ? `tableName: '${props.tableName}'` : ''}`;
   }
 
   private _edgeToOriginFunction: lambda.Function | cf.experimental.EdgeFunction;
@@ -141,13 +154,14 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     }
 
     const {
-      removalPolicy,
+      addXForwardedHostHeader = true,
       assetNameRoot,
       assetNameSuffix,
-      signingMode = 'sign',
-      addXForwardedHostHeader = true,
-      replaceHostHeader = true,
       originRegion,
+      signingMode = 'sign',
+      removalPolicy,
+      replaceHostHeader = true,
+      tableRulesArn,
     } = props;
 
     // Create the edge function config file from the construct options
@@ -156,6 +170,11 @@ replaceHostHeader: ${props.replaceHostHeader}`;
       addXForwardedHostHeader,
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
+      ...(tableRulesArn
+        ? {
+            tableName: tableRulesArn,
+          }
+        : {}),
     });
 
     //
@@ -187,6 +206,16 @@ replaceHostHeader: ${props.replaceHostHeader}`;
           //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
           // },
         }),
+        //
+        // Grant permission to invoke tagged Function URLs
+        //
+        new iam.PolicyStatement({
+          actions: ['lambda:InvokeFunctionUrl'],
+          resources: [`arn:aws:lambda:*:${Aws.ACCOUNT_ID}:*`],
+          conditions: {
+            StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+          },
+        }),
       ],
       ...(removalPolicy ? { removalPolicy } : {}),
     };
@@ -217,17 +246,17 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         edgeToOriginFuncProps,
       );
     } else {
-      // 2022-07-30 - Does this actually get used at all anymore?
-
-      // 2022-10-02 - This is broken - it's emitting a config file but then
-      // usinga different config file in the bundling below.
-      // This may be ok if this is only used for the construct packaging
-      // as the consuming stack should select a different above which will
-      // use the correct config file.
-      // Emit the config file from the construct options
+      // This is used when bundling the app and building the CDK module
+      // for distribution.
       writeFileSync(
         path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'config.yml'),
         edgeToOriginConfigYaml,
+      );
+
+      // Copy the appFrame.html to the place where the bundling will find it
+      copyFileSync(
+        path.join(__dirname, '..', '..', 'microapps-router', 'appFrame.html'),
+        path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'appFrame.html'),
       );
 
       // This builds the function for distribution with the CDK Construct
@@ -256,6 +285,13 @@ replaceHostHeader: ${props.replaceHostHeader}`;
                   'microapps-edge-to-origin',
                   'config.yml',
                 )} ${outputDir}`,
+                `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
+                  __dirname,
+                  '..',
+                  '..',
+                  'microapps-router',
+                  'appFrame.html',
+                )} ${outputDir}`,
               ];
             },
           },
@@ -271,6 +307,12 @@ replaceHostHeader: ${props.replaceHostHeader}`;
         includeBody: true,
       },
     ];
+
+    // Grant access to the rules table
+    if (tableRulesArn) {
+      const tableRules = dynamodb.Table.fromTableName(this, 'tableRules', tableRulesArn);
+      tableRules.grantReadData(this._edgeToOriginFunction);
+    }
   }
 
   /**
@@ -289,6 +331,10 @@ replaceHostHeader: ${props.replaceHostHeader}`;
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
+    copyFileSync(
+      path.join(__dirname, '..', '..', 'microapps-router', 'appFrame.html'),
+      path.join(distPath, 'appFrame.html'),
+    );
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant

@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as r53 from 'aws-cdk-lib/aws-route53';
-import { MicroApps, MicroAppsProps } from '@pwrdrvr/microapps-cdk';
+import { MicroApps, MicroAppsProps, MicroAppsTable } from '@pwrdrvr/microapps-cdk';
 import { DemoApp } from './DemoApp';
 import { Env } from './Types';
 import { MicroAppsAppRelease } from '@pwrdrvr/microapps-app-release-cdk';
@@ -237,11 +237,20 @@ export class MicroAppsStack extends Stack {
       assetNameSuffix,
     };
 
+    // The table has to be created with a defined name for
+    // the 2nd generation routing that needs the table name
+    // in the edge lambda function
+    const table = new MicroAppsTable(this, 'microapps-table', {
+      ...optionalAssetNameOpts,
+    });
+
     const microapps = new MicroApps(this, 'microapps', {
       removalPolicy,
       appEnv: nodeEnv,
       rootPathPrefix,
       originRegion,
+      table: table.table,
+      tableNameForEdgeToOrigin: `${assetNameRoot}${assetNameSuffix}`,
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,

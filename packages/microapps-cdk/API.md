@@ -646,6 +646,12 @@ const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { .
 
 ---
 
+##### `tableName`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.tableName"></a>
+
+- *Type:* `string`
+
+---
+
 ### MicroAppsAPIGwyProps <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps"></a>
 
 Properties to initialize an instance of `MicroAppsAPIGwy`.
@@ -977,6 +983,18 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 
 ---
 
+##### `tableRulesArn`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.tableRulesArn"></a>
+
+- *Type:* `string`
+
+DynamoDB Table Name for apps/versions/rules.
+
+Must be a full ARN as this can be cross region.
+
+Implies that 2nd generation routing is enabled.
+
+---
+
 ### MicroAppsProps <a name="@pwrdrvr/microapps-cdk.MicroAppsProps"></a>
 
 Properties to initialize an instance of `MicroApps`.
@@ -1225,6 +1243,16 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 - *Default:* created by construct
 
 Existing table for apps/versions/rules.
+
+---
+
+##### `tableNameForEdgeToOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.tableNameForEdgeToOrigin"></a>
+
+- *Type:* `string`
+
+Pre-set table name for apps/versions/rules.
+
+This is required when using v2 routing
 
 ---
 
@@ -1489,14 +1517,6 @@ import { MicroAppsTableProps } from '@pwrdrvr/microapps-cdk'
 const microAppsTableProps: MicroAppsTableProps = { ... }
 ```
 
-##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.appEnv"></a>
-
-- *Type:* `string`
-
-Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda functions.
-
----
-
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -1523,15 +1543,6 @@ Optional asset name suffix.
 RemovalPolicy override for child resources.
 
 Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
-
----
-
-##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsTableProps.rootPathPrefix"></a>
-
-- *Type:* `string`
-- *Default:* none
-
-Path prefix on the root of the deployment.
 
 ---
 

@@ -5,6 +5,7 @@
   "private": true,
   "license": "MIT",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.77",
     "@types/convict": "^6.0.2",

@@ -3,6 +3,8 @@ import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as os from 'os';
+import * as path from 'path';
 
 /**
  * Properties to initialize an instance of `DemoApp`.
@@ -78,6 +80,21 @@ export class DemoApp extends Construct implements IDemoApp {
       bundling: {
         minify: true,
         sourceMap: true,
+        commandHooks: {
+          beforeInstall: () => [],
+          beforeBundling: () => [],
+          afterBundling: (_inputDir: string, outputDir: string) => {
+            return [
+              `${os.platform() === 'win32' ? 'copy' : 'cp'} ${path.join(
+                '.',
+                'packages',
+                'demo-app',
+                'static_files',
+                '*',
+              )} ${outputDir}`,
+            ];
+          },
+        },
       },
     });
     if (removalPolicy !== undefined) {

@@ -111,5 +111,6 @@ project.compileTask.exec(
   'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-router/index.js',
 );
 project.compileTask.exec('cp -R ../microapps-router/templates lib/microapps-router/');
+project.compileTask.exec('cp ../microapps-router/templates/* lib/microapps-edge-to-origin/');
 
 project.synth();

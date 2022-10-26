@@ -250,6 +250,13 @@ export interface MicroAppsProps {
    * @default created by construct
    */
   readonly table?: dynamodb.ITable;
+
+  /**
+   * Pre-set table name for apps/versions/rules
+   *
+   * This is required when using v2 routing
+   */
+  readonly tableNameForEdgeToOrigin?: string;
 }
 
 /**
@@ -345,6 +352,7 @@ export class MicroApps extends Construct implements IMicroApps {
       signingMode = 'sign',
       originRegion,
       table,
+      tableNameForEdgeToOrigin,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -368,6 +376,22 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
     });
+    this._svcs = new MicroAppsSvcs(this, 'svcs', {
+      httpApi: this.apigwy.httpApi,
+      removalPolicy,
+      bucketApps: this._s3.bucketApps,
+      bucketAppsOAI: this._s3.bucketAppsOAI,
+      bucketAppsStaging: this._s3.bucketAppsStaging,
+      assetNameRoot,
+      assetNameSuffix,
+      appEnv,
+      s3PolicyBypassAROAs,
+      s3PolicyBypassPrincipalARNs,
+      s3StrictBucketPolicy,
+      rootPathPrefix,
+      requireIAMAuthorization: signingMode !== 'none',
+      table,
+    });
     if (signingMode !== 'none' || replaceHostHeader || addXForwardedHostHeader) {
       this._edgeToOrigin = new MicroAppsEdgeToOrigin(this, 'edgeToOrigin', {
         assetNameRoot,
@@ -377,6 +401,7 @@ export class MicroApps extends Construct implements IMicroApps {
         replaceHostHeader,
         originRegion,
         signingMode,
+        tableRulesArn: tableNameForEdgeToOrigin || this._svcs.table.tableName,
       });
     }
     this._cf = new MicroAppsCF(this, 'cft', {
@@ -393,22 +418,6 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       createAPIPathRoute,
       edgeToOriginLambdas: this._edgeToOrigin ? this._edgeToOrigin.edgeToOriginLambdas : undefined,
-    });
-    this._svcs = new MicroAppsSvcs(this, 'svcs', {
-      httpApi: this.apigwy.httpApi,
-      removalPolicy,
-      bucketApps: this._s3.bucketApps,
-      bucketAppsOAI: this._s3.bucketAppsOAI,
-      bucketAppsStaging: this._s3.bucketAppsStaging,
-      assetNameRoot,
-      assetNameSuffix,
-      appEnv,
-      s3PolicyBypassAROAs,
-      s3PolicyBypassPrincipalARNs,
-      s3StrictBucketPolicy,
-      rootPathPrefix,
-      requireIAMAuthorization: signingMode !== 'none',
-      table,
     });
   }
 }

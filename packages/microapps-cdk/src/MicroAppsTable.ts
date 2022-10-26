@@ -1,4 +1,4 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { PhysicalName, RemovalPolicy } from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 
@@ -16,12 +16,6 @@ export interface MicroAppsTableProps {
   readonly removalPolicy?: RemovalPolicy;
 
   /**
-   * Application environment, passed as `NODE_ENV`
-   * to the Router and Deployer Lambda functions
-   */
-  readonly appEnv: string;
-
-  /**
    * Optional asset name root
    *
    * @example microapps
@@ -36,14 +30,6 @@ export interface MicroAppsTableProps {
    * @default none
    */
   readonly assetNameSuffix?: string;
-
-  /**
-   * Path prefix on the root of the deployment
-   *
-   * @example dev/
-   * @default none
-   */
-  readonly rootPathPrefix?: string;
 }
 
 /**
@@ -58,6 +44,12 @@ export interface IMicroAppsTable {
 
 /**
  * Create a new MicroApps Table for apps / versions / rules
+ *
+ * @warning This construct is not intended for production use.
+ * In a production stack the DynamoDB Table, API Gateway, S3 Buckets,
+ * etc. should be created in a "durable" stack where the IDs will not
+ * change and where changes to the MicroApps construct will not
+ * cause failures to deploy or data to be deleted.
  */
 export class MicroAppsTable extends Construct implements IMicroAppsTable {
   private _table: dynamodb.Table;
@@ -78,7 +70,9 @@ export class MicroAppsTable extends Construct implements IMicroAppsTable {
     // DynamoDB Table
     //
     this._table = new dynamodb.Table(this, 'table', {
-      tableName: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : undefined,
+      tableName: assetNameRoot
+        ? `${assetNameRoot}${assetNameSuffix}`
+        : PhysicalName.GENERATE_IF_NEEDED,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {
         name: 'PK',

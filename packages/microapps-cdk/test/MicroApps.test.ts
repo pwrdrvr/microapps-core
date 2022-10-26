@@ -10,6 +10,7 @@ describe('MicroApps', () => {
     const app = new App({});
     const stack = new Stack(app, 'stack', {
       env: {
+        account: '123456789012',
         region: 'us-east-2',
       },
     });
@@ -64,6 +65,7 @@ describe('MicroApps', () => {
     const app = new App({});
     const stack = new Stack(app, 'stack', {
       env: {
+        account: '123456789012',
         region: 'us-east-2',
       },
     });

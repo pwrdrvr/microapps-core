@@ -3,7 +3,7 @@ import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
-import { Command, flags as flagsParser } from '@oclif/command';
+import { Command, flags, flags as flagsParser } from '@oclif/command';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
@@ -98,6 +98,21 @@ export class PublishCommand extends Command {
       required: false,
       default: false,
       description: 'Force revalidation of CloudFront and browser caching of static assets',
+    }),
+    'startup-type': flagsParser.enum({
+      multiple: false,
+      required: false,
+      options: ['iframe', 'direct'],
+      default: 'iframe',
+      description: 'How the app should be loaded',
+    }),
+    type: flagsParser.enum({
+      char: 't',
+      multiple: false,
+      required: false,
+      options: ['apigwy', 'lambda-url'],
+      default: 'apigwy',
+      description: 'Type of the application and how its requests are routed',
     }),
   };
 
@@ -331,10 +346,18 @@ export class PublishCommand extends Command {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
+            const appType =
+              parsedFlags.type === 'apigwy'
+                ? 'lambda'
+                : parsedFlags.type === 'lambda-url'
+                ? 'lambda-url'
+                : 'url';
+
             // Call Deployer to Deploy AppName/Version
             await DeployClient.DeployVersion({
               config,
-              appType: 'lambda',
+              appType,
+              startupType: parsedFlags['startup-type'] as 'iframe' | 'direct',
               overwrite,
               output: (message: string) => (task.output = message),
             });

@@ -21,7 +21,8 @@ describe('MicroAppsStack', () => {
       Export: { Name: `${stackName}-edge-domain-name` },
     });
     Template.fromStack(stack).hasOutput('dynamodbtablename', {
-      Value: { Ref: 'microappssvcstable1C50DC7E' },
+      Value: { Ref: 'microappstableAA1718EA' },
+      Export: { Name: `${stackName}-dynamodb-table-name` },
     });
   });
 
@@ -51,7 +52,7 @@ describe('MicroAppsStack', () => {
       Export: { Name: `${stackName}-edge-domain-name` },
     });
     Template.fromStack(stack).hasOutput('dynamodbtablename', {
-      Value: { Ref: 'microappssvcstable1C50DC7E' },
+      Value: { Ref: 'microappstableAA1718EA' },
       Export: { Name: `${stackName}-dynamodb-table-name` },
     });
   });
