@@ -123,6 +123,12 @@ export interface IGetRouteEvent {
    * Configured prefix of the deployment, must start with a / and not end with a /
    */
   readonly normalizedPathPrefix?: string;
+
+  /**
+   * Query string params, if any
+   * Checked for `appver=1.2.3` to override the app version
+   */
+  readonly queryStringParameters?: URLSearchParams;
 }
 
 /**
@@ -134,7 +140,7 @@ export interface IGetRouteEvent {
  * @returns IGetRouteResult
  */
 export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> {
-  const { dbManager, normalizedPathPrefix = '' } = event;
+  const { dbManager, normalizedPathPrefix = '', queryStringParameters } = event;
 
   try {
     if (normalizedPathPrefix && !event.rawPath.startsWith(normalizedPathPrefix)) {
@@ -174,6 +180,24 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
         appName: parts[1],
         normalizedPathPrefix,
         semVer: parts[2],
+      });
+      if (response) {
+        return response;
+      }
+    }
+
+    if (queryStringParameters?.get('appver')) {
+      //  / appName (/ something)?
+      // ^  ^^^^^^^    ^^^^^^^^^
+      // 0        1            2
+      // Got at least an application name, try to route it
+      const response = await RouteApp({
+        dbManager,
+        normalizedPathPrefix,
+        event,
+        appName: parts[1],
+        possibleSemVer: queryStringParameters.get('appver') || '',
+        additionalParts,
       });
       if (response) {
         return response;

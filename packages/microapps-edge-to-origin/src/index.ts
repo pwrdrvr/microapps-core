@@ -86,11 +86,14 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     let originHost = request.origin?.custom?.domainName;
     let routeType = 'api-gateway';
     if (dbManager) {
-      // TODO: Get the prefix from the config file
+      const url = new URL(
+        `https://localhost${request.uri}${request.querystring ? `?${request.querystring}` : ''}`,
+      );
 
       const route = await GetRoute({
         dbManager,
         rawPath: event.Records[0].cf.request.uri,
+        queryStringParameters: url.searchParams,
         normalizedPathPrefix,
       });
 
