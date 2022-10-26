@@ -26,15 +26,15 @@ export class SharedProps {
 
   private _env: Env | '' = 'dev';
   public get env(): Env | '' {
-    if (this._env === '' || this._env == undefined) return '';
+    if (!this._env) return '';
     return this._env;
   }
   public get envSuffix(): string {
-    if (this._env === '' || this._env == undefined) return '';
+    if (!this._env) return '';
     return `-${this._env}`;
   }
   public get envDomainSuffix(): string {
-    if (this._env === '' || this._env == undefined || this._env === 'prod') return '';
+    if (!this._env || this._env === 'prod') return '';
     return `-${this._env}`;
   }
 
@@ -43,11 +43,11 @@ export class SharedProps {
     return this._pr;
   }
   public get prSuffix(): string {
-    if (this._pr === undefined) return '';
+    if (!this._pr) return '';
     return `-pr-${this._pr}`;
   }
   public get isPR(): boolean {
-    if (this._pr === undefined) return false;
+    if (!this._pr) return false;
     return true;
   }
 

@@ -18,7 +18,6 @@ const env: Environment = {
 new MicroAppsStack(app, 'microapps-core', {
   env,
   stackName: `microapps-core-ghpublic${shared.envSuffix}${shared.prSuffix}`,
-  ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   domainNameEdge: `apps${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
   domainNameOrigin: `apps-origin${shared.envDomainSuffix}${shared.prSuffix}.${shared.domainName}`,
@@ -42,7 +41,6 @@ new MicroAppsStack(app, 'microapps-core', {
 new MicroAppsStack(app, 'microapps-basic', {
   env,
   stackName: `microapps-basic-ghpublic${shared.envSuffix}${shared.prSuffix}`,
-  ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   deployDemoApp: shared.deployDemoApp,
   deployNextjsDemoApp: shared.deployNextjsDemoApp,
@@ -56,7 +54,6 @@ new MicroAppsStack(app, 'microapps-basic', {
 new MicroAppsStack(app, 'microapps-basic-prefix', {
   env,
   stackName: `microapps-basic-prefix-ghpublic${shared.envSuffix}${shared.prSuffix}`,
-  ttl: shared.isPR ? shared.ttlBase : undefined,
   autoDeleteEverything: true,
   deployDemoApp: shared.deployDemoApp,
   deployNextjsDemoApp: shared.deployNextjsDemoApp,

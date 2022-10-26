@@ -71,7 +71,7 @@ export class MicroAppsTable extends Construct implements IMicroAppsTable {
     //
     this._table = new dynamodb.Table(this, 'table', {
       tableName: assetNameRoot
-        ? `${assetNameRoot}${assetNameSuffix}`
+        ? `${assetNameRoot}${assetNameSuffix ?? ''}`
         : PhysicalName.GENERATE_IF_NEEDED,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: {

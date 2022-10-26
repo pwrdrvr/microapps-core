@@ -348,19 +348,17 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       path.join(distPath, 'appFrame.html'),
     );
 
+    const stackHash = this.hashStackName() ?? '';
+
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
-    const edge = new cf.experimental.EdgeFunction(
-      this,
-      `edge-to-apigwy-func-${this.hashStackName()}`,
-      {
-        stackId: `microapps-edge-to-origin-${this.hashStackName()}`,
-        code: lambda.Code.fromAsset(distPath),
-        functionName: `microapps-edge-to-origin-${this.hashStackName()}`,
-        handler: 'index.handler',
-        ...edgeToOriginFuncProps,
-      },
-    );
+    const edge = new cf.experimental.EdgeFunction(this, `edge-to-apigwy-func-${stackHash}`, {
+      stackId: `microapps-edge-to-origin-${stackHash}`,
+      code: lambda.Code.fromAsset(distPath),
+      functionName: `microapps-edge-to-origin-${stackHash}`,
+      handler: 'index.handler',
+      ...edgeToOriginFuncProps,
+    });
     Tags.of(edge).add('Name', Stack.of(this).stackName);
 
     return edge;

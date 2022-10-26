@@ -15,13 +15,6 @@ import { SharedTags } from './SharedTags';
  */
 export interface MicroAppsStackProps extends StackProps {
   /**
-   * Duration before stack is automatically deleted.
-   * Requires that autoDeleteEverything be set to true.
-   *
-   */
-  readonly ttl?: Duration;
-
-  /**
    * Automatically destroy all assets when stack is deleted
    *
    * @default false
@@ -154,7 +147,6 @@ export class MicroAppsStack extends Stack {
     SharedTags.addSharedTags(this);
 
     const {
-      ttl,
       autoDeleteEverything = false,
       domainNameEdge,
       domainNameOrigin,
@@ -177,20 +169,8 @@ export class MicroAppsStack extends Stack {
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
-    // Set stack to delete if this is a PR build
-    if (ttl !== undefined) {
-      if (autoDeleteEverything === false) {
-        throw new Error('autoDeleteEverything must be true when ttl is set');
-      }
+    if (autoDeleteEverything) {
       removalPolicy = RemovalPolicy.DESTROY;
-      // TODO: Reinstate when CDK 2 version is available
-      // new TimeToLive(this, 'TimeToLive', {
-      //   ttl,
-      // });
-    } else {
-      if (autoDeleteEverything) {
-        removalPolicy = RemovalPolicy.DESTROY;
-      }
     }
 
     // Validate custom domain options
@@ -239,15 +219,15 @@ export class MicroAppsStack extends Stack {
     };
 
     const optionalAssetNameOpts: Partial<MicroAppsProps> = {
-      assetNameRoot: tableName ? tableName : assetNameRoot,
-      assetNameSuffix: tableName ? undefined : assetNameSuffix,
+      assetNameRoot,
+      assetNameSuffix,
     };
 
     // The table has to be created with a defined name for
     // the 2nd generation routing that needs the table name
     // in the edge lambda function
     const table = new MicroAppsTable(this, 'microapps-table', {
-      ...optionalAssetNameOpts,
+      ...(tableName ? { assetNameRoot: tableName } : optionalAssetNameOpts),
     });
 
     const microapps = new MicroApps(this, 'microapps', {
