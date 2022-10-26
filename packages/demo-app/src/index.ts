@@ -11,17 +11,6 @@ export async function handler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   context?: lambda.Context,
 ): Promise<unknown> {
-  if (event.rawPath === '/demo-app') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'text/html',
-      },
-      isBase64Encoded: false,
-      body: html,
-    };
-  }
-
   if (event.rawPath.endsWith('/serverIncrement')) {
     const currValue = parseInt(event.queryStringParameters?.currValue ?? '0', 10);
     const newValue = currValue + 1;
@@ -37,6 +26,17 @@ export async function handler(
         source: 'demo-app',
         timestamp: `${new Date().toUTCString()}`,
       },
+    };
+  }
+
+  if (event.headers?.accept && event.headers.accept.includes('text/html')) {
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'text/html',
+      },
+      isBase64Encoded: false,
+      body: html,
     };
   }
 
