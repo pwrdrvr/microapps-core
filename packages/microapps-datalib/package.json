@@ -26,10 +26,11 @@
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": "^3.20.0",
     "@aws-sdk/lib-dynamodb": "^3.20.0",
+    "class-transformer": "^0.5.1",
     "tslib": "^2.1.0"
   },
   "dependencies": {
-    "class-transformer": "~0.4.0"
+    "class-transformer": "^0.5.1"
   },
   "devDependencies": {
     "@types/node-fetch": "^2.5.8",
