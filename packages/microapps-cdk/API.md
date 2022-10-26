@@ -646,6 +646,12 @@ const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { .
 
 ---
 
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.rootPathPrefix"></a>
+
+- *Type:* `string`
+
+---
+
 ##### `tableName`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.tableName"></a>
 
 - *Type:* `string`
@@ -964,6 +970,15 @@ Distribution AND when the OriginRequestPolicy.HeadersBehavior is set
 to pass all headers to the origin.
 
 Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
+##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.rootPathPrefix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Path prefix on the root of the API Gateway Stage.
 
 ---
 
