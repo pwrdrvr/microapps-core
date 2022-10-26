@@ -1,4 +1,4 @@
 // https://www.npmjs.com/package/replace-in-file
 module.exports = {
-  files: 'packages/demp-app/static_files/**/*',
+  files: 'packages/demo-app/static_files/**/*',
 };
