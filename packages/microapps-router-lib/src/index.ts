@@ -284,12 +284,15 @@ async function RouteApp(opts: {
     };
   }
 
+  let versionInfoToUse: Version | undefined;
+
   // Check if the semver placeholder is actually a defined version
   const possibleSemVerVersionInfo = versionsAndRules.Versions.find(
     (item) => item.SemVer === possibleSemVer,
   );
-  if (possibleSemVerVersionInfo) {
-    // This is a version, route the request to it
+  if (possibleSemVerVersionInfo && additionalParts.startsWith(`${possibleSemVer}`)) {
+    // This is a version, and it's in the path already, route the request to it
+    // without creating iframe
     return {
       appName,
       semVer: possibleSemVer,
@@ -303,78 +306,98 @@ async function RouteApp(opts: {
           }
         : {}),
     };
+  } else if (possibleSemVerVersionInfo) {
+    // We got a version for the query string, but it's not in the path,
+    // so fall back to normal routing (create an iframe or direct route)
+    versionInfoToUse = possibleSemVerVersionInfo;
+  } else {
+    //
+    // TODO: Get the incoming attributes of user
+    // For logged in users, these can be: department, product type,
+    //  employee, office, division, etc.
+    // For anonymous users this can be: geo region, language,
+    // browser, IP, CIDR, ASIN, etc.
+    //
+    // The Rules can be either a version or a distribution of versions,
+    // including default, for example:
+    //     80% to 1.1.0, 20% to default (1.0.3)
+    //
+
+    const defaultVersion = versionsAndRules.Rules?.RuleSet.default?.SemVer;
+
+    if (defaultVersion == null) {
+      log.error(`could not find app ${appName}, for path ${event.rawPath} - returning 404`, {
+        statusCode: 404,
+      });
+
+      return {
+        statusCode: 404,
+        errorMessage: `Router - Could not find app: ${event.rawPath}, ${appName}`,
+      };
+    }
+
+    // TODO: Yeah, this is lame - We should save these in a dictionary keyed by SemVer
+    const defaultVersionInfo = versionsAndRules.Versions.find(
+      (item) => item.SemVer === defaultVersion,
+    );
+
+    versionInfoToUse = defaultVersionInfo;
   }
 
-  //
-  // TODO: Get the incoming attributes of user
-  // For logged in users, these can be: department, product type,
-  //  employee, office, division, etc.
-  // For anonymous users this can be: geo region, language,
-  // browser, IP, CIDR, ASIN, etc.
-  //
-  // The Rules can be either a version or a distribution of versions,
-  // including default, for example:
-  //     80% to 1.1.0, 20% to default (1.0.3)
-  //
-
-  const defaultVersion = versionsAndRules.Rules?.RuleSet.default?.SemVer;
-
-  if (defaultVersion == null) {
-    log.error(`could not find app ${appName}, for path ${event.rawPath} - returning 404`, {
-      statusCode: 404,
-    });
+  if (!versionInfoToUse) {
+    log.error(
+      `could not find version info for app ${appName}, for path ${event.rawPath} - returning 404`,
+      {
+        statusCode: 404,
+      },
+    );
 
     return {
       statusCode: 404,
-      errorMessage: `Router - Could not find app: ${event.rawPath}, ${appName}`,
+      errorMessage: `Router - Could not find version info for app: ${event.rawPath}, ${appName}`,
     };
   }
 
-  // TODO: Yeah, this is lame - We should save these in a dictionary keyed by SemVer
-  const defaultVersionInfo = versionsAndRules.Versions.find(
-    (item) => item.SemVer === defaultVersion,
-  );
-
-  if (defaultVersionInfo?.StartupType === 'iframe' || !defaultVersionInfo?.StartupType) {
+  if (versionInfoToUse?.StartupType === 'iframe' || !versionInfoToUse?.StartupType) {
     // Prepare the iframe contents
     let appVersionPath: string;
     if (
-      defaultVersionInfo?.Type !== 'static' &&
-      (defaultVersionInfo?.DefaultFile === undefined ||
-        defaultVersionInfo?.DefaultFile === '' ||
+      versionInfoToUse?.Type !== 'static' &&
+      (versionInfoToUse?.DefaultFile === undefined ||
+        versionInfoToUse?.DefaultFile === '' ||
         additionalParts !== '')
     ) {
       // KLUDGE: We're going to take a missing default file to mean that the
       // app type is Next.js (or similar) and that it wants no trailing slash after the version
       // TODO: Move this to an attribute of the version
-      appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}`;
+      appVersionPath = `${normalizedPathPrefix}/${appName}/${versionInfoToUse.SemVer}`;
       if (additionalParts !== '') {
         appVersionPath += `/${additionalParts}`;
       }
     } else {
       // Linking to the file directly means this will be peeled off by the S3 route
       // That means we won't have to proxy this from S3
-      appVersionPath = `${normalizedPathPrefix}/${appName}/${defaultVersion}/${defaultVersionInfo.DefaultFile}`;
+      appVersionPath = `${normalizedPathPrefix}/${appName}/${versionInfoToUse.SemVer}/${versionInfoToUse.DefaultFile}`;
     }
 
     return {
       statusCode: 200,
       appName,
-      semVer: defaultVersion,
+      semVer: versionInfoToUse.SemVer,
       startupType: 'iframe',
-      ...(defaultVersionInfo?.URL ? { url: defaultVersionInfo?.URL } : {}),
-      ...(defaultVersionInfo?.Type
-        ? { type: defaultVersionInfo?.Type === 'lambda' ? 'apigwy' : defaultVersionInfo?.Type }
+      ...(versionInfoToUse?.URL ? { url: versionInfoToUse?.URL } : {}),
+      ...(versionInfoToUse?.Type
+        ? { type: versionInfoToUse?.Type === 'lambda' ? 'apigwy' : versionInfoToUse?.Type }
         : {}),
       iFrameAppVersionPath: appVersionPath,
     };
   } else {
     // This is a direct app version, no iframe needed
 
-    if (defaultVersionInfo?.Type === 'lambda') {
+    if (versionInfoToUse?.Type === 'lambda') {
       throw new Error('Invalid type for direct app version');
     }
-    if (['apigwy', 'static'].includes(defaultVersionInfo?.Type || '')) {
+    if (['apigwy', 'static'].includes(versionInfoToUse?.Type || '')) {
       throw new Error('Invalid type for direct app version');
     }
 
@@ -382,8 +405,8 @@ async function RouteApp(opts: {
       appName,
       semVer: possibleSemVer,
       startupType: 'direct',
-      ...(defaultVersionInfo?.URL ? { url: defaultVersionInfo?.URL } : {}),
-      ...(defaultVersionInfo?.Type ? { type: defaultVersionInfo?.Type } : {}),
+      ...(versionInfoToUse?.URL ? { url: versionInfoToUse?.URL } : {}),
+      ...(versionInfoToUse?.Type ? { type: versionInfoToUse?.Type } : {}),
     };
   }
 }

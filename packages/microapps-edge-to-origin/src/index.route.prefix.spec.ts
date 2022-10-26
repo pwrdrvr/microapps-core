@@ -57,7 +57,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     });
   });
 
-  it.only('should route `direct` app w/prefix request with appName to origin', async () => {
+  it('should route `direct` app w/prefix request with appName to origin', async () => {
     theConfig.replaceHostHeader = true;
 
     const app = new Application({

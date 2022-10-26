@@ -291,36 +291,36 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
   });
 
-  it('should route `direct` app request with appName to origin for ?appver=[version]', async () => {
+  it('should route `iframe` app request with appName to origin for ?appver=[version]', async () => {
     theConfig.replaceHostHeader = true;
 
     const app = new Application({
-      AppName: 'BatDirect',
+      AppName: 'BatIframeAppVer',
       DisplayName: 'Direct Bat App',
     });
     await app.Save(dbManager);
 
     const versionDefault = new Version({
-      AppName: 'BatDirect',
+      AppName: 'BatIframeAppVer',
       SemVer: '1.2.1-beta.1',
       Status: 'deployed',
       Type: 'lambda-url',
-      StartupType: 'direct',
+      StartupType: 'iframe',
       URL: 'https://abc123.lambda-url.us-east-1.on.aws/',
     });
     await versionDefault.Save(dbManager);
     const versionNonDefault = new Version({
-      AppName: 'BatDirect',
+      AppName: 'BatIframeAppVer',
       SemVer: '1.2.3',
       Status: 'deployed',
       Type: 'lambda-url',
-      StartupType: 'direct',
+      StartupType: 'iframe',
       URL: 'https://abc123456.lambda-url.us-east-1.on.aws/',
     });
     await versionNonDefault.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'BatDirect',
+      AppName: 'BatIframeAppVer',
       Version: 0,
       RuleSet: { default: { SemVer: '1.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
     });
@@ -351,7 +351,97 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: 'appver=1.2.3',
                 clientIp: '1.1.1.1',
-                uri: '/batdirect',
+                uri: '/batiframeappver',
+                origin: {
+                  custom: {
+                    customHeaders: {},
+                    domainName: 'zyz.cloudfront.net',
+                    keepaliveTimeout: 5,
+                    path: '',
+                    port: 443,
+                    protocol: 'https',
+                    readTimeout: 30,
+                    sslProtocols: ['TLSv1.2'],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      } as lambda.CloudFrontRequestEvent,
+      {} as lambda.Context,
+    );
+
+    const responseResponse = response as lambda.CloudFrontResultResponse;
+    expect(responseResponse).toBeDefined();
+    expect(responseResponse).toHaveProperty('status');
+    expect(responseResponse?.status).toBe('200');
+    expect(responseResponse).toHaveProperty('body');
+    expect(responseResponse.body?.length).toBeGreaterThan(80);
+    expect(responseResponse.body).toContain('<iframe src="/batiframeappver/1.2.3" seamless');
+  });
+
+  it('should route `direct` app request with appName to origin for ?appver=[version]', async () => {
+    theConfig.replaceHostHeader = true;
+
+    const app = new Application({
+      AppName: 'BatDirectAppVer',
+      DisplayName: 'Direct Bat App',
+    });
+    await app.Save(dbManager);
+
+    const versionDefault = new Version({
+      AppName: 'BatDirectAppVer',
+      SemVer: '1.2.1-beta.1',
+      Status: 'deployed',
+      Type: 'lambda-url',
+      StartupType: 'direct',
+      URL: 'https://abc123.lambda-url.us-east-1.on.aws/',
+    });
+    await versionDefault.Save(dbManager);
+    const versionNonDefault = new Version({
+      AppName: 'BatDirectAppVer',
+      SemVer: '1.2.3',
+      Status: 'deployed',
+      Type: 'lambda-url',
+      StartupType: 'direct',
+      URL: 'https://abc123456.lambda-url.us-east-1.on.aws/',
+    });
+    await versionNonDefault.Save(dbManager);
+
+    const rules = new Rules({
+      AppName: 'BatDirectAppVer',
+      Version: 0,
+      RuleSet: { default: { SemVer: '1.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    // @ts-expect-error no callback
+    const response = await handler(
+      {
+        Records: [
+          {
+            cf: {
+              config: {
+                distributionDomainName: 'zyz.cloudfront.net',
+                distributionId: '123',
+                eventType: 'origin-request',
+                requestId: '123',
+              },
+              request: {
+                headers: {
+                  host: [
+                    {
+                      key: 'Host',
+                      value: 'zyz.cloudfront.net',
+                    },
+                  ],
+                },
+                method: 'GET',
+                querystring: 'appver=1.2.3',
+                clientIp: '1.1.1.1',
+                uri: '/batdirectappver',
                 origin: {
                   custom: {
                     customHeaders: {},
