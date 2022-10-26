@@ -401,6 +401,7 @@ export class MicroApps extends Construct implements IMicroApps {
         replaceHostHeader,
         originRegion,
         signingMode,
+        rootPathPrefix,
         tableRulesArn: tableNameForEdgeToOrigin || this._svcs.table.tableName,
       });
     }
