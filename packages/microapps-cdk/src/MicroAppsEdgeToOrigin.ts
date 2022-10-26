@@ -348,13 +348,19 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       path.join(distPath, 'appFrame.html'),
     );
 
+    // The exclude varying per stack name is a kludge to get the asset bundled
+    // with the stack-specifc config.yml file, otherwise they all get the file
+    // generated for the first instance of the construct within any stack
+    // in the app.
+    const code = lambda.Code.fromAsset(distPath, { exclude: [`**/${Stack.of(this)}`] });
+
     const stackHash = this.hashStackName() ?? '';
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
     const edge = new cf.experimental.EdgeFunction(this, `edge-to-apigwy-func-${stackHash}`, {
       stackId: `microapps-edge-to-origin-${stackHash}`,
-      code: lambda.Code.fromAsset(distPath),
+      code,
       functionName: `microapps-edge-to-origin-${stackHash}`,
       handler: 'index.handler',
       ...edgeToOriginFuncProps,
