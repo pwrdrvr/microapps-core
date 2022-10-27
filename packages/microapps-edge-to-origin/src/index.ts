@@ -195,6 +195,13 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       request.headers['host'] = [{ key: 'Host', value: originHost }];
     }
 
+    // Overwrite the origin
+    if (request.origin?.custom?.domainName) {
+      request.origin = { ...request.origin };
+      request.origin.custom.domainName = originHost;
+      request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
+    }
+
     // Lambda Function URLs cannot have a custom domain name
     // Function URLs will always contain `.lambda-url.`
     // API Gateway URLs can contain '.execute-api.' but will not
@@ -216,13 +223,6 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     log.info('returning request', {
       requestToReturn,
     });
-
-    // Overwrite the origin
-    if (request.origin?.custom?.domainName) {
-      requestToReturn.origin = { ...request.origin };
-      requestToReturn.origin.custom.domainName = originHost;
-      requestToReturn.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
-    }
 
     return requestToReturn as unknown as lambda.CloudFrontResultResponse;
   } catch (error) {
