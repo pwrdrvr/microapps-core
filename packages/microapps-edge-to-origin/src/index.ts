@@ -118,6 +118,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
 
       // Handle redirect if we got one
       if (route.redirectLocation) {
+        // We strip off the appver query string so Next.js won't reject the request
         return {
           status: `${route.statusCode}`,
           headers: {
@@ -220,6 +221,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     if (request.origin?.custom?.domainName) {
       requestToReturn.origin = { ...request.origin };
       requestToReturn.origin.custom.domainName = originHost;
+      requestToReturn.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
     }
 
     return requestToReturn as unknown as lambda.CloudFrontResultResponse;

@@ -585,6 +585,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse).toBeDefined();
     expect(requestResponse).not.toHaveProperty('status');
     expect(requestResponse).not.toHaveProperty('body');
+    expect(requestResponse.querystring).toBe('');
     expect(requestResponse).toHaveProperty('headers');
     expect(requestResponse.headers).toHaveProperty('host');
     expect(requestResponse.headers.host).toHaveLength(1);
@@ -651,6 +652,7 @@ describe('edge-to-origin - routing - without prefix', () => {
       expect(requestResponse).toBeDefined();
       expect(requestResponse).not.toHaveProperty('status');
       expect(requestResponse).not.toHaveProperty('body');
+      expect(requestResponse.querystring).toBe('');
       expect(requestResponse).toHaveProperty('headers');
       expect(requestResponse.headers).toHaveProperty('host');
       expect(requestResponse.headers.host).toHaveLength(1);
