@@ -186,6 +186,14 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       }
     }
 
+    // Check for a version in the path
+    // Examples
+    //  / appName / semVer / somepath
+    //  / appName / _next / data / semVer / somepath
+    const possibleSemVerPathNextData = parts.length >= 5 ? parts[4] : '';
+    const possibleSemVerPathAfterApp = parts.length >= 3 ? parts[2] : '';
+    const possibleSemVerPath = possibleSemVerPathNextData || possibleSemVerPathAfterApp;
+
     //  / appName (/ something)?
     // ^  ^^^^^^^    ^^^^^^^^^
     // 0        1            2
@@ -195,7 +203,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       normalizedPathPrefix,
       event,
       appName: parts[1],
-      possibleSemVerPath: parts.length >= 3 ? parts[2] : '',
+      possibleSemVerPath,
       possibleSemVerQuery: queryStringParameters?.get('appver') || '',
       additionalParts,
     });

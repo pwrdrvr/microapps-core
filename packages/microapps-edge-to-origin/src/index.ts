@@ -199,6 +199,8 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     if (request.origin?.custom?.domainName) {
       request.origin = { ...request.origin };
       request.origin.custom.domainName = originHost;
+
+      // Remove the appver query string to avoid problems with some frameworks
       request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
     }
 
