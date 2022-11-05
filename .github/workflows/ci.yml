@@ -211,6 +211,16 @@ jobs:
             -s packages/demo-app/static_files \
             -i index.html --overwrite --noCache
 
+      - name: Demo App URL
+        uses: Sibz/github-status-action@v1
+        with: 
+          authToken: ${{secrets.GITHUB_TOKEN}}
+          context: 'Demo App URL on MicroApps'
+          description: 'Passed'
+          state: 'success'
+          sha: ${{github.event.pull_request.head.sha || github.sha}}
+          target_url: https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}
+
       - name: Test Demo App
         run: |
           echo Testing App Frame Loading
@@ -230,6 +240,16 @@ jobs:
             -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} \
             -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ \
             --overwrite --noCache
+
+      - name: Nextjs Demo App URL
+        uses: Sibz/github-status-action@v1
+        with: 
+          authToken: ${{secrets.GITHUB_TOKEN}}
+          context: 'Nextjs Demo App URL on MicroApps'
+          description: 'Passed'
+          state: 'success'
+          sha: ${{github.event.pull_request.head.sha || github.sha}}
+          target_url: https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Test Nextjs Demo App
         run: |
@@ -253,6 +273,16 @@ jobs:
             -l ${RELEASE_APP_LAMBDA_NAME} \
             -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ \
             --overwrite --noCache
+
+      - name: Release App URL
+        uses: Sibz/github-status-action@v1
+        with: 
+          authToken: ${{secrets.GITHUB_TOKEN}}
+          context: 'Release App URL on MicroApps'
+          description: 'Passed'
+          state: 'success'
+          sha: ${{github.event.pull_request.head.sha || github.sha}}
+          target_url: https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}
 
       - name: Test Release App
         run: |
