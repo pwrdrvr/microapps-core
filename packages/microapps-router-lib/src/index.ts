@@ -312,6 +312,17 @@ async function RouteApp(opts: {
     // We got a version for the query string, but it's not in the path,
     // so fall back to normal routing (create an iframe or direct route)
     versionInfoToUse = possibleSemVerQueryVersionInfo;
+  } else if (possibleSemVerQuery) {
+    // We got a version in the query string but it does not exist
+    // This needs to 404 as this is a very specific request for a specific version
+    log.error(`could not find app ${appName}, for path ${event.rawPath} - returning 404`, {
+      statusCode: 404,
+    });
+
+    return {
+      statusCode: 404,
+      errorMessage: `Router - Could not find app: ${event.rawPath}, ${appName}`,
+    };
   } else {
     //
     // TODO: Get the incoming attributes of user
