@@ -192,7 +192,6 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     //  / appName / _next / data / semVer / somepath
     const possibleSemVerPathNextData = parts.length >= 5 ? parts[4] : '';
     const possibleSemVerPathAfterApp = parts.length >= 3 ? parts[2] : '';
-    const possibleSemVerPath = possibleSemVerPathNextData || possibleSemVerPathAfterApp;
 
     //  / appName (/ something)?
     // ^  ^^^^^^^    ^^^^^^^^^
@@ -203,7 +202,8 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       normalizedPathPrefix,
       event,
       appName: parts[1],
-      possibleSemVerPath,
+      possibleSemVerPathNextData,
+      possibleSemVerPathAfterApp,
       possibleSemVerQuery: queryStringParameters?.get('appver') || '',
       additionalParts,
     });
@@ -237,7 +237,8 @@ async function RouteApp(opts: {
   dbManager: DBManager;
   event: IGetRouteEvent;
   appName: string;
-  possibleSemVerPath?: string;
+  possibleSemVerPathNextData?: string;
+  possibleSemVerPathAfterApp?: string;
   possibleSemVerQuery?: string;
   additionalParts: string;
   normalizedPathPrefix?: string;
@@ -247,7 +248,8 @@ async function RouteApp(opts: {
     event,
     normalizedPathPrefix = '',
     appName,
-    possibleSemVerPath,
+    possibleSemVerPathNextData,
+    possibleSemVerPathAfterApp,
     possibleSemVerQuery,
     additionalParts,
   } = opts;
@@ -277,20 +279,25 @@ async function RouteApp(opts: {
   let versionInfoToUse: Version | undefined;
 
   // Check if the semver placeholder is actually a defined version
-  const possibleSemVerPathVersionInfo = possibleSemVerPath
-    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPath)
+  const possibleSemVerPathAfterAppVersionInfo = possibleSemVerPathAfterApp
+    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPathAfterApp)
+    : undefined;
+  const possibleSemVerPathNextDataVersionInfo = possibleSemVerPathNextData
+    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPathNextData)
     : undefined;
   const possibleSemVerQueryVersionInfo = possibleSemVerQuery
     ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerQuery)
     : undefined;
 
   // If there is a version in the path, use it
+  const possibleSemVerPathVersionInfo =
+    possibleSemVerPathAfterAppVersionInfo || possibleSemVerPathNextDataVersionInfo;
   if (possibleSemVerPathVersionInfo) {
     // This is a version, and it's in the path already, route the request to it
     // without creating iframe
     return {
       appName,
-      semVer: possibleSemVerPath,
+      semVer: possibleSemVerPathVersionInfo.SemVer,
       ...(possibleSemVerPathVersionInfo?.URL ? { url: possibleSemVerPathVersionInfo?.URL } : {}),
       ...(possibleSemVerPathVersionInfo?.Type
         ? {
