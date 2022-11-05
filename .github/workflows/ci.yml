@@ -220,7 +220,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${DEMO_APP_NAME}/${PACKAGE_VERSION}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}?appver=${{ env.PACKAGE_VERSION }}
 
       - name: Test Demo App
         run: |
@@ -241,7 +241,7 @@ jobs:
             -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/nextjs-demo/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ \
             --overwrite --noCache
 
       - name: Nextjs Demo App URL
@@ -252,7 +252,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.NEXTJS_DEMO_APP_NAME }}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Test Nextjs Demo App
         run: |
@@ -274,7 +274,7 @@ jobs:
             -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${RELEASE_APP_LAMBDA_NAME} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${{ needs.build.outputs.releaseAppPackageVersion }}/ \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/ \
             --overwrite --noCache
 
       - name: Release App URL
