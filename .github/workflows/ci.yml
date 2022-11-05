@@ -216,7 +216,7 @@ jobs:
         uses: Sibz/github-status-action@v1
         with: 
           authToken: ${{secrets.GITHUB_TOKEN}}
-          context: 'Demo App URL on MicroApps'
+          context: 'Demo App URL on ${{ matrix.deployName }}'
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
@@ -248,7 +248,7 @@ jobs:
         uses: Sibz/github-status-action@v1
         with: 
           authToken: ${{secrets.GITHUB_TOKEN}}
-          context: 'Nextjs Demo App URL on MicroApps'
+          context: 'Nextjs Demo App URL on ${{ matrix.deployName }}'
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
@@ -281,7 +281,7 @@ jobs:
         uses: Sibz/github-status-action@v1
         with: 
           authToken: ${{secrets.GITHUB_TOKEN}}
-          context: 'Release App URL on MicroApps'
+          context: 'Release App URL on ${{ matrix.deployName }}'
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
