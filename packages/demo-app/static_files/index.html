@@ -8,11 +8,22 @@
     <div>This is a simple demo app</div>
     <div>
       <button
-        onclick="fetch(`/demo-app/0.0.0/serverIncrement?currValue=${document.getElementById('output').innerText}`).then((response) => response.json()).then((data) => {document.getElementById('output').innerText = data.newValue })"
+        onclick="fetch(`serverIncrement?currValue=${document.getElementById('output').innerText}`).then((response) => response.json()).then((data) => {document.getElementById('output').innerText = data.newValue })"
       >
-        Run Server Increment
+        Run Server Increment - Relative
       </button>
+
+      <div id="output">1</div>
     </div>
-    <div id="output">1</div>
+
+    <div>
+      <button
+        onclick="fetch(`0.0.0/serverIncrement?currValue=${document.getElementById('output2').innerText}`).then((response) => response.json()).then((data) => {document.getElementById('output2').innerText = data.newValue })"
+      >
+        Run Server Increment - Version Relative
+      </button>
+
+      <div id="output2">1</div>
+    </div>
   </body>
 </html>

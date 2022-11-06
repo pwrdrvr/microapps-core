@@ -34,6 +34,7 @@ export async function handler(
       statusCode: 200,
       headers: {
         'Content-Type': 'text/html',
+        'Powered-By': 'demo-app',
       },
       isBase64Encoded: false,
       body: html,
@@ -41,7 +42,12 @@ export async function handler(
   }
 
   return {
-    source: 'demo-app',
-    timestamp: `${new Date().toUTCString()}`,
+    statusCode: 404,
+    headers: {
+      'Content-Type': 'text/plain',
+      'Powered-By': 'demo-app',
+    },
+    isBase64Encoded: false,
+    body: `${new Date().toUTCString()}`,
   };
 }
