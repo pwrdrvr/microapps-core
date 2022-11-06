@@ -157,29 +157,47 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // /someapp/somepath will split into length 3 with ["", "someapp", "somepath"] as results
     // /someapp/somepath/ will split into length 3 with ["", "someapp", "somepath", ""] as results
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
-    const parts = pathAfterPrefix.split('/');
+    const partsAfterPrefix = pathAfterPrefix.split('/');
+
+    const { versionsAndRules, appName } = await GetAppInfo({
+      dbManager,
+      appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
+    });
+
+    const isRootApp = appName === '[root]';
+    const appNameOrRootTrailingSlash = isRootApp ? '' : `${appName}/`;
+
+    // Strip the appName from the start of the path, if there was one
+    const pathAfterAppName = isRootApp
+      ? pathAfterPrefix
+      : pathAfterPrefix.slice(appName.length + 1);
+    const partsAfterAppName = pathAfterAppName.split('/');
 
     // Pass any parts after the appName/Version to the route handler
     let additionalParts = '';
-    if (parts.length >= 3 && parts[2] !== '') {
-      additionalParts = parts.slice(2).join('/');
+    if (partsAfterAppName.length >= 2 && partsAfterAppName[1] !== '') {
+      additionalParts = partsAfterAppName.slice(1).join('/');
     }
 
     // Route an app and version (only) to include the defaultFile
     // If the second part is not a version that exists, fall through to
     // routing the app and glomming the rest of the path on to the end
-    if (parts.length === 3 || (parts.length === 4 && !parts[3])) {
-      //   / appName / semVer /
-      // ^   ^^^^^^^   ^^^^^^   ^
-      // 0         1        2   3
+    if (
+      partsAfterAppName.length === 2 ||
+      (partsAfterAppName.length === 3 && !partsAfterAppName[2])
+    ) {
+      //   / semVer /
+      // ^   ^^^^^^   ^
+      // 0        1   2
       // This is an app and a version only
       // If the request got here it's likely a static app that has no
       // Lambda function (thus the API Gateway route fell through to the Router)
       const response = await RedirectToDefaultFile({
         dbManager,
-        appName: parts[1],
+        appName,
         normalizedPathPrefix,
-        semVer: parts[2],
+        semVer: partsAfterAppName[1],
+        appNameOrRootTrailingSlash,
       });
       if (response) {
         return response;
@@ -188,24 +206,26 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
 
     // Check for a version in the path
     // Examples
-    //  / appName / semVer / somepath
-    //  / appName / _next / data / semVer / somepath
-    const possibleSemVerPathNextData = parts.length >= 5 ? parts[4] : '';
-    const possibleSemVerPathAfterApp = parts.length >= 3 ? parts[2] : '';
+    //  / semVer / somepath
+    //  / _next / data / semVer / somepath
+    const possibleSemVerPathNextData = partsAfterAppName.length >= 4 ? partsAfterAppName[3] : '';
+    const possibleSemVerPathAfterApp = partsAfterAppName.length >= 2 ? partsAfterAppName[1] : '';
 
-    //  / appName (/ something)?
-    // ^  ^^^^^^^    ^^^^^^^^^
-    // 0        1            2
+    //  (/ something)?
+    // ^  ^^^^^^^^^^^^
+    // 0             1
     // Got at least an application name, try to route it
-    const response = await RouteApp({
+    const response = RouteApp({
       dbManager,
       normalizedPathPrefix,
       event,
-      appName: parts[1],
+      appName,
       possibleSemVerPathNextData,
       possibleSemVerPathAfterApp,
       possibleSemVerQuery: queryStringParameters?.get('appver') || '',
       additionalParts,
+      versionsAndRules,
+      appNameOrRootTrailingSlash,
     });
     if (response) {
       return response;
@@ -224,6 +244,46 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
   }
 }
 
+export interface IAppInfo {
+  appName: string;
+  versionsAndRules: IVersionsAndRules;
+}
+
+/**
+ * Get info about an app or the root app
+ */
+export async function GetAppInfo(opts: {
+  dbManager: DBManager;
+  appName: string;
+}): Promise<IAppInfo> {
+  const { dbManager, appName } = opts;
+
+  let versionsAndRules: IVersionsAndRules;
+
+  versionsAndRules = await Application.GetVersionsAndRules({
+    dbManager,
+    key: { AppName: appName },
+  });
+
+  if (versionsAndRules.Versions.length > 0) {
+    return {
+      appName,
+      versionsAndRules,
+    };
+  }
+
+  // Check if we have a `[root]` app that is a catch all
+  versionsAndRules = await Application.GetVersionsAndRules({
+    dbManager,
+    key: { AppName: '[root]' },
+  });
+
+  return {
+    appName: '[root]',
+    versionsAndRules,
+  };
+}
+
 /**
  * Lookup the version of the app to run
  * @param event
@@ -233,7 +293,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
  * @param log
  * @returns
  */
-async function RouteApp(opts: {
+function RouteApp(opts: {
   dbManager: DBManager;
   event: IGetRouteEvent;
   appName: string;
@@ -242,9 +302,10 @@ async function RouteApp(opts: {
   possibleSemVerQuery?: string;
   additionalParts: string;
   normalizedPathPrefix?: string;
-}): Promise<IGetRouteResult> {
+  versionsAndRules: IVersionsAndRules;
+  appNameOrRootTrailingSlash: string;
+}): IGetRouteResult {
   const {
-    dbManager,
     event,
     normalizedPathPrefix = '',
     appName,
@@ -252,29 +313,9 @@ async function RouteApp(opts: {
     possibleSemVerPathAfterApp,
     possibleSemVerQuery,
     additionalParts,
+    versionsAndRules,
+    appNameOrRootTrailingSlash,
   } = opts;
-  let versionsAndRules: IVersionsAndRules;
-
-  try {
-    versionsAndRules = await Application.GetVersionsAndRules({
-      dbManager,
-      key: { AppName: appName },
-    });
-  } catch (error) {
-    // 2021-03-10 - NOTE: This isn't clean - DocumentClient.get throws if the item is not found
-    // It's not easily detectable either.  When the lib is updated we can improve this
-    // Assume this means "succeeded but not found for now"
-    log.info(`GetVersionsAndRules threw for '${appName}', assuming not found - returning 404`, {
-      appName,
-      statusCode: 404,
-      error,
-    });
-
-    return {
-      statusCode: 404,
-      errorMessage: `Router - Could not find app: ${event.rawPath}, ${appName}`,
-    };
-  }
 
   let versionInfoToUse: Version | undefined;
 
@@ -383,14 +424,14 @@ async function RouteApp(opts: {
       // KLUDGE: We're going to take a missing default file to mean that the
       // app type is Next.js (or similar) and that it wants no trailing slash after the version
       // TODO: Move this to an attribute of the version
-      appVersionPath = `${normalizedPathPrefix}/${appName}/${versionInfoToUse.SemVer}`;
+      appVersionPath = `${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${versionInfoToUse.SemVer}`;
       if (additionalParts !== '') {
         appVersionPath += `/${additionalParts}`;
       }
     } else {
       // Linking to the file directly means this will be peeled off by the S3 route
       // That means we won't have to proxy this from S3
-      appVersionPath = `${normalizedPathPrefix}/${appName}/${versionInfoToUse.SemVer}/${versionInfoToUse.DefaultFile}`;
+      appVersionPath = `${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${versionInfoToUse.SemVer}/${versionInfoToUse.DefaultFile}`;
     }
 
     return {
@@ -437,8 +478,15 @@ async function RedirectToDefaultFile(opts: {
   normalizedPathPrefix?: string;
   appName: string;
   semVer: string;
+  appNameOrRootTrailingSlash: string;
 }): Promise<IGetRouteResult | undefined> {
-  const { dbManager, normalizedPathPrefix = '', appName, semVer } = opts;
+  const {
+    dbManager,
+    normalizedPathPrefix = '',
+    appName,
+    appNameOrRootTrailingSlash,
+    semVer,
+  } = opts;
   let versionInfo: Version;
 
   try {
@@ -448,7 +496,7 @@ async function RedirectToDefaultFile(opts: {
     });
   } catch (error) {
     log.info(
-      `LoadVersion threw for '${normalizedPathPrefix}/${appName}/${semVer}' - falling through to app routing'`,
+      `LoadVersion threw for '${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${semVer}' - falling through to app routing'`,
       {
         appName,
         semVer,
@@ -460,7 +508,7 @@ async function RedirectToDefaultFile(opts: {
 
   if (versionInfo === undefined) {
     log.info(
-      `LoadVersion returned undefined for '${normalizedPathPrefix}/${appName}/${semVer}', assuming not found - falling through to app routing'`,
+      `LoadVersion returned undefined for '${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${semVer}', assuming not found - falling through to app routing'`,
       {
         appName,
         semVer,
@@ -474,15 +522,15 @@ async function RedirectToDefaultFile(opts: {
   }
 
   log.info(
-    `found '${normalizedPathPrefix}/${appName}/${semVer}' - returning 302 to ${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`,
+    `found '${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${semVer}' - returning 302 to ${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${semVer}/${versionInfo.DefaultFile}`,
     {
       statusCode: 302,
-      routedPath: `${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`,
+      routedPath: `${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${semVer}/${versionInfo.DefaultFile}`,
     },
   );
 
   return {
     statusCode: 302,
-    redirectLocation: `${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`,
+    redirectLocation: `${normalizedPathPrefix}/${appNameOrRootTrailingSlash}${semVer}/${versionInfo.DefaultFile}`,
   };
 }
