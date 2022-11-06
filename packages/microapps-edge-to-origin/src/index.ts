@@ -127,6 +127,13 @@ export const handler: lambda.CloudFrontRequestHandler = async (
         };
       }
 
+      if (route.statusCode && route.statusCode !== 200) {
+        return {
+          status: `${route.statusCode}`,
+          statusDescription: route.errorMessage,
+        };
+      }
+
       // Fall through to apigwy handling if type is not url
       if (route.url && (route.type === 'url' || route.type === 'lambda-url')) {
         log.info('rewriting to url', { url: route.url });
@@ -199,6 +206,8 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     if (request.origin?.custom?.domainName) {
       request.origin = { ...request.origin };
       request.origin.custom.domainName = originHost;
+
+      // Remove the appver query string to avoid problems with some frameworks
       request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
     }
 

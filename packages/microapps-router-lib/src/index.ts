@@ -186,6 +186,13 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       }
     }
 
+    // Check for a version in the path
+    // Examples
+    //  / appName / semVer / somepath
+    //  / appName / _next / data / semVer / somepath
+    const possibleSemVerPathNextData = parts.length >= 5 ? parts[4] : '';
+    const possibleSemVerPathAfterApp = parts.length >= 3 ? parts[2] : '';
+
     //  / appName (/ something)?
     // ^  ^^^^^^^    ^^^^^^^^^
     // 0        1            2
@@ -195,7 +202,8 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       normalizedPathPrefix,
       event,
       appName: parts[1],
-      possibleSemVerPath: parts.length >= 3 ? parts[2] : '',
+      possibleSemVerPathNextData,
+      possibleSemVerPathAfterApp,
       possibleSemVerQuery: queryStringParameters?.get('appver') || '',
       additionalParts,
     });
@@ -229,7 +237,8 @@ async function RouteApp(opts: {
   dbManager: DBManager;
   event: IGetRouteEvent;
   appName: string;
-  possibleSemVerPath?: string;
+  possibleSemVerPathNextData?: string;
+  possibleSemVerPathAfterApp?: string;
   possibleSemVerQuery?: string;
   additionalParts: string;
   normalizedPathPrefix?: string;
@@ -239,7 +248,8 @@ async function RouteApp(opts: {
     event,
     normalizedPathPrefix = '',
     appName,
-    possibleSemVerPath,
+    possibleSemVerPathNextData,
+    possibleSemVerPathAfterApp,
     possibleSemVerQuery,
     additionalParts,
   } = opts;
@@ -269,20 +279,25 @@ async function RouteApp(opts: {
   let versionInfoToUse: Version | undefined;
 
   // Check if the semver placeholder is actually a defined version
-  const possibleSemVerPathVersionInfo = possibleSemVerPath
-    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPath)
+  const possibleSemVerPathAfterAppVersionInfo = possibleSemVerPathAfterApp
+    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPathAfterApp)
+    : undefined;
+  const possibleSemVerPathNextDataVersionInfo = possibleSemVerPathNextData
+    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPathNextData)
     : undefined;
   const possibleSemVerQueryVersionInfo = possibleSemVerQuery
     ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerQuery)
     : undefined;
 
   // If there is a version in the path, use it
+  const possibleSemVerPathVersionInfo =
+    possibleSemVerPathAfterAppVersionInfo || possibleSemVerPathNextDataVersionInfo;
   if (possibleSemVerPathVersionInfo) {
     // This is a version, and it's in the path already, route the request to it
     // without creating iframe
     return {
       appName,
-      semVer: possibleSemVerPath,
+      semVer: possibleSemVerPathVersionInfo.SemVer,
       ...(possibleSemVerPathVersionInfo?.URL ? { url: possibleSemVerPathVersionInfo?.URL } : {}),
       ...(possibleSemVerPathVersionInfo?.Type
         ? {
@@ -297,6 +312,17 @@ async function RouteApp(opts: {
     // We got a version for the query string, but it's not in the path,
     // so fall back to normal routing (create an iframe or direct route)
     versionInfoToUse = possibleSemVerQueryVersionInfo;
+  } else if (possibleSemVerQuery) {
+    // We got a version in the query string but it does not exist
+    // This needs to 404 as this is a very specific request for a specific version
+    log.error(`could not find app ${appName}, for path ${event.rawPath} - returning 404`, {
+      statusCode: 404,
+    });
+
+    return {
+      statusCode: 404,
+      errorMessage: `Router - Could not find app: ${event.rawPath}, ${appName}`,
+    };
   } else {
     //
     // TODO: Get the incoming attributes of user
