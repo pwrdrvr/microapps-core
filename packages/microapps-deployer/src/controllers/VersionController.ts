@@ -88,6 +88,7 @@ export default class VersionController {
             effect: iamCDK.Effect.ALLOW,
             actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
             resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+            // TODO: Add condition to limit to app prefix
           }),
           new iamCDK.PolicyStatement({
             effect: iamCDK.Effect.ALLOW,
@@ -791,11 +792,27 @@ export default class VersionController {
     } while (list.IsTruncated);
   }
 
+  /**
+   * Get the prefix that the app version resources will be stored under
+   *
+   * @param request
+   * @param config
+   * @returns
+   */
   private static GetBucketPrefix(
     request: Pick<IDeployVersionRequestBase, 'appName' | 'semVer'>,
     config: IConfig,
   ): string {
     const pathPrefix = config.rootPathPrefix === '' ? '' : `${config.rootPathPrefix}/`;
-    return `${pathPrefix}${request.appName}/${request.semVer}`.toLowerCase();
+    return `${pathPrefix}${VersionController.GetAppNameOrRootTrailingSlash(request)}${
+      request.semVer
+    }`.toLowerCase();
+  }
+
+  private static GetAppNameOrRootTrailingSlash(
+    request: Pick<IDeployVersionRequestBase, 'appName'>,
+  ): string {
+    const isRootApp = request.appName === '[root]';
+    return isRootApp ? '' : `${request.appName}/`;
   }
 }

@@ -23,6 +23,7 @@ Object.defineProperty(Config, 'instance', {
       },
       uploadRoleName: 'microapps-upload-test-role',
       rootPathPrefix: 'qa',
+      requireIAMAuthorization: false,
     };
   }),
 });
