@@ -330,6 +330,14 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         apiGwyOrigin,
         apiGwyBehaviorOptions,
       );
+
+      if (rootPathPrefix) {
+        distro.addBehavior(
+          posixPath.join(rootPathPrefix, 'api/*'),
+          apiGwyOrigin,
+          apiGwyBehaviorOptions,
+        );
+      }
     }
 
     //
@@ -346,6 +354,17 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         apiGwyOrigin,
         apiGwyBehaviorOptions,
       );
+
+      if (rootPathPrefix) {
+        distro.addBehavior(
+          // Note: send anything with _next/data after the appName (and optional version)
+          // to the app origin as iframe-less will have no version before _next/data
+          // in the path
+          posixPath.join(rootPathPrefix, '_next/data/*'),
+          apiGwyOrigin,
+          apiGwyBehaviorOptions,
+        );
+      }
     }
 
     //
