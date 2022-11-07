@@ -48,6 +48,6 @@ export async function handler(
       'Powered-By': 'demo-app',
     },
     isBase64Encoded: false,
-    body: `${new Date().toUTCString()}`,
+    body: `${new Date().toUTCString()} - default failure`,
   };
 }
