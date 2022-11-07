@@ -143,7 +143,7 @@ jobs:
 
       - name: Stitch Version and Prefix into Simple Demo App
         run: |
-            npx replace-in-file "/\/${DEMO_APP_NAME}\/0\.0\.0/g" ${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+            npx replace-in-file "/\/0\.0\.0/g" ${PREFIX}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
 
       - name: Stitch Prefix into Nextjs Demo App
         run: |
