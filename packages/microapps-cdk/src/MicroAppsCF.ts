@@ -326,7 +326,13 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     if (createAPIPathRoute) {
       distro.addBehavior(
-        posixPath.join(rootPathPrefix, '/*/*/api/*'),
+        posixPath.join(rootPathPrefix, '*/api/*'),
+        apiGwyOrigin,
+        apiGwyBehaviorOptions,
+      );
+
+      distro.addBehavior(
+        posixPath.join(rootPathPrefix, 'api/*'),
         apiGwyOrigin,
         apiGwyBehaviorOptions,
       );
@@ -342,7 +348,16 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // Note: send anything with _next/data after the appName (and optional version)
         // to the app origin as iframe-less will have no version before _next/data
         // in the path
-        posixPath.join(rootPathPrefix, '/*/_next/data/*'),
+        posixPath.join(rootPathPrefix, '*/_next/data/*'),
+        apiGwyOrigin,
+        apiGwyBehaviorOptions,
+      );
+
+      distro.addBehavior(
+        // Note: send anything with _next/data after the appName (and optional version)
+        // to the app origin as iframe-less will have no version before _next/data
+        // in the path
+        posixPath.join(rootPathPrefix, '_next/data/*'),
         apiGwyOrigin,
         apiGwyBehaviorOptions,
       );
@@ -353,6 +368,15 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     distro.addBehavior(
       posixPath.join(rootPathPrefix, '/*/*/*.*'),
+      bucketAppsOrigin,
+      s3BehaviorOptions,
+    );
+
+    //
+    // Root app static resources
+    //
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '/*.*.*/*.*'),
       bucketAppsOrigin,
       s3BehaviorOptions,
     );

@@ -143,7 +143,7 @@ jobs:
 
       - name: Stitch Version and Prefix into Simple Demo App
         run: |
-            npx replace-in-file "/\/${DEMO_APP_NAME}\/0\.0\.0/g" ${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+            npx replace-in-file "/\/0\.0\.0/g" ${PREFIX}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
 
       - name: Stitch Prefix into Nextjs Demo App
         run: |
@@ -225,13 +225,45 @@ jobs:
       - name: Test Demo App
         run: |
           echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
           echo Testing App Method Invocation
-          curl --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/serverIncrement?currValue=1"
           echo Testing App Method Invocation on _next/data Route
-          curl --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+
+      - name: Publish Demo App to MicroApps - Root App
+        run: |
+          npx microapps-publish publish -a '[root]' \
+            -t lambda-url \
+            --startup-type direct \
+            -n ${PACKAGE_VERSION} \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -l ${DEMO_APP_LAMBDA_NAME} \
+            -s packages/demo-app/static_files \
+            -i index.html --overwrite --noCache
+
+      - name: Demo App URL - Root App
+        uses: Sibz/github-status-action@v1
+        with: 
+          authToken: ${{secrets.GITHUB_TOKEN}}
+          context: 'Demo App (Root App) URL on ${{ matrix.deployName }}'
+          description: 'Passed'
+          state: 'success'
+          sha: ${{github.event.pull_request.head.sha || github.sha}}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/?appver=${{ env.PACKAGE_VERSION }}
+
+      - name: Test Demo App - Root App
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${PACKAGE_VERSION}/index.html
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          echo Testing App Method Invocation on _next/data Route
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
@@ -257,13 +289,13 @@ jobs:
       - name: Test Nextjs Demo App
         run: |
           echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
           echo Testing Post Page Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/posts/pre-rendering
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/posts/pre-rendering
           echo Testing Image Rendering
-          curl --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
+          curl -H"accept: image/jpg" --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
 
       - name: Publish Release App to MicroApps
         run: |
@@ -290,11 +322,11 @@ jobs:
       - name: Test Release App
         run: |
           echo Testing App Frame Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
           echo Testing App HTML Loading
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
-          curl --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
+          curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
 
   build-jsii:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII'))
