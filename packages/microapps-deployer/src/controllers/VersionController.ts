@@ -655,12 +655,20 @@ export default class VersionController {
 
         // Remove the Version from the Lambda Function
         if (aliasInfo.FunctionVersion) {
-          await lambdaClient.send(
-            new lambda.DeleteFunctionCommand({
-              FunctionName: lambdaARNBase,
-              Qualifier: aliasInfo.FunctionVersion,
-            }),
-          );
+          try {
+            await lambdaClient.send(
+              new lambda.DeleteFunctionCommand({
+                FunctionName: lambdaARNBase,
+                Qualifier: aliasInfo.FunctionVersion,
+              }),
+            );
+          } catch (error: any) {
+            if (error.name !== 'ResourceConflictException') {
+              throw error;
+            }
+
+            Log.Instance.info('Version is still in use by another alias, not deleting');
+          }
         }
       } catch (error: any) {
         // It's ok if the Alias or Version is already gone
