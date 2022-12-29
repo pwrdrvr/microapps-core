@@ -233,6 +233,23 @@ jobs:
           echo Testing App Method Invocation on _next/data Route
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
 
+      - name: Publish Demo App to MicroApps - To Delete
+        run: |
+          npx microapps-publish publish -a ${DEMO_APP_NAME} \
+            -t lambda-url \
+            --startup-type direct \
+            -n 0.0.0-test.1 \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -l ${DEMO_APP_LAMBDA_NAME} \
+            -s packages/demo-app/static_files \
+            -i index.html --overwrite --noCache
+
+      - name: Delete Demo App - To Delete
+        run: |
+          npx microapps-publish delete -a ${DEMO_APP_NAME} \
+            -n 0.0.0-test.1  \
+            -d ${DEPLOYER_LAMBDA_NAME}
+
       - name: Publish Demo App to MicroApps - Root App
         run: |
           npx microapps-publish publish -a '[root]' \

@@ -189,6 +189,7 @@ export default class VersionController {
       record.DefaultFile = request.defaultFile;
       record.Type = appType;
       record.StartupType = startupType;
+      request.lambdaARN && (record.LambdaARN = request.lambdaARN);
     }
 
     // Create the version record
@@ -200,6 +201,7 @@ export default class VersionController {
         Status: 'pending',
         DefaultFile: request.defaultFile,
         StartupType: startupType,
+        ...(request.lambdaARN ? { LambdaARN: request.lambdaARN } : {}),
       });
 
       // Save record with pending status
@@ -417,9 +419,14 @@ export default class VersionController {
         await record.Save(dbManager);
       }
     } else if (appType === 'lambda-url') {
+      if (!request.lambdaARN) {
+        throw new Error('Missing lambdaARN for lambda-url app type');
+      }
+
       // Get base of lambda arn
-      const lambdaARNBase = request.lambdaARN?.substring(0, request.lambdaARN.lastIndexOf(':'));
-      const lambdaARNVersion = request.lambdaARN?.substring(request.lambdaARN.lastIndexOf(':') + 1);
+      const { lambdaARNBase, lambdaARNAlias } = VersionController.ExtractARNandAlias(
+        request.lambdaARN,
+      );
 
       if (overwrite || record.Status === 'assets-copied') {
         // Check if the lambda function has the microapp-managed tag
@@ -451,7 +458,7 @@ export default class VersionController {
           functionUrl = await lambdaClient.send(
             new lambda.GetFunctionUrlConfigCommand({
               FunctionName: lambdaARNBase,
-              Qualifier: lambdaARNVersion,
+              Qualifier: lambdaARNAlias,
             }),
           );
           // Create the FunctionUrl if it doesn't already exist
@@ -469,7 +476,7 @@ export default class VersionController {
           const functionUrlNew = await lambdaClient.send(
             new lambda.CreateFunctionUrlConfigCommand({
               FunctionName: lambdaARNBase,
-              Qualifier: lambdaARNVersion,
+              Qualifier: lambdaARNAlias,
               AuthType: 'AWS_IAM',
             }),
           );
@@ -516,6 +523,12 @@ export default class VersionController {
     return { statusCode: 201 };
   }
 
+  private static ExtractARNandAlias(lambdaARN: string) {
+    const lambdaARNBase = lambdaARN?.substring(0, lambdaARN.lastIndexOf(':'));
+    const lambdaARNAlias = lambdaARN?.substring(lambdaARN.lastIndexOf(':') + 1);
+    return { lambdaARNBase, lambdaARNAlias };
+  }
+
   /**
    * Delete a version of an app
    * @param opts
@@ -549,31 +562,8 @@ export default class VersionController {
     await this.DeleteFromDestinationBucket(destinationPrefix, config);
 
     if (record.Type === 'lambda') {
-      // TODO: Confirm the Lambda Function exists
-
       // Get the API Gateway
       const apiId = config.apigwy.apiId;
-
-      // Get the account ID and region for API Gateway to Lambda permissions
-      // const accountId = config.awsAccountID;
-      // const region = config.awsRegion;
-
-      // TODO: Could remove the policy from the lambda version...
-      // but typically it will be deleted soon, so no big deal?
-      // if (removeStatements) {
-      //   await lambdaClient.send(
-      //     new lambda.RemovePermissionCommand({
-      //       StatementId: 'microapps-version-root',
-      //       FunctionName: request.lambdaARN,
-      //     }),
-      //   );
-      //   await lambdaClient.send(
-      //     new lambda.RemovePermissionCommand({
-      //       StatementId: 'microapps-version',
-      //       FunctionName: request.lambdaARN,
-      //     }),
-      //   );
-      // }
 
       //
       // Remove the routes to API Gateway for appName/version/{proxy+}
@@ -636,12 +626,56 @@ export default class VersionController {
             });
           }
         }
-
-        // TODO: Remove the Alias from the Lambda Function
       }
-    } else if (record.Type === 'lambda-url') {
-      // TODO: Remove the Function URL and Alias from the Lambda Function
-      throw new Error('Not implemented');
+    }
+
+    if ((record.Type === 'lambda' || record.Type === 'lambda-url') && record.LambdaARN) {
+      // Get base of lambda arn
+      const { lambdaARNBase, lambdaARNAlias } = VersionController.ExtractARNandAlias(
+        record.LambdaARN,
+      );
+
+      // Get info about the Alias
+      try {
+        // Get info about which Version the Alias is pointing to
+        const aliasInfo = await lambdaClient.send(
+          new lambda.GetAliasCommand({
+            FunctionName: lambdaARNBase,
+            Name: lambdaARNAlias,
+          }),
+        );
+
+        // Remove the Alias from the Lambda Function
+        await lambdaClient.send(
+          new lambda.DeleteAliasCommand({
+            FunctionName: lambdaARNBase,
+            Name: lambdaARNAlias,
+          }),
+        );
+
+        // Remove the Version from the Lambda Function
+        if (aliasInfo.FunctionVersion) {
+          try {
+            await lambdaClient.send(
+              new lambda.DeleteFunctionCommand({
+                FunctionName: lambdaARNBase,
+                Qualifier: aliasInfo.FunctionVersion,
+              }),
+            );
+          } catch (error: any) {
+            if (error.name !== 'ResourceConflictException') {
+              throw error;
+            }
+
+            Log.Instance.info('Version is still in use by another alias, not deleting');
+          }
+        }
+      } catch (error: any) {
+        // It's ok if the Alias or Version is already gone
+        if (error.name !== 'ResourceNotFoundException') {
+          throw error;
+        }
+      }
     }
 
     // Delete DynamoDB record

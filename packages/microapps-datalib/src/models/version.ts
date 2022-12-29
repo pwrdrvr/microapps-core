@@ -81,11 +81,15 @@ export interface IVersionRecord {
    */
   RouteIDAppVersionSplat: string;
   /**
-   * Lambda Function URL (type=lambda-url) or URL (type=url) only
+   * Lambda Function URL (type=lambda-url) or URL (type=url)
    * @example https://[lambda-url-id].lambda-url.us-east-1.on.aws/
    * @example https://www.example.com/
    */
   URL: string;
+  /**
+   * Lambda Function ARN w/Alias (type=lambda or type=lambda-url)
+   */
+  LambdaARN: string;
 }
 
 export type IVersionRecordNoKeysLoose = Partial<
@@ -187,6 +191,8 @@ export class Version implements IVersionRecord {
   private _routeIDAppVersionSplat: string | undefined;
   // Lambda URL and URL Properties
   private _url: string;
+  // Lambda Function Properties
+  private _lambdaARN: string;
 
   public constructor(init?: Partial<IVersionRecordNoKeysLoose>) {
     this._keyBy = SaveBy.AppName;
@@ -197,6 +203,7 @@ export class Version implements IVersionRecord {
     this._routeIDAppVersion = '';
     this._routeIDAppVersionSplat = '';
     this._url = '';
+    this._lambdaARN = '';
 
     // Save any passed in values over the defaults
     Object.assign(this, init);
@@ -216,6 +223,7 @@ export class Version implements IVersionRecord {
       RouteIDAppVersion: this.RouteIDAppVersion,
       RouteIDAppVersionSplat: this.RouteIDAppVersionSplat,
       URL: this.URL,
+      LambdaARN: this.LambdaARN,
     };
   }
 
@@ -311,5 +319,12 @@ export class Version implements IVersionRecord {
   }
   public set URL(value: string) {
     this._url = value;
+  }
+
+  public get LambdaARN(): string {
+    return this._lambdaARN as string;
+  }
+  public set LambdaARN(value: string) {
+    this._lambdaARN = value;
   }
 }

@@ -140,7 +140,26 @@ describe('VersionController', () => {
       const fakeRoute1ID = 'route123';
       const fakeRoute2ID = 'route456';
 
-      lambdaClient.onAnyCommand().rejects();
+      lambdaClient
+        .on(lambda.GetAliasCommand, {
+          FunctionName: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          Name: 'my-alias',
+        })
+        .resolves({
+          FunctionVersion: '1',
+        })
+        .on(lambda.DeleteAliasCommand, {
+          FunctionName: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          Name: 'my-alias',
+        })
+        .resolves({})
+        .on(lambda.DeleteFunctionCommand, {
+          FunctionName: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          Qualifier: '1',
+        })
+        .resolves({})
+        .onAnyCommand()
+        .rejects();
       s3Client
         .onAnyCommand()
         .rejects()
@@ -204,17 +223,17 @@ describe('VersionController', () => {
         // So don't set this to pending or the test will fail
         Status: 'routed',
         Type: 'lambda',
+        LambdaARN: 'arn:aws:lambda:us-east-1:123456789012:function:my-function:my-alias',
       });
       await version.Save(dbManager);
 
-      const response = await handler(
-        {
-          appName,
-          semVer,
-          type: 'deleteVersion',
-        } as IDeleteVersionRequest,
-        { awsRequestId: '123' } as lambdaTypes.Context,
-      );
+      const request: IDeleteVersionRequest = {
+        appName,
+        semVer,
+        type: 'deleteVersion',
+      };
+
+      const response = await handler(request, { awsRequestId: '123' } as lambdaTypes.Context);
       expect(response).toBeDefined();
       expect(response.statusCode).toBeDefined();
       expect(response.statusCode).toEqual(200);

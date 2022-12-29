@@ -80,7 +80,7 @@ export class ApplicationConfig implements IApplicationConfig {
   }
 
   @convict.Property({
-    doc: 'Local path to static assets path to upload to S3',
+    doc: 'Name of the lambda to deploy to (not full ARN)',
     default: 'microapps-my-app',
     env: 'APP_LAMBDA_NAME',
   })

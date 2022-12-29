@@ -75,6 +75,7 @@ export interface IDeployVersionRequest extends IDeployVersionRequestBase {
    */
   readonly startupType?: 'iframe' | 'direct';
   /**
+   * LambdaARN w/Alias
    * Used for `lambda` and `lambda-url` apps
    */
   readonly lambdaARN?: string;

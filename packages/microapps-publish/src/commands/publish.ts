@@ -3,7 +3,7 @@ import * as util from 'util';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
-import { Command, flags, flags as flagsParser } from '@oclif/command';
+import { Command, flags as flagsParser } from '@oclif/command';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';

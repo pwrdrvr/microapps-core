@@ -29,11 +29,11 @@ export default class DeployClient {
    */
   public static async CreateApp(opts: { config: IConfig }): Promise<void> {
     const { config } = opts;
-    const request = {
+    const request: ICreateApplicationRequest = {
       type: 'createApp',
       appName: config.app.name,
       displayName: config.app.name,
-    } as ICreateApplicationRequest;
+    };
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: config.deployer.lambdaName,
@@ -65,11 +65,11 @@ export default class DeployClient {
   }): Promise<IDeployerResponse> {
     const { config, output } = opts;
 
-    const request = {
+    const request: IDeleteVersionRequest = {
       type: 'deleteVersion',
       appName: config.app.name,
       semVer: config.app.semVer,
-    } as IDeleteVersionRequest;
+    };
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: config.deployer.lambdaName,
@@ -108,13 +108,13 @@ export default class DeployClient {
   }): Promise<IDeployVersionPreflightResult> {
     const { config, needS3Creds = true, overwrite, output } = opts;
 
-    const request = {
+    const request: IDeployVersionPreflightRequest = {
       type: 'deployVersionPreflight',
       appName: config.app.name,
       semVer: config.app.semVer,
       overwrite,
       needS3Creds,
-    } as IDeployVersionPreflightRequest;
+    };
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: config.deployer.lambdaName,
@@ -154,16 +154,16 @@ export default class DeployClient {
     output: (message: string) => void;
   }): Promise<void> {
     const { config, appType, startupType = 'iframe', overwrite, output } = opts;
-    const request = {
+    const request: IDeployVersionRequest = {
       type: 'deployVersion',
       appType,
       startupType,
       appName: config.app.name,
       semVer: config.app.semVer,
       defaultFile: config.app.defaultFile,
-      lambdaARN: ['lambda', 'lambda-url'].includes(appType) ? config.app.lambdaARN : undefined,
       overwrite,
-    } as IDeployVersionRequest;
+      ...(['lambda', 'lambda-url'].includes(appType) ? { lambdaARN: config.app.lambdaARN } : {}),
+    };
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: config.deployer.lambdaName,
