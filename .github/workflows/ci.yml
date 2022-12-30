@@ -203,7 +203,8 @@ jobs:
 
       - name: Publish Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${DEMO_APP_NAME} \
+          npx microapps-publish publish \
+            -a ${DEMO_APP_NAME} \
             -t lambda-url \
             --startup-type direct \
             -n ${PACKAGE_VERSION} \
@@ -235,7 +236,8 @@ jobs:
 
       - name: Publish Demo App to MicroApps - To Delete
         run: |
-          npx microapps-publish publish -a ${DEMO_APP_NAME} \
+          npx microapps-publish publish \
+            -a ${DEMO_APP_NAME} \
             -t lambda-url \
             --startup-type direct \
             -n 0.0.0-test.1 \
@@ -252,7 +254,8 @@ jobs:
 
       - name: Publish Demo App to MicroApps - Root App
         run: |
-          npx microapps-publish publish -a '[root]' \
+          npx microapps-publish publish \
+            -a '[root]' \
             -t lambda-url \
             --startup-type direct \
             -n ${PACKAGE_VERSION} \
@@ -286,6 +289,7 @@ jobs:
         run: |
           npx microapps-publish publish \
             -t lambda-url \
+            --startup-type direct \
             -a ${NEXTJS_DEMO_APP_NAME} \
             -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
@@ -305,14 +309,12 @@ jobs:
 
       - name: Test Nextjs Demo App
         run: |
-          echo Testing App Frame Loading
+          echo Testing App Page Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
           echo Testing Post Page Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/posts/pre-rendering
-          echo Testing Image Rendering
-          curl -H"accept: image/jpg" --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/posts/pre-rendering?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Publish Release App to MicroApps
         run: |
