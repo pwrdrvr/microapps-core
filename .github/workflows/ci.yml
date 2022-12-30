@@ -343,7 +343,7 @@ jobs:
           echo Testing App Frame Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
           echo Testing App HTML Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
           curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
 
