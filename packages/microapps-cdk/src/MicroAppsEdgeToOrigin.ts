@@ -343,10 +343,14 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
-    copyFileSync(
-      path.join(__dirname, '..', '..', 'microapps-router', 'appFrame.html'),
-      path.join(distPath, 'appFrame.html'),
-    );
+
+    // Skip the copy of appFrame.html on deployed modules
+    if (!__dirname.includes('node_modules')) {
+      copyFileSync(
+        path.join(__dirname, '..', '..', 'microapps-router', 'appFrame.html'),
+        path.join(distPath, 'appFrame.html'),
+      );
+    }
 
     // The exclude varying per stack name is a kludge to get the asset bundled
     // with the stack-specifc config.yml file, otherwise they all get the file
