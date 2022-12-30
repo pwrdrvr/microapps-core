@@ -140,7 +140,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
           status: '200',
           headers: {
             'content-type': [{ key: 'Content-Type', value: 'text/html; charset=UTF-8' }],
-            'cache-control': [{ key: 'Cache-Control', value: 'no-store; private' }],
+            'cache-control': [{ key: 'Cache-Control', value: 'private' }],
           },
           body: frameHTML,
           bodyEncoding: 'text',

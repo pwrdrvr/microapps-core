@@ -152,7 +152,7 @@ async function RouteApp(opts: {
       error,
     });
     response.statusCode = 404;
-    response.headers['Cache-Control'] = 'no-store; private';
+    response.headers['Cache-Control'] = 'private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
     response.body = `Router - Could not find app: ${event.rawPath}, ${appName}`;
     return;
@@ -177,7 +177,7 @@ async function RouteApp(opts: {
       statusCode: 404,
     });
     response.statusCode = 404;
-    response.headers['Cache-Control'] = 'no-store; private';
+    response.headers['Cache-Control'] = 'private';
     response.headers['Content-Type'] = 'text/plain; charset=UTF-8';
     response.body = `Router - Could not find app: ${event.rawPath}, ${appName}`;
     return;
@@ -214,7 +214,7 @@ async function RouteApp(opts: {
   //
   const frameHTML = appFrame.replace('{{iframeSrc}}', appVersionPath);
 
-  response.headers['Cache-Control'] = 'no-store; private';
+  response.headers['Cache-Control'] = 'private';
   response.headers['Content-Type'] = 'text/html; charset=UTF-8';
 
   response.statusCode = 200;
@@ -280,7 +280,7 @@ async function RedirectToDefaultFile(opts: {
   }
 
   response.statusCode = 302;
-  response.headers['Cache-Control'] = 'no-store; private';
+  response.headers['Cache-Control'] = 'private';
   response.headers[
     'Location'
   ] = `${normalizedPathPrefix}/${appName}/${semVer}/${versionInfo.DefaultFile}`;
