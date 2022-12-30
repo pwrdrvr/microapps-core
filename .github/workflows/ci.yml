@@ -318,7 +318,7 @@ jobs:
         run: |
           npx microapps-publish publish \
             -t lambda-url \
-            --startup-type iframe \
+            --startup-type direct \
             -a ${RELEASE_APP_NAME} \
             -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
