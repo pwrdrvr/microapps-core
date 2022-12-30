@@ -290,7 +290,7 @@ jobs:
             -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/.static_files/ \
             --overwrite --noCache
 
       - name: Nextjs Demo App URL
@@ -323,7 +323,7 @@ jobs:
             -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${RELEASE_APP_LAMBDA_NAME} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/ \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/.static_files/ \
             --overwrite --noCache
 
       - name: Release App URL
