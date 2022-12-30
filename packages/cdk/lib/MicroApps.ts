@@ -269,10 +269,8 @@ export class MicroAppsStack extends Stack {
       const app = new MicroAppsAppRelease(this, 'release-app', {
         functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
         table: microapps.svcs.table,
-        staticAssetsS3Bucket: microapps.s3.bucketApps,
         nodeEnv,
         removalPolicy,
-        sharpLayer,
       });
 
       new CfnOutput(this, 'release-app-func-name', {
@@ -286,10 +284,8 @@ export class MicroAppsStack extends Stack {
         functionName: assetNameRoot
           ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
           : undefined,
-        staticAssetsS3Bucket: microapps.s3.bucketApps,
         nodeEnv,
         removalPolicy,
-        sharpLayer,
       });
 
       new CfnOutput(this, 'nextjs-demo-app-func-name', {
