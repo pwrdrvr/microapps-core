@@ -227,6 +227,7 @@ export class MicroAppsStack extends Stack {
     // the 2nd generation routing that needs the table name
     // in the edge lambda function
     const table = new MicroAppsTable(this, 'microapps-table', {
+      removalPolicy,
       ...(tableName ? { assetNameRoot: tableName } : optionalAssetNameOpts),
     });
 
@@ -256,23 +257,12 @@ export class MicroAppsStack extends Stack {
       });
     }
 
-    let sharpLayer: lambda.ILayerVersion | undefined = undefined;
-    if (deployReleaseApp || deployNextjsDemoApp) {
-      sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
-        this,
-        'sharp-lambda-layer',
-        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
-      );
-    }
-
     if (deployReleaseApp) {
       const app = new MicroAppsAppRelease(this, 'release-app', {
         functionName: assetNameRoot ? `${assetNameRoot}-app-release${assetNameSuffix}` : undefined,
         table: microapps.svcs.table,
-        staticAssetsS3Bucket: microapps.s3.bucketApps,
         nodeEnv,
         removalPolicy,
-        sharpLayer,
       });
 
       new CfnOutput(this, 'release-app-func-name', {
@@ -286,10 +276,8 @@ export class MicroAppsStack extends Stack {
         functionName: assetNameRoot
           ? `${assetNameRoot}-app-nextjs-demo${assetNameSuffix}`
           : undefined,
-        staticAssetsS3Bucket: microapps.s3.bucketApps,
         nodeEnv,
         removalPolicy,
-        sharpLayer,
       });
 
       new CfnOutput(this, 'nextjs-demo-app-func-name', {

@@ -1,7 +1,7 @@
 # Workflow references:
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 # https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-name: Build / Deploy - CI
+name: CI
 
 on:
   push:
@@ -114,8 +114,10 @@ jobs:
         run: |
           if [ "${{ matrix.deployName }}" == "microapps-basic-prefix" ]; then
             echo 'PREFIX=/prefix' >> $GITHUB_ENV
+            echo 'PREFIX_U=/u002Fprefix' >> $GITHUB_ENV
           else
             echo 'PREFIX=' >> $GITHUB_ENV
+            echo 'PREFIX_U=' >> $GITHUB_ENV
           fi
 
       - name: Use Node.js 16
@@ -149,14 +151,14 @@ jobs:
         run: |
           if [ -n "${PREFIX}" ] ; then
             npx replace-in-file "/\/${NEXTJS_DEMO_APP_NAME}/g" ${PREFIX}/${NEXTJS_DEMO_APP_NAME} --configFile=.nextjs-demo-replace.config.js --isRegex
-            npx replace-in-file "/\/${NEXTJS_DEMO_APP_NAME}\/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/g" /${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }} --configFile=.nextjs-demo-replace.config.js --isRegex
+            npx replace-in-file "/\/u002F${NEXTJS_DEMO_APP_NAME}/g" ${PREFIX_U}/u002F${NEXTJS_DEMO_APP_NAME} --configFile=.nextjs-demo-replace.config.js --isRegex
           fi
 
       - name: Stitch Prefix into Release App
         run: |
           if [ -n "${PREFIX}" ] ; then
             npx replace-in-file "/\/${RELEASE_APP_NAME}/g" ${PREFIX}/${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
-            npx replace-in-file "/\/${RELEASE_APP_NAME}\/${{ needs.build.outputs.releaseAppPackageVersion }}/g" /${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }} --configFile=.release-replace.config.js --isRegex
+            npx replace-in-file "/\/u002F${RELEASE_APP_NAME}/g" ${PREFIX_U}/u002F${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
           fi
 
       - name: Synth CDK Stack
@@ -203,7 +205,8 @@ jobs:
 
       - name: Publish Demo App to MicroApps
         run: |
-          npx microapps-publish publish -a ${DEMO_APP_NAME} \
+          npx microapps-publish publish \
+            -a ${DEMO_APP_NAME} \
             -t lambda-url \
             --startup-type direct \
             -n ${PACKAGE_VERSION} \
@@ -235,7 +238,8 @@ jobs:
 
       - name: Publish Demo App to MicroApps - To Delete
         run: |
-          npx microapps-publish publish -a ${DEMO_APP_NAME} \
+          npx microapps-publish publish \
+            -a ${DEMO_APP_NAME} \
             -t lambda-url \
             --startup-type direct \
             -n 0.0.0-test.1 \
@@ -252,7 +256,8 @@ jobs:
 
       - name: Publish Demo App to MicroApps - Root App
         run: |
-          npx microapps-publish publish -a '[root]' \
+          npx microapps-publish publish \
+            -a '[root]' \
             -t lambda-url \
             --startup-type direct \
             -n ${PACKAGE_VERSION} \
@@ -286,11 +291,12 @@ jobs:
         run: |
           npx microapps-publish publish \
             -t lambda-url \
+            --startup-type direct \
             -a ${NEXTJS_DEMO_APP_NAME} \
             -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/.static_files/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/ \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/.static_files/ \
             --overwrite --noCache
 
       - name: Nextjs Demo App URL
@@ -305,25 +311,23 @@ jobs:
 
       - name: Test Nextjs Demo App
         run: |
-          echo Testing App Frame Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/
+          echo Testing App Page Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}
           echo Testing App HTML Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
           echo Testing Post Page Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/posts/pre-rendering
-          echo Testing Image Rendering
-          curl -H"accept: image/jpg" --fail -o /dev/null https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}/_next/image?url=%2Fimages%2Fprofile.jpg&w=384&q=75
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/posts/pre-rendering?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Publish Release App to MicroApps
         run: |
           npx microapps-publish publish \
             -t lambda-url \
-            --startup-type iframe \
+            --startup-type direct \
             -a ${RELEASE_APP_NAME} \
             -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${RELEASE_APP_LAMBDA_NAME} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/ \
+            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/.static_files/ \
             --overwrite --noCache
 
       - name: Release App URL
@@ -339,9 +343,9 @@ jobs:
       - name: Test Release App
         run: |
           echo Testing App Frame Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}
           echo Testing App HTML Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
           curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
 
