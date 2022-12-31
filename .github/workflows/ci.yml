@@ -114,8 +114,10 @@ jobs:
         run: |
           if [ "${{ matrix.deployName }}" == "microapps-basic-prefix" ]; then
             echo 'PREFIX=/prefix' >> $GITHUB_ENV
+            echo 'PREFIX_U=/u002Fprefix' >> $GITHUB_ENV
           else
             echo 'PREFIX=' >> $GITHUB_ENV
+            echo 'PREFIX_U=' >> $GITHUB_ENV
           fi
 
       - name: Use Node.js 16
@@ -149,12 +151,14 @@ jobs:
         run: |
           if [ -n "${PREFIX}" ] ; then
             npx replace-in-file "/\/${NEXTJS_DEMO_APP_NAME}/g" ${PREFIX}/${NEXTJS_DEMO_APP_NAME} --configFile=.nextjs-demo-replace.config.js --isRegex
+            npx replace-in-file "/\/u002F${NEXTJS_DEMO_APP_NAME}/g" ${PREFIX_U}/u002F${NEXTJS_DEMO_APP_NAME} --configFile=.release-replace.config.js --isRegex
           fi
 
       - name: Stitch Prefix into Release App
         run: |
           if [ -n "${PREFIX}" ] ; then
             npx replace-in-file "/\/${RELEASE_APP_NAME}/g" ${PREFIX}/${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
+            npx replace-in-file "/\/u002F${RELEASE_APP_NAME}/g" ${PREFIX_U}/u002F${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
           fi
 
       - name: Synth CDK Stack
