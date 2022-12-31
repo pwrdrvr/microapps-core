@@ -227,6 +227,7 @@ export class MicroAppsStack extends Stack {
     // the 2nd generation routing that needs the table name
     // in the edge lambda function
     const table = new MicroAppsTable(this, 'microapps-table', {
+      removalPolicy,
       ...(tableName ? { assetNameRoot: tableName } : optionalAssetNameOpts),
     });
 
@@ -254,15 +255,6 @@ export class MicroAppsStack extends Stack {
         value: `${demoApp.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-demo-app-func-name`,
       });
-    }
-
-    let sharpLayer: lambda.ILayerVersion | undefined = undefined;
-    if (deployReleaseApp || deployNextjsDemoApp) {
-      sharpLayer = lambda.LayerVersion.fromLayerVersionArn(
-        this,
-        'sharp-lambda-layer',
-        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:layer:sharp-heic:1`,
-      );
     }
 
     if (deployReleaseApp) {
