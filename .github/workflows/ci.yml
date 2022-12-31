@@ -1,7 +1,7 @@
 # Workflow references:
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 # https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-name: Build / Deploy - CI
+name: CI
 
 on:
   push:
