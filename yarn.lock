@@ -2328,10 +2328,10 @@
   resolved "https://registry.yarnpkg.com/@oozcitak/util/-/util-8.3.8.tgz"
   integrity sha512-T8TbSnGsxo6TDBJx/Sgv/BlVJL3tshxZP7Aq5R1mSnM5OcHY2dQaxLMu2+E8u3gN0MLOzdjurqN4ZRVuzQycOQ==
 
-"@pwrdrvr/microapps-app-nextjs-demo-cdk@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.3.1.tgz#f4928ddc143282a6b0cf990d5b2def917b3c30cb"
-  integrity sha512-JutFBa1wj5TaA2C94IRkVGAUbsRfrOHxr+nuH18wTY2O9ulG2+UstTeXMN5cTZKJvrvHwQSXD2KSr/V8064Awg==
+"@pwrdrvr/microapps-app-nextjs-demo-cdk@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.4.0.tgz#9ce10d36e526e15dfdd716d6804247ea1f6a17d6"
+  integrity sha512-wFqkq/yenzh9u2mUcwEatiXjmoA079iNyYTrEBF2eKZpK/K8rtv0JGPX2F3cYXK4SdgIe5fFxkwHTWzodBziXA==
   dependencies:
     aws-cdk-lib "^2.8.0"
     constructs "^10.0.5"
