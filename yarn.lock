@@ -2328,18 +2328,18 @@
   resolved "https://registry.yarnpkg.com/@oozcitak/util/-/util-8.3.8.tgz"
   integrity sha512-T8TbSnGsxo6TDBJx/Sgv/BlVJL3tshxZP7Aq5R1mSnM5OcHY2dQaxLMu2+E8u3gN0MLOzdjurqN4ZRVuzQycOQ==
 
-"@pwrdrvr/microapps-app-nextjs-demo-cdk@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.3.1.tgz#f4928ddc143282a6b0cf990d5b2def917b3c30cb"
-  integrity sha512-JutFBa1wj5TaA2C94IRkVGAUbsRfrOHxr+nuH18wTY2O9ulG2+UstTeXMN5cTZKJvrvHwQSXD2KSr/V8064Awg==
+"@pwrdrvr/microapps-app-nextjs-demo-cdk@^0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.4.1.tgz#fc9aa2605fcace025950a4fb06224fea45ab64be"
+  integrity sha512-oqpth0qcX29nb+mes8VaiRuCTNQ2GMSm5hmBG31o/h4tpfxVuoMopEtVuqL5WNC6/eDFI1lMKBub87eACG6rAw==
   dependencies:
     aws-cdk-lib "^2.8.0"
     constructs "^10.0.5"
 
-"@pwrdrvr/microapps-app-release-cdk@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.4.2.tgz#59e48d99928fbb073a7d0408bba0a8fc45a81f2d"
-  integrity sha512-7Fx/j/FsyGwo9PYVKvvYtFP3y8WSEcR4bz8ntAqOHki6jm2bSz5fgerfu5fjWSt1+hpOqIQ3tihIPo+NvxXkBw==
+"@pwrdrvr/microapps-app-release-cdk@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.4.3.tgz#6b4f76930614410ae29d9a79676e36f1569b4440"
+  integrity sha512-VlFH5WsOL8SVwlOIZ3B+p40GIAOf7En8syOddov0bKhHe9B/e8hL23AQmOyK8hc860Y934/Jgbt6iHsaQ/FR+Q==
   dependencies:
     aws-cdk-lib "^2.8.0"
     constructs "^10.0.5"
