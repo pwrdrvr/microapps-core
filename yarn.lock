@@ -2336,10 +2336,10 @@
     aws-cdk-lib "^2.8.0"
     constructs "^10.0.5"
 
-"@pwrdrvr/microapps-app-release-cdk@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.4.2.tgz#59e48d99928fbb073a7d0408bba0a8fc45a81f2d"
-  integrity sha512-7Fx/j/FsyGwo9PYVKvvYtFP3y8WSEcR4bz8ntAqOHki6jm2bSz5fgerfu5fjWSt1+hpOqIQ3tihIPo+NvxXkBw==
+"@pwrdrvr/microapps-app-release-cdk@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.4.3.tgz#6b4f76930614410ae29d9a79676e36f1569b4440"
+  integrity sha512-VlFH5WsOL8SVwlOIZ3B+p40GIAOf7En8syOddov0bKhHe9B/e8hL23AQmOyK8hc860Y934/Jgbt6iHsaQ/FR+Q==
   dependencies:
     aws-cdk-lib "^2.8.0"
     constructs "^10.0.5"
