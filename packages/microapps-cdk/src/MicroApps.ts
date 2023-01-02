@@ -1,5 +1,6 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
@@ -257,6 +258,11 @@ export interface MicroAppsProps {
    * This is required when using v2 routing
    */
   readonly tableNameForEdgeToOrigin?: string;
+
+  /**
+   * Additional edge lambda functions
+   */
+  readonly edgeLambdas?: cf.EdgeLambda[];
 }
 
 /**
@@ -392,6 +398,8 @@ export class MicroApps extends Construct implements IMicroApps {
       requireIAMAuthorization: signingMode !== 'none',
       table,
     });
+    const edgeLambdas: cf.EdgeLambda[] = [];
+
     if (signingMode !== 'none' || replaceHostHeader || addXForwardedHostHeader) {
       this._edgeToOrigin = new MicroAppsEdgeToOrigin(this, 'edgeToOrigin', {
         assetNameRoot,
@@ -404,6 +412,12 @@ export class MicroApps extends Construct implements IMicroApps {
         rootPathPrefix,
         tableRulesArn: tableNameForEdgeToOrigin || this._svcs.table.tableName,
       });
+
+      edgeLambdas.push(...this._edgeToOrigin.edgeToOriginLambdas);
+    }
+    // Add any extra lambdas
+    if (props.edgeLambdas?.length) {
+      edgeLambdas.push(...props.edgeLambdas);
     }
     this._cf = new MicroAppsCF(this, 'cft', {
       removalPolicy,
@@ -418,7 +432,7 @@ export class MicroApps extends Construct implements IMicroApps {
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
-      edgeToOriginLambdas: this._edgeToOrigin ? this._edgeToOrigin.edgeToOriginLambdas : undefined,
+      ...(edgeLambdas.length ? { edgeLambdas } : {}),
     });
   }
 }

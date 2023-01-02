@@ -128,9 +128,9 @@ export interface MicroAppsCFProps {
   /**
    * Configuration of the edge to origin lambda functions
    *
-   * @defaunt - no edge to API Gateway origin functions added
+   * @default - no edge to API Gateway origin functions added
    */
-  readonly edgeToOriginLambdas?: cf.EdgeLambda[];
+  readonly edgeLambdas?: cf.EdgeLambda[];
 }
 
 /**
@@ -223,7 +223,7 @@ export interface AddRoutesOptions {
   /**
    * Edge lambdas to associate with the API Gateway routes
    */
-  readonly apigwyEdgeFunctions?: cf.EdgeLambda[];
+  readonly edgeLambdas?: cf.EdgeLambda[];
 }
 
 /**
@@ -316,7 +316,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       compress: true,
       originRequestPolicy: apigwyOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      edgeLambdas: props.apigwyEdgeFunctions,
+      edgeLambdas: props.edgeLambdas,
     };
 
     //
@@ -422,7 +422,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       rootPathPrefix,
       createAPIPathRoute = true,
       createNextDataPathRoute = true,
-      edgeToOriginLambdas,
+      edgeLambdas,
     } = props;
 
     const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -464,7 +464,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originRequestPolicy: apigwyOriginRequestPolicy,
         origin: apiGwyOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        edgeLambdas: edgeToOriginLambdas,
+        edgeLambdas,
       },
       enableIpv6: true,
       priceClass: cf.PriceClass.PRICE_CLASS_100,
@@ -486,7 +486,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       rootPathPrefix,
       createAPIPathRoute,
       createNextDataPathRoute,
-      apigwyEdgeFunctions: edgeToOriginLambdas,
+      edgeLambdas,
     });
 
     //

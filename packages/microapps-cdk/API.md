@@ -530,14 +530,6 @@ CloudFront Distribution to add the Behaviors (Routes) to.
 
 ---
 
-##### `apigwyEdgeFunctions`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyEdgeFunctions"></a>
-
-- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
-
-Edge lambdas to associate with the API Gateway routes.
-
----
-
 ##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createAPIPathRoute"></a>
 
 - *Type:* `boolean`
@@ -563,6 +555,14 @@ When false API routes with a period in the path will get routed to S3.
 
 When true API routes that contain /_next/data/ in the path will get routed to API Gateway
 even if they have a period in the path.
+
+---
+
+##### `edgeLambdas`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.edgeLambdas"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+
+Edge lambdas to associate with the API Gateway routes.
 
 ---
 
@@ -860,9 +860,10 @@ API Gateway custom origin domain name.
 
 ---
 
-##### `edgeToOriginLambdas`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.edgeToOriginLambdas"></a>
+##### `edgeLambdas`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.edgeLambdas"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+- *Default:* no edge to API Gateway origin functions added
 
 Configuration of the edge to origin lambda functions.
 
@@ -1108,6 +1109,14 @@ Optional custom domain name for the CloudFront distribution.
 - *Default:* auto-assigned
 
 Optional custom domain name for the API Gateway HTTPv2 API.
+
+---
+
+##### `edgeLambdas`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.edgeLambdas"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
+
+Additional edge lambda functions.
 
 ---
 
