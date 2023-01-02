@@ -83,19 +83,20 @@ export default class VersionController {
       // Generate a temp policy for staging bucket app prefix
 
       const iamPolicyDoc = {
-        statements: [
+        Statement: [
           {
-            effect: 'Allow',
-            actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
-            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
+            Effect: 'Allow',
+            Action: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
+            Resource: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
             // TODO: Add condition to limit to app prefix
           },
           {
-            effect: 'Allow',
-            actions: ['s3:ListBucket'],
-            resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
+            Effect: 'Allow',
+            Action: ['s3:ListBucket'],
+            Resource: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
           },
         ],
+        Version: '2012-10-17',
       };
 
       Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc) });
