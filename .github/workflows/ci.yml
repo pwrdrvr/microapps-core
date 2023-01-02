@@ -85,6 +85,9 @@ jobs:
           - microapps-core
           - microapps-basic
           - microapps-basic-prefix
+        exclude:
+          - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'DEPLOY-BASIC'))) && 'dummy' || 'microapps-basic' }}
+          - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))) && 'dummy' || 'microapps-basic-prefix' }}
     name: deploy-${{ matrix.deployName }}
     concurrency:
       group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
