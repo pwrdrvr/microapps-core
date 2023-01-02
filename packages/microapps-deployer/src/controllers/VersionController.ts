@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import * as iamCDK from '@aws-cdk/aws-iam';
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
@@ -82,23 +81,24 @@ export default class VersionController {
     // Get S3 creds if requested
     if (needS3Creds) {
       // Generate a temp policy for staging bucket app prefix
-      const iamPolicyDoc = new iamCDK.PolicyDocument({
+
+      const iamPolicyDoc = {
         statements: [
-          new iamCDK.PolicyStatement({
-            effect: iamCDK.Effect.ALLOW,
+          {
+            effect: 'Allow',
             actions: ['s3:PutObject', 's3:GetObject', 's3:AbortMultipartUpload'],
             resources: [`arn:aws:s3:::${config.filestore.stagingBucket}/*`],
             // TODO: Add condition to limit to app prefix
-          }),
-          new iamCDK.PolicyStatement({
-            effect: iamCDK.Effect.ALLOW,
+          },
+          {
+            effect: 'Allow',
             actions: ['s3:ListBucket'],
             resources: [`arn:aws:s3:::${config.filestore.stagingBucket}`],
-          }),
+          },
         ],
-      });
+      };
 
-      Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc.toJSON()) });
+      Log.Instance.debug('Temp IAM Policy', { policy: JSON.stringify(iamPolicyDoc) });
 
       // Assume the upload role with limited S3 permissions
       const stsResult = await stsClient.send(
@@ -108,7 +108,7 @@ export default class VersionController {
           RoleSessionName: VersionController.SHA1Hash(
             VersionController.GetBucketPrefix(request, config),
           ),
-          Policy: JSON.stringify(iamPolicyDoc.toJSON()),
+          Policy: JSON.stringify(iamPolicyDoc),
         }),
       );
 
