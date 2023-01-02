@@ -25,51 +25,6 @@
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-integrations-alpha/-/aws-apigatewayv2-integrations-alpha-2.24.1-alpha.0.tgz"
   integrity sha512-/Nu2DH9suome5w7306T3tzqPMoQB3fve4xzX5VpTC798F7cQUlMqcxzyZD3s55nuRXnhRZoLdAQlwLbEUxUIxA==
 
-"@aws-cdk/aws-iam@^1.111.0":
-  version "1.156.1"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-iam/-/aws-iam-1.156.1.tgz"
-  integrity sha512-vxGGnIklGjLA+Z5KNVTHY5awQvLTRpTVEvftFA6K3X5xdiE4Xrbp44LAe+2iUAZ3kftcCwz7Hd3Z4qQ6B5ILUw==
-  dependencies:
-    "@aws-cdk/core" "1.156.1"
-    "@aws-cdk/cx-api" "1.156.1"
-    "@aws-cdk/region-info" "1.156.1"
-    constructs "^3.3.69"
-
-"@aws-cdk/cloud-assembly-schema@1.156.1":
-  version "1.156.1"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/cloud-assembly-schema/-/cloud-assembly-schema-1.156.1.tgz"
-  integrity sha512-ahfBwr3D5opDTtnbd9+IZjQnTbPcloqPtyzMfIJe8awlNPa2x7y+0gqevH5SwObIn+i27NB0ZI6L5UjAlrIZng==
-  dependencies:
-    jsonschema "^1.4.0"
-    semver "^7.3.7"
-
-"@aws-cdk/core@1.156.1":
-  version "1.156.1"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/core/-/core-1.156.1.tgz"
-  integrity sha512-TNTkbkAFqpoHdHOihqWcc4uicKnvwmggKMxCf95tknnjrVezwoCCr7vNNbOX6SUEUc/9KTuyszQdaBxLRM8+xw==
-  dependencies:
-    "@aws-cdk/cloud-assembly-schema" "1.156.1"
-    "@aws-cdk/cx-api" "1.156.1"
-    "@aws-cdk/region-info" "1.156.1"
-    "@balena/dockerignore" "^1.0.2"
-    constructs "^3.3.69"
-    fs-extra "^9.1.0"
-    ignore "^5.2.0"
-    minimatch "^3.1.2"
-
-"@aws-cdk/cx-api@1.156.1":
-  version "1.156.1"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/cx-api/-/cx-api-1.156.1.tgz"
-  integrity sha512-xfz4QclTynPavSWiWUBpxqoMpCz01oFPlcnwtVWrMCSJuR9qLyXmpXmvBwGTPJ4FGY0xUNgluWe5/Bm8s4PcTQ==
-  dependencies:
-    "@aws-cdk/cloud-assembly-schema" "1.156.1"
-    semver "^7.3.7"
-
-"@aws-cdk/region-info@1.156.1":
-  version "1.156.1"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/region-info/-/region-info-1.156.1.tgz"
-  integrity sha512-+LjfeJRFM7K9TzWzCIuWABDsf/KyCBNkCbwHmQXd+ORnrWffQU6u0CcQlq1E0ZHfIlHt+tFPIUx9XHa+FH4CUw==
-
 "@aws-crypto/crc32@2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@aws-crypto/crc32/-/crc32-2.0.0.tgz"
@@ -2337,9 +2292,9 @@
     constructs "^10.0.5"
 
 "@pwrdrvr/microapps-app-release-cdk@^0.4.3":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.4.3.tgz#6b4f76930614410ae29d9a79676e36f1569b4440"
-  integrity sha512-VlFH5WsOL8SVwlOIZ3B+p40GIAOf7En8syOddov0bKhHe9B/e8hL23AQmOyK8hc860Y934/Jgbt6iHsaQ/FR+Q==
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.4.5.tgz#1ab0ca8f1ea2944fb03d4265d006124850c1060a"
+  integrity sha512-TuRqkwuqJG1Q4P1tadbbUdlMNlmVOVRWwCHN1Xz+a2vnria/KrrLnxTru/BOq0PGQ3H8Qbl9e00X9uFniuOdXA==
   dependencies:
     aws-cdk-lib "^2.8.0"
     constructs "^10.0.5"
@@ -3775,7 +3730,7 @@ console-control-strings@^1.1.0:
   resolved "https://registry.yarnpkg.com/console-control-strings/-/console-control-strings-1.1.0.tgz"
   integrity sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=
 
-constructs@10.0.5, constructs@^10.0.5, constructs@^3.3.69:
+constructs@10.0.5, constructs@^10.0.5:
   version "10.0.5"
   resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.0.5.tgz"
   integrity sha512-IwOwekzrASFC3qt4ozCtV09rteAIAesuCGsW0p+uBfqHd2XcvA5CXqJjgf4eUqm6g8e/noXlVCMDWwC8GaLtrg==
