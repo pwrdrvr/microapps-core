@@ -416,6 +416,7 @@ export class MicroApps extends Construct implements IMicroApps {
         assetNameSuffix,
         removalPolicy,
         addXForwardedHostHeader,
+        setupApiGatewayPermissions: createAPIGateway,
         replaceHostHeader,
         originRegion,
         signingMode,

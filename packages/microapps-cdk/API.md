@@ -984,6 +984,15 @@ Path prefix on the root of the API Gateway Stage.
 
 ---
 
+##### `setupApiGatewayPermissions`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.setupApiGatewayPermissions"></a>
+
+- *Type:* `boolean`
+- *Default:* false
+
+Enable invoking API Gateway from the Edge Lambda.
+
+---
+
 ##### `signingMode`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.signingMode"></a>
 
 - *Type:* `string`
