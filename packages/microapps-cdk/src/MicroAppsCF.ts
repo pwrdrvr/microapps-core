@@ -203,7 +203,7 @@ export interface AddRoutesOptions {
    * When true API routes that contain /api/ in the path will get routed to API Gateway
    * even if they have a period in the path.
    *
-   * @default true
+   * @default false
    */
   readonly createAPIPathRoute?: boolean;
 
@@ -218,7 +218,7 @@ export interface AddRoutesOptions {
    * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
    * even if they have a period in the path.
    *
-   * @default true
+   * @default false
    */
   readonly createNextDataPathRoute?: boolean;
 
@@ -422,8 +422,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       bucketLogs,
       bucketAppsOrigin,
       rootPathPrefix,
-      createAPIPathRoute = !!httpApi,
-      createNextDataPathRoute = !!httpApi,
+      createAPIPathRoute = !!props.httpApi,
+      createNextDataPathRoute = !!props.httpApi,
       edgeLambdas,
     } = props;
 
@@ -450,10 +450,12 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // CloudFront Distro
     //
-    const appOrigin = new cforigins.HttpOrigin(httpOriginFQDN, {
-      protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
-      originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
-    });
+    const appOrigin = httpApi
+      ? new cforigins.HttpOrigin(httpOriginFQDN, {
+        protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
+        originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
+      })
+      : bucketAppsOrigin;
     this._cloudFrontDistro = new cf.Distribution(this, 'cft', {
       comment: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : domainNameEdge,
       domainNames: domainNameEdge !== undefined ? [domainNameEdge] : undefined,

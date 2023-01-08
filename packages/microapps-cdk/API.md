@@ -534,7 +534,7 @@ CloudFront Distribution to add the Behaviors (Routes) to.
 ##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createAPIPathRoute"></a>
 
 - *Type:* `boolean`
-- *Default:* true
+- *Default:* false
 
 Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them.
 
@@ -548,7 +548,7 @@ even if they have a period in the path.
 ##### `createNextDataPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createNextDataPathRoute"></a>
 
 - *Type:* `boolean`
-- *Default:* true
+- *Default:* false
 
 Create an extra Behavior (Route) for /_next/data/ This route is used by Next.js to load data from the API Gateway on `getServerSideProps` calls.  The requests can end in `.json`, which would cause them to be routed to S3 if this route is not created.
 
