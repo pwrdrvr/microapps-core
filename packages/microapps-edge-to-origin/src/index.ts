@@ -203,13 +203,27 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     }
 
     // Overwrite the origin
+    // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html#lambda-examples-content-based-routing-examples
     if (request.origin?.custom?.domainName) {
       request.origin = { ...request.origin };
       request.origin.custom.domainName = originHost;
-
-      // Remove the appver query string to avoid problems with some frameworks
-      request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
+    } else {
+      request.origin = {
+        custom: {
+          domainName: originHost,
+          keepaliveTimeout: 5,
+          port: 443,
+          protocol: 'https',
+          readTimeout: 30,
+          sslProtocols: ['TLSv1.2'],
+          customHeaders: {},
+          path: '',
+        },
+      };
     }
+
+    // Remove the appver query string to avoid problems with some frameworks
+    request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
 
     // Lambda Function URLs cannot have a custom domain name
     // Function URLs will always contain `.lambda-url.`

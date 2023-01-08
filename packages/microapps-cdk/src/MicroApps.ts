@@ -179,6 +179,13 @@ export interface MicroAppsProps {
   readonly rootPathPrefix?: string;
 
   /**
+   * Create API Gateway for non-edge invocation
+   *
+   * @default false
+   */
+  readonly createAPIGateway?: boolean;
+
+  /**
    * Create an extra Behavior (Route) for /api/ that allows
    * API routes to have a period in them.
    *
@@ -190,6 +197,21 @@ export interface MicroAppsProps {
    * @default true
    */
   readonly createAPIPathRoute?: boolean;
+
+  /**
+   * Create an extra Behavior (Route) for /_next/data/
+   * This route is used by Next.js to load data from the API Gateway
+   * on `getServerSideProps` calls.  The requests can end in `.json`,
+   * which would cause them to be routed to S3 if this route is not created.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createNextDataPathRoute?: boolean;
 
   /**
    * Adds an X-Forwarded-Host-Header when calling API Gateway
@@ -228,13 +250,23 @@ export interface MicroAppsProps {
   readonly signingMode?: 'sign' | 'presign' | 'none';
 
   /**
-   * Origin region that API Gateway will be deployed to, used
+   * Origin region that API Gateway or Lambda function will be deployed to, used
    * for the config.yml on the Edge function to sign requests for
    * the correct region
    *
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * Optional Origin Shield Region
+   *
+   * This should be the region where the DynamoDB is located so the
+   * EdgeToOrigin calls have the lowest latency (~1 ms).
+   *
+   * @default originRegion if specified, otherwise undefined
+   */
+  readonly originShieldRegion?: string;
 
   /**
    * Existing table for apps/versions/rules
@@ -282,7 +314,7 @@ export interface IMicroApps {
   readonly svcs: IMicroAppsSvcs;
 
   /** {@inheritdoc IMicroAppsAPIGwy} */
-  readonly apigwy: IMicroAppsAPIGwy;
+  readonly apigwy?: IMicroAppsAPIGwy;
 }
 
 /**
@@ -321,8 +353,8 @@ export class MicroApps extends Construct implements IMicroApps {
     return this._s3;
   }
 
-  private _apigwy: MicroAppsAPIGwy;
-  public get apigwy(): IMicroAppsAPIGwy {
+  private _apigwy?: MicroAppsAPIGwy;
+  public get apigwy(): IMicroAppsAPIGwy | undefined {
     return this._apigwy;
   }
 
@@ -352,13 +384,16 @@ export class MicroApps extends Construct implements IMicroApps {
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
       rootPathPrefix,
+      createAPIGateway = false,
       createAPIPathRoute = true,
+      createNextDataPathRoute = true,
       addXForwardedHostHeader = true,
       replaceHostHeader = true,
       signingMode = 'sign',
       originRegion,
       table,
       tableNameForEdgeToOrigin,
+      originShieldRegion = originRegion,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -370,20 +405,23 @@ export class MicroApps extends Construct implements IMicroApps {
         : undefined,
       assetNameRoot,
       assetNameSuffix,
+      originShieldRegion,
     });
-    this._apigwy = new MicroAppsAPIGwy(this, 'api', {
-      removalPolicy,
-      assetNameRoot,
-      assetNameSuffix,
-      domainNameEdge,
-      domainNameOrigin,
-      r53Zone,
-      certOrigin,
-      rootPathPrefix,
-      requireIAMAuthorization: signingMode !== 'none',
-    });
+    if (createAPIGateway) {
+      this._apigwy = new MicroAppsAPIGwy(this, 'api', {
+        removalPolicy,
+        assetNameRoot,
+        assetNameSuffix,
+        domainNameEdge,
+        domainNameOrigin,
+        r53Zone,
+        certOrigin,
+        rootPathPrefix,
+        requireIAMAuthorization: signingMode !== 'none',
+      });
+    }
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
-      httpApi: this.apigwy.httpApi,
+      ...(this._apigwy ? { httpApi: this._apigwy.httpApi } : {}),
       removalPolicy,
       bucketApps: this._s3.bucketApps,
       bucketAppsOAI: this._s3.bucketAppsOAI,
@@ -406,6 +444,7 @@ export class MicroApps extends Construct implements IMicroApps {
         assetNameSuffix,
         removalPolicy,
         addXForwardedHostHeader,
+        setupApiGatewayPermissions: createAPIGateway,
         replaceHostHeader,
         originRegion,
         signingMode,
@@ -425,13 +464,15 @@ export class MicroApps extends Construct implements IMicroApps {
       assetNameSuffix,
       domainNameEdge,
       domainNameOrigin,
-      httpApi: this._apigwy.httpApi,
+      ...(this._apigwy ? { httpApi: this._apigwy.httpApi } : {}),
       r53Zone,
       certEdge,
       bucketAppsOrigin: this._s3.bucketAppsOrigin,
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
+      createNextDataPathRoute,
+      originShieldRegion,
       ...(edgeLambdas.length ? { edgeLambdas } : {}),
     });
   }

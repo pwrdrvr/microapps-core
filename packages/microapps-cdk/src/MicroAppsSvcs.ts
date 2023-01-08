@@ -44,7 +44,7 @@ export interface MicroAppsSvcsProps {
   /**
    * API Gateway v2 HTTP for Router and app
    */
-  readonly httpApi: apigwy.HttpApi;
+  readonly httpApi?: apigwy.HttpApi;
 
   /**
    * Application environment, passed as `NODE_ENV`
@@ -359,7 +359,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       timeout: Duration.seconds(15),
       environment: {
         NODE_ENV: appEnv,
-        APIGWY_ID: httpApi.httpApiId,
+        ...(httpApi ? { APIGWY_ID: httpApi.httpApiId } : {}),
         DATABASE_TABLE_NAME: this._table.tableName,
         FILESTORE_STAGING_BUCKET: bucketAppsStaging.bucketName,
         FILESTORE_DEST_BUCKET: bucketApps.bucketName,
@@ -598,19 +598,23 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       resources: [`arn:aws:apigateway:${Aws.REGION}::/apis`],
     });
     this._deployerFunc.addToRolePolicy(policyAPIList);
-    // Grant full control over the API we created
-    const policyAPIManage = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['apigateway:*'],
-      resources: [
-        `arn:aws:apigateway:${Aws.REGION}:${Aws.ACCOUNT_ID}:${httpApi.httpApiId}/*`,
-        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/integrations/*`,
-        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/integrations`,
-        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/routes`,
-        `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/routes/*`,
-      ],
-    });
-    this._deployerFunc.addToRolePolicy(policyAPIManage);
+
+    if (httpApi) {
+      // Grant full control over the API we created
+      const policyAPIManage = new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['apigateway:*'],
+        resources: [
+          `arn:aws:apigateway:${Aws.REGION}:${Aws.ACCOUNT_ID}:${httpApi.httpApiId}/*`,
+          `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/integrations/*`,
+          `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/integrations`,
+          `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/routes`,
+          `arn:aws:apigateway:${Aws.REGION}::/apis/${httpApi.httpApiId}/routes/*`,
+        ],
+      });
+      this._deployerFunc.addToRolePolicy(policyAPIManage);
+    }
+
     // Grant full control over lambdas that indicate they are microapps
     const policyAPIManageLambdas = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -625,26 +629,28 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     });
     this._deployerFunc.addToRolePolicy(policyAPIManageLambdas);
 
-    // This creates an integration and a router
-    const route = new apigwy.HttpRoute(this, 'route-default', {
-      httpApi,
-      routeKey: apigwy.HttpRouteKey.DEFAULT,
-      integration: new apigwyint.HttpLambdaIntegration('router-integration', routerAlias),
-      authorizer: requireIAMAuthorization ? new apigwyAuth.HttpIamAuthorizer() : undefined,
-    });
+    if (httpApi) {
+      // This creates an integration and a router
+      const route = new apigwy.HttpRoute(this, 'route-default', {
+        httpApi,
+        routeKey: apigwy.HttpRouteKey.DEFAULT,
+        integration: new apigwyint.HttpLambdaIntegration('router-integration', routerAlias),
+        authorizer: requireIAMAuthorization ? new apigwyAuth.HttpIamAuthorizer() : undefined,
+      });
 
-    let routeArn = route.routeArn;
-    // Remove the trailing `/` on the ARN, which is not correct
-    if (routeArn.endsWith('/')) {
-      routeArn = routeArn.slice(0, routeArn.length - 1);
+      let routeArn = route.routeArn;
+      // Remove the trailing `/` on the ARN, which is not correct
+      if (routeArn.endsWith('/')) {
+        routeArn = routeArn.slice(0, routeArn.length - 1);
+      }
+
+      // Grant API Gateway permission to invoke the Lambda
+      new lambda.CfnPermission(this, 'router-invoke', {
+        action: 'lambda:InvokeFunction',
+        functionName: this._routerFunc.functionName,
+        principal: 'apigateway.amazonaws.com',
+        sourceArn: routeArn,
+      });
     }
-
-    // Grant API Gateway permission to invoke the Lambda
-    new lambda.CfnPermission(this, 'router-invoke', {
-      action: 'lambda:InvokeFunction',
-      functionName: this._routerFunc.functionName,
-      principal: 'apigateway.amazonaws.com',
-      sourceArn: routeArn,
-    });
   }
 }

@@ -117,6 +117,13 @@ export interface MicroAppsEdgeToOriginProps {
    * Implies that 2nd generation routing is enabled.
    */
   readonly tableRulesArn?: string;
+
+  /**
+   * Enable invoking API Gateway from the Edge Lambda
+   *
+   * @default false
+   */
+  readonly setupApiGatewayPermissions?: boolean;
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -168,6 +175,7 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       assetNameRoot,
       assetNameSuffix,
       originRegion,
+      setupApiGatewayPermissions = false,
       signingMode = 'sign',
       removalPolicy,
       rootPathPrefix,
@@ -206,18 +214,22 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
         // to invoke any API Gateway API that we apply a tag to
         // We allow the edge function to sign for all regions since
         // we may use custom closest region in the future.
-        new iam.PolicyStatement({
-          actions: ['execute-api:Invoke'],
-          resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
-          // Unfortunately, API Gateway access cannot be restricted using
-          // tags on the target resource
-          // https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
-          // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#networking_svcs
-          // conditions: {
-          //   // TODO: Set this to a string unique to each stack
-          //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
-          // },
-        }),
+        ...(setupApiGatewayPermissions
+          ? [
+              new iam.PolicyStatement({
+                actions: ['execute-api:Invoke'],
+                resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
+                // Unfortunately, API Gateway access cannot be restricted using
+                // tags on the target resource
+                // https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
+                // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#networking_svcs
+                // conditions: {
+                //   // TODO: Set this to a string unique to each stack
+                //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+                // },
+              }),
+            ]
+          : []),
         //
         // Grant permission to invoke tagged Function URLs
         //

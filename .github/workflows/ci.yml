@@ -47,10 +47,34 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
+          # Note: this cache is not particularly useful...
+          # It is about 780 MB and is only needed if we run `yarn install`,
+          # which we only do if `yarn.lock` has changed, which means this cacue
+          # key is changed in that case... so... it's not useful in the one
+          # case where we need it because we are caching installed modules below.
+          # cache: 'yarn'
+          # cache-dependency-path: '**/yarn.lock'
 
-      - name: Install Node Modules
+      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+          key: node-modules-ci-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Optionally Install Node Modules
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: yarn install --frozen-lockfile
+
+      # We do this here so the `build-jsii` modules are installed too
+      # and become part of the cache - if we don't then
+      # their install will get skipped during `build-jsii` but they won't
+      # be present in the cache so the build will fail
+      - name: Optionally Install CDK Construct Deps
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        working-directory: packages/microapps-cdk/
         run: yarn install --frozen-lockfile
 
       - name: Extract App NPM Versions
@@ -127,10 +151,25 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
+          # Note: this cache is not particularly useful...
+          # It is about 780 MB and is only needed if we run `yarn install`,
+          # which we only do if `yarn.lock` has changed, which means this cacue
+          # key is changed in that case... so... it's not useful in the one
+          # case where we need it because we are caching installed modules below.
+          # cache: 'yarn'
+          # cache-dependency-path: '**/yarn.lock'
 
-      - name: Install Node Modules
+      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+          key: node-modules-ci-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Optionally Install Node Modules
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
       - name: Build All TypeScript
@@ -164,18 +203,22 @@ jobs:
             npx replace-in-file "/\/u002F${RELEASE_APP_NAME}/g" ${PREFIX_U}/u002F${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
           fi
 
+      #
+      # Synth and upload if BUILD-CDK-ZIP label is present
+      #
       - name: Synth CDK Stack
+        if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
         run: |
           npx cdk synth --context @pwrdrvr/microapps:deployDemoApp=true \
             --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
             --context @pwrdrvr/microapps:deployReleaseApp=true \
             --require-approval never ${{ matrix.deployName }}
-
-      # Upload Synth
       - name: Zip Package
+        if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
         working-directory: .
         run: zip -r cdk-out.zip cdk.out
       - name: Upload Zip
+        if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
         uses: actions/upload-artifact@v3
         with:
           name: cdk_out_${{ matrix.deployName }}
@@ -226,7 +269,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}?appver=${{ env.PACKAGE_VERSION }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}/?appver=${{ env.PACKAGE_VERSION }}
 
       - name: Test Demo App
         run: |
@@ -310,7 +353,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.NEXTJS_DEMO_APP_NAME }}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.NEXTJS_DEMO_APP_NAME }}?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Test Nextjs Demo App
         run: |
@@ -341,7 +384,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}/${{ needs.build.outputs.releaseAppPackageVersion }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
 
       - name: Test Release App
         run: |
@@ -362,10 +405,25 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
+          # Note: this cache is not particularly useful...
+          # It is about 780 MB and is only needed if we run `yarn install`,
+          # which we only do if `yarn.lock` has changed, which means this cacue
+          # key is changed in that case... so... it's not useful in the one
+          # case where we need it because we are caching installed modules below.
+          # cache: 'yarn'
+          # cache-dependency-path: '**/yarn.lock'
 
-      - name: Install Node Modules
+      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+          key: node-modules-ci-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Optionally Install Node Modules
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
       # - name: Generate Projen Files
@@ -385,7 +443,8 @@ jobs:
       # - name: Move root modules out of the way for CDK Construct build
       #   run: mv node_modules node_modules_hide
       
-      - name: Install CDK Construct Deps
+      - name: Optionally Install CDK Construct Deps
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         working-directory: packages/microapps-cdk/
         run: yarn install --frozen-lockfile
 

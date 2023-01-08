@@ -2,6 +2,8 @@ import type * as lambda from 'aws-lambda';
 import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { cloudfrontToSignableRequest } from './translate-request';
 
+const sigHeaders = ['authorization', 'x-amz-date', 'x-amz-security-token', 'x-amz-content-sha256'];
+
 /**
  * Sign (headers) a request with AWS Signature V4
  * @param request
@@ -16,15 +18,15 @@ export async function signRequest(
 ): Promise<lambda.CloudFrontRequest> {
   const httpRequest = cloudfrontToSignableRequest({ request });
 
+  // Remove SigV4 headers before we sign because we will overwrite them
+  for (const key of sigHeaders) {
+    delete httpRequest.headers[key];
+  }
+
   const signedRequest = await signer.sign(httpRequest);
 
   // Copy the signature headers into the request to forward to origin
-  for (const key of [
-    'authorization',
-    'x-amz-date',
-    'x-amz-security-token',
-    'x-amz-content-sha256',
-  ]) {
+  for (const key of sigHeaders) {
     request.headers[key] = [{ key: key, value: signedRequest.headers[key] }];
   }
 
@@ -48,12 +50,7 @@ export async function presignRequest(
   const signedRequest = await signer.presign(httpRequest);
 
   // Copy the signature headers into the request to forward to origin
-  for (const key of [
-    'authorization',
-    'x-amz-date',
-    'x-amz-security-token',
-    'x-amz-content-sha256',
-  ]) {
+  for (const key of sigHeaders) {
     request.headers[key] = [{ key: key, value: signedRequest.headers[key] }];
   }
 

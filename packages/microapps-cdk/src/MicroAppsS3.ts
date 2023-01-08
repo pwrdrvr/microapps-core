@@ -83,6 +83,16 @@ export interface MicroAppsS3Props {
    * @default none
    */
   readonly assetNameSuffix?: string;
+
+  /**
+   * Optional Origin Shield Region
+   *
+   * This should be the region where the DynamoDB is located so the
+   * EdgeToOrigin calls have the lowest latency (~1 ms).
+   *
+   * @default - none
+   */
+  readonly originShieldRegion?: string;
 }
 
 /**
@@ -124,7 +134,7 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
       throw new Error('props must be set');
     }
 
-    const { removalPolicy, assetNameRoot, assetNameSuffix } = props;
+    const { removalPolicy, assetNameRoot, assetNameSuffix, originShieldRegion } = props;
 
     // Use Auto-Delete S3Bucket if removal policy is DESTROY
     const s3AutoDeleteItems = removalPolicy === RemovalPolicy.DESTROY;
@@ -163,6 +173,7 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     // Add Origin for CloudFront
     this._bucketAppsOrigin = new cforigins.S3Origin(this._bucketApps, {
       originAccessIdentity: this.bucketAppsOAI,
+      originShieldRegion,
     });
   }
 }
