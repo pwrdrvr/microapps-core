@@ -217,7 +217,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
           readTimeout: 30,
           sslProtocols: ['TLSv1.2'],
           customHeaders: {},
-          path: request.uri,
+          path: '',
         },
       };
     }
