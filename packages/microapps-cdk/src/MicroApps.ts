@@ -235,13 +235,23 @@ export interface MicroAppsProps {
   readonly signingMode?: 'sign' | 'presign' | 'none';
 
   /**
-   * Origin region that API Gateway will be deployed to, used
+   * Origin region that API Gateway or Lambda function will be deployed to, used
    * for the config.yml on the Edge function to sign requests for
    * the correct region
    *
    * @default undefined
    */
   readonly originRegion?: string;
+
+  /**
+   * Optional Origin Shield Region
+   *
+   * This should be the region where the DynamoDB is located so the
+   * EdgeToOrigin calls have the lowest latency (~1 ms).
+   *
+   * @default originRegion if specified, otherwise undefined
+   */
+  readonly originShieldRegion?: string;
 
   /**
    * Existing table for apps/versions/rules
@@ -367,6 +377,7 @@ export class MicroApps extends Construct implements IMicroApps {
       originRegion,
       table,
       tableNameForEdgeToOrigin,
+      originShieldRegion = originRegion,
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -378,6 +389,7 @@ export class MicroApps extends Construct implements IMicroApps {
         : undefined,
       assetNameRoot,
       assetNameSuffix,
+      originShieldRegion,
     });
     if (createAPIGateway) {
       this._apigwy = new MicroAppsAPIGwy(this, 'api', {
@@ -443,6 +455,7 @@ export class MicroApps extends Construct implements IMicroApps {
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
+      originShieldRegion,
       ...(edgeLambdas.length ? { edgeLambdas } : {}),
     });
   }

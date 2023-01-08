@@ -131,6 +131,16 @@ export interface MicroAppsCFProps {
    * @default - no edge to API Gateway origin functions added
    */
   readonly edgeLambdas?: cf.EdgeLambda[];
+
+  /**
+   * Optional Origin Shield Region
+   *
+   * This should be the region where the DynamoDB is located so the
+   * EdgeToOrigin calls have the lowest latency (~1 ms).
+   *
+   * @default - none
+   */
+  readonly originShieldRegion?: string;
 }
 
 /**
@@ -425,6 +435,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       createAPIPathRoute = !!props.httpApi,
       createNextDataPathRoute = !!props.httpApi,
       edgeLambdas,
+      originShieldRegion,
     } = props;
 
     const appOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -454,6 +465,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       ? new cforigins.HttpOrigin(httpOriginFQDN, {
         protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
         originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
+        originShieldRegion,
       })
       : bucketAppsOrigin;
     this._cloudFrontDistro = new cf.Distribution(this, 'cft', {

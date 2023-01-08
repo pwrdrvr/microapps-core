@@ -11,6 +11,9 @@ export async function handler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   context?: lambda.Context,
 ): Promise<unknown> {
+  // eslint-disable-next-line no-console
+  console.log('event', event);
+
   if (event.rawPath.endsWith('/serverIncrement')) {
     const currValue = parseInt(event.queryStringParameters?.currValue ?? '0', 10);
     const newValue = currValue + 1;

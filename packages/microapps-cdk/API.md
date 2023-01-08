@@ -870,6 +870,18 @@ API Gateway v2 HTTP API for apps.
 
 ---
 
+##### `originShieldRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.originShieldRegion"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Optional Origin Shield Region.
+
+This should be the region where the DynamoDB is located so the
+EdgeToOrigin calls have the lowest latency (~1 ms).
+
+---
+
 ##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.r53Zone"></a>
 
 - *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
@@ -1144,7 +1156,19 @@ Additional edge lambda functions.
 - *Type:* `string`
 - *Default:* undefined
 
-Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+Origin region that API Gateway or Lambda function will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+---
+
+##### `originShieldRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.originShieldRegion"></a>
+
+- *Type:* `string`
+- *Default:* originRegion if specified, otherwise undefined
+
+Optional Origin Shield Region.
+
+This should be the region where the DynamoDB is located so the
+EdgeToOrigin calls have the lowest latency (~1 ms).
 
 ---
 
@@ -1353,6 +1377,18 @@ S3 staging apps bucket name.
 - *Default:* auto-assigned
 
 S3 logs bucket name.
+
+---
+
+##### `originShieldRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3Props.originShieldRegion"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Optional Origin Shield Region.
+
+This should be the region where the DynamoDB is located so the
+EdgeToOrigin calls have the lowest latency (~1 ms).
 
 ---
 
