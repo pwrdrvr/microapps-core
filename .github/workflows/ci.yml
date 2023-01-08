@@ -269,7 +269,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}?appver=${{ env.PACKAGE_VERSION }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}/?appver=${{ env.PACKAGE_VERSION }}
 
       - name: Test Demo App
         run: |
@@ -353,7 +353,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.NEXTJS_DEMO_APP_NAME }}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}?appver=${{ env.NEXTJS_DEMO_APP_NAME }}/${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Test Nextjs Demo App
         run: |
@@ -384,7 +384,7 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}/${{ needs.build.outputs.releaseAppPackageVersion }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
 
       - name: Test Release App
         run: |
