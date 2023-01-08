@@ -207,9 +207,6 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     if (request.origin?.custom?.domainName) {
       request.origin = { ...request.origin };
       request.origin.custom.domainName = originHost;
-
-      // Remove the appver query string to avoid problems with some frameworks
-      request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
     } else {
       request.origin = {
         custom: {
@@ -224,6 +221,9 @@ export const handler: lambda.CloudFrontRequestHandler = async (
         },
       };
     }
+
+    // Remove the appver query string to avoid problems with some frameworks
+    request.querystring = (request.querystring ?? '').replace(/&?appver=[^&]*/, '');
 
     // Lambda Function URLs cannot have a custom domain name
     // Function URLs will always contain `.lambda-url.`
