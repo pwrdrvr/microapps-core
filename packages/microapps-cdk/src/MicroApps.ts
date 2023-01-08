@@ -199,6 +199,21 @@ export interface MicroAppsProps {
   readonly createAPIPathRoute?: boolean;
 
   /**
+   * Create an extra Behavior (Route) for /_next/data/
+   * This route is used by Next.js to load data from the API Gateway
+   * on `getServerSideProps` calls.  The requests can end in `.json`,
+   * which would cause them to be routed to S3 if this route is not created.
+   *
+   * When false API routes with a period in the path will get routed to S3.
+   *
+   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+   * even if they have a period in the path.
+   *
+   * @default true
+   */
+  readonly createNextDataPathRoute?: boolean;
+
+  /**
    * Adds an X-Forwarded-Host-Header when calling API Gateway
    *
    * Can only be trusted if `signingMode` is enabled, which restricts
@@ -371,6 +386,7 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       createAPIGateway = false,
       createAPIPathRoute = true,
+      createNextDataPathRoute = true,
       addXForwardedHostHeader = true,
       replaceHostHeader = true,
       signingMode = 'sign',
@@ -455,6 +471,7 @@ export class MicroApps extends Construct implements IMicroApps {
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,
+      createNextDataPathRoute,
       originShieldRegion,
       ...(edgeLambdas.length ? { edgeLambdas } : {}),
     });

@@ -1125,6 +1125,20 @@ even if they have a period in the path.
 
 ---
 
+##### `createNextDataPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.createNextDataPathRoute"></a>
+
+- *Type:* `boolean`
+- *Default:* true
+
+Create an extra Behavior (Route) for /_next/data/ This route is used by Next.js to load data from the API Gateway on `getServerSideProps` calls.  The requests can end in `.json`, which would cause them to be routed to S3 if this route is not created.
+
+When false API routes with a period in the path will get routed to S3.
+
+When true API routes that contain /_next/data/ in the path will get routed to API Gateway
+even if they have a period in the path.
+
+---
+
 ##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.domainNameEdge"></a>
 
 - *Type:* `string`
