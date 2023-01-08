@@ -19,7 +19,7 @@ describe('MicroApps', () => {
     });
 
     expect(construct).toBeDefined();
-    expect(construct.apigwy).toBeDefined();
+    expect(construct.apigwy).not.toBeDefined();
     expect(construct.edgeToOrigin).toBeDefined();
     expect(construct.cf).toBeDefined();
     expect(construct.s3).toBeDefined();
@@ -33,9 +33,6 @@ describe('MicroApps', () => {
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
       Resources: {
-        constructapigwy894904EC: {
-          Type: 'AWS::ApiGatewayV2::Api',
-        },
         constructcft0A8410EA: {
           Type: 'AWS::CloudFront::Distribution',
         },
@@ -84,7 +81,7 @@ describe('MicroApps', () => {
     });
 
     expect(construct).toBeDefined();
-    expect(construct.apigwy).toBeDefined();
+    expect(construct.apigwy).not.toBeDefined();
     expect(construct.edgeToOrigin).toBeDefined();
     expect(construct.cf).toBeDefined();
     expect(construct.s3).toBeDefined();
@@ -98,9 +95,6 @@ describe('MicroApps', () => {
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
       Resources: {
-        constructapigwy894904EC: {
-          Type: 'AWS::ApiGatewayV2::Api',
-        },
         constructcft0A8410EA: {
           Type: 'AWS::CloudFront::Distribution',
         },
@@ -150,7 +144,7 @@ describe('MicroApps', () => {
     });
 
     expect(construct).toBeDefined();
-    expect(construct.apigwy).toBeDefined();
+    expect(construct.apigwy).not.toBeDefined();
     expect(construct.edgeToOrigin).toBeDefined();
     expect(construct.cf).toBeDefined();
     expect(construct.s3).toBeDefined();
@@ -170,9 +164,6 @@ describe('MicroApps', () => {
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
       Resources: {
-        constructapigwy894904EC: {
-          Type: 'AWS::ApiGatewayV2::Api',
-        },
         constructcft0A8410EA: {
           Type: 'AWS::CloudFront::Distribution',
         },
@@ -223,7 +214,7 @@ describe('MicroApps', () => {
     });
 
     expect(construct).toBeDefined();
-    expect(construct.apigwy).toBeDefined();
+    expect(construct.apigwy).not.toBeDefined();
     expect(construct.edgeToOrigin).toBeDefined();
     expect(construct.cf).toBeDefined();
     expect(construct.s3).toBeDefined();
@@ -254,9 +245,6 @@ describe('MicroApps', () => {
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
       Resources: {
-        constructapigwy894904EC: {
-          Type: 'AWS::ApiGatewayV2::Api',
-        },
         constructcft0A8410EA: {
           Type: 'AWS::CloudFront::Distribution',
         },
@@ -315,7 +303,7 @@ describe('MicroApps', () => {
     });
 
     expect(construct).toBeDefined();
-    expect(construct.apigwy).toBeDefined();
+    expect(construct.apigwy).not.toBeDefined();
     expect(construct.cf).toBeDefined();
     expect(construct.s3).toBeDefined();
     expect(construct.svcs).toBeDefined();
@@ -328,9 +316,6 @@ describe('MicroApps', () => {
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
       Resources: {
-        constructapigwy894904EC: {
-          Type: 'AWS::ApiGatewayV2::Api',
-        },
         constructcft0A8410EA: {
           Type: 'AWS::CloudFront::Distribution',
         },

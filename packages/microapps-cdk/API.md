@@ -48,14 +48,6 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 #### Properties <a name="Properties"></a>
 
-##### `apigwy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.apigwy"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
-
-{@inheritdoc IMicroAppsAPIGwy}.
-
----
-
 ##### `cf`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.cf"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
@@ -77,6 +69,14 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
 
 {@inheritdoc IMicroAppsSvcs}.
+
+---
+
+##### `apigwy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.apigwy"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+{@inheritdoc IMicroAppsAPIGwy}.
 
 ---
 
@@ -498,15 +498,16 @@ import { AddRoutesOptions } from '@pwrdrvr/microapps-cdk'
 const addRoutesOptions: AddRoutesOptions = { ... }
 ```
 
-##### `apiGwyOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apiGwyOrigin"></a>
+##### `appOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.appOrigin"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.IOrigin`](#aws-cdk-lib.aws_cloudfront.IOrigin)
+- *Default:* invalid URL (never used)
 
-API Gateway CloudFront Origin for API calls.
+Default origin (invalid URL or API Gateway).
 
 ---
 
-##### `apigwyOriginRequestPolicy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.apigwyOriginRequestPolicy"></a>
+##### `appOriginRequestPolicy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.appOriginRequestPolicy"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.IOriginRequestPolicy`](#aws-cdk-lib.aws_cloudfront.IOriginRequestPolicy)
 
@@ -772,14 +773,6 @@ S3 bucket origin for deployed applications.
 
 ---
 
-##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.httpApi"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
-
-API Gateway v2 HTTP API for apps.
-
----
-
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -817,7 +810,7 @@ ACM Certificate that covers `domainNameEdge` name.
 ##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.createAPIPathRoute"></a>
 
 - *Type:* `boolean`
-- *Default:* true
+- *Default:* true if httpApi is provided
 
 Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them.
 
@@ -831,7 +824,7 @@ even if they have a period in the path.
 ##### `createNextDataPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.createNextDataPathRoute"></a>
 
 - *Type:* `boolean`
-- *Default:* true
+- *Default:* true if httpApi is provided
 
 Create an extra Behavior (Route) for /_next/data/ This route is used by Next.js to load data from the API Gateway on `getServerSideProps` calls.  The requests can end in `.json`, which would cause them to be routed to S3 if this route is not created.
 
@@ -866,6 +859,14 @@ API Gateway custom origin domain name.
 - *Default:* no edge to API Gateway origin functions added
 
 Configuration of the edge to origin lambda functions.
+
+---
+
+##### `httpApi`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.httpApi"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
+
+API Gateway v2 HTTP API for apps.
 
 ---
 
@@ -1077,6 +1078,15 @@ Certificate in US-East-1 for the CloudFront distribution.
 - *Type:* [`aws-cdk-lib.aws_certificatemanager.ICertificate`](#aws-cdk-lib.aws_certificatemanager.ICertificate)
 
 Certificate in deployed region for the API Gateway.
+
+---
+
+##### `createAPIGateway`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.createAPIGateway"></a>
+
+- *Type:* `boolean`
+- *Default:* false
+
+Create API Gateway for non-edge invocation.
 
 ---
 
@@ -1392,14 +1402,6 @@ S3 bucket for staged applications (prior to deploy).
 
 ---
 
-##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
-
-API Gateway v2 HTTP for Router and app.
-
----
-
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -1415,6 +1417,14 @@ Optional asset name root.
 - *Default:* none
 
 Optional asset name suffix.
+
+---
+
+##### `httpApi`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
+
+- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
+
+API Gateway v2 HTTP for Router and app.
 
 ---
 
@@ -1582,14 +1592,6 @@ Represents a MicroApps.
 
 #### Properties <a name="Properties"></a>
 
-##### `apigwy`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.apigwy"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
-
-{@inheritdoc IMicroAppsAPIGwy}.
-
----
-
 ##### `cf`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.cf"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsCF`](#@pwrdrvr/microapps-cdk.IMicroAppsCF)
@@ -1611,6 +1613,14 @@ Represents a MicroApps.
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsSvcs`](#@pwrdrvr/microapps-cdk.IMicroAppsSvcs)
 
 {@inheritdoc IMicroAppsSvcs}.
+
+---
+
+##### `apigwy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.apigwy"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
+
+{@inheritdoc IMicroAppsAPIGwy}.
 
 ---
 

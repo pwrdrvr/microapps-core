@@ -179,6 +179,13 @@ export interface MicroAppsProps {
   readonly rootPathPrefix?: string;
 
   /**
+   * Create API Gateway for non-edge invocation
+   *
+   * @default false
+   */
+  readonly createAPIGateway?: boolean;
+
+  /**
    * Create an extra Behavior (Route) for /api/ that allows
    * API routes to have a period in them.
    *
@@ -282,7 +289,7 @@ export interface IMicroApps {
   readonly svcs: IMicroAppsSvcs;
 
   /** {@inheritdoc IMicroAppsAPIGwy} */
-  readonly apigwy: IMicroAppsAPIGwy;
+  readonly apigwy?: IMicroAppsAPIGwy;
 }
 
 /**
@@ -321,8 +328,8 @@ export class MicroApps extends Construct implements IMicroApps {
     return this._s3;
   }
 
-  private _apigwy: MicroAppsAPIGwy;
-  public get apigwy(): IMicroAppsAPIGwy {
+  private _apigwy?: MicroAppsAPIGwy;
+  public get apigwy(): IMicroAppsAPIGwy | undefined {
     return this._apigwy;
   }
 
@@ -352,6 +359,7 @@ export class MicroApps extends Construct implements IMicroApps {
       s3PolicyBypassPrincipalARNs,
       s3StrictBucketPolicy,
       rootPathPrefix,
+      createAPIGateway = false,
       createAPIPathRoute = true,
       addXForwardedHostHeader = true,
       replaceHostHeader = true,
@@ -371,19 +379,21 @@ export class MicroApps extends Construct implements IMicroApps {
       assetNameRoot,
       assetNameSuffix,
     });
-    this._apigwy = new MicroAppsAPIGwy(this, 'api', {
-      removalPolicy,
-      assetNameRoot,
-      assetNameSuffix,
-      domainNameEdge,
-      domainNameOrigin,
-      r53Zone,
-      certOrigin,
-      rootPathPrefix,
-      requireIAMAuthorization: signingMode !== 'none',
-    });
+    if (createAPIGateway) {
+      this._apigwy = new MicroAppsAPIGwy(this, 'api', {
+        removalPolicy,
+        assetNameRoot,
+        assetNameSuffix,
+        domainNameEdge,
+        domainNameOrigin,
+        r53Zone,
+        certOrigin,
+        rootPathPrefix,
+        requireIAMAuthorization: signingMode !== 'none',
+      });
+    }
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
-      httpApi: this.apigwy.httpApi,
+      ...(this._apigwy ? { httpApi: this._apigwy.httpApi } : {}),
       removalPolicy,
       bucketApps: this._s3.bucketApps,
       bucketAppsOAI: this._s3.bucketAppsOAI,
@@ -425,7 +435,7 @@ export class MicroApps extends Construct implements IMicroApps {
       assetNameSuffix,
       domainNameEdge,
       domainNameOrigin,
-      httpApi: this._apigwy.httpApi,
+      ...(this._apigwy ? { httpApi: this._apigwy.httpApi } : {}),
       r53Zone,
       certEdge,
       bucketAppsOrigin: this._s3.bucketAppsOrigin,

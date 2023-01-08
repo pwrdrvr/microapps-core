@@ -62,7 +62,7 @@ export interface MicroAppsCFProps {
   /**
    * API Gateway v2 HTTP API for apps
    */
-  readonly httpApi: apigwy.HttpApi;
+  readonly httpApi?: apigwy.HttpApi;
 
   /**
    * Optional asset name root
@@ -106,7 +106,7 @@ export interface MicroAppsCFProps {
    * When true API routes that contain /api/ in the path will get routed to API Gateway
    * even if they have a period in the path.
    *
-   * @default true
+   * @default true if httpApi is provided
    */
   readonly createAPIPathRoute?: boolean;
 
@@ -121,7 +121,7 @@ export interface MicroAppsCFProps {
    * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
    * even if they have a period in the path.
    *
-   * @default true
+   * @default true if httpApi is provided
    */
   readonly createNextDataPathRoute?: boolean;
 
@@ -166,9 +166,11 @@ export interface CreateAPIOriginPolicyOptions {
  */
 export interface AddRoutesOptions {
   /**
-   * API Gateway CloudFront Origin for API calls
+   * Default origin (invalid URL or API Gateway)
+   *
+   * @default invalid URL (never used)
    */
-  readonly apiGwyOrigin: cf.IOrigin;
+  readonly appOrigin: cf.IOrigin;
 
   /**
    * S3 Bucket CloudFront Origin for static assets
@@ -183,7 +185,7 @@ export interface AddRoutesOptions {
   /**
    * Origin Request policy for API Gateway Origin
    */
-  readonly apigwyOriginRequestPolicy: cf.IOriginRequestPolicy;
+  readonly appOriginRequestPolicy: cf.IOriginRequestPolicy;
 
   /**
    * Path prefix on the root of the CloudFront distribution
@@ -290,13 +292,13 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
    */
   public static addRoutes(_scope: Construct, props: AddRoutesOptions) {
     const {
-      apiGwyOrigin,
+      appOrigin: defaultOrigin,
       bucketAppsOrigin,
       distro,
-      apigwyOriginRequestPolicy,
+      appOriginRequestPolicy,
       rootPathPrefix = '',
-      createAPIPathRoute = true,
-      createNextDataPathRoute = true,
+      createAPIPathRoute = false,
+      createNextDataPathRoute = false,
     } = props;
 
     //
@@ -309,12 +311,12 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       originRequestPolicy: cf.OriginRequestPolicy.CORS_S3_ORIGIN,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     };
-    const apiGwyBehaviorOptions: cf.AddBehaviorOptions = {
+    const appBehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
       compress: true,
-      originRequestPolicy: apigwyOriginRequestPolicy,
+      originRequestPolicy: appOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
     };
@@ -327,14 +329,14 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     if (createAPIPathRoute) {
       distro.addBehavior(
         posixPath.join(rootPathPrefix, '*/api/*'),
-        apiGwyOrigin,
-        apiGwyBehaviorOptions,
+        defaultOrigin,
+        appBehaviorOptions,
       );
 
       distro.addBehavior(
         posixPath.join(rootPathPrefix, 'api/*'),
-        apiGwyOrigin,
-        apiGwyBehaviorOptions,
+        defaultOrigin,
+        appBehaviorOptions,
       );
     }
 
@@ -349,8 +351,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // to the app origin as iframe-less will have no version before _next/data
         // in the path
         posixPath.join(rootPathPrefix, '*/_next/data/*'),
-        apiGwyOrigin,
-        apiGwyBehaviorOptions,
+        defaultOrigin,
+        appBehaviorOptions,
       );
 
       distro.addBehavior(
@@ -358,8 +360,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // to the app origin as iframe-less will have no version before _next/data
         // in the path
         posixPath.join(rootPathPrefix, '_next/data/*'),
-        apiGwyOrigin,
-        apiGwyBehaviorOptions,
+        defaultOrigin,
+        appBehaviorOptions,
       );
     }
 
@@ -386,7 +388,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     // There is no trailing slash because Serverless Next.js wants
     // go load pages at /release/0.0.3 (with no trailing slash).
     //
-    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), apiGwyOrigin, apiGwyBehaviorOptions);
+    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), defaultOrigin, appBehaviorOptions);
   }
 
   private _cloudFrontDistro: cf.Distribution;
@@ -420,12 +422,12 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       bucketLogs,
       bucketAppsOrigin,
       rootPathPrefix,
-      createAPIPathRoute = true,
-      createNextDataPathRoute = true,
+      createAPIPathRoute = !!httpApi,
+      createNextDataPathRoute = !!httpApi,
       edgeLambdas,
     } = props;
 
-    const apigwyOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
+    const appOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
       assetNameRoot,
       assetNameSuffix,
       domainNameEdge,
@@ -437,7 +439,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     let httpOriginFQDN: string = 'invalid.pwrdrvr.com';
     if (domainNameOrigin !== undefined) {
       httpOriginFQDN = domainNameOrigin;
-    } else {
+    } else if (httpApi) {
       httpOriginFQDN = `${httpApi.apiId}.execute-api.${Aws.REGION}.amazonaws.com`;
     }
 
@@ -448,7 +450,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // CloudFront Distro
     //
-    const apiGwyOrigin = new cforigins.HttpOrigin(httpOriginFQDN, {
+    const appOrigin = new cforigins.HttpOrigin(httpOriginFQDN, {
       protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
       originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
     });
@@ -461,8 +463,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
         compress: true,
-        originRequestPolicy: apigwyOriginRequestPolicy,
-        origin: apiGwyOrigin,
+        originRequestPolicy: appOriginRequestPolicy,
+        origin: appOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         edgeLambdas,
       },
@@ -479,10 +481,10 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     // Add routes to the CloudFront Distribution
     MicroAppsCF.addRoutes(scope, {
-      apiGwyOrigin,
+      appOrigin,
       bucketAppsOrigin,
       distro: this._cloudFrontDistro,
-      apigwyOriginRequestPolicy: apigwyOriginRequestPolicy,
+      appOriginRequestPolicy,
       rootPathPrefix,
       createAPIPathRoute,
       createNextDataPathRoute,
