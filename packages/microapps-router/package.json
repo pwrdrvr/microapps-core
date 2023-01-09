@@ -38,8 +38,5 @@
     "@types/lambda-log": "^2.2.0",
     "@types/node": "^16.9.2",
     "@types/source-map-support": "^0.5.4"
-  },
-  "nohoist": [
-    "@types/convict-format-with-validator"
-  ]
+  }
 }

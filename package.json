@@ -17,7 +17,9 @@
       "./packages/*/"
     ],
     "nohoist": [
-      "**/constructs"
+      "**/constructs",
+      "**/@types/convict-format-with-validator",
+      "**/@types/convict-format-with-validator/**"
     ]
   },
   "private": true,

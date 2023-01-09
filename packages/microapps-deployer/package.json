@@ -51,8 +51,5 @@
     "@types/source-map-support": "^0.5.4",
     "aws-sdk-client-mock": "^0.3.0",
     "sinon": "^10.0.0"
-  },
-  "nohoist": [
-    "@types/convict-format-with-validator"
-  ]
+  }
 }
