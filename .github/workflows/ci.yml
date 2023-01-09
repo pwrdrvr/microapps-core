@@ -72,10 +72,10 @@ jobs:
       # and become part of the cache - if we don't then
       # their install will get skipped during `build-jsii` but they won't
       # be present in the cache so the build will fail
-      - name: Optionally Install CDK Construct Deps
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+      # - name: Optionally Install CDK Construct Deps
+      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      #   working-directory: packages/microapps-cdk/
+      #   run: yarn install --frozen-lockfile
 
       - name: Extract App NPM Versions
         id: appVersions
@@ -443,10 +443,10 @@ jobs:
       # - name: Move root modules out of the way for CDK Construct build
       #   run: mv node_modules node_modules_hide
       
-      - name: Optionally Install CDK Construct Deps
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+      # - name: Optionally Install CDK Construct Deps
+      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      #   working-directory: packages/microapps-cdk/
+      #   run: yarn install --frozen-lockfile
 
       # - name: Post Install Patch of api-gatewayv2
       #   working-directory: packages/microapps-cdk/

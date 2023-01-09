@@ -102,13 +102,13 @@ project.preCompileTask.exec(
 // );
 
 project.compileTask.exec(
-  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
+  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
+  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node14 --external:aws-sdk --outfile=lib/microapps-router/index.js',
+  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-router/index.js',
 );
 project.compileTask.exec('cp -R ../microapps-router/templates lib/microapps-router/');
 project.compileTask.exec('cp ../microapps-router/templates/* lib/microapps-edge-to-origin/');

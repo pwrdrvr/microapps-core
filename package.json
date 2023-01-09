@@ -17,9 +17,11 @@
       "./packages/*/"
     ],
     "nohoist": [
-      "**/constructs",
       "**/@types/convict-format-with-validator",
-      "**/@types/convict-format-with-validator/**"
+      "**/@types/convict-format-with-validator/**",
+      "**/aws-cdk-lib",
+      "**/aws-cdk-lib/**",
+      "**/constructs"
     ]
   },
   "private": true,
