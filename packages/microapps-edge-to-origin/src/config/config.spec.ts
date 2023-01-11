@@ -10,7 +10,7 @@ type IPartialConfig = Partial<Config>;
 describe('config', () => {
   it('handles funky string enum', () => {
     const rawConfig: IConfig = {
-      awsAccountID: 123,
+      awsAccountID: '123',
       awsRegion: 'us-east-1',
       originRegion: 'us-east-2',
       addXForwardedHostHeader: true,
@@ -23,7 +23,7 @@ describe('config', () => {
     const config = loader.load(rawConfig);
 
     expect(config).toBeDefined();
-    expect(config.awsAccountID).toBe(123);
+    expect(config.awsAccountID).toBe('123');
     expect(config.awsRegion).toBe(process.env.AWS_REGION || 'us-east-1');
     expect(config.originRegion).toBe('us-east-2');
     expect(config.addXForwardedHostHeader).toBe(true);
@@ -37,7 +37,7 @@ describe('config', () => {
     const config = loader.load(rawConfig);
 
     expect(config).toBeDefined();
-    expect(config.awsAccountID).toBe(0);
+    expect(config.awsAccountID).toBe('0');
     expect(config.awsRegion).toBe(process.env.AWS_REGION || 'us-east-1');
     expect(config.originRegion).toBe('us-east-2');
     expect(config.addXForwardedHostHeader).toBe(true);
@@ -50,7 +50,7 @@ describe('config', () => {
     const config = loader.load(path.join(__dirname, './config.test.yml'));
 
     expect(config).toBeDefined();
-    expect(config.awsAccountID).toBe(0);
+    expect(config.awsAccountID).toBe('00123456');
     expect(config.awsRegion).toBe(process.env.AWS_REGION || 'us-east-2');
     expect(config.originRegion).toBe('us-east-2');
     expect(config.addXForwardedHostHeader).toBe(true);

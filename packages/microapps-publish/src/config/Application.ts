@@ -12,7 +12,7 @@ export interface IApplicationConfig {
   staticAssetsPath: string;
   lambdaName: string;
   lambdaARN: string;
-  awsAccountID: number;
+  awsAccountID: string;
   awsRegion: string;
   serverlessNextRouterPath: string;
   ecrHost: string;
@@ -96,7 +96,7 @@ export class ApplicationConfig implements IApplicationConfig {
     default: 0,
     env: 'AWS_ACCOUNT_ID',
   })
-  public awsAccountID: number;
+  public awsAccountID: string;
 
   @convict.Property({
     doc: 'AWS Region to deploy to',
