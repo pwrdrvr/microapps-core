@@ -39,6 +39,7 @@ jobs:
             **/node_modules
           key: node-modules-ci-${{ hashFiles('package.json', '**/yarn.lock') }}
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
       - name: Build All TypeScript
         run: yarn build 
@@ -46,11 +47,11 @@ jobs:
         env:
           NODE_ENV: test
         run: yarn test
-      # This is required because of hoisting of the
-      # `constructs` module, which causes `jsii` to fail to build
-      - name: Install CDK Construct Deps
-        working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+      # No longer needed with `nohoist` configured correctly
+      # - name: Install CDK Construct Deps
+      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      #   working-directory: packages/microapps-cdk/
+      #   run: yarn install --frozen-lockfile
       - name: Prepare the Release
         working-directory: packages/microapps-cdk/
         run: npx projen release
@@ -81,7 +82,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -111,8 +112,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
       - name: Check for new commits
         id: git_remote
         run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
@@ -126,6 +125,7 @@ jobs:
           cat dist/version.txt
           npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
       - name: Install Node Modules
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
       - name: Build Publish TypeScript
         run: yarn build:publish 
@@ -155,7 +155,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -185,7 +185,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -223,7 +223,7 @@ jobs:
           java-version: 11.x
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -256,7 +256,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
@@ -288,7 +288,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.x

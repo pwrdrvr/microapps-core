@@ -41,6 +41,7 @@ jobs:
             **/node_modules
           key: node-modules-ci-${{ hashFiles('package.json', '**/yarn.lock') }}
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
       - name: Build All TypeScript
         run: yarn build 
@@ -48,9 +49,11 @@ jobs:
         env:
           NODE_ENV: test
         run: yarn test
-      - name: Install CDK Construct Deps
-        working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+      # No longer needed with `nohoist` configured correctly
+      # - name: Install CDK Construct Deps
+      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      #   working-directory: packages/microapps-cdk/
+      #   run: yarn install --frozen-lockfile
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
         run: yarn build
