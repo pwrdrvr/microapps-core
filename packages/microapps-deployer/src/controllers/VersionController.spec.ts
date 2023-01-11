@@ -5,7 +5,7 @@ import { Config, IConfig } from '../config/Config';
 jest.mock('../config/Config');
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 const theConfig: Writeable<IConfig> = {
-  awsAccountID: 123456789,
+  awsAccountID: '00123456789',
   awsRegion: 'mock',
   db: {
     tableName: 'microapps',

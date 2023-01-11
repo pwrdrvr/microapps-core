@@ -2,3 +2,4 @@ awsRegion: us-east-2
 originRegion: us-east-2
 signingMode: sign
 replaceHostHeader: true
+awsAccountID: '00123456'

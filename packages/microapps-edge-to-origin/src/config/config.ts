@@ -7,7 +7,7 @@ import { FilesExist } from '../lib/files-exist';
  * Represents a Config
  */
 export interface IConfig {
-  readonly awsAccountID: number;
+  readonly awsAccountID: string;
   readonly awsRegion: string;
 
   /**
@@ -112,10 +112,10 @@ export class Config implements IConfig {
 
   @convict.Property({
     doc: 'AWS Account ID for app Lambda function',
-    default: 0,
+    default: '',
     env: 'AWS_ACCOUNT_ID',
   })
-  public awsAccountID!: number;
+  public awsAccountID!: string;
 
   @convict.Property({
     doc: 'AWS Region for app Lambda function',
