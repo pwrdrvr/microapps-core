@@ -61,8 +61,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            **/node_modules
-          key: node-modules-ci-${{ hashFiles('package.json', '**/yarn.lock') }}
+            node_modules
+            packages/**/node_modules
+          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -165,8 +166,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            **/node_modules
-          key: node-modules-ci-${{ hashFiles('package.json', '**/yarn.lock') }}
+            node_modules
+            packages/**/node_modules
+          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -419,8 +421,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            **/node_modules
-          key: node-modules-ci-${{ hashFiles('package.json', '**/yarn.lock') }}
+            node_modules
+            packages/**/node_modules
+          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
