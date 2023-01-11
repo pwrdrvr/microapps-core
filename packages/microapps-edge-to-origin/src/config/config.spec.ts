@@ -37,7 +37,7 @@ describe('config', () => {
     const config = loader.load(rawConfig);
 
     expect(config).toBeDefined();
-    expect(config.awsAccountID).toBe('0');
+    expect(config.awsAccountID).toBe('');
     expect(config.awsRegion).toBe(process.env.AWS_REGION || 'us-east-1');
     expect(config.originRegion).toBe('us-east-2');
     expect(config.addXForwardedHostHeader).toBe(true);

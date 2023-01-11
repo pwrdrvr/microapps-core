@@ -112,12 +112,12 @@ export class PublishCommand extends Command {
 
     // Get the account ID and region from STS
     // TODO: Move this to the right place
-    if (config.app.awsAccountID === '0' || config.app.awsRegion === '') {
+    if (config.app.awsAccountID === '' || config.app.awsRegion === '') {
       const stsClient = new sts.STSClient({
         maxAttempts: 8,
       });
       const stsResponse = await stsClient.send(new sts.GetCallerIdentityCommand({}));
-      if (config.app.awsAccountID === '0') {
+      if (config.app.awsAccountID === '') {
         config.app.awsAccountID = stsResponse.Account;
       }
       if (config.app.awsRegion === '') {

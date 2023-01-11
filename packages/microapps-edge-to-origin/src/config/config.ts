@@ -112,7 +112,7 @@ export class Config implements IConfig {
 
   @convict.Property({
     doc: 'AWS Account ID for app Lambda function',
-    default: '0',
+    default: '',
     env: 'AWS_ACCOUNT_ID',
   })
   public awsAccountID!: string;
