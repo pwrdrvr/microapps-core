@@ -93,7 +93,7 @@ export class ApplicationConfig implements IApplicationConfig {
 
   @convict.Property({
     doc: 'AWS Account ID to deploy to',
-    default: 0,
+    default: '',
     env: 'AWS_ACCOUNT_ID',
   })
   public awsAccountID: string;
