@@ -225,7 +225,7 @@ export class PublishCommand extends Command {
         {
           title: 'Check if Lambda ARN has Alias',
           task: (ctx, task) => {
-            if (appLambdaName.match(/:/g).length === 7) {
+            if (appLambdaName.match(/:/g)?.length === 7) {
               if (/^[0-9]$/.test(appLambdaName.substring(appLambdaName.lastIndexOf(':') + 1))) {
                 ctx.configLambdaArnType = 'version';
                 task.output = `Lambda ARN has Version: ${config.app.lambdaName}`;
