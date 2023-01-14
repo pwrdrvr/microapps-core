@@ -47,15 +47,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          # Note: this cache is not particularly useful...
-          # It is about 780 MB and is only needed if we run `yarn install`,
-          # which we only do if `yarn.lock` has changed, which means this cacue
-          # key is changed in that case... so... it's not useful in the one
-          # case where we need it because we are caching installed modules below.
-          # cache: 'yarn'
-          # cache-dependency-path: '**/yarn.lock'
 
-      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v3
@@ -152,15 +144,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          # Note: this cache is not particularly useful...
-          # It is about 780 MB and is only needed if we run `yarn install`,
-          # which we only do if `yarn.lock` has changed, which means this cacue
-          # key is changed in that case... so... it's not useful in the one
-          # case where we need it because we are caching installed modules below.
-          # cache: 'yarn'
-          # cache-dependency-path: '**/yarn.lock'
 
-      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v3
@@ -407,15 +391,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          # Note: this cache is not particularly useful...
-          # It is about 780 MB and is only needed if we run `yarn install`,
-          # which we only do if `yarn.lock` has changed, which means this cacue
-          # key is changed in that case... so... it's not useful in the one
-          # case where we need it because we are caching installed modules below.
-          # cache: 'yarn'
-          # cache-dependency-path: '**/yarn.lock'
 
-      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v3

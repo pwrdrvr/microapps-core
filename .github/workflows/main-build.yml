@@ -32,7 +32,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      # https://www.jonathan-wilkinson.com/github-actions-cache-everything
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v3
@@ -127,8 +126,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
       - name: Check for new commits
         id: git_remote
         run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
