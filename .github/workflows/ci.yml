@@ -233,7 +233,17 @@ jobs:
           echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "NEXTJS_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+
+      - name: Echo Exports
+        run: |
+          env | grep EDGE_DOMAIN
+          env | grep DEPLOYER_
+          env | grep DEMO_APP_
+          env | grep NEXTJS_DEMO_APP_
+          env | grep RELEASE_APP_
 
       - name: Publish Demo App to MicroApps
         run: |
@@ -327,7 +337,7 @@ jobs:
             -a ${NEXTJS_DEMO_APP_NAME} \
             -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${NEXTJS_DEMO_APP_LAMBDA_NAME} \
+            -l ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
             -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/.static_files/ \
             --overwrite --noCache
 

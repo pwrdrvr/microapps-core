@@ -75,7 +75,7 @@ export class PublishCommand extends Command {
       char: 'l',
       multiple: false,
       required: false,
-      description: 'Name of the application lambda function',
+      description: 'ARN of lambda version, alias, or function (name or ARN) to deploy',
     }),
     appName: flagsParser.string({
       char: 'a',
