@@ -15,7 +15,6 @@
   - [Command - nextjs-version](#command---nextjs-version)
   - [Command - nextjs-version-restore](#command---nextjs-version-restore)
   - [Command - delete](#command---delete)
-  - [Command - nextjs-docker-auto](#command---nextjs-docker-auto)
 
 # Video Preview of Deploying an App
 
@@ -43,8 +42,6 @@ USAGE
 COMMANDS
   delete                  Delete app/version
   help                    display help for microapps-publish
-  nextjs-docker-auto      Fully automatic publishing of Docker-based Lambda
-                          function using Next.js and serverless-nextjs-router
   nextjs-version          Apply version to next.config.js overtop of 0.0.0
                           placeholder
   nextjs-version-restore  Restore next.config.js
@@ -246,74 +243,4 @@ OPTIONS
 EXAMPLE
   $ microapps-publish delete -d microapps-deployer-dev -a release -n 0.0.13
   ✔ App/Version deleted: release/0.0.13 [1.2s]
-```
-
-## Command - nextjs-docker-auto
-
-Note: semi-deprecated as of 2022-01-27. This command may still work but it performs too many tasks that needed to be split out into individual commands to allow for integration into various build processes.
-
-`npx microapps-publish nextjs-docker-auto help`
-
-```
-Fully automatic publishing of Docker-based Lambda function using Next.js and serverless-nextjs-router
-
-USAGE
-  $ microapps-publish nextjs-docker-auto
-
-OPTIONS
-  -a, --appName=appName
-      MicroApps app name
-
-  -d, --deployerLambdaName=deployerLambdaName
-      (required) Name of the deployer lambda function
-
-  -f, --leaveCopy
-      Leave a copy of the modifed files as .modified
-
-  -i, --defaultFile=defaultFile
-      Default file to return when the app is loaded via the router without a
-      version (e.g. when app/ is requested).
-
-  -l, --appLambdaName=appLambdaName
-      Name of the application lambda function
-
-  -n, --newVersion=newVersion
-      (required) New semantic version to apply
-
-  -o, --overwrite
-      Allow overwrite - Warn but do not fail if version exists. Discouraged
-      outside of test envs if cacheable static files have changed.
-
-  -r, --repoName=repoName
-      (required) Name (not URI) of the Docker repo for the app
-
-  -s, --staticAssetsPath=staticAssetsPath
-      Path to files to be uploaded to S3 static bucket at app/version/ path.  Do
-      include app/version/ in path if files are already "rooted" under that path
-      locally.
-
-  -v, --version
-      show CLI version
-
-  --help
-      show CLI help
-
-  --noCache
-      Force revalidation of CloudFront and browser caching of static assets
-
-EXAMPLE
-  $ microapps-publish nextjs-docker-auto -d microapps-deployer-dev -r
-  microapps-app-release-dev-repo -n 0.0.14
-  ✔ Logging into ECR [2s]
-  ✔ Modifying Config Files [0.0s]
-  ✔ Preflight Version Check [1s]
-  ✔ Serverless Next.js Build [1m16s]
-  ✔ Publish to ECR [32s]
-  ✔ Deploy to Lambda [11s]
-  ✔ Confirm Static Assets Folder Exists [0.0s]
-  ✔ Copy Static Files to Local Upload Dir [0.0s]
-  ✔ Enumerate Files to Upload to S3 [0.0s]
-  ✔ Upload Static Files to S3 [1s]
-  ✔ Creating MicroApp Application: release [0.2s]
-  ✔ Creating MicroApp Version: 0.0.14 [1s]
 ```
