@@ -25,6 +25,16 @@ const lambdaClient = new lambda.LambdaClient({
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;
   files: string[];
+
+  /**
+   * The type of ARN passed in on the config or command line
+   */
+  configLambdaArnType: 'function' | 'alias' | 'version';
+
+  /**
+   * The ARN of the Lambda alias to use for the deploy
+   */
+  lambdaAliasArn: string;
 }
 
 export class PublishCommand extends Command {
@@ -213,8 +223,27 @@ export class PublishCommand extends Command {
           },
         },
         {
-          // TODO: Disable this task if no Lambda function
-          title: 'Deploy to Lambda',
+          title: 'Check if Lambda ARN has Alias',
+          task: (ctx, task) => {
+            if (appLambdaName.match(/:/g).length === 7) {
+              if (/^[0-9]$/.test(appLambdaName.substring(appLambdaName.lastIndexOf(':') + 1))) {
+                ctx.configLambdaArnType = 'version';
+                task.output = `Lambda ARN has Version: ${config.app.lambdaName}`;
+              } else {
+                ctx.configLambdaArnType = 'alias';
+                task.output = `Lambda ARN has Alias: ${config.app.lambdaName}`;
+                ctx.lambdaAliasArn = config.app.lambdaName;
+              }
+            } else {
+              ctx.configLambdaArnType = 'function';
+              task.output = `Lambda ARN does not have Alias: ${config.app.lambdaName}`;
+            }
+          },
+        },
+        {
+          enabled: (ctx) =>
+            ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version',
+          title: 'Create Lambda Alias and, optionally, Version',
           task: async (ctx, task) => {
             // Allow overwriting a non-overwritable app if the prior
             // publish was not completely successful - in that case
@@ -229,6 +258,7 @@ export class PublishCommand extends Command {
               versions: this.VersionAndAlias,
               overwrite: allowOverwrite,
               task,
+              ctx,
             });
 
             task.title = origTitle;
@@ -355,7 +385,11 @@ export class PublishCommand extends Command {
 
             // Call Deployer to Deploy AppName/Version
             await DeployClient.DeployVersion({
-              config,
+              appName: config.app.name,
+              semVer: config.app.semVer,
+              deployerLambdaName: config.deployer.lambdaName,
+              lambdaAliasArn: ctx.lambdaAliasArn,
+              defaultFile: config.app.defaultFile,
               appType,
               startupType: parsedFlags['startup-type'] as 'iframe' | 'direct',
               overwrite,
@@ -390,41 +424,49 @@ export class PublishCommand extends Command {
     versions: IVersions;
     overwrite: boolean;
     task: TaskWrapper<IContext, typeof DefaultRenderer>;
+    ctx: IContext;
   }): Promise<void> {
-    const { config, overwrite, versions, task } = opts;
+    const { config, overwrite, versions, task, ctx } = opts;
+
+    let lambdaVersion = '';
 
     // Create Lambda version
-    task.output = 'Creating version for Lambda $LATEST';
-    const resultUpdate = await lambdaClient.send(
-      new lambda.PublishVersionCommand({
-        FunctionName: config.app.lambdaName,
-      }),
-    );
-    const lambdaVersion = resultUpdate.Version;
-    task.output = `Lambda version created: ${resultUpdate.Version}`;
-
-    let lastUpdateStatus = resultUpdate.LastUpdateStatus;
-    for (let i = 0; i < 5; i++) {
-      // When the function is created the status will be "Pending"
-      // and we have to wait until it's done creating
-      // before we can point an alias to it
-      if (lastUpdateStatus === 'Successful') {
-        task.output = `Lambda function updated, version: ${lambdaVersion}`;
-        break;
-      }
-
-      // If it didn't work, wait and try again
-      await asyncSetTimeout(1000 * i);
-
-      const resultGet = await lambdaClient.send(
-        new lambda.GetFunctionCommand({
+    if (ctx.configLambdaArnType === 'function') {
+      task.output = 'Creating version for Lambda $LATEST';
+      const resultUpdate = await lambdaClient.send(
+        new lambda.PublishVersionCommand({
           FunctionName: config.app.lambdaName,
-          Qualifier: lambdaVersion,
         }),
       );
+      lambdaVersion = resultUpdate.Version;
+      task.output = `Lambda version created: ${resultUpdate.Version}`;
 
-      // Save the last update status so we can check on re-loop
-      lastUpdateStatus = resultGet?.Configuration?.LastUpdateStatus;
+      let lastUpdateStatus = resultUpdate.LastUpdateStatus;
+      for (let i = 0; i < 5; i++) {
+        // When the function is created the status will be "Pending"
+        // and we have to wait until it's done creating
+        // before we can point an alias to it
+        if (lastUpdateStatus === 'Successful') {
+          task.output = `Lambda function updated, version: ${lambdaVersion}`;
+          break;
+        }
+
+        // If it didn't work, wait and try again
+        await asyncSetTimeout(1000 * i);
+
+        const resultGet = await lambdaClient.send(
+          new lambda.GetFunctionCommand({
+            FunctionName: config.app.lambdaName,
+            Qualifier: lambdaVersion,
+          }),
+        );
+
+        // Save the last update status so we can check on re-loop
+        lastUpdateStatus = resultGet?.Configuration?.LastUpdateStatus;
+      }
+    } else {
+      task.output = 'Lambda is already versioned, skipping version creation';
+      lambdaVersion = config.app.lambdaName.split(':').pop() || '';
     }
 
     // Create Lambda alias point
@@ -438,6 +480,7 @@ export class PublishCommand extends Command {
         }),
       );
       task.output = `Lambda alias created, name: ${resultLambdaAlias.Name}`;
+      ctx.lambdaAliasArn = resultLambdaAlias.AliasArn;
     } catch (error) {
       if (overwrite && error.name === 'ResourceConflictException') {
         task.output = `Alias exists, updating the lambda alias for version: ${lambdaVersion}`;
@@ -450,6 +493,7 @@ export class PublishCommand extends Command {
           }),
         );
         task.output = `Lambda alias updated, name: ${resultLambdaAlias.Name}`;
+        ctx.lambdaAliasArn = resultLambdaAlias.AliasArn;
       } else {
         throw error;
       }

@@ -147,26 +147,40 @@ export default class DeployClient {
    * @param task
    */
   public static async DeployVersion(opts: {
-    config: IConfig;
+    appName: string;
+    semVer: string;
+    defaultFile?: string;
+    lambdaAliasArn?: string;
+    deployerLambdaName: string;
     appType: 'lambda' | 'static' | 'lambda-url' | 'url';
     startupType?: 'iframe' | 'direct';
     overwrite: boolean;
     output: (message: string) => void;
   }): Promise<void> {
-    const { config, appType, startupType = 'iframe', overwrite, output } = opts;
+    const {
+      appName,
+      semVer,
+      defaultFile,
+      lambdaAliasArn,
+      deployerLambdaName,
+      appType,
+      startupType = 'iframe',
+      overwrite,
+      output,
+    } = opts;
     const request: IDeployVersionRequest = {
       type: 'deployVersion',
       appType,
       startupType,
-      appName: config.app.name,
-      semVer: config.app.semVer,
-      defaultFile: config.app.defaultFile,
+      appName: appName,
+      semVer: semVer,
+      defaultFile: defaultFile,
       overwrite,
-      ...(['lambda', 'lambda-url'].includes(appType) ? { lambdaARN: config.app.lambdaARN } : {}),
+      ...(['lambda', 'lambda-url'].includes(appType) ? { lambdaARN: lambdaAliasArn } : {}),
     };
     const response = await this._client.send(
       new lambda.InvokeCommand({
-        FunctionName: config.deployer.lambdaName,
+        FunctionName: deployerLambdaName,
         Payload: Buffer.from(JSON.stringify(request)),
       }),
     );
@@ -176,7 +190,7 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
-        output(`Deploy succeeded: ${config.app.name}/${config.app.semVer}`);
+        output(`Deploy succeeded: ${appName}/${semVer}`);
       } else {
         output(`Deploy failed with: ${dResponse.statusCode}`);
         throw new Error(`Lambda call to DeployVersionfailed with: ${dResponse.statusCode}`);
