@@ -1,7 +1,10 @@
 # Based on projen template from packages/microapps-cdk/.github/workflows/release.yml
 name: Release Packages
 on:
-  workflow_dispatch: {}
+  # Can enable this when the push builds skip deploy
+  # push:
+  #   branches:
+  #     - 'main'
   release:
     types: [published]
 jobs:
