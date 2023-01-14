@@ -113,14 +113,9 @@ describe('VersionController', () => {
       const appName = 'newapp';
       const semVer = '0.0.0';
 
-      stsClient.on(sts.AssumeRoleCommand).resolves({
-        Credentials: {
-          AccessKeyId: 'cat',
-          SecretAccessKey: 'dog',
-          SessionToken: 'frog',
-          Expiration: new Date(),
-        },
-      });
+      lambdaClient.onAnyCommand().rejects();
+      apigwyClient.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
 
       const response = await handler(
         {
@@ -131,6 +126,9 @@ describe('VersionController', () => {
         { awsRequestId: '123' } as lambdaTypes.Context,
       );
       expect(response.statusCode).toEqual(404);
+      expect(lambdaClient.calls()).toHaveLength(0);
+      expect(apigwyClient.calls()).toHaveLength(0);
+      expect(stsClient.calls()).toHaveLength(0);
     });
 
     it('should 200 for version that exists', async () => {
@@ -237,6 +235,7 @@ describe('VersionController', () => {
       expect(response).toBeDefined();
       expect(response.statusCode).toBeDefined();
       expect(response.statusCode).toEqual(200);
+      expect(lambdaClient.calls().length).toEqual(3);
       expect(apigwyClient.calls().length).toEqual(3);
       expect(s3Client.calls().length).toEqual(3);
 
