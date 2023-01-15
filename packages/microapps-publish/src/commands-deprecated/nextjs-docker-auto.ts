@@ -13,16 +13,11 @@ import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient
 import S3Uploader from '../lib/S3Uploader';
 import S3TransferUtility from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
+import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import { contentType } from 'mime-types';
 import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
 import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
-import {
-  createVersions,
-  IFileToModify,
-  IVersions,
-  restoreFiles,
-  writeNewVersions,
-} from '../lib/Versions';
+import { IFileToModify, restoreFiles, writeNewVersions } from '../lib/Versions';
 const asyncSetTimeout = util.promisify(setTimeout);
 const asyncExec = util.promisify(exec);
 

@@ -7,6 +7,7 @@ import { Command, flags as flagsParser } from '@oclif/command';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
+import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import { Config, IConfig } from '../config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
 import S3Uploader from '../lib/S3Uploader';
@@ -15,7 +16,6 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { contentType } from 'mime-types';
 import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
 import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
-import { createVersions, IVersions } from '../lib/Versions';
 const asyncSetTimeout = util.promisify(setTimeout);
 
 const lambdaClient = new lambda.LambdaClient({

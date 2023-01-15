@@ -1,8 +1,9 @@
 import 'reflect-metadata';
 import { Command, flags as flagsParser } from '@oclif/command';
 import { Listr } from 'listr2';
+import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import { Config } from '../config/Config';
-import { createVersions, IVersions, restoreFiles, writeNewVersions } from '../lib/Versions';
+import { restoreFiles, writeNewVersions } from '../lib/Versions';
 
 export class NextJSVersionCommand extends Command {
   static description = 'Apply version to next.config.js overtop of 0.0.0 placeholder';

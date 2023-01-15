@@ -1,12 +1,5 @@
 import { promises as fs } from 'fs-extra';
-
-/**
- * Represents a Versions
- */
-export interface IVersions {
-  version: string;
-  alias?: string;
-}
+import { IVersions } from '@pwrdrvr/microapps-deployer-lib';
 
 /**
  * Represents a File To Modify
@@ -19,15 +12,6 @@ export interface IFileToModify {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-/**
- * Setup version and alias strings
- * @param version
- * @returns
- */
-export function createVersions(version: string): IVersions {
-  return { version, alias: `v${version.replace(/\./g, '_')}` };
 }
 
 /**

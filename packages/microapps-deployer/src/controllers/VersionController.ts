@@ -4,6 +4,7 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
+import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import pMap from 'p-map';
 import { IConfig } from '../config/Config';
 import {
@@ -428,7 +429,7 @@ export default class VersionController {
       }
 
       // Get base of lambda arn
-      const { lambdaARNBase, lambdaARNAlias } = VersionController.ExtractARNandAlias(
+      const { lambdaARNBase, lambdaAlias } = VersionController.ExtractARNandAlias(
         request.lambdaARN,
       );
 
@@ -462,7 +463,7 @@ export default class VersionController {
           functionUrl = await lambdaClient.send(
             new lambda.GetFunctionUrlConfigCommand({
               FunctionName: lambdaARNBase,
-              Qualifier: lambdaARNAlias,
+              Qualifier: lambdaAlias,
             }),
           );
           // Create the FunctionUrl if it doesn't already exist
@@ -480,7 +481,7 @@ export default class VersionController {
           const functionUrlNew = await lambdaClient.send(
             new lambda.CreateFunctionUrlConfigCommand({
               FunctionName: lambdaARNBase,
-              Qualifier: lambdaARNAlias,
+              Qualifier: lambdaAlias,
               AuthType: 'AWS_IAM',
             }),
           );
@@ -536,10 +537,92 @@ export default class VersionController {
     return { statusCode: 201 };
   }
 
-  private static ExtractARNandAlias(lambdaARN: string) {
-    const lambdaARNBase = lambdaARN?.substring(0, lambdaARN.lastIndexOf(':'));
-    const lambdaARNAlias = lambdaARN?.substring(lambdaARN.lastIndexOf(':') + 1);
-    return { lambdaARNBase, lambdaARNAlias };
+  private static async CreateOrUpdateLambdaAlias(opts: {
+    lambdaArnBase: string;
+    lambdaVersion: string;
+    overwrite: boolean;
+    versions: IVersions;
+  }): Promise<{ lambdaAliasArn: string }> {
+    // Create Lambda alias
+    const { lambdaArnBase, lambdaVersion, overwrite, versions } = opts;
+
+    try {
+      Log.Instance.info(`Creating the lambda alias for the new version: ${lambdaVersion}`);
+
+      const resultLambdaAlias = await lambdaClient.send(
+        new lambda.CreateAliasCommand({
+          FunctionName: lambdaArnBase,
+          Name: versions.alias,
+          FunctionVersion: lambdaVersion,
+        }),
+      );
+      Log.Instance.info(
+        `Lambda alias created, name: ${resultLambdaAlias.Name}, arn: ${resultLambdaAlias.AliasArn}`,
+      );
+
+      if (!resultLambdaAlias.AliasArn) {
+        throw new Error('AliasArn failed to create');
+      }
+
+      return { lambdaAliasArn: resultLambdaAlias.AliasArn };
+    } catch (error: any) {
+      if (overwrite && error.name === 'ResourceConflictException') {
+        Log.Instance.info(`Alias exists, updating the lambda alias for version: ${lambdaVersion}`);
+
+        const resultLambdaAlias = await lambdaClient.send(
+          new lambda.UpdateAliasCommand({
+            FunctionName: lambdaArnBase,
+            Name: versions.alias,
+            FunctionVersion: lambdaVersion,
+          }),
+        );
+
+        Log.Instance.info(
+          `Lambda alias updated, name: ${resultLambdaAlias.Name}, arn: ${resultLambdaAlias.AliasArn}`,
+        );
+
+        if (!resultLambdaAlias.AliasArn) {
+          throw new Error('AliasArn failed to create');
+        }
+
+        return { lambdaAliasArn: resultLambdaAlias.AliasArn };
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private static ExtractARNandAlias(lambdaARN: string): {
+    lambdaARNBase: string;
+    lambdaARNType: 'version' | 'alias' | 'function';
+    lambdaQualifier?: string;
+    lambdaAlias?: string;
+    lambdaVersion?: string;
+  } {
+    let lambdaARNBase: string = lambdaARN;
+    let lambdaVersion: string | undefined = undefined;
+    let lambdaAlias: string | undefined = undefined;
+    let lambdaARNType: 'version' | 'alias' | 'function' = 'function';
+
+    if (lambdaARN.match(/:/g)?.length === 7) {
+      if (/^[0-9]+$/.test(lambdaARN.substring(lambdaARN.lastIndexOf(':') + 1))) {
+        lambdaARNType = 'version';
+        lambdaARNBase = lambdaARN?.substring(0, lambdaARN.lastIndexOf(':'));
+        lambdaVersion = lambdaARN.substring(lambdaARN.lastIndexOf(':') + 1);
+        Log.Instance.info(`Lambda ARN has Version: ${lambdaARN}`);
+      } else {
+        lambdaARNType = 'alias';
+        lambdaARNBase = lambdaARN?.substring(0, lambdaARN.lastIndexOf(':'));
+        lambdaAlias = lambdaARN.substring(lambdaARN.lastIndexOf(':') + 1);
+        Log.Instance.info(`Lambda ARN has Alias: ${lambdaARN}`);
+      }
+    } else {
+      lambdaARNType = 'function';
+      lambdaARNBase = lambdaARN;
+      Log.Instance.info(`Lambda ARN does not have Alias: ${lambdaARN}`);
+    }
+
+    return { lambdaARNBase, lambdaAlias, lambdaVersion, lambdaARNType };
   }
 
   /**
@@ -644,9 +727,7 @@ export default class VersionController {
 
     if ((record.Type === 'lambda' || record.Type === 'lambda-url') && record.LambdaARN) {
       // Get base of lambda arn
-      const { lambdaARNBase, lambdaARNAlias } = VersionController.ExtractARNandAlias(
-        record.LambdaARN,
-      );
+      const { lambdaARNBase, lambdaAlias } = VersionController.ExtractARNandAlias(record.LambdaARN);
 
       // Get info about the Alias
       try {
@@ -654,7 +735,7 @@ export default class VersionController {
         const aliasInfo = await lambdaClient.send(
           new lambda.GetAliasCommand({
             FunctionName: lambdaARNBase,
-            Name: lambdaARNAlias,
+            Name: lambdaAlias,
           }),
         );
 
@@ -662,7 +743,7 @@ export default class VersionController {
         await lambdaClient.send(
           new lambda.DeleteAliasCommand({
             FunctionName: lambdaARNBase,
-            Name: lambdaARNAlias,
+            Name: lambdaAlias,
           }),
         );
 
