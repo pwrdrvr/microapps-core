@@ -245,6 +245,18 @@ jobs:
           env | grep NEXTJS_DEMO_APP_
           env | grep RELEASE_APP_
 
+      - name: Publish URL App to MicroApps
+        run: |
+          npx microapps-publish publish \
+            -a ${DEMO_APP_NAME} \
+            -t url \
+            --startup-type direct \
+            -n ${PACKAGE_VERSION} \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -l ${DEMO_APP_LAMBDA_NAME} \
+            -s packages/demo-app/static_files \
+            -i index.html --overwrite --noCache
+
       - name: Publish Demo App to MicroApps
         run: |
           npx microapps-publish publish \

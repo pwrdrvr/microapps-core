@@ -120,8 +120,8 @@ export class PublishCommand extends Command {
       char: 't',
       multiple: false,
       required: false,
-      options: ['apigwy', 'lambda-url'],
-      default: 'apigwy',
+      options: ['apigwy', 'lambda-url', 'url'],
+      default: 'lambda-url',
       description: 'Type of the application and how its requests are routed',
     }),
   };
