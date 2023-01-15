@@ -368,7 +368,7 @@ jobs:
             -a ${RELEASE_APP_NAME} \
             -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${RELEASE_APP_LAMBDA_NAME} \
+            -l ${RELEASE_APP_LAMBDA_VERSION_ARN} \
             -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/.static_files/ \
             --overwrite --noCache
 
