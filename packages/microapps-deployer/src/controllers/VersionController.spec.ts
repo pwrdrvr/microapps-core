@@ -519,8 +519,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: appName,
-          semVer: semVer,
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
           type: 'deployVersion',
@@ -862,8 +862,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: appName,
-          semVer: semVer,
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: `${fakeLambdaARN}:${fakeLambdaAliasSuffix}`,
           type: 'deployVersion',
@@ -965,8 +965,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: appName,
-          semVer: semVer,
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: fakeLambdaARN,
           type: 'deployVersion',
@@ -1067,8 +1067,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: appName,
-          semVer: semVer,
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: `${fakeLambdaARN}:${fakeLambdaAliasSuffix}`,
           type: 'deployVersion',
@@ -1168,8 +1168,8 @@ describe('VersionController', () => {
 
       const response = await handler(
         {
-          appName: appName,
-          semVer: semVer,
+          appName,
+          semVer,
           defaultFile: 'index.html',
           lambdaARN: `${fakeLambdaARN}:${fakeLambdaAliasSuffix}`,
           type: 'deployVersion',

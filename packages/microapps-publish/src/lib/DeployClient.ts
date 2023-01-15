@@ -154,6 +154,7 @@ export default class DeployClient {
     deployerLambdaName: string;
     appType: 'lambda' | 'static' | 'lambda-url' | 'url';
     startupType?: 'iframe' | 'direct';
+    url?: string;
     overwrite: boolean;
     output: (message: string) => void;
   }): Promise<void> {
@@ -165,6 +166,7 @@ export default class DeployClient {
       deployerLambdaName,
       appType,
       startupType = 'iframe',
+      url,
       overwrite,
       output,
     } = opts;
@@ -172,9 +174,10 @@ export default class DeployClient {
       type: 'deployVersion',
       appType,
       startupType,
-      appName: appName,
-      semVer: semVer,
+      appName,
+      semVer,
       defaultFile: defaultFile,
+      url,
       overwrite,
       ...(['lambda', 'lambda-url'].includes(appType) ? { lambdaARN: lambdaAliasArn } : {}),
     };
