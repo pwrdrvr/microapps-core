@@ -429,7 +429,7 @@ export class PublishCommand extends Command {
     const { config, overwrite, versions, task, ctx } = opts;
 
     let lambdaVersion = '';
-    let lambdaArnBase = ctx.lambdaAliasArn;
+    let lambdaArnBase = config.app.lambdaName;
 
     // Create Lambda version
     if (ctx.configLambdaArnType === 'function') {
