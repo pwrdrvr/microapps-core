@@ -245,6 +245,16 @@ jobs:
           env | grep NEXTJS_DEMO_APP_
           env | grep RELEASE_APP_
 
+      - name: Publish URL App to MicroApps
+        run: |
+          npx microapps-publish publish \
+            -a blog \
+            -t url \
+            -n ${PACKAGE_VERSION} \
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -u https://www.pwrdrvr.com \
+            --overwrite
+
       - name: Publish Demo App to MicroApps
         run: |
           npx microapps-publish publish \
@@ -339,7 +349,7 @@ jobs:
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
             -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/.static_files/ \
-            --overwrite --noCache
+            --overwrite
 
       - name: Nextjs Demo App URL
         uses: Sibz/github-status-action@v1
@@ -370,7 +380,7 @@ jobs:
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${RELEASE_APP_LAMBDA_VERSION_ARN} \
             -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/.static_files/ \
-            --overwrite --noCache
+            --overwrite
 
       - name: Release App URL
         uses: Sibz/github-status-action@v1

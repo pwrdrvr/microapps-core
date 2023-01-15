@@ -81,7 +81,7 @@ export class PublishCommand extends Command {
       char: 'a',
       multiple: false,
       required: false,
-      description: 'MicroApps app name',
+      description: 'MicroApps app name (this becomes the path the app is rooted at)',
     }),
     staticAssetsPath: flagsParser.string({
       char: 's',
@@ -120,9 +120,15 @@ export class PublishCommand extends Command {
       char: 't',
       multiple: false,
       required: false,
-      options: ['apigwy', 'lambda-url'],
-      default: 'apigwy',
+      options: ['apigwy', 'lambda-url', 'url', 'static'],
+      default: 'lambda-url',
       description: 'Type of the application and how its requests are routed',
+    }),
+    url: flagsParser.string({
+      char: 'u',
+      multiple: false,
+      required: false,
+      description: 'URL for `url` type applications',
     }),
   };
 
@@ -181,7 +187,7 @@ export class PublishCommand extends Command {
     const tasks = new Listr<IContext>(
       [
         {
-          // TODO: Disable this task if no static assets path
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Confirm Static Assets Folder Exists',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -196,8 +202,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          // TODO: Disable this task if no static assets path
-          title: 'Get S3 Temp Credentials',
+          title: 'Preflight Request / Get S3 Temp Credentials',
           task: async (ctx, task) => {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
@@ -223,6 +228,7 @@ export class PublishCommand extends Command {
           },
         },
         {
+          enabled: () => !!appLambdaName,
           title: 'Check if Lambda ARN has Alias',
           task: (ctx, task) => {
             if (appLambdaName.match(/:/g)?.length === 7) {
@@ -265,7 +271,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          // TODO: Disable this task if no static assets path
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Copy Static Files to Local Upload Dir',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -278,7 +284,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          // TODO: Disable this task if no static assets path
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Enumerate Files to Upload to S3',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -290,7 +296,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          // TODO: Disable this task if no static assets path
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Upload Static Files to S3',
           task: (ctx, task) => {
             const origTitle = task.title;
@@ -379,9 +385,7 @@ export class PublishCommand extends Command {
             const appType =
               parsedFlags.type === 'apigwy'
                 ? 'lambda'
-                : parsedFlags.type === 'lambda-url'
-                ? 'lambda-url'
-                : 'url';
+                : (parsedFlags.type as 'lambda-url' | 'static' | 'url');
 
             // Call Deployer to Deploy AppName/Version
             await DeployClient.DeployVersion({
@@ -391,7 +395,10 @@ export class PublishCommand extends Command {
               lambdaAliasArn: ctx.lambdaAliasArn,
               defaultFile: config.app.defaultFile,
               appType,
-              startupType: parsedFlags['startup-type'] as 'iframe' | 'direct',
+              url: parsedFlags.url,
+              ...(['lambda', 'lambda-url', 'static'].includes(appType)
+                ? { startupType: parsedFlags['startup-type'] as 'iframe' | 'direct' }
+                : { startupType: 'direct' }),
               overwrite,
               output: (message: string) => (task.output = message),
             });

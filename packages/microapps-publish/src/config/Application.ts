@@ -45,7 +45,7 @@ export class ApplicationConfig implements IApplicationConfig {
   }
   @convict.Property({
     doc: 'Name of microapps app',
-    default: 'microapps-my-app',
+    default: '',
     env: 'APP_NAME',
   })
   public set name(value: string) {
@@ -69,7 +69,7 @@ export class ApplicationConfig implements IApplicationConfig {
   private _staticAssetsPath: string;
   @convict.Property({
     doc: 'Local path to static assets path to upload to S3',
-    default: './static/',
+    default: '',
     env: 'APP_STATIC_ASSETS_PATH',
   })
   public set staticAssetsPath(value: string) {
@@ -81,7 +81,7 @@ export class ApplicationConfig implements IApplicationConfig {
 
   @convict.Property({
     doc: 'Name of the lambda to deploy to (not full ARN)',
-    default: 'microapps-my-app',
+    default: '',
     env: 'APP_LAMBDA_NAME',
   })
   public lambdaName: string;
