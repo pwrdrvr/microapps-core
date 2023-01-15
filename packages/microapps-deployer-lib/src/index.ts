@@ -106,7 +106,7 @@ export interface IDeleteVersionRequest
  * Represents a Deployer Response
  */
 export interface IDeployerResponse {
-  readonly capabilities?: { readonly createAlias: 'true' };
+  readonly capabilities?: { readonly createAlias: string };
   readonly statusCode: number;
 }
 
