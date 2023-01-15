@@ -252,7 +252,7 @@ jobs:
             -t url \
             -n ${PACKAGE_VERSION} \
             -d ${DEPLOYER_LAMBDA_NAME} \
-            -u https://pwrdrvr.com
+            -u https://www.pwrdrvr.com
 
       - name: Publish Demo App to MicroApps
         run: |
