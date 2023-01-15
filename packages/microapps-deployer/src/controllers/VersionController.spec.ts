@@ -1213,4 +1213,47 @@ describe('VersionController', () => {
       expect(response.statusCode).toEqual(409);
     });
   });
+
+  describe('deployVersion - url)', () => {
+    it.only('should 201 version that does not exist', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
+      s3Client.onAnyCommand().rejects();
+      lambdaClient.onAnyCommand().rejects();
+      apigwyClient.onAnyCommand().rejects();
+
+      const response = await handler(
+        {
+          appName,
+          semVer,
+          defaultFile: '',
+          type: 'deployVersion',
+          overwrite: false,
+          appType: 'url',
+          startupType: 'direct',
+          url: 'https://pwrdrvr.com',
+        } as IDeployVersionRequest,
+        { awsRequestId: '123' } as lambdaTypes.Context,
+      );
+      expect(response.statusCode).toEqual(201);
+
+      const updatedVersion = await Version.LoadVersion({
+        dbManager,
+        key: { AppName: appName, SemVer: semVer },
+      });
+      // expect(updatedVersion).toEqual({});
+      expect(updatedVersion.AppName).toBe(appName);
+      expect(updatedVersion.SemVer).toBe(semVer);
+      expect(updatedVersion.DefaultFile).toBe('');
+      expect(updatedVersion.LambdaARN).toBe('');
+      expect(updatedVersion.URL).toBe('https://pwrdrvr.com');
+      expect(updatedVersion.StartupType).toBe('direct');
+      expect(updatedVersion.Status).toBe('routed');
+      expect(updatedVersion.Type).toBe('url');
+      expect(updatedVersion.IntegrationID).toBe('');
+      expect(updatedVersion.RouteIDAppVersion).toBe('');
+      expect(updatedVersion.RouteIDAppVersionSplat).toBe('');
+    });
+  });
 });

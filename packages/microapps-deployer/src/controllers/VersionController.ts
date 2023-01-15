@@ -210,7 +210,7 @@ export default class VersionController {
     }
 
     // Only copy the files if not copied yet
-    if (overwrite || record.Status === 'pending') {
+    if ((overwrite || record.Status === 'pending') && appType !== 'url') {
       const { stagingBucket } = config.filestore;
       const sourcePrefix = VersionController.GetBucketPrefix(request, config) + '/';
 
@@ -498,6 +498,15 @@ export default class VersionController {
         record.Status = 'routed';
         await record.Save(dbManager);
       }
+    } else if (appType === 'url') {
+      if (!request.url) {
+        throw new Error('Missing url for url app type');
+      }
+
+      // Update the status - Final status
+      record.URL = request.url;
+      record.Status = 'routed';
+      await record.Save(dbManager);
     } else {
       throw new Error(`Unknown app type: ${appType}`);
     }

@@ -187,7 +187,7 @@ export class PublishCommand extends Command {
     const tasks = new Listr<IContext>(
       [
         {
-          enabled: () => config.app.staticAssetsPath !== undefined,
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Confirm Static Assets Folder Exists',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -202,8 +202,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          enabled: () => config.app.staticAssetsPath !== undefined,
-          title: 'Get S3 Temp Credentials',
+          title: 'Preflight Request / Get S3 Temp Credentials',
           task: async (ctx, task) => {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
@@ -272,7 +271,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          enabled: () => config.app.staticAssetsPath !== undefined,
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Copy Static Files to Local Upload Dir',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -285,7 +284,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          enabled: () => config.app.staticAssetsPath !== undefined,
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Enumerate Files to Upload to S3',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -297,7 +296,7 @@ export class PublishCommand extends Command {
           },
         },
         {
-          enabled: () => config.app.staticAssetsPath !== undefined,
+          enabled: () => !!config.app.staticAssetsPath,
           title: 'Upload Static Files to S3',
           task: (ctx, task) => {
             const origTitle = task.title;
@@ -398,7 +397,7 @@ export class PublishCommand extends Command {
               appType,
               ...(['lambda', 'lambda-url', 'static'].includes(appType)
                 ? { startupType: parsedFlags['startup-type'] as 'iframe' | 'direct' }
-                : {}),
+                : { startupType: 'direct' }),
               overwrite,
               output: (message: string) => (task.output = message),
             });
