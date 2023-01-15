@@ -188,7 +188,7 @@ export interface IMicroAppsSvcs {
   /**
    * Lambda function for the Router
    */
-  readonly routerFunc: lambda.IFunction;
+  readonly routerFunc?: lambda.IFunction;
 }
 
 /**
@@ -207,8 +207,8 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     return this._deployerFunc;
   }
 
-  private _routerFunc: lambda.Function;
-  public get routerFunc(): lambda.IFunction {
+  private _routerFunc?: lambda.Function;
+  public get routerFunc(): lambda.IFunction | undefined {
     return this._routerFunc;
   }
 
@@ -267,78 +267,6 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     } else {
       this._table = props.table;
     }
-
-    //
-    // Router Lambda Function
-    //
-
-    // Create Router Lambda Function
-    const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
-      functionName: assetNameRoot ? `${assetNameRoot}-router${assetNameSuffix}` : undefined,
-      memorySize: 1769,
-      logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_16_X,
-      timeout: Duration.seconds(15),
-      environment: {
-        NODE_ENV: appEnv,
-        DATABASE_TABLE_NAME: this._table.tableName,
-        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
-        ROOT_PATH_PREFIX: rootPathPrefix,
-      },
-    };
-    if (
-      process.env.NODE_ENV === 'test' &&
-      existsSync(path.join(__dirname, '..', '..', 'microapps-router', 'dist', 'index.js'))
-    ) {
-      // This is for local dev
-      this._routerFunc = new lambda.Function(this, 'router-func', {
-        code: lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'microapps-router', 'dist')),
-        handler: 'index.handler',
-        ...routerFuncProps,
-      });
-    } else if (existsSync(path.join(__dirname, 'microapps-router', 'index.js'))) {
-      // This is for built apps packaged with the CDK construct
-      this._routerFunc = new lambda.Function(this, 'router-func', {
-        code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-router')),
-        handler: 'index.handler',
-        ...routerFuncProps,
-      });
-    } else {
-      // Create Router Lambda Layer
-      const routerDataFiles = new lambda.LayerVersion(this, 'router-templates', {
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, '..', '..', 'microapps-router', 'templates'),
-        ),
-        removalPolicy,
-      });
-
-      this._routerFunc = new lambdaNodejs.NodejsFunction(this, 'router-func', {
-        entry: path.join(__dirname, '..', '..', 'microapps-router', 'src', 'index.ts'),
-        handler: 'handler',
-        bundling: {
-          minify: true,
-          sourceMap: true,
-        },
-        layers: [routerDataFiles],
-        ...routerFuncProps,
-      });
-    }
-    if (removalPolicy !== undefined) {
-      this._routerFunc.applyRemovalPolicy(removalPolicy);
-    }
-    const policyReadTarget = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject'],
-      resources: [`${bucketApps.bucketArn}/*`],
-    });
-    for (const router of [this._routerFunc]) {
-      router.addToRolePolicy(policyReadTarget);
-      // Give the Router access to DynamoDB table
-      this._table.grantReadData(router);
-      this._table.grant(router, 'dynamodb:DescribeTable');
-    }
-    // Create alias for Router
-    const routerAlias = this._routerFunc.addAlias('CurrentVersion');
 
     //
     // Deployer Lambda Function
@@ -630,6 +558,78 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     this._deployerFunc.addToRolePolicy(policyAPIManageLambdas);
 
     if (httpApi) {
+      //
+      // Router Lambda Function
+      //
+
+      // Create Router Lambda Function
+      const routerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
+        functionName: assetNameRoot ? `${assetNameRoot}-router${assetNameSuffix}` : undefined,
+        memorySize: 1769,
+        logRetention: logs.RetentionDays.ONE_MONTH,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        timeout: Duration.seconds(15),
+        environment: {
+          NODE_ENV: appEnv,
+          DATABASE_TABLE_NAME: this._table.tableName,
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+          ROOT_PATH_PREFIX: rootPathPrefix,
+        },
+      };
+      if (
+        process.env.NODE_ENV === 'test' &&
+        existsSync(path.join(__dirname, '..', '..', 'microapps-router', 'dist', 'index.js'))
+      ) {
+        // This is for local dev
+        this._routerFunc = new lambda.Function(this, 'router-func', {
+          code: lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'microapps-router', 'dist')),
+          handler: 'index.handler',
+          ...routerFuncProps,
+        });
+      } else if (existsSync(path.join(__dirname, 'microapps-router', 'index.js'))) {
+        // This is for built apps packaged with the CDK construct
+        this._routerFunc = new lambda.Function(this, 'router-func', {
+          code: lambda.Code.fromAsset(path.join(__dirname, 'microapps-router')),
+          handler: 'index.handler',
+          ...routerFuncProps,
+        });
+      } else {
+        // Create Router Lambda Layer
+        const routerDataFiles = new lambda.LayerVersion(this, 'router-templates', {
+          code: lambda.Code.fromAsset(
+            path.join(__dirname, '..', '..', 'microapps-router', 'templates'),
+          ),
+          removalPolicy,
+        });
+
+        this._routerFunc = new lambdaNodejs.NodejsFunction(this, 'router-func', {
+          entry: path.join(__dirname, '..', '..', 'microapps-router', 'src', 'index.ts'),
+          handler: 'handler',
+          bundling: {
+            minify: true,
+            sourceMap: true,
+          },
+          layers: [routerDataFiles],
+          ...routerFuncProps,
+        });
+      }
+      if (removalPolicy !== undefined) {
+        this._routerFunc.applyRemovalPolicy(removalPolicy);
+      }
+      const policyReadTarget = new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['s3:GetObject'],
+        resources: [`${bucketApps.bucketArn}/*`],
+      });
+      for (const router of [this._routerFunc]) {
+        router.addToRolePolicy(policyReadTarget);
+        // Give the Router access to DynamoDB table
+        this._table.grantReadData(router);
+        this._table.grant(router, 'dynamodb:DescribeTable');
+      }
+      // Create alias for Router
+      const routerAlias = this._routerFunc.addAlias('CurrentVersion');
+
       // This creates an integration and a router
       const route = new apigwy.HttpRoute(this, 'route-default', {
         httpApi,

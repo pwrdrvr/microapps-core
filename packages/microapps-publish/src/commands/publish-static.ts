@@ -296,7 +296,10 @@ export class PublishCommand extends Command {
 
             // Call Deployer to Deploy AppName/Version
             await DeployClient.DeployVersion({
-              config,
+              appName: config.app.name,
+              semVer: config.app.semVer,
+              deployerLambdaName: config.deployer.lambdaName,
+              defaultFile: config.app.defaultFile,
               appType: 'static',
               overwrite,
               output: (message: string) => (task.output = message),

@@ -1,4 +1,4 @@
-import { Aws, CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
@@ -265,9 +265,16 @@ export class MicroAppsStack extends Stack {
         removalPolicy,
       });
 
+      const appVersion = (app.lambdaFunction as lambda.Function).currentVersion;
+
       new CfnOutput(this, 'release-app-func-name', {
         value: `${app.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-release-app-func-name`,
+      });
+
+      new CfnOutput(this, 'release-app-vers-arn', {
+        value: `${appVersion.functionArn}`,
+        exportName: `${this.stackName}-release-app-vers-arn`,
       });
     }
 
@@ -280,9 +287,16 @@ export class MicroAppsStack extends Stack {
         removalPolicy,
       });
 
+      const appVersion = (app.lambdaFunction as lambda.Function).currentVersion;
+
       new CfnOutput(this, 'nextjs-demo-app-func-name', {
         value: `${app.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-nextjs-demo-app-func-name`,
+      });
+
+      new CfnOutput(this, 'nextjs-demo-app-vers-arn', {
+        value: `${appVersion.functionArn}`,
+        exportName: `${this.stackName}-nextjs-demo-app-vers-arn`,
       });
     }
 

@@ -447,7 +447,10 @@ export class DockerAutoCommand extends Command {
 
             // Call Deployer to Deploy AppName/Version
             await DeployClient.DeployVersion({
-              config,
+              appName: config.app.name,
+              semVer: config.app.semVer,
+              defaultFile: config.app.defaultFile,
+              deployerLambdaName: config.deployer.lambdaName,
               appType: 'lambda',
               overwrite,
               output: (message: string) => (task.output = message),

@@ -28,7 +28,7 @@ describe('MicroApps', () => {
     expect(construct.node).toBeDefined();
     Template.fromStack(stack).resourceCountIs('AWS::DynamoDB::Table', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
 
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
@@ -42,9 +42,9 @@ describe('MicroApps', () => {
         // constructedgeToOriginedgetoapigwyfuncFn10C0FCC9: {
         //   Type: 'AWS::Lambda::Function',
         // },
-        constructsvcsrouterfunc73102284: {
-          Type: 'AWS::Lambda::Function',
-        },
+        // constructsvcsrouterfunc73102284: {
+        //   Type: 'AWS::Lambda::Function',
+        // },
         constructs3apps91016270: {
           Type: 'AWS::S3::Bucket',
         },
@@ -90,7 +90,7 @@ describe('MicroApps', () => {
     expect(construct.node).toBeDefined();
     Template.fromStack(stack).resourceCountIs('AWS::DynamoDB::Table', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
 
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
@@ -104,9 +104,9 @@ describe('MicroApps', () => {
         // constructedgeToOriginedgetoapigwyfuncFn10C0FCC9: {
         //   Type: 'AWS::Lambda::Function',
         // },
-        constructsvcsrouterfunc73102284: {
-          Type: 'AWS::Lambda::Function',
-        },
+        // constructsvcsrouterfunc73102284: {
+        //   Type: 'AWS::Lambda::Function',
+        // },
         constructs3apps91016270: {
           Type: 'AWS::S3::Bucket',
         },
@@ -153,10 +153,10 @@ describe('MicroApps', () => {
     expect(construct.node).toBeDefined();
     Template.fromStack(stack).resourceCountIs('AWS::DynamoDB::Table', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
-    Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
-      FunctionName: 'my-asset-root-name-router-some-suffix',
-    });
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    // Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
+    //   FunctionName: 'my-asset-root-name-router-some-suffix',
+    // });
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
       FunctionName: 'my-asset-root-name-deployer-some-suffix',
     });
@@ -173,9 +173,9 @@ describe('MicroApps', () => {
         // constructedgeToOriginedgetoapigwyfuncFn10C0FCC9: {
         //   Type: 'AWS::Lambda::Function',
         // },
-        constructsvcsrouterfunc73102284: {
-          Type: 'AWS::Lambda::Function',
-        },
+        // constructsvcsrouterfunc73102284: {
+        //   Type: 'AWS::Lambda::Function',
+        // },
         constructs3apps91016270: {
           Type: 'AWS::S3::Bucket',
         },
@@ -223,10 +223,10 @@ describe('MicroApps', () => {
     expect(construct.node).toBeDefined();
     Template.fromStack(stack).resourceCountIs('AWS::DynamoDB::Table', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 4);
-    Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
-      FunctionName: 'my-asset-root-name-router-some-suffix',
-    });
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    // Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
+    //   FunctionName: 'my-asset-root-name-router-some-suffix',
+    // });
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
       FunctionName: 'my-asset-root-name-deployer-some-suffix',
     });
@@ -257,9 +257,9 @@ describe('MicroApps', () => {
         constructsvcsdeployerfunc88CC1526: {
           Type: 'AWS::Lambda::Function',
         },
-        constructsvcsrouterfunc73102284: {
-          Type: 'AWS::Lambda::Function',
-        },
+        // constructsvcsrouterfunc73102284: {
+        //   Type: 'AWS::Lambda::Function',
+        // },
         constructs3apps91016270: {
           Type: 'AWS::S3::Bucket',
         },
@@ -311,7 +311,7 @@ describe('MicroApps', () => {
     expect(construct.node).toBeDefined();
     Template.fromStack(stack).resourceCountIs('AWS::DynamoDB::Table', 1);
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 2);
 
     // Confirm that logical IDs have not changed accidentally (causes delete/create)
     Template.fromStack(stack).templateMatches({
@@ -321,9 +321,6 @@ describe('MicroApps', () => {
         },
         constructsvcstable0311CF05: {
           Type: 'AWS::DynamoDB::Table',
-        },
-        constructsvcsrouterfunc73102284: {
-          Type: 'AWS::Lambda::Function',
         },
         constructs3apps91016270: {
           Type: 'AWS::S3::Bucket',
