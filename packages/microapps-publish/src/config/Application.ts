@@ -86,9 +86,11 @@ export class ApplicationConfig implements IApplicationConfig {
   })
   public lambdaName: string;
   public get lambdaARN(): string {
-    return `arn:aws:lambda:${this.awsRegion}:${this.awsAccountID}:function:${
-      this.lambdaName
-    }:v${this.semVer.replace(/\./g, '_')}`;
+    return this.lambdaName.includes(':')
+      ? this.lambdaName
+      : `arn:aws:lambda:${this.awsRegion}:${this.awsAccountID}:function:${
+          this.lambdaName
+        }:v${this.semVer.replace(/\./g, '_')}`;
   }
 
   @convict.Property({
