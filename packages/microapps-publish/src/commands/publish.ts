@@ -429,6 +429,7 @@ export class PublishCommand extends Command {
     const { config, overwrite, versions, task, ctx } = opts;
 
     let lambdaVersion = '';
+    let lambdaArnBase = ctx.lambdaAliasArn;
 
     // Create Lambda version
     if (ctx.configLambdaArnType === 'function') {
@@ -466,7 +467,8 @@ export class PublishCommand extends Command {
       }
     } else {
       task.output = 'Lambda is already versioned, skipping version creation';
-      lambdaVersion = config.app.lambdaName.split(':').pop() || '';
+      lambdaVersion = config.app.lambdaName.split(':')?.pop() || '';
+      lambdaArnBase = config.app.lambdaName.substring(0, config.app.lambdaName.lastIndexOf(':'));
     }
 
     // Create Lambda alias point
@@ -474,7 +476,7 @@ export class PublishCommand extends Command {
     try {
       const resultLambdaAlias = await lambdaClient.send(
         new lambda.CreateAliasCommand({
-          FunctionName: config.app.lambdaName,
+          FunctionName: lambdaArnBase,
           Name: versions.alias,
           FunctionVersion: lambdaVersion,
         }),
@@ -487,7 +489,7 @@ export class PublishCommand extends Command {
 
         const resultLambdaAlias = await lambdaClient.send(
           new lambda.UpdateAliasCommand({
-            FunctionName: config.app.lambdaName,
+            FunctionName: lambdaArnBase,
             Name: versions.alias,
             FunctionVersion: lambdaVersion,
           }),
