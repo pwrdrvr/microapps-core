@@ -229,7 +229,6 @@ export class PublishCommand extends Command {
               if (/^[0-9]$/.test(appLambdaName.substring(appLambdaName.lastIndexOf(':') + 1))) {
                 ctx.configLambdaArnType = 'version';
                 task.output = `Lambda ARN has Version: ${config.app.lambdaName}`;
-                ctx.lambdaAliasArn = config.app.lambdaARN;
               } else {
                 ctx.configLambdaArnType = 'alias';
                 task.output = `Lambda ARN has Alias: ${config.app.lambdaName}`;
