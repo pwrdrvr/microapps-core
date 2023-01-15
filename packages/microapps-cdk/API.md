@@ -422,19 +422,19 @@ Lambda function for the Deployer.
 
 ---
 
-##### `routerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.routerFunc"></a>
-
-- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
-
-Lambda function for the Router.
-
----
-
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.table"></a>
 
 - *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
 
 DynamoDB table used by Router, Deployer, and Release console app.
+
+---
+
+##### `routerFunc`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.routerFunc"></a>
+
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+
+Lambda function for the Router.
 
 ---
 
@@ -1826,19 +1826,19 @@ Lambda function for the Deployer.
 
 ---
 
-##### `routerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.routerFunc"></a>
-
-- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
-
-Lambda function for the Router.
-
----
-
 ##### `table`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.table"></a>
 
 - *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
 
 DynamoDB table used by Router, Deployer, and Release console app.
+
+---
+
+##### `routerFunc`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.routerFunc"></a>
+
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+
+Lambda function for the Router.
 
 ---
 
