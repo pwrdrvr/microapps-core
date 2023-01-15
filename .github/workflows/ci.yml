@@ -251,7 +251,8 @@ jobs:
             -a blog \
             -t url \
             -n ${PACKAGE_VERSION} \
-            -d ${DEPLOYER_LAMBDA_NAME}
+            -d ${DEPLOYER_LAMBDA_NAME} \
+            -u https://pwrdrvr.com
 
       - name: Publish Demo App to MicroApps
         run: |
