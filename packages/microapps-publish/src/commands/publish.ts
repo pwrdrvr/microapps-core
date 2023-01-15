@@ -395,6 +395,7 @@ export class PublishCommand extends Command {
               lambdaAliasArn: ctx.lambdaAliasArn,
               defaultFile: config.app.defaultFile,
               appType,
+              url: parsedFlags.url,
               ...(['lambda', 'lambda-url', 'static'].includes(appType)
                 ? { startupType: parsedFlags['startup-type'] as 'iframe' | 'direct' }
                 : { startupType: 'direct' }),
