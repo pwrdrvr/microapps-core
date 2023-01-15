@@ -241,7 +241,8 @@ export class PublishCommand extends Command {
           },
         },
         {
-          enabled: (ctx) => ctx.configLambdaArnType === 'function',
+          enabled: (ctx) =>
+            ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version',
           title: 'Create Lambda Alias and, optionally, Version',
           task: async (ctx, task) => {
             // Allow overwriting a non-overwritable app if the prior
@@ -429,6 +430,7 @@ export class PublishCommand extends Command {
 
     let lambdaVersion = '';
 
+    // Create Lambda version
     if (ctx.configLambdaArnType === 'function') {
       task.output = 'Creating version for Lambda $LATEST';
       const resultUpdate = await lambdaClient.send(
