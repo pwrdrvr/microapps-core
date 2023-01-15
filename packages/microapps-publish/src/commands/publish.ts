@@ -229,7 +229,7 @@ export class PublishCommand extends Command {
         },
         {
           enabled: () => !!appLambdaName,
-          title: 'Check if Lambda ARN has Alias',
+          title: 'Check if Lambda ARN has Alias or Version',
           task: (ctx, task) => {
             if (appLambdaName.match(/:/g)?.length === 7) {
               if (/^[0-9]+$/.test(appLambdaName.substring(appLambdaName.lastIndexOf(':') + 1))) {
@@ -248,7 +248,9 @@ export class PublishCommand extends Command {
         },
         {
           enabled: (ctx) =>
-            ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version',
+            (ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version') &&
+            // If the deployer service can create aliases, let it
+            ctx.preflightResult.response.capabilities?.['createAlias'] !== 'true',
           title: 'Create Lambda Alias and, optionally, Version',
           task: async (ctx, task) => {
             // Allow overwriting a non-overwritable app if the prior

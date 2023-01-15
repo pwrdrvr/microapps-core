@@ -75,7 +75,10 @@ export interface IDeployVersionRequest extends IDeployVersionRequestBase {
    */
   readonly startupType?: 'iframe' | 'direct';
   /**
-   * LambdaARN w/Alias
+   * LambdaARN
+   * - With Alias suffix, used directly
+   * - With Version suffix, Alias will be updated or created for semVer
+   *
    * Used for `lambda` and `lambda-url` apps
    */
   readonly lambdaARN?: string;
@@ -103,6 +106,7 @@ export interface IDeleteVersionRequest
  * Represents a Deployer Response
  */
 export interface IDeployerResponse {
+  readonly capabilities?: { readonly createAlias: 'true' };
   readonly statusCode: number;
 }
 

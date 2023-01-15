@@ -43,6 +43,7 @@ export default class VersionController {
   }): Promise<IDeployVersionPreflightResponse> {
     const { dbManager, request, config } = opts;
     const { appName, semVer, needS3Creds = true, overwrite = false } = request;
+    const capabilities = { createAlias: 'true' };
 
     // Check if the version exists
     const record = await Version.LoadVersion({
@@ -62,7 +63,7 @@ export default class VersionController {
           semVer: request.semVer,
         });
 
-        return { statusCode: 200 };
+        return { statusCode: 200, capabilities };
       } else {
         Log.Instance.info('Warning: App/Version already exists', {
           appName: request.appName,
@@ -117,6 +118,7 @@ export default class VersionController {
 
       return {
         statusCode: 404,
+        capabilities,
         s3UploadUrl: `s3://${config.filestore.stagingBucket}/${VersionController.GetBucketPrefix(
           request,
           config,
@@ -132,6 +134,7 @@ export default class VersionController {
       Log.Instance.info('finished request - not returning s3 creds');
 
       return {
+        capabilities,
         statusCode: 404,
       };
     }
