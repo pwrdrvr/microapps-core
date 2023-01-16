@@ -645,6 +645,10 @@ export default class VersionController {
       }
     }
 
+    if (!lambdaVersion) {
+      throw new Error(`Lambda version not found: ${lambdaVersion}, for lambda: ${lambdaARN}`);
+    }
+
     const versions = createVersions(semVer);
 
     return VersionController.CreateOrUpdateLambdaAlias({
