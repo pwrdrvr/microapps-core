@@ -246,17 +246,17 @@ export class PublishCommand extends Command {
             }
           },
         },
-        {
-          enabled: (ctx) =>
-            ctx.configLambdaArnType === 'function' &&
-            ctx.preflightResult.response.capabilities?.['createAlias'] === 'true',
-          title: 'Reject Remove Version Creation if Lambda ARN is Function',
-          task: (ctx, task) => {
-            this.error(
-              `Lambda ARN is a Function, cannot create a version remotely, pass a Lambda ARN with a version: ${config.app.lambdaName}`,
-            );
-          },
-        },
+        // {
+        //   enabled: (ctx) =>
+        //     ctx.configLambdaArnType === 'function' &&
+        //     ctx.preflightResult.response.capabilities?.['createAlias'] === 'true',
+        //   title: 'Reject Remove Version Creation if Lambda ARN is Function',
+        //   task: (ctx, task) => {
+        //     this.error(
+        //       `Lambda ARN is a Function, cannot create a version remotely, pass a Lambda ARN with a version: ${config.app.lambdaName}`,
+        //     );
+        //   },
+        // },
         {
           enabled: (ctx) =>
             ctx.configLambdaArnType === 'version' &&
