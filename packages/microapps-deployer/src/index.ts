@@ -8,6 +8,7 @@ import {
   IDeployerResponse,
   IDeployVersionRequest,
   IDeleteVersionRequest,
+  ILambdaAliasRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
@@ -87,6 +88,11 @@ export async function handler(
       case 'deployVersion': {
         const request = event as IDeployVersionRequest;
         return await VersionController.DeployVersion({ dbManager, request, config });
+      }
+
+      case 'lambdaAlias': {
+        const request = event as ILambdaAliasRequest;
+        return await VersionController.LambdaAlias({ dbManager, request });
       }
 
       default:

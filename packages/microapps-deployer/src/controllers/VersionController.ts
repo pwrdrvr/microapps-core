@@ -4,16 +4,19 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
-import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import pMap from 'p-map';
 import { IConfig } from '../config/Config';
 import {
+  createVersions,
   IDeleteVersionRequest,
   IDeployVersionRequest,
   IDeployVersionPreflightRequest,
   IDeployerResponse,
   IDeployVersionPreflightResponse,
   IDeployVersionRequestBase,
+  ILambdaAliasRequest,
+  ILambdaAliasResponse,
+  IVersions,
 } from '@pwrdrvr/microapps-deployer-lib';
 import Log from '../lib/Log';
 
@@ -537,59 +540,173 @@ export default class VersionController {
     return { statusCode: 201 };
   }
 
+  public static async LambdaAlias(opts: {
+    dbManager: DBManager;
+    request: ILambdaAliasRequest;
+  }): Promise<ILambdaAliasResponse> {
+    const { dbManager, request } = opts;
+    const { appName, lambdaARN, overwrite = false, semVer } = request;
+
+    const parsedLambdaARN = VersionController.ExtractARNandAlias(lambdaARN);
+
+    if (parsedLambdaARN.lambdaVersion === '$LATEST') {
+      throw new Error(`Lambda version cannot be $LATEST, must be a version number: ${lambdaARN}`);
+    }
+
+    if (parsedLambdaARN.lambdaARNType === 'alias') {
+      throw new Error(`Lambda version cannot be an alias: ${lambdaARN}`);
+    }
+
+    if (!parsedLambdaARN.lambdaVersion) {
+      throw new Error(`Missing lambda version: ${lambdaARN}`);
+    }
+
+    // Get the version record
+    const record = await Version.LoadVersion({
+      dbManager,
+      key: {
+        AppName: appName,
+        SemVer: semVer,
+      },
+    });
+    if (record !== undefined && record.Status !== 'pending' && record.LambdaARN) {
+      if (!overwrite) {
+        //
+        // Version exists and has moved beyond pending status
+        // No need to create S3 upload credentials
+        // NOTE: This may change in the future if we allow
+        // mutability of versions (at own risk)
+        //
+        Log.Instance.info('Error: App/Version already exists', {
+          appName,
+          semVer,
+        });
+
+        return {
+          statusCode: 200,
+          type: 'lambdaAlias',
+          actionTaken: 'verified',
+          lambdaAliasARN: record.LambdaARN,
+        };
+      } else {
+        Log.Instance.info('Warning: App/Version already exists', {
+          appName,
+          semVer,
+        });
+      }
+    }
+
+    const versions = createVersions(semVer);
+
+    return VersionController.CreateOrUpdateLambdaAlias({
+      lambdaArnBase: parsedLambdaARN.lambdaARNBase,
+      lambdaVersion: parsedLambdaARN.lambdaVersion,
+      overwrite,
+      versions,
+    });
+  }
+
+  /**
+   * Only called if an `alias` is not passed into the publish tool.
+   * If the service receives a `version`, then it checks if an alias
+   * exists for that version. If it does, it updates the alias to point
+   * to the new version and returns it, otherwise
+   * it creates a new alias and returns that.
+   *
+   * @param opts
+   * @returns
+   */
   private static async CreateOrUpdateLambdaAlias(opts: {
     lambdaArnBase: string;
     lambdaVersion: string;
     overwrite: boolean;
     versions: IVersions;
-  }): Promise<{ lambdaAliasArn: string }> {
+  }): Promise<ILambdaAliasResponse> {
     // Create Lambda alias
     const { lambdaArnBase, lambdaVersion, overwrite, versions } = opts;
 
     try {
-      Log.Instance.info(`Creating the lambda alias for the new version: ${lambdaVersion}`);
+      const resultGetAlias = await lambdaClient.send(
+        new lambda.GetAliasCommand({ FunctionName: lambdaArnBase, Name: versions.alias }),
+      );
 
+      if (
+        lambdaVersion &&
+        resultGetAlias.FunctionVersion === lambdaVersion &&
+        resultGetAlias.AliasArn
+      ) {
+        Log.Instance.info(
+          `Lambda alias already exists and already points to the desired version: ${lambdaVersion}`,
+        );
+        return {
+          statusCode: 200,
+          type: 'lambdaAlias',
+          lambdaAliasARN: resultGetAlias.AliasArn,
+          actionTaken: 'verified',
+        };
+      }
+
+      if (!overwrite && resultGetAlias.FunctionVersion !== lambdaVersion) {
+        Log.Instance.info(
+          `Lambda alias already exists and does not point to the desired version: ${lambdaVersion}`,
+        );
+        throw new Error('Lambda alias already exists, points to wrong version');
+      }
+
+      Log.Instance.info(`Updating the lambda alias for the desired version: ${lambdaVersion}`);
       const resultLambdaAlias = await lambdaClient.send(
-        new lambda.CreateAliasCommand({
+        new lambda.UpdateAliasCommand({
           FunctionName: lambdaArnBase,
           Name: versions.alias,
           FunctionVersion: lambdaVersion,
         }),
       );
+
       Log.Instance.info(
-        `Lambda alias created, name: ${resultLambdaAlias.Name}, arn: ${resultLambdaAlias.AliasArn}`,
+        `Lambda alias updated, name: ${resultLambdaAlias.Name}, arn: ${resultLambdaAlias.AliasArn}`,
       );
 
       if (!resultLambdaAlias.AliasArn) {
         throw new Error('AliasArn failed to create');
       }
 
-      return { lambdaAliasArn: resultLambdaAlias.AliasArn };
+      return {
+        statusCode: 200,
+        type: 'lambdaAlias',
+        lambdaAliasARN: resultLambdaAlias.AliasArn,
+        actionTaken: 'updated',
+      };
     } catch (error: any) {
-      if (overwrite && error.name === 'ResourceConflictException') {
-        Log.Instance.info(`Alias exists, updating the lambda alias for version: ${lambdaVersion}`);
-
-        const resultLambdaAlias = await lambdaClient.send(
-          new lambda.UpdateAliasCommand({
-            FunctionName: lambdaArnBase,
-            Name: versions.alias,
-            FunctionVersion: lambdaVersion,
-          }),
-        );
-
-        Log.Instance.info(
-          `Lambda alias updated, name: ${resultLambdaAlias.Name}, arn: ${resultLambdaAlias.AliasArn}`,
-        );
-
-        if (!resultLambdaAlias.AliasArn) {
-          throw new Error('AliasArn failed to create');
-        }
-
-        return { lambdaAliasArn: resultLambdaAlias.AliasArn };
-      } else {
+      if (error.name !== 'ResourceNotFoundException') {
         throw error;
       }
+
+      // Alias does not exist, create it by falling through
     }
+
+    Log.Instance.info(`Creating the lambda alias for the desired version: ${lambdaVersion}`);
+
+    const resultCreateAlias = await lambdaClient.send(
+      new lambda.CreateAliasCommand({
+        FunctionName: lambdaArnBase,
+        Name: versions.alias,
+        FunctionVersion: lambdaVersion,
+      }),
+    );
+    Log.Instance.info(
+      `Lambda alias created, name: ${resultCreateAlias.Name}, arn: ${resultCreateAlias.AliasArn}, points to version: ${resultCreateAlias.FunctionVersion}`,
+    );
+
+    if (!resultCreateAlias.AliasArn) {
+      throw new Error('AliasArn failed to create');
+    }
+
+    return {
+      statusCode: 201,
+      type: 'lambdaAlias',
+      lambdaAliasARN: resultCreateAlias.AliasArn,
+      actionTaken: 'created',
+    };
   }
 
   private static ExtractARNandAlias(lambdaARN: string): {

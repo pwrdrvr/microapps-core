@@ -1,4 +1,4 @@
-import { IRequestBase } from './base';
+import { AppStartupType, AppType, IRequestBase } from './base';
 
 /**
  * Represents a Deploy Version Base Request
@@ -30,14 +30,14 @@ export interface IDeployVersionRequest extends IDeployVersionRequestBase {
   /**
    * Type of the app (which implies how it's routed)
    */
-  readonly appType?: 'lambda' | 'lambda-url' | 'url' | 'static';
+  readonly appType?: AppType;
   /**
    * Render the `/appName` route as an iframe pointing to `/appName/semVer`
    * or proxy directly to `/appName/semVer` and render the app at `/appName`
    *
    * @default 'iframe'
    */
-  readonly startupType?: 'iframe' | 'direct';
+  readonly startupType?: AppStartupType;
   /**
    * LambdaARN
    * - With Alias suffix, used directly
