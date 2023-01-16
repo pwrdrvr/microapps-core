@@ -18,7 +18,10 @@ import {
   ILambdaAliasResponse,
   IVersions,
 } from '@pwrdrvr/microapps-deployer-lib';
+import { promisify } from 'util';
 import Log from '../lib/Log';
+
+const sleep = promisify(setTimeout);
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
@@ -557,9 +560,18 @@ export default class VersionController {
       throw new Error(`Lambda version cannot be an alias: ${lambdaARN}`);
     }
 
-    if (!parsedLambdaARN.lambdaVersion) {
-      throw new Error(`Missing lambda version: ${lambdaARN}`);
+    if (parsedLambdaARN.lambdaARNType === 'function') {
+      Log.Instance.warn(
+        'Lambda version is a function, not a version - It is safer to publish a version using IaC and to pass that version to `microapps-publish publish`',
+        {
+          lambdaARN,
+        },
+      );
     }
+
+    // if (!parsedLambdaARN.lambdaVersion) {
+    //   throw new Error(`Missing lambda version: ${lambdaARN}`);
+    // }
 
     // Get the version record
     const record = await Version.LoadVersion({
@@ -596,11 +608,48 @@ export default class VersionController {
       }
     }
 
+    // Create Lambda version
+    let lambdaVersion: string | undefined = parsedLambdaARN.lambdaVersion;
+    if (parsedLambdaARN.lambdaARNType === 'function') {
+      Log.Instance.info('Creating version for Lambda $LATEST');
+      const resultUpdate = await lambdaClient.send(
+        new lambda.PublishVersionCommand({
+          FunctionName: parsedLambdaARN.lambdaARNBase,
+        }),
+      );
+      lambdaVersion = resultUpdate.Version;
+      Log.Instance.info(`Lambda version created: ${resultUpdate.Version}`);
+
+      let lastUpdateStatus = resultUpdate.LastUpdateStatus;
+      for (let i = 0; i < 5; i++) {
+        // When the function is created the status will be "Pending"
+        // and we have to wait until it's done creating
+        // before we can point an alias to it
+        if (lastUpdateStatus === 'Successful') {
+          Log.Instance.info(`Lambda function updated, version: ${lambdaVersion}`);
+          break;
+        }
+
+        // If it didn't work, wait and try again
+        await sleep(1000 * i);
+
+        const resultGet = await lambdaClient.send(
+          new lambda.GetFunctionCommand({
+            FunctionName: parsedLambdaARN.lambdaARNBase,
+            Qualifier: lambdaVersion,
+          }),
+        );
+
+        // Save the last update status so we can check on re-loop
+        lastUpdateStatus = resultGet?.Configuration?.LastUpdateStatus;
+      }
+    }
+
     const versions = createVersions(semVer);
 
     return VersionController.CreateOrUpdateLambdaAlias({
       lambdaArnBase: parsedLambdaARN.lambdaARNBase,
-      lambdaVersion: parsedLambdaARN.lambdaVersion,
+      lambdaVersion,
       overwrite,
       versions,
     });

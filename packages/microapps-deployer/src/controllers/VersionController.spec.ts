@@ -343,7 +343,6 @@ describe('VersionController', () => {
       const request: ILambdaAliasRequest = {
         appName,
         semVer,
-        appType: 'lambda',
         lambdaARN: fakeLambdaARNWithVersion,
         type: 'lambdaAlias',
       };
@@ -392,7 +391,6 @@ describe('VersionController', () => {
       const request: ILambdaAliasRequest = {
         appName,
         semVer,
-        appType: 'lambda',
         lambdaARN: fakeLambdaARNWithVersion,
         type: 'lambdaAlias',
         overwrite: true,
@@ -440,7 +438,6 @@ describe('VersionController', () => {
       const request: ILambdaAliasRequest = {
         appName,
         semVer,
-        appType: 'lambda',
         lambdaARN: fakeLambdaARNWithVersion,
         type: 'lambdaAlias',
       };
@@ -499,7 +496,6 @@ describe('VersionController', () => {
       const request: ILambdaAliasRequest = {
         appName,
         semVer,
-        appType: 'lambda',
         lambdaARN: fakeLambdaARNWithVersionEnd,
         type: 'lambdaAlias',
         overwrite: true,
@@ -513,6 +509,66 @@ describe('VersionController', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(lambdaClient.calls()).toHaveLength(2);
+    });
+
+    it('should 201 for function ARN that !exists when !overwrite', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersion = '31';
+      const fakeLambdaAlias = 'v0_0_0';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.PublishVersionCommand, {
+          FunctionName: fakeLambdaARNBase,
+        })
+        .resolves({
+          FunctionName: fakeLambdaARNBase,
+          Version: fakeLambdaVersion,
+        })
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersion,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+          },
+        })
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
+        .on(lambda.CreateAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+          FunctionVersion: fakeLambdaVersion,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersion,
+        });
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNBase,
+        type: 'lambdaAlias',
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(201);
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(lambdaClient.calls()).toHaveLength(4);
     });
   });
 
