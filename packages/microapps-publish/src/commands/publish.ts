@@ -259,9 +259,9 @@ export class PublishCommand extends Command {
         // },
         {
           enabled: (ctx) =>
-            ctx.configLambdaArnType === 'version' &&
+            ['version', 'function'].includes(ctx.configLambdaArnType) &&
             // If the deployer service can create aliases, let it
-            ctx.preflightResult.response.capabilities?.['createAlias'] === 'true',
+            ctx.preflightResult.response.capabilities?.createAlias === 'true',
           title: 'Remotely Create Lambda Alias and, optionally, Version',
           task: async (ctx, task) => {
             const origTitle = task.title;
@@ -461,8 +461,10 @@ export class PublishCommand extends Command {
 
   /**
    * Publish an app version to Lambda
+   *
    * @param config
    * @param versions
+   * @deprecated 2023-01-16 - The deployer svc now creates the alias and, optionally, the version
    */
   private async deployToLambda(opts: {
     config: IConfig;
