@@ -1,55 +1,55 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MicroAppsAPIGwy works with no params 1`] = `
-{
-  "Parameters": {
-    "BootstrapVersion": {
+Object {
+  "Parameters": Object {
+    "BootstrapVersion": Object {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
   },
-  "Resources": {
-    "constructgwyE80472DA": {
-      "Properties": {
+  "Resources": Object {
+    "constructgwyE80472DA": Object {
+      "Properties": Object {
         "Name": "stack-microapps",
         "ProtocolType": "HTTP",
-        "Tags": {
+        "Tags": Object {
           "microapp-managed": "true",
         },
       },
       "Type": "AWS::ApiGatewayV2::Api",
     },
-    "constructlogsBC77618C": {
+    "constructlogsBC77618C": Object {
       "DeletionPolicy": "Retain",
-      "Properties": {
+      "Properties": Object {
         "LogGroupName": "/aws/apigwy/stack-microapps",
         "RetentionInDays": 14,
       },
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain",
     },
-    "constructlogsrole387D81E6": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
+    "constructlogsrole387D81E6": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": {
+              "Principal": Object {
                 "Service": "apigateway.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
               "",
-              [
+              Array [
                 "arn:",
-                {
+                Object {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
@@ -60,18 +60,18 @@ exports[`MicroAppsAPIGwy works with no params 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "constructlogsroleDefaultPolicyD4FA927F": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
+    "constructlogsroleDefaultPolicyD4FA927F": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
                 "logs:CreateLogStream",
                 "logs:PutLogEvents",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
+              "Resource": Object {
+                "Fn::GetAtt": Array [
                   "constructlogsBC77618C",
                   "Arn",
                 ],
@@ -81,53 +81,53 @@ exports[`MicroAppsAPIGwy works with no params 1`] = `
           "Version": "2012-10-17",
         },
         "PolicyName": "constructlogsroleDefaultPolicyD4FA927F",
-        "Roles": [
-          {
+        "Roles": Array [
+          Object {
             "Ref": "constructlogsrole387D81E6",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "constructstage3B55CA4F": {
-      "Properties": {
-        "AccessLogSettings": {
-          "DestinationArn": {
-            "Fn::GetAtt": [
+    "constructstage3B55CA4F": Object {
+      "Properties": Object {
+        "AccessLogSettings": Object {
+          "DestinationArn": Object {
+            "Fn::GetAtt": Array [
               "constructlogsBC77618C",
               "Arn",
             ],
           },
-          "Format": "{"requestId":"$context.requestId","userAgent":"$context.identity.userAgent","sourceIp":"$context.identity.sourceIp","requestTime":"$context.requestTime","requestTimeEpoch":"$context.requestTimeEpoch","httpMethod":"$context.httpMethod","path":"$context.path","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength","domainName":"$context.domainName","authorizerError":"$context.authorizer.error"}",
+          "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"userAgent\\":\\"$context.identity.userAgent\\",\\"sourceIp\\":\\"$context.identity.sourceIp\\",\\"requestTime\\":\\"$context.requestTime\\",\\"requestTimeEpoch\\":\\"$context.requestTimeEpoch\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"path\\":\\"$context.path\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\",\\"domainName\\":\\"$context.domainName\\",\\"authorizerError\\":\\"$context.authorizer.error\\"}",
         },
-        "ApiId": {
+        "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
         "AutoDeploy": true,
         "StageName": "$default",
-        "Tags": {
+        "Tags": Object {
           "microapp-managed": "true",
         },
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
   },
-  "Rules": {
-    "CheckBootstrapVersion": {
-      "Assertions": [
-        {
-          "Assert": {
-            "Fn::Not": [
-              {
-                "Fn::Contains": [
-                  [
+  "Rules": Object {
+    "CheckBootstrapVersion": Object {
+      "Assertions": Array [
+        Object {
+          "Assert": Object {
+            "Fn::Not": Array [
+              Object {
+                "Fn::Contains": Array [
+                  Array [
                     "1",
                     "2",
                     "3",
                     "4",
                     "5",
                   ],
-                  {
+                  Object {
                     "Ref": "BootstrapVersion",
                   },
                 ],
@@ -143,20 +143,20 @@ exports[`MicroAppsAPIGwy works with no params 1`] = `
 `;
 
 exports[`MicroAppsAPIGwy works with params 1`] = `
-{
-  "Parameters": {
-    "BootstrapVersion": {
+Object {
+  "Parameters": Object {
+    "BootstrapVersion": Object {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
   },
-  "Resources": {
-    "cert56CA94EB": {
-      "Properties": {
+  "Resources": Object {
+    "cert56CA94EB": Object {
+      "Properties": Object {
         "DomainName": "*.test.pwrdrvr.com",
-        "DomainValidationOptions": [
-          {
+        "DomainValidationOptions": Array [
+          Object {
             "DomainName": "*.test.pwrdrvr.com",
             "ValidationDomain": "pwrdrvr.com",
           },
@@ -165,17 +165,17 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
       },
       "Type": "AWS::CertificateManager::Certificate",
     },
-    "constructapimaporigin7C2B9F89": {
+    "constructapimaporigin7C2B9F89": Object {
       "DeletionPolicy": "Delete",
-      "DependsOn": [
+      "DependsOn": Array [
         "constructorigindnDD3F36CE",
         "constructstage3B55CA4F",
       ],
-      "Properties": {
-        "ApiId": {
+      "Properties": Object {
+        "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
-        "DomainName": {
+        "DomainName": Object {
           "Ref": "constructorigindnDD3F36CE",
         },
         "Stage": "/myprefix/",
@@ -183,48 +183,48 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
       "Type": "AWS::ApiGatewayV2::ApiMapping",
       "UpdateReplacePolicy": "Delete",
     },
-    "constructgwyE80472DA": {
+    "constructgwyE80472DA": Object {
       "DeletionPolicy": "Delete",
-      "Properties": {
+      "Properties": Object {
         "Name": "mydeploy-mysuffix",
         "ProtocolType": "HTTP",
-        "Tags": {
+        "Tags": Object {
           "microapp-managed": "true",
         },
       },
       "Type": "AWS::ApiGatewayV2::Api",
       "UpdateReplacePolicy": "Delete",
     },
-    "constructlogsBC77618C": {
+    "constructlogsBC77618C": Object {
       "DeletionPolicy": "Delete",
-      "Properties": {
+      "Properties": Object {
         "LogGroupName": "/aws/apigwy/mydeploy-mysuffix",
         "RetentionInDays": 14,
       },
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Delete",
     },
-    "constructlogsrole387D81E6": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
+    "constructlogsrole387D81E6": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": {
+              "Principal": Object {
                 "Service": "apigateway.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
               "",
-              [
+              Array [
                 "arn:",
-                {
+                Object {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
@@ -235,18 +235,18 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "constructlogsroleDefaultPolicyD4FA927F": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
+    "constructlogsroleDefaultPolicyD4FA927F": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
                 "logs:CreateLogStream",
                 "logs:PutLogEvents",
               ],
               "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
+              "Resource": Object {
+                "Fn::GetAtt": Array [
                   "constructlogsBC77618C",
                   "Arn",
                 ],
@@ -256,37 +256,37 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
           "Version": "2012-10-17",
         },
         "PolicyName": "constructlogsroleDefaultPolicyD4FA927F",
-        "Roles": [
-          {
+        "Roles": Array [
+          Object {
             "Ref": "constructlogsrole387D81E6",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "constructmapping8BB481CC": {
-      "DependsOn": [
+    "constructmapping8BB481CC": Object {
+      "DependsOn": Array [
         "constructmicroappsappsedgedn308BF2C3",
         "constructstage3B55CA4F",
       ],
-      "Properties": {
-        "ApiId": {
+      "Properties": Object {
+        "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
-        "DomainName": {
+        "DomainName": Object {
           "Ref": "constructmicroappsappsedgedn308BF2C3",
         },
         "Stage": "/myprefix/",
       },
       "Type": "AWS::ApiGatewayV2::ApiMapping",
     },
-    "constructmicroappsappsedgedn308BF2C3": {
+    "constructmicroappsappsedgedn308BF2C3": Object {
       "DeletionPolicy": "Delete",
-      "Properties": {
+      "Properties": Object {
         "DomainName": "mydeploy.test.pwrdrvr.com",
-        "DomainNameConfigurations": [
-          {
-            "CertificateArn": {
+        "DomainNameConfigurations": Array [
+          Object {
+            "CertificateArn": Object {
               "Ref": "cert56CA94EB",
             },
             "EndpointType": "REGIONAL",
@@ -296,24 +296,24 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
       "Type": "AWS::ApiGatewayV2::DomainName",
       "UpdateReplacePolicy": "Delete",
     },
-    "constructoriginarecord70039239": {
+    "constructoriginarecord70039239": Object {
       "DeletionPolicy": "Delete",
-      "Properties": {
-        "AliasTarget": {
-          "DNSName": {
-            "Fn::GetAtt": [
+      "Properties": Object {
+        "AliasTarget": Object {
+          "DNSName": Object {
+            "Fn::GetAtt": Array [
               "constructorigindnDD3F36CE",
               "RegionalDomainName",
             ],
           },
-          "HostedZoneId": {
-            "Fn::GetAtt": [
+          "HostedZoneId": Object {
+            "Fn::GetAtt": Array [
               "constructorigindnDD3F36CE",
               "RegionalHostedZoneId",
             ],
           },
         },
-        "HostedZoneId": {
+        "HostedZoneId": Object {
           "Ref": "zoneEB40FF1E",
         },
         "Name": "mydeploy-origin.test.pwrdrvr.com.",
@@ -322,13 +322,13 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
       "Type": "AWS::Route53::RecordSet",
       "UpdateReplacePolicy": "Delete",
     },
-    "constructorigindnDD3F36CE": {
+    "constructorigindnDD3F36CE": Object {
       "DeletionPolicy": "Delete",
-      "Properties": {
+      "Properties": Object {
         "DomainName": "mydeploy-origin.test.pwrdrvr.com",
-        "DomainNameConfigurations": [
-          {
-            "CertificateArn": {
+        "DomainNameConfigurations": Array [
+          Object {
+            "CertificateArn": Object {
               "Ref": "cert56CA94EB",
             },
             "EndpointType": "REGIONAL",
@@ -338,51 +338,51 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
       "Type": "AWS::ApiGatewayV2::DomainName",
       "UpdateReplacePolicy": "Delete",
     },
-    "constructstage3B55CA4F": {
-      "Properties": {
-        "AccessLogSettings": {
-          "DestinationArn": {
-            "Fn::GetAtt": [
+    "constructstage3B55CA4F": Object {
+      "Properties": Object {
+        "AccessLogSettings": Object {
+          "DestinationArn": Object {
+            "Fn::GetAtt": Array [
               "constructlogsBC77618C",
               "Arn",
             ],
           },
-          "Format": "{"requestId":"$context.requestId","userAgent":"$context.identity.userAgent","sourceIp":"$context.identity.sourceIp","requestTime":"$context.requestTime","requestTimeEpoch":"$context.requestTimeEpoch","httpMethod":"$context.httpMethod","path":"$context.path","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength","domainName":"$context.domainName","authorizerError":"$context.authorizer.error"}",
+          "Format": "{\\"requestId\\":\\"$context.requestId\\",\\"userAgent\\":\\"$context.identity.userAgent\\",\\"sourceIp\\":\\"$context.identity.sourceIp\\",\\"requestTime\\":\\"$context.requestTime\\",\\"requestTimeEpoch\\":\\"$context.requestTimeEpoch\\",\\"httpMethod\\":\\"$context.httpMethod\\",\\"path\\":\\"$context.path\\",\\"status\\":\\"$context.status\\",\\"protocol\\":\\"$context.protocol\\",\\"responseLength\\":\\"$context.responseLength\\",\\"domainName\\":\\"$context.domainName\\",\\"authorizerError\\":\\"$context.authorizer.error\\"}",
         },
-        "ApiId": {
+        "ApiId": Object {
           "Ref": "constructgwyE80472DA",
         },
         "AutoDeploy": true,
         "StageName": "/myprefix/",
-        "Tags": {
+        "Tags": Object {
           "microapp-managed": "true",
         },
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
-    "zoneEB40FF1E": {
-      "Properties": {
+    "zoneEB40FF1E": Object {
+      "Properties": Object {
         "Name": "test.pwrdrvr.com.",
       },
       "Type": "AWS::Route53::HostedZone",
     },
   },
-  "Rules": {
-    "CheckBootstrapVersion": {
-      "Assertions": [
-        {
-          "Assert": {
-            "Fn::Not": [
-              {
-                "Fn::Contains": [
-                  [
+  "Rules": Object {
+    "CheckBootstrapVersion": Object {
+      "Assertions": Array [
+        Object {
+          "Assert": Object {
+            "Fn::Not": Array [
+              Object {
+                "Fn::Contains": Array [
+                  Array [
                     "1",
                     "2",
                     "3",
                     "4",
                     "5",
                   ],
-                  {
+                  Object {
                     "Ref": "BootstrapVersion",
                   },
                 ],
