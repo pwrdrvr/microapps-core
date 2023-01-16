@@ -284,7 +284,7 @@ export class PublishCommand extends Command {
         },
         {
           enabled: (ctx) =>
-            (ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version') &&
+            ['function', 'version'].includes(ctx.configLambdaArnType) &&
             // If the deployer service can create aliases, let it
             ctx.preflightResult.response.capabilities?.['createAlias'] !== 'true',
           title: 'Locally Create Lambda Alias and, optionally, Version',

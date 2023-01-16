@@ -32,7 +32,7 @@ export interface ILambdaAliasResponse extends IDeployerResponse {
   /**
    * Full ARN of the Lambda Alias for this version
    */
-  readonly lambdaAliasARN?: string;
+  readonly lambdaAliasARN: string;
 
   /**
    * Action taken by the deployer
@@ -40,5 +40,5 @@ export interface ILambdaAliasResponse extends IDeployerResponse {
    * - `updated` - Alias was updated to point to a new version
    * - `verified` - Alias already points to the correct version
    */
-  readonly actionTaken?: 'created' | 'updated' | 'verified';
+  readonly actionTaken: 'created' | 'updated' | 'verified';
 }

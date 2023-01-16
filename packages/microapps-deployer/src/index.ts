@@ -92,7 +92,9 @@ export async function handler(
 
       case 'lambdaAlias': {
         const request = event as ILambdaAliasRequest;
-        return await VersionController.LambdaAlias({ dbManager, request });
+        const response = await VersionController.LambdaAlias({ dbManager, request });
+        Log.Instance.info('lambdaAlias response', { response });
+        return response;
       }
 
       default:
