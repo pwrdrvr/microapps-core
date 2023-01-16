@@ -163,6 +163,7 @@ export default class DeployClient {
       lambdaARN: lambdaVersionArn,
       overwrite,
     };
+    output(`Creating alias for version ARN: ${lambdaVersionArn}`);
     const response = await this._client.send(
       new lambda.InvokeCommand({
         FunctionName: deployerLambdaName,
