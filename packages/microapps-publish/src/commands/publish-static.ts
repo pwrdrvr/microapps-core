@@ -5,13 +5,13 @@ import { Command, flags as flagsParser } from '@oclif/command';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
+import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import { Config } from '../config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
 import S3Uploader from '../lib/S3Uploader';
 import S3TransferUtility from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
 import { contentType } from 'mime-types';
-import { createVersions, IVersions } from '../lib/Versions';
 
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;

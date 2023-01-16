@@ -40,6 +40,8 @@ import {
   ICreateApplicationRequest,
   IDeployVersionRequest,
   IDeleteVersionRequest,
+  ILambdaAliasRequest,
+  ILambdaAliasResponse,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
@@ -313,6 +315,263 @@ describe('VersionController', () => {
     });
   });
 
+  describe('lambdaAlias', () => {
+    const fakeLambdaARNBase = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
+
+    it('should 200 for version that exists when !overwrite', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersion = '31';
+      const fakeLambdaARNWithVersion = `${fakeLambdaARNBase}:${fakeLambdaVersion}`;
+      const fakeLambdaAlias = 'v0_0_0';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient.onAnyCommand().rejects();
+
+      const version = new Version({
+        AppName: appName,
+        SemVer: semVer,
+        // Note: Pending is reported as "does not exist"
+        // So don't set this to pending or the test will fail
+        Status: 'routed',
+        Type: 'lambda',
+        LambdaARN: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+      });
+      await version.Save(dbManager);
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNWithVersion,
+        type: 'lambdaAlias',
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(200);
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(lambdaClient.calls()).toHaveLength(0);
+    });
+
+    it('should 200 for version that exists when overwrite=true', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersion = '31';
+      const fakeLambdaARNWithVersion = `${fakeLambdaARNBase}:${fakeLambdaVersion}`;
+      const fakeLambdaAlias = 'v0_0_0';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersion,
+        });
+
+      const version = new Version({
+        AppName: appName,
+        SemVer: semVer,
+        // Note: Pending is reported as "does not exist"
+        // So don't set this to pending or the test will fail
+        Status: 'routed',
+        Type: 'lambda',
+        LambdaARN: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+      });
+      await version.Save(dbManager);
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNWithVersion,
+        type: 'lambdaAlias',
+        overwrite: true,
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(200);
+      expect(response.actionTaken).toBe('verified');
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(lambdaClient.calls()).toHaveLength(1);
+    });
+
+    it('should 201 for version that !exists when !overwrite', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersion = '31';
+      const fakeLambdaARNWithVersion = `${fakeLambdaARNBase}:${fakeLambdaVersion}`;
+      const fakeLambdaAlias = 'v0_0_0';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
+        .on(lambda.CreateAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+          FunctionVersion: fakeLambdaVersion,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersion,
+        });
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNWithVersion,
+        type: 'lambdaAlias',
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(201);
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(lambdaClient.calls()).toHaveLength(2);
+    });
+
+    it('should 200 for version that exists when overwrite and version changed', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersionStart = '3';
+      const fakeLambdaVersionEnd = '31';
+      const fakeLambdaARNWithVersionEnd = `${fakeLambdaARNBase}:${fakeLambdaVersionEnd}`;
+      const fakeLambdaAlias = 'v0_0_0';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersionStart,
+        })
+        .on(lambda.UpdateAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+          FunctionVersion: fakeLambdaVersionEnd,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersionEnd,
+        });
+
+      const version = new Version({
+        AppName: appName,
+        SemVer: semVer,
+        // Note: Pending is reported as "does not exist"
+        // So don't set this to pending or the test will fail
+        Status: 'routed',
+        Type: 'lambda',
+        LambdaARN: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+      });
+      await version.Save(dbManager);
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNWithVersionEnd,
+        type: 'lambdaAlias',
+        overwrite: true,
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(200);
+      expect(response.actionTaken).toBe('updated');
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(lambdaClient.calls()).toHaveLength(2);
+    });
+
+    it('should 201 for function ARN that !exists when !overwrite', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersion = '31';
+      const fakeLambdaAlias = 'v0_0_0';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.PublishVersionCommand, {
+          FunctionName: fakeLambdaARNBase,
+        })
+        .resolves({
+          FunctionName: fakeLambdaARNBase,
+          Version: fakeLambdaVersion,
+        })
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersion,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+          },
+        })
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
+        .on(lambda.CreateAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+          FunctionVersion: fakeLambdaVersion,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersion,
+        });
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNBase,
+        type: 'lambdaAlias',
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(201);
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(lambdaClient.calls()).toHaveLength(4);
+    });
+  });
+
   describe('deployVersion - lambda (apigwy)', () => {
     const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
 
@@ -417,16 +676,14 @@ describe('VersionController', () => {
           RouteId: 'route456',
         });
 
-      const response = await handler(
-        {
-          appName,
-          semVer,
-          defaultFile: 'index.html',
-          lambdaARN: fakeLambdaARN,
-          type: 'deployVersion',
-        } as IDeployVersionRequest,
-        { awsRequestId: '123' } as lambdaTypes.Context,
-      );
+      const request: IDeployVersionRequest = {
+        appName,
+        semVer,
+        defaultFile: 'index.html',
+        lambdaARN: fakeLambdaARN,
+        type: 'deployVersion',
+      };
+      const response = await handler(request, { awsRequestId: '123' } as lambdaTypes.Context);
       expect(response.statusCode).toEqual(201);
     });
 
@@ -789,7 +1046,7 @@ describe('VersionController', () => {
     });
   });
 
-  describe('deployVersion - lambda-url)', () => {
+  describe('deployVersion - lambda-url', () => {
     const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
     const fakeLambdaAliasSuffix = 'v0_0_0';
     const fakeFunctionURLForAlias = 'https://abc1234567.lambda-url.us-east-1.on.aws';
@@ -801,16 +1058,6 @@ describe('VersionController', () => {
       s3Client
         .onAnyCommand()
         .rejects()
-        // .callsFake((input) => {
-        //   console.log(`received input: ${JSON.stringify(input)}`);
-        //   console.log(
-        //     `our matcher: ${JSON.stringify({
-        //       Bucket: config.filestore.destinationBucket,
-        //       CopySource: `${config.filestore.stagingBucket}${pathPrefix}/${appName}/${semVer}/index.html`,
-        //       Key: `${pathPrefix}${appName}/${semVer}/index.html`,
-        //     })}`,
-        //   );
-        // })
         // Mock S3 get for staging bucket - return one file name
         .on(s3.ListObjectsV2Command, {
           Bucket: config.filestore.stagingBucket,
@@ -885,109 +1132,6 @@ describe('VersionController', () => {
       expect(updatedVersion.SemVer).toBe(semVer);
       expect(updatedVersion.DefaultFile).toBe('index.html');
       expect(updatedVersion.LambdaARN).toBe(`${fakeLambdaARN}:${fakeLambdaAliasSuffix}`);
-      expect(updatedVersion.URL).toBe(fakeFunctionURLForAlias);
-      expect(updatedVersion.StartupType).toBe('direct');
-      expect(updatedVersion.Status).toBe('routed');
-      expect(updatedVersion.Type).toBe('lambda-url');
-      expect(updatedVersion.IntegrationID).toBe('');
-      expect(updatedVersion.RouteIDAppVersion).toBe('');
-      expect(updatedVersion.RouteIDAppVersionSplat).toBe('');
-    });
-
-    it('should 201 version that does not exist - w/ full arn w/version', async () => {
-      const appName = 'newapp';
-      const semVer = '0.0.0';
-      const fakeLambdaVersion = '3';
-      const fakeLambdaARNBase = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
-      const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function:${fakeLambdaVersion}`;
-
-      s3Client
-        .onAnyCommand()
-        .rejects()
-        // .callsFake((input) => {
-        //   console.log(`received input: ${JSON.stringify(input)}`);
-        //   console.log(
-        //     `our matcher: ${JSON.stringify({
-        //       Bucket: config.filestore.destinationBucket,
-        //       CopySource: `${config.filestore.stagingBucket}${pathPrefix}/${appName}/${semVer}/index.html`,
-        //       Key: `${pathPrefix}${appName}/${semVer}/index.html`,
-        //     })}`,
-        //   );
-        // })
-        // Mock S3 get for staging bucket - return one file name
-        .on(s3.ListObjectsV2Command, {
-          Bucket: config.filestore.stagingBucket,
-          Prefix: `${pathPrefix}${appName}/${semVer}/`,
-        })
-        .resolves({
-          IsTruncated: false,
-          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
-        })
-        // Mock S3 copy to prod bucket
-        .on(s3.CopyObjectCommand, {
-          Bucket: config.filestore.destinationBucket,
-          CopySource: `${config.filestore.stagingBucket}/${pathPrefix}${appName}/${semVer}/index.html`,
-          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
-        })
-        .resolves({})
-        .on(s3.DeleteObjectCommand, {
-          Bucket: config.filestore.stagingBucket,
-          Key: `${pathPrefix}${appName}/${semVer}/index.html`,
-        })
-        .resolves({});
-
-      lambdaClient
-        .onAnyCommand()
-        .rejects()
-        .on(lambda.ListTagsCommand, {
-          Resource: fakeLambdaARNBase,
-        })
-        .resolves({
-          Tags: {
-            'microapps-managed': 'true',
-          },
-        })
-        .on(lambda.TagResourceCommand, {
-          Resource: fakeLambdaARNBase,
-          Tags: {
-            'microapp-managed': 'true',
-          },
-        })
-        .resolves({})
-        .on(lambda.GetFunctionUrlConfigCommand, {
-          FunctionName: fakeLambdaARNBase,
-          Qualifier: fakeLambdaVersion,
-        })
-        .resolves({
-          FunctionUrl: fakeFunctionURLForAlias,
-        });
-      apigwyClient.onAnyCommand().rejects();
-
-      const response = await handler(
-        {
-          appName,
-          semVer,
-          defaultFile: 'index.html',
-          lambdaARN: fakeLambdaARN,
-          type: 'deployVersion',
-          overwrite: true,
-          appType: 'lambda-url',
-          startupType: 'direct',
-          url: 'https://abc1234567.lambda-url.us-east-1.on.aws',
-        } as IDeployVersionRequest,
-        { awsRequestId: '123' } as lambdaTypes.Context,
-      );
-      expect(response.statusCode).toEqual(201);
-
-      const updatedVersion = await Version.LoadVersion({
-        dbManager,
-        key: { AppName: appName, SemVer: semVer },
-      });
-      // expect(updatedVersion).toEqual({});
-      expect(updatedVersion.AppName).toBe(appName);
-      expect(updatedVersion.SemVer).toBe(semVer);
-      expect(updatedVersion.DefaultFile).toBe('index.html');
-      expect(updatedVersion.LambdaARN).toBe(fakeLambdaARN);
       expect(updatedVersion.URL).toBe(fakeFunctionURLForAlias);
       expect(updatedVersion.StartupType).toBe('direct');
       expect(updatedVersion.Status).toBe('routed');
@@ -1205,7 +1349,7 @@ describe('VersionController', () => {
           appName,
           semVer,
           defaultFile: 'index.html',
-          lambdaARN: fakeLambdaARN,
+          lambdaARN: `${fakeLambdaARN}:${fakeLambdaAliasSuffix}`,
           type: 'deployVersion',
         } as IDeployVersionRequest,
         { awsRequestId: '123' } as lambdaTypes.Context,
@@ -1215,7 +1359,7 @@ describe('VersionController', () => {
   });
 
   describe('deployVersion - url)', () => {
-    it.only('should 201 version that does not exist', async () => {
+    it('should 201 version that does not exist', async () => {
       const appName = 'newapp';
       const semVer = '0.0.0';
 

@@ -7,6 +7,7 @@ import { Command, flags as flagsParser } from '@oclif/command';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
+import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
 import { Config, IConfig } from '../config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
 import S3Uploader from '../lib/S3Uploader';
@@ -15,7 +16,6 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { contentType } from 'mime-types';
 import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
 import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
-import { createVersions, IVersions } from '../lib/Versions';
 const asyncSetTimeout = util.promisify(setTimeout);
 
 const lambdaClient = new lambda.LambdaClient({
@@ -229,7 +229,7 @@ export class PublishCommand extends Command {
         },
         {
           enabled: () => !!appLambdaName,
-          title: 'Check if Lambda ARN has Alias',
+          title: 'Check if Lambda ARN has Alias or Version',
           task: (ctx, task) => {
             if (appLambdaName.match(/:/g)?.length === 7) {
               if (/^[0-9]+$/.test(appLambdaName.substring(appLambdaName.lastIndexOf(':') + 1))) {
@@ -246,10 +246,48 @@ export class PublishCommand extends Command {
             }
           },
         },
+        // {
+        //   enabled: (ctx) =>
+        //     ctx.configLambdaArnType === 'function' &&
+        //     ctx.preflightResult.response.capabilities?.['createAlias'] === 'true',
+        //   title: 'Reject Remove Version Creation if Lambda ARN is Function',
+        //   task: (ctx, task) => {
+        //     this.error(
+        //       `Lambda ARN is a Function, cannot create a version remotely, pass a Lambda ARN with a version: ${config.app.lambdaName}`,
+        //     );
+        //   },
+        // },
         {
           enabled: (ctx) =>
-            ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version',
-          title: 'Create Lambda Alias and, optionally, Version',
+            ['version', 'function'].includes(ctx.configLambdaArnType) &&
+            // If the deployer service can create aliases, let it
+            ctx.preflightResult.response.capabilities?.createAlias === 'true',
+          title: 'Remotely Create Lambda Alias and, optionally, Version',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            task.output = `Create or update alias ${config.app.name}/${semVer}`;
+            const { response } = await DeployClient.LambdaAlias({
+              appName: config.app.name,
+              semVer: config.app.semVer,
+              deployerLambdaName: config.deployer.lambdaName,
+              lambdaVersionArn: config.app.lambdaName,
+              overwrite,
+              output: (message: string) => (task.output = message),
+            });
+
+            ctx.lambdaAliasArn = response.lambdaAliasARN;
+
+            task.title = origTitle;
+          },
+        },
+        {
+          enabled: (ctx) =>
+            ['function', 'version'].includes(ctx.configLambdaArnType) &&
+            // If the deployer service can create aliases, let it
+            ctx.preflightResult.response.capabilities?.['createAlias'] !== 'true',
+          title: 'Locally Create Lambda Alias and, optionally, Version',
           task: async (ctx, task) => {
             // Allow overwriting a non-overwritable app if the prior
             // publish was not completely successful - in that case
@@ -423,8 +461,10 @@ export class PublishCommand extends Command {
 
   /**
    * Publish an app version to Lambda
+   *
    * @param config
    * @param versions
+   * @deprecated 2023-01-16 - The deployer svc now creates the alias and, optionally, the version
    */
   private async deployToLambda(opts: {
     config: IConfig;
