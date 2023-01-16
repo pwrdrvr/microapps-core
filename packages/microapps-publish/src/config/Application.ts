@@ -11,7 +11,6 @@ export interface IApplicationConfig {
   defaultFile: string;
   staticAssetsPath: string;
   lambdaName: string;
-  lambdaARN: string;
   awsAccountID: string;
   awsRegion: string;
   serverlessNextRouterPath: string;
@@ -85,13 +84,6 @@ export class ApplicationConfig implements IApplicationConfig {
     env: 'APP_LAMBDA_NAME',
   })
   public lambdaName: string;
-  public get lambdaARN(): string {
-    return this.lambdaName.includes(':')
-      ? this.lambdaName
-      : `arn:aws:lambda:${this.awsRegion}:${this.awsAccountID}:function:${
-          this.lambdaName
-        }:v${this.semVer.replace(/\./g, '_')}`;
-  }
 
   @convict.Property({
     doc: 'AWS Account ID to deploy to',

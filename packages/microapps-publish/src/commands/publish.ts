@@ -272,7 +272,7 @@ export class PublishCommand extends Command {
               appName: config.app.name,
               semVer: config.app.semVer,
               deployerLambdaName: config.deployer.lambdaName,
-              lambdaVersionArn: config.app.lambdaARN,
+              lambdaVersionArn: config.app.lambdaName,
               overwrite,
               output: (message: string) => (task.output = message),
             });
