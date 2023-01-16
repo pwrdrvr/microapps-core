@@ -248,10 +248,46 @@ export class PublishCommand extends Command {
         },
         {
           enabled: (ctx) =>
+            ctx.configLambdaArnType === 'function' &&
+            ctx.preflightResult.response.capabilities?.['createAlias'] === 'true',
+          title: 'Reject Remove Version Creation if Lambda ARN is Function',
+          task: (ctx, task) => {
+            this.error(
+              `Lambda ARN is a Function, cannot create a version remotely, pass a Lambda ARN with a version: ${config.app.lambdaName}`,
+            );
+          },
+        },
+        {
+          enabled: (ctx) =>
+            ctx.configLambdaArnType === 'version' &&
+            // If the deployer service can create aliases, let it
+            ctx.preflightResult.response.capabilities?.['createAlias'] === 'true',
+          title: 'Remotely Create Lambda Alias and, optionally, Version',
+          task: async (ctx, task) => {
+            const origTitle = task.title;
+            task.title = RUNNING + origTitle;
+
+            task.output = `Create or update alias ${config.app.name}/${semVer}`;
+            const { response } = await DeployClient.LambdaAlias({
+              appName: config.app.name,
+              semVer: config.app.semVer,
+              deployerLambdaName: config.deployer.lambdaName,
+              lambdaVersionArn: config.app.lambdaARN,
+              overwrite,
+              output: (message: string) => (task.output = message),
+            });
+
+            ctx.lambdaAliasArn = response.lambdaAliasARN;
+
+            task.title = origTitle;
+          },
+        },
+        {
+          enabled: (ctx) =>
             (ctx.configLambdaArnType === 'function' || ctx.configLambdaArnType === 'version') &&
             // If the deployer service can create aliases, let it
             ctx.preflightResult.response.capabilities?.['createAlias'] !== 'true',
-          title: 'Create Lambda Alias and, optionally, Version',
+          title: 'Locally Create Lambda Alias and, optionally, Version',
           task: async (ctx, task) => {
             // Allow overwriting a non-overwritable app if the prior
             // publish was not completely successful - in that case

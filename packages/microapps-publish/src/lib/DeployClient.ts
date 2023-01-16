@@ -1,11 +1,13 @@
 import * as lambda from '@aws-sdk/client-lambda';
 import {
-  IDeployVersionPreflightRequest,
-  IDeployVersionPreflightResponse,
   ICreateApplicationRequest,
   IDeployerResponse,
+  IDeployVersionPreflightRequest,
+  IDeployVersionPreflightResponse,
   IDeployVersionRequest,
   IDeleteVersionRequest,
+  ILambdaAliasRequest,
+  ILambdaAliasResponse,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { IConfig } from '../config/Config';
 
@@ -135,6 +137,52 @@ export default class DeployClient {
       }
     } else {
       throw new Error(`Lambda call to DeployVersionPreflight failed: ${JSON.stringify(response)}`);
+    }
+  }
+
+  /**
+   * Create or update Lambda alias for specified Lambda version
+   * @param config
+   * @param output
+   * @returns
+   */
+  public static async LambdaAlias(opts: {
+    appName: string;
+    semVer: string;
+    lambdaVersionArn: string;
+    overwrite: boolean;
+    deployerLambdaName: string;
+    output: (message: string) => void;
+  }): Promise<{ response: ILambdaAliasResponse }> {
+    const { appName, deployerLambdaName, lambdaVersionArn, overwrite, output, semVer } = opts;
+
+    const request: ILambdaAliasRequest = {
+      type: 'lambdaAlias',
+      appName,
+      semVer,
+      lambdaARN: lambdaVersionArn,
+      overwrite,
+    };
+    const response = await this._client.send(
+      new lambda.InvokeCommand({
+        FunctionName: deployerLambdaName,
+        Payload: Buffer.from(JSON.stringify(request)),
+      }),
+    );
+
+    if (response.$metadata.httpStatusCode === 200 && response.Payload !== undefined) {
+      const dResponse = JSON.parse(
+        Buffer.from(response.Payload).toString('utf-8'),
+      ) as ILambdaAliasResponse;
+      if (dResponse.statusCode === 201) {
+        output(`Alias created: ${dResponse.lambdaAliasARN}`);
+        return { response: dResponse };
+      } else {
+        output(`Alias ${dResponse.actionTaken}: ${dResponse.lambdaAliasARN}`);
+        return { response: dResponse };
+      }
+    } else {
+      throw new Error(`Lambda call to LambdaAlias failed: ${JSON.stringify(response)}`);
     }
   }
 

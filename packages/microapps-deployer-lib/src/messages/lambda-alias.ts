@@ -1,4 +1,4 @@
-import { AppType } from './base';
+// import { AppType } from './base';
 import { IDeployVersionRequestBase } from './deploy-version';
 import { IDeployerResponse } from './deployer';
 
@@ -11,7 +11,7 @@ export interface ILambdaAliasRequest extends IDeployVersionRequestBase {
   /**
    * Type of the app (which implies how it's routed)
    */
-  readonly appType: Extract<AppType, 'lambda' | 'lambda-url'>;
+  // readonly appType: Extract<AppType, 'lambda' | 'lambda-url'>;
 
   /**
    * LambdaARN
