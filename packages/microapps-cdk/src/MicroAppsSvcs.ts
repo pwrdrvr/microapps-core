@@ -148,7 +148,7 @@ export interface MicroAppsSvcsProps {
   readonly rootPathPrefix?: string;
 
   /**
-   * Require IAM auth on API Gateway
+   * Require IAM auth on API Gateway and Lambda Function URLs
    *
    * @default true
    */
@@ -169,6 +169,15 @@ export interface MicroAppsSvcsProps {
    * @default created by construct
    */
   readonly table?: dynamodb.ITable;
+
+  /**
+   * Deployer timeout
+   *
+   * For larger applications this needs to be set up to 2-5 minutes for the S3 copy
+   *
+   * @default 2 minutes
+   */
+  readonly deployerTimeout?: Duration;
 }
 
 /**
@@ -223,6 +232,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       bucketApps,
       bucketAppsOAI,
       bucketAppsStaging,
+      deployerTimeout = Duration.minutes(2),
       s3PolicyBypassAROAs = [],
       s3PolicyBypassPrincipalARNs = [],
       s3StrictBucketPolicy = false,
@@ -284,7 +294,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_16_X,
-      timeout: Duration.seconds(15),
+      timeout: deployerTimeout,
       environment: {
         NODE_ENV: appEnv,
         ...(httpApi ? { APIGWY_ID: httpApi.httpApiId } : {}),
