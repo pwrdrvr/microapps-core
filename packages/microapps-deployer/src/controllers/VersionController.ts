@@ -546,8 +546,9 @@ export default class VersionController {
   public static async LambdaAlias(opts: {
     dbManager: DBManager;
     request: ILambdaAliasRequest;
+    config: IConfig;
   }): Promise<ILambdaAliasResponse> {
-    const { dbManager, request } = opts;
+    const { config, dbManager, request } = opts;
     const { appName, lambdaARN, overwrite = false, semVer } = request;
 
     const parsedLambdaARN = VersionController.ExtractARNandAlias(lambdaARN);
@@ -573,38 +574,42 @@ export default class VersionController {
     //   throw new Error(`Missing lambda version: ${lambdaARN}`);
     // }
 
-    // Get the version record
-    const record = await Version.LoadVersion({
-      dbManager,
-      key: {
-        AppName: appName,
-        SemVer: semVer,
-      },
-    });
-    if (record !== undefined && record.Status !== 'pending' && record.LambdaARN) {
-      if (!overwrite) {
-        //
-        // Version exists and has moved beyond pending status
-        // No need to create S3 upload credentials
-        // NOTE: This may change in the future if we allow
-        // mutability of versions (at own risk)
-        //
-        Log.Instance.info('Error: App/Version already exists', {
-          appName,
-          semVer,
-        });
+    // 2023-01-16 - This is not strictly necessary and is not able to be done
+    // when the lambda is in a child account
+    if (!config.parentDeployerLambdaARN) {
+      // Get the version record
+      const record = await Version.LoadVersion({
+        dbManager,
+        key: {
+          AppName: appName,
+          SemVer: semVer,
+        },
+      });
+      if (record !== undefined && record.Status !== 'pending' && record.LambdaARN) {
+        if (!overwrite) {
+          //
+          // Version exists and has moved beyond pending status
+          // No need to create S3 upload credentials
+          // NOTE: This may change in the future if we allow
+          // mutability of versions (at own risk)
+          //
+          Log.Instance.info('Error: App/Version already exists', {
+            appName,
+            semVer,
+          });
 
-        return {
-          statusCode: 200,
-          type: 'lambdaAlias',
-          actionTaken: 'verified',
-          lambdaAliasARN: record.LambdaARN,
-        };
-      } else {
-        Log.Instance.info('Warning: App/Version already exists', {
-          appName,
-          semVer,
-        });
+          return {
+            statusCode: 200,
+            type: 'lambdaAlias',
+            actionTaken: 'verified',
+            lambdaAliasARN: record.LambdaARN,
+          };
+        } else {
+          Log.Instance.info('Warning: App/Version already exists', {
+            appName,
+            semVer,
+          });
+        }
       }
     }
 

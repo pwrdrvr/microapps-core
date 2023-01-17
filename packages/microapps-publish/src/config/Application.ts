@@ -12,7 +12,6 @@ export interface IApplicationConfig {
   staticAssetsPath: string;
   lambdaName: string;
   awsAccountID: string;
-  awsAccountIDChild: string;
   awsRegion: string;
 }
 
@@ -89,13 +88,6 @@ export class ApplicationConfig implements IApplicationConfig {
     env: 'AWS_ACCOUNT_ID',
   })
   public awsAccountID: string;
-
-  @convict.Property({
-    doc: 'AWS Account ID to deploy the stub to',
-    default: '',
-    env: 'AWS_ACCOUNT_ID_CHILD',
-  })
-  public awsAccountIDChild: string;
 
   @convict.Property({
     doc: 'AWS Region to deploy to',

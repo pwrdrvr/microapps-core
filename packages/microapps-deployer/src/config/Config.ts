@@ -18,6 +18,8 @@ export interface IConfig {
   readonly awsAccountID: string;
   readonly awsRegion: string;
 
+  readonly parentDeployerLambdaARN: string;
+
   readonly uploadRoleName: string;
 
   readonly rootPathPrefix: string;
@@ -99,6 +101,13 @@ export class Config implements IConfig {
     env: 'AWS_ACCOUNT_ID',
   })
   public awsAccountID!: string;
+
+  @convict.Property({
+    doc: 'ARN of parent deployer Lambda function',
+    default: '',
+    env: 'PARENT_DEPLOYER_LAMBDA_ARN',
+  })
+  public parentDeployerLambdaARN!: string;
 
   @convict.Property({
     doc: 'AWS Region for app Lambda function',
