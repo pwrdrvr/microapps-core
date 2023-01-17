@@ -6,4 +6,3 @@ app:
   lambdaName: appname
   awsAccountID: '00123456789012'
   awsRegion: us-east-1
-  serverlessNextRouterPath: ./node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js
