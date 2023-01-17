@@ -16,7 +16,12 @@ import { DBManager } from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
 import { Config } from './config/Config';
 import AppController from './controllers/AppController';
-import VersionController from './controllers/VersionController';
+import {
+  DeleteVersion,
+  DeployVersion,
+  DeployVersionPreflight,
+  LambdaAlias,
+} from './controllers/version';
 import Log from './lib/Log';
 
 const log = Log.Instance;
@@ -101,22 +106,22 @@ export async function handler(
 
       case 'deleteVersion': {
         const request = event as IDeleteVersionRequest;
-        return await VersionController.DeleteVersion({ dbManager, request, config });
+        return await DeleteVersion({ dbManager, request, config });
       }
 
       case 'deployVersionPreflight': {
         const request = event as IDeployVersionPreflightRequest;
-        return await VersionController.DeployVersionPreflight({ dbManager, request, config });
+        return await DeployVersionPreflight({ dbManager, request, config });
       }
 
       case 'deployVersion': {
         const request = event as IDeployVersionRequest;
-        return await VersionController.DeployVersion({ dbManager, request, config });
+        return await DeployVersion({ dbManager, request, config });
       }
 
       case 'lambdaAlias': {
         const request = event as ILambdaAliasRequest;
-        const response = await VersionController.LambdaAlias({ dbManager, request, config });
+        const response = await LambdaAlias({ dbManager, request, config });
         Log.Instance.info('lambdaAlias response', { response });
         return response;
       }
