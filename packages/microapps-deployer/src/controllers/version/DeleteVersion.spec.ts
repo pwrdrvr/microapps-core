@@ -21,6 +21,7 @@ const theConfig: Writeable<IConfig> = {
   rootPathPrefix: 'dev',
   requireIAMAuthorization: true,
   parentDeployerLambdaARN: '',
+  edgeToOriginRoleARN: '',
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
@@ -50,7 +51,7 @@ let dbManager: DBManager;
 
 const TEST_TABLE_NAME = 'microapps';
 
-describe('VersionController', () => {
+describe('DeleteVersion', () => {
   const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
   const pathPrefix = `${config.rootPathPrefix}/`;

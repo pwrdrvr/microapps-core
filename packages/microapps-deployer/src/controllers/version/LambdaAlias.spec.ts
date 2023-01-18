@@ -21,6 +21,7 @@ const theConfig: Writeable<IConfig> = {
   rootPathPrefix: 'dev',
   requireIAMAuthorization: true,
   parentDeployerLambdaARN: '',
+  edgeToOriginRoleARN: '',
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
@@ -56,7 +57,7 @@ let dbManager: DBManager;
 
 const TEST_TABLE_NAME = 'microapps';
 
-describe('VersionController', () => {
+describe('LambdaAlias', () => {
   const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
 
@@ -119,7 +120,42 @@ describe('VersionController', () => {
 
       s3Client.onAnyCommand().rejects();
       stsClient.onAnyCommand().rejects();
-      lambdaClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionVersion: fakeLambdaVersion,
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+        })
+        // AddTagToFunction
+        .on(lambda.ListTagsCommand, {
+          Resource: fakeLambdaARNBase,
+        })
+        .resolves({
+          Tags: {
+            'app-name': appName,
+            'sem-ver': semVer,
+          },
+        })
+        .on(lambda.TagResourceCommand, {
+          Resource: fakeLambdaARNBase,
+          Tags: {
+            'microapp-managed': 'true',
+          },
+        })
+        .resolves({})
+        // AddOrUpdateFunctionUrl
+        .on(lambda.GetFunctionUrlConfigCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionUrl: 'https://fakeurl.com',
+        });
 
       const version = new Version({
         AppName: appName,
@@ -145,7 +181,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(200);
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
-      expect(lambdaClient.calls()).toHaveLength(0);
+      expect(lambdaClient.calls()).toHaveLength(4);
     });
 
     it('should 200 for version that exists when overwrite=true', async () => {
@@ -167,6 +203,31 @@ describe('VersionController', () => {
         .resolves({
           AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
           FunctionVersion: fakeLambdaVersion,
+        })
+        // AddTagToFunction
+        .on(lambda.ListTagsCommand, {
+          Resource: fakeLambdaARNBase,
+        })
+        .resolves({
+          Tags: {
+            'app-name': appName,
+            'sem-ver': semVer,
+          },
+        })
+        .on(lambda.TagResourceCommand, {
+          Resource: fakeLambdaARNBase,
+          Tags: {
+            'microapp-managed': 'true',
+          },
+        })
+        .resolves({})
+        // AddOrUpdateFunctionUrl
+        .on(lambda.GetFunctionUrlConfigCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionUrl: 'https://fakeurl.com',
         });
 
       const version = new Version({
@@ -195,7 +256,7 @@ describe('VersionController', () => {
       expect(response.actionTaken).toBe('verified');
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
-      expect(lambdaClient.calls()).toHaveLength(1);
+      expect(lambdaClient.calls()).toHaveLength(4);
     });
 
     it('should 201 for version that !exists when !overwrite', async () => {
@@ -225,6 +286,31 @@ describe('VersionController', () => {
         .resolves({
           AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
           FunctionVersion: fakeLambdaVersion,
+        })
+        // AddTagToFunction
+        .on(lambda.ListTagsCommand, {
+          Resource: fakeLambdaARNBase,
+        })
+        .resolves({
+          Tags: {
+            'app-name': appName,
+            'sem-ver': semVer,
+          },
+        })
+        .on(lambda.TagResourceCommand, {
+          Resource: fakeLambdaARNBase,
+          Tags: {
+            'microapp-managed': 'true',
+          },
+        })
+        .resolves({})
+        // AddOrUpdateFunctionUrl
+        .on(lambda.GetFunctionUrlConfigCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionUrl: 'https://fakeurl.com',
         });
 
       const request: ILambdaAliasRequest = {
@@ -240,7 +326,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(201);
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
-      expect(lambdaClient.calls()).toHaveLength(2);
+      expect(lambdaClient.calls()).toHaveLength(5);
     });
 
     it('should 200 for version that exists when overwrite and version changed', async () => {
@@ -272,6 +358,31 @@ describe('VersionController', () => {
         .resolves({
           AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
           FunctionVersion: fakeLambdaVersionEnd,
+        })
+        // AddTagToFunction
+        .on(lambda.ListTagsCommand, {
+          Resource: fakeLambdaARNBase,
+        })
+        .resolves({
+          Tags: {
+            'app-name': appName,
+            'sem-ver': semVer,
+          },
+        })
+        .on(lambda.TagResourceCommand, {
+          Resource: fakeLambdaARNBase,
+          Tags: {
+            'microapp-managed': 'true',
+          },
+        })
+        .resolves({})
+        // AddOrUpdateFunctionUrl
+        .on(lambda.GetFunctionUrlConfigCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionUrl: 'https://fakeurl.com',
         });
 
       const version = new Version({
@@ -300,7 +411,7 @@ describe('VersionController', () => {
       expect(response.actionTaken).toBe('updated');
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
-      expect(lambdaClient.calls()).toHaveLength(2);
+      expect(lambdaClient.calls()).toHaveLength(5);
     });
 
     it('should 201 for function ARN that !exists when !overwrite', async () => {
@@ -345,6 +456,31 @@ describe('VersionController', () => {
         .resolves({
           AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
           FunctionVersion: fakeLambdaVersion,
+        })
+        // AddTagToFunction
+        .on(lambda.ListTagsCommand, {
+          Resource: fakeLambdaARNBase,
+        })
+        .resolves({
+          Tags: {
+            'app-name': appName,
+            'sem-ver': semVer,
+          },
+        })
+        .on(lambda.TagResourceCommand, {
+          Resource: fakeLambdaARNBase,
+          Tags: {
+            'microapp-managed': 'true',
+          },
+        })
+        .resolves({})
+        // AddOrUpdateFunctionUrl
+        .on(lambda.GetFunctionUrlConfigCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionUrl: 'https://fakeurl.com',
         });
 
       const request: ILambdaAliasRequest = {
@@ -360,7 +496,7 @@ describe('VersionController', () => {
       expect(response.statusCode).toBe(201);
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
-      expect(lambdaClient.calls()).toHaveLength(4);
+      expect(lambdaClient.calls()).toHaveLength(7);
     });
   });
 });

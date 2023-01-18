@@ -121,7 +121,7 @@ export async function handler(
 
       case 'lambdaAlias': {
         const request = event as ILambdaAliasRequest;
-        const response = await LambdaAlias({ dbManager, request, config });
+        const response = await LambdaAlias({ request, config });
         Log.Instance.info('lambdaAlias response', { response });
         return response;
       }

@@ -51,7 +51,7 @@ let dbManager: DBManager;
 
 const TEST_TABLE_NAME = 'microapps';
 
-describe('DeployVersion', () => {
+describe('DeployVersionLite', () => {
   const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
   const pathPrefix = `${config.rootPathPrefix}/`;

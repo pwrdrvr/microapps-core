@@ -3,7 +3,7 @@
  */
 export interface IVersions {
   version: string;
-  alias?: string;
+  alias: string;
 }
 
 /**

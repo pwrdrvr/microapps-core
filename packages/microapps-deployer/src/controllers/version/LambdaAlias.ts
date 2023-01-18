@@ -16,11 +16,10 @@ const sleep = promisify(setTimeout);
 const lambdaClient = new lambda.LambdaClient({});
 
 export async function LambdaAlias(opts: {
-  dbManager: DBManager;
   request: ILambdaAliasRequest;
   config: IConfig;
 }): Promise<ILambdaAliasResponse> {
-  const { config, dbManager, request } = opts;
+  const { config, request } = opts;
   const { appName, lambdaARN, overwrite = false, semVer } = request;
 
   const parsedLambdaARN = ExtractARNandAlias(lambdaARN);
@@ -48,43 +47,46 @@ export async function LambdaAlias(opts: {
 
   // 2023-01-16 - This is not strictly necessary and is not able to be done
   // when the lambda is in a child account
-  if (!config.parentDeployerLambdaARN) {
-    // Get the version record
-    const record = await Version.LoadVersion({
-      dbManager,
-      key: {
-        AppName: appName,
-        SemVer: semVer,
-      },
-    });
-    if (record !== undefined && record.Status !== 'pending' && record.LambdaARN) {
-      if (!overwrite) {
-        //
-        // Version exists and has moved beyond pending status
-        // No need to create S3 upload credentials
-        // NOTE: This may change in the future if we allow
-        // mutability of versions (at own risk)
-        //
-        Log.Instance.info('Error: App/Version already exists', {
-          appName,
-          semVer,
-        });
+  // if (!config.parentDeployerLambdaARN) {
+  //   // Get the version record
+  //   const record = await Version.LoadVersion({
+  //     dbManager,
+  //     key: {
+  //       AppName: appName,
+  //       SemVer: semVer,
+  //     },
+  //   });
+  //   if (record !== undefined && record.Status !== 'pending' && record.LambdaARN) {
+  //     if (!overwrite) {
+  //       //
+  //       // Version exists and has moved beyond pending status
+  //       // No need to create S3 upload credentials
+  //       // NOTE: This may change in the future if we allow
+  //       // mutability of versions (at own risk)
+  //       //
+  //       Log.Instance.info('Error: App/Version already exists', {
+  //         appName,
+  //         semVer,
+  //       });
 
-        return {
-          statusCode: 200,
-          type: 'lambdaAlias',
-          actionTaken: 'verified',
-          lambdaAliasARN: record.LambdaARN,
-        };
-      } else {
-        Log.Instance.info('Warning: App/Version already exists', {
-          appName,
-          semVer,
-        });
-      }
-    }
-  }
+  //       return {
+  //         statusCode: 200,
+  //         type: 'lambdaAlias',
+  //         actionTaken: 'verified',
+  //         lambdaAliasARN: record.LambdaARN,
+  //       };
+  //     } else {
+  //       Log.Instance.info('Warning: App/Version already exists', {
+  //         appName,
+  //         semVer,
+  //       });
+  //     }
+  //   }
+  // }
 
+  // Legacy: creating a version is not desired as a concern of the deployer service
+  // but it was supported in pre-0.4 versions so it will continue to be for a time
+  // and/or forever as it can be helpful for people trying the system for the first time.
   // Create Lambda version
   let lambdaVersion: string | undefined = parsedLambdaARN.lambdaVersion;
   if (parsedLambdaARN.lambdaARNType === 'function') {
@@ -128,12 +130,95 @@ export async function LambdaAlias(opts: {
 
   const versions = createVersions(semVer);
 
-  return CreateOrUpdateLambdaAlias({
+  const aliasInfo = await CreateOrUpdateLambdaAlias({
     lambdaArnBase: parsedLambdaARN.lambdaARNBase,
     lambdaVersion,
     overwrite,
     versions,
   });
+
+  // Check if the Function has the tags we need, add them if needed
+  await AddTagToFunction({ lambdaARNBase: parsedLambdaARN.lambdaARNBase });
+
+  // Check if Function URL exists, create it if needed
+  const { url } = await AddOrUpdateFunctionUrl({
+    lambdaARNBase: parsedLambdaARN.lambdaARNBase,
+    lambdaAlias: versions.alias,
+  });
+  const aliasWithUrl: ILambdaAliasResponse = { ...aliasInfo, functionUrl: url };
+
+  // TODO: For API Gateway, add the permissions to the Lambda alias
+  // Actually... do we want to add cross-account permission for API Gateway?  Maybe...
+
+  // For lambda-url, add the permissions to the Lambda alias
+  await AddCrossAccountPermissionsToAlias({
+    config,
+    lambdaBaseARN: parsedLambdaARN.lambdaARNBase,
+    lambdaAlias: versions.alias,
+  });
+
+  return aliasWithUrl;
+}
+
+async function AddTagToFunction({ lambdaARNBase }: { lambdaARNBase: string }) {
+  // Check if the lambda function has the microapp-managed tag
+  const tags = await lambdaClient.send(
+    new lambda.ListTagsCommand({
+      Resource: lambdaARNBase,
+    }),
+  );
+  // Add the tag if it is missing
+  if (tags.Tags === undefined || tags.Tags['microapp-managed'] !== 'true') {
+    await lambdaClient.send(
+      new lambda.TagResourceCommand({
+        Resource: lambdaARNBase,
+        Tags: {
+          'microapp-managed': 'true',
+        },
+      }),
+    );
+  }
+}
+
+async function AddOrUpdateFunctionUrl({
+  lambdaARNBase,
+  lambdaAlias,
+}: {
+  lambdaARNBase: string;
+  lambdaAlias: string;
+}) {
+  let url: string | undefined = undefined;
+  let functionUrl: lambda.GetFunctionUrlConfigResponse | undefined = undefined;
+  try {
+    functionUrl = await lambdaClient.send(
+      new lambda.GetFunctionUrlConfigCommand({
+        FunctionName: lambdaARNBase,
+        Qualifier: lambdaAlias,
+      }),
+    );
+    // Create the FunctionUrl if it doesn't already exist
+    if (functionUrl.FunctionUrl) {
+      url = functionUrl.FunctionUrl;
+    }
+  } catch (error: any) {
+    if (error.name !== 'ResourceNotFoundException') {
+      throw error;
+    }
+  }
+
+  // Create the FunctionUrl if it doesn't already exist
+  if (!functionUrl?.FunctionUrl) {
+    const functionUrlNew = await lambdaClient.send(
+      new lambda.CreateFunctionUrlConfigCommand({
+        FunctionName: lambdaARNBase,
+        Qualifier: lambdaAlias,
+        AuthType: 'AWS_IAM',
+      }),
+    );
+    url = functionUrlNew.FunctionUrl;
+  }
+
+  return { url };
 }
 
 /**
@@ -237,4 +322,80 @@ async function CreateOrUpdateLambdaAlias(opts: {
     lambdaAliasARN: resultCreateAlias.AliasArn,
     actionTaken: 'created',
   };
+}
+
+/**
+ * Add permissions for the edge-to-origin lambda to invoke this app lambda
+ * when the edge-to-origin lambda is deployed into another account.
+ *
+ * Ideally this is actually handled by the app lambda IaC (e.g. CDK or SAM), but
+ * we add the permissions here as a last resort.
+ *
+ * @param param0
+ */
+async function AddCrossAccountPermissionsToAlias({
+  config,
+  lambdaBaseARN,
+  lambdaAlias,
+}: {
+  config: IConfig;
+  lambdaBaseARN: string;
+  lambdaAlias: string;
+}): Promise<void> {
+  // Bail if there is no parent account
+  if (!config.parentDeployerLambdaARN) {
+    return;
+  }
+
+  //
+  // Confirm edge-to-origin is already allowed to execute this alias
+  // from the specific route for this version
+  //
+  let addStatements = true;
+  try {
+    const existingPolicy = await lambdaClient.send(
+      new lambda.GetPolicyCommand({
+        FunctionName: lambdaBaseARN,
+        Qualifier: lambdaAlias,
+      }),
+    );
+    if (existingPolicy.Policy !== undefined) {
+      interface IPolicyDocument {
+        Version: string;
+        Id: string;
+        Statement: { Sid: string }[];
+      }
+      const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
+
+      // TODO: Check if any of the statements allow the edge to origin Role ARN
+      // to invoke the function via function URL
+
+      if (policyDoc.Statement !== undefined) {
+        const foundStatements = policyDoc.Statement.filter(
+          (value) => value.Sid === 'microapps-edge-to-origin',
+        );
+        if (foundStatements.length === 1) {
+          addStatements = false;
+        }
+      }
+    }
+  } catch (error: any) {
+    if (error.name !== 'ResourceNotFoundException') {
+      throw error;
+    }
+  }
+
+  // Add statements if they do not already exist
+  if (addStatements) {
+    await lambdaClient.send(
+      new lambda.AddPermissionCommand({
+        Principal: 'apigateway.amazonaws.com',
+        StatementId: 'microapps-edge-to-origin',
+        Action: 'lambda:InvokeFunctionUrl',
+        FunctionName: lambdaBaseARN,
+        Qualifier: lambdaAlias,
+        SourceArn: config.edgeToOriginRoleARN,
+      }),
+    );
+  }
 }
