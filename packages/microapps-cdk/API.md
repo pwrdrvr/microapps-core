@@ -1479,6 +1479,17 @@ Optional asset name suffix.
 
 ---
 
+##### `deployerTimeout`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.deployerTimeout"></a>
+
+- *Type:* [`aws-cdk-lib.Duration`](#aws-cdk-lib.Duration)
+- *Default:* 2 minutes
+
+Deployer timeout.
+
+For larger applications this needs to be set up to 2-5 minutes for the S3 copy
+
+---
+
 ##### `httpApi`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
 
 - *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
@@ -1503,7 +1514,7 @@ Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true
 - *Type:* `boolean`
 - *Default:* true
 
-Require IAM auth on API Gateway.
+Require IAM auth on API Gateway and Lambda Function URLs.
 
 ---
 
