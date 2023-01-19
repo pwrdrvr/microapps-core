@@ -1,6 +1,7 @@
+import { IConfig } from '../config/Config';
 import Log from './Log';
 
-export function ExtractARNandAlias(lambdaARN: string): {
+export function ExtractARNandAlias({ lambdaARN, config }: { lambdaARN: string; config: IConfig }): {
   lambdaARNBase: string;
   lambdaARNType: 'version' | 'alias' | 'function';
   lambdaQualifier?: string;
@@ -27,7 +28,7 @@ export function ExtractARNandAlias(lambdaARN: string): {
   } else if (!/:/.test(lambdaARN)) {
     // This is just a function name, needs to be converted to ARN
     lambdaARNType = 'function';
-    lambdaARNBase = `arn:aws:lambda:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:function:${lambdaARN}`;
+    lambdaARNBase = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:${lambdaARN}`;
     Log.Instance.info(`Lambda ARN does not have Alias: ${lambdaARN}`);
   } else {
     lambdaARNType = 'function';

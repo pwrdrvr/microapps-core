@@ -1,5 +1,4 @@
 import * as lambda from '@aws-sdk/client-lambda';
-import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../../config/Config';
 import {
   createVersions,
@@ -22,7 +21,10 @@ export async function LambdaAlias(opts: {
   const { config, request } = opts;
   const { appName, lambdaARN, overwrite = false, semVer } = request;
 
-  const parsedLambdaARN = ExtractARNandAlias(lambdaARN);
+  const parsedLambdaARN = ExtractARNandAlias({
+    lambdaARN,
+    config,
+  });
 
   if (parsedLambdaARN.lambdaVersion === '$LATEST') {
     throw new Error(`Lambda version cannot be $LATEST, must be a version number: ${lambdaARN}`);

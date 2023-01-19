@@ -303,7 +303,10 @@ export async function DeployVersion(opts: {
     }
 
     // Get base of lambda arn
-    const { lambdaARNBase, lambdaAlias } = ExtractARNandAlias(request.lambdaARN);
+    const { lambdaARNBase, lambdaAlias } = ExtractARNandAlias({
+      lambdaARN: record.LambdaARN,
+      config,
+    });
 
     if (overwrite || record.Status === 'assets-copied') {
       // Check if the lambda function has the microapp-managed tag

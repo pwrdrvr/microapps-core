@@ -1,15 +1,9 @@
 import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
-import * as sts from '@aws-sdk/client-sts';
-import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
-import pMap from 'p-map';
+import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../../config/Config';
-import {
-  IDeleteVersionRequest,
-  IDeployVersionRequest,
-  IDeployerResponse,
-} from '@pwrdrvr/microapps-deployer-lib';
+import { IDeleteVersionRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
 import Log from '../../lib/Log';
 import { ExtractARNandAlias } from '../../lib/ExtractLambdaArn';
 import { GetBucketPrefix } from '../../lib/GetBucketPrefix';
@@ -126,7 +120,10 @@ export async function DeleteVersion(opts: {
 
   if ((record.Type === 'lambda' || record.Type === 'lambda-url') && record.LambdaARN) {
     // Get base of lambda arn
-    const { lambdaARNBase, lambdaAlias } = ExtractARNandAlias(record.LambdaARN);
+    const { lambdaARNBase, lambdaAlias } = ExtractARNandAlias({
+      lambdaARN: record.LambdaARN,
+      config,
+    });
 
     // Get info about the Alias
     try {
