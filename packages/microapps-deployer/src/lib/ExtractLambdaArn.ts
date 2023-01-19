@@ -24,7 +24,7 @@ export function ExtractARNandAlias(lambdaARN: string): {
       lambdaAlias = lambdaARN.substring(lambdaARN.lastIndexOf(':') + 1);
       Log.Instance.info(`Lambda ARN has Alias: ${lambdaARN}`);
     }
-  } else if (lambdaARN.match(/:/g)?.length === 0) {
+  } else if (!/:/.test(lambdaARN)) {
     // This is just a function name, needs to be converted to ARN
     lambdaARNType = 'function';
     lambdaARNBase = `arn:aws:lambda:${process.env.AWS_REGION}:${process.env.AWS_ACCOUNT_ID}:function:${lambdaARN}`;
