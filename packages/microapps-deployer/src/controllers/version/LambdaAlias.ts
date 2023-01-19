@@ -34,7 +34,7 @@ export async function LambdaAlias(opts: {
 
   if (parsedLambdaARN.lambdaARNType === 'function') {
     Log.Instance.warn(
-      'Lambda version is a function, not a version - It is safer to publish a version using IaC and to pass that version to `microapps-publish publish`',
+      'Lambda ARN is a function, not a version - It is safer to publish a version using IaC and to pass that version to `microapps-publish publish`',
       {
         lambdaARN,
       },
