@@ -22,6 +22,7 @@ export interface IRequestBase {
     | 'createApp'
     | 'deleteVersion'
     | 'deployVersion'
+    | 'deployVersionLite'
     | 'deployVersionPreflight'
     | 'lambdaAlias';
 }

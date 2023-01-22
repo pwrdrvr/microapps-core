@@ -23,6 +23,7 @@ import {
   LambdaAlias,
 } from './controllers/version';
 import Log from './lib/Log';
+import { DeployVersionLite } from './controllers/version/DeployVersionLite';
 
 const log = Log.Instance;
 const lambdaClient = new LambdaClient({});
@@ -117,6 +118,11 @@ export async function handler(
       case 'deployVersion': {
         const request = event as IDeployVersionRequest;
         return await DeployVersion({ dbManager, request, config });
+      }
+
+      case 'deployVersionLite': {
+        const request = event as IDeployVersionRequest;
+        return await DeployVersionLite({ dbManager, request, config });
       }
 
       case 'lambdaAlias': {
