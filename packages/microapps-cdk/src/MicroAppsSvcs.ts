@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
 import * as apigwyAuth from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import { Aws, Duration, PhysicalName, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Aws, Duration, PhysicalName, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -341,8 +341,11 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     this._table.grantReadWriteData(this._deployerFunc);
     this._table.grant(this._deployerFunc, 'dynamodb:DescribeTable');
 
+    // Add Tags to Deployer
+    Tags.of(this._deployerFunc).add('microapps-deployer', 'true');
+
     //
-    // Deloyer upload temp role
+    // Deployer upload temp role
     // Deployer assumes this role with a limited policy to generate
     // an STS temp token to return to microapps-publish for the upload.
     //

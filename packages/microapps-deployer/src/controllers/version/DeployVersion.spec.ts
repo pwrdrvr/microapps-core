@@ -618,7 +618,7 @@ describe('DeployVersion', () => {
         })
         .resolves({
           Tags: {
-            'microapps-managed': 'true',
+            'microapp-managed': 'true',
           },
         })
         .on(lambda.TagResourceCommand, {
@@ -720,7 +720,7 @@ describe('DeployVersion', () => {
         })
         .resolves({
           Tags: {
-            'microapps-managed': 'true',
+            'microapp-managed': 'true',
           },
         })
         .on(lambda.TagResourceCommand, {
@@ -821,7 +821,7 @@ describe('DeployVersion', () => {
         })
         .resolves({
           Tags: {
-            'microapps-managed': 'true',
+            'microapp-managed': 'true',
           },
         })
         .on(lambda.TagResourceCommand, {

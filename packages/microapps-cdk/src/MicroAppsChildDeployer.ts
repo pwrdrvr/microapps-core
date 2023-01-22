@@ -153,7 +153,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
         `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*:*`,
       ],
       conditions: {
-        StringEqualsIfExists: { 'aws:ResourceTag/microapp-managed': 'true' },
+        StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
       },
     });
     this._deployerFunc.addToRolePolicy(policyAPIManageLambdas);

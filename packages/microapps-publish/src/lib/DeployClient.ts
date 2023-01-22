@@ -245,7 +245,7 @@ export default class DeployClient {
         output(`Deploy succeeded: ${appName}/${semVer}`);
       } else {
         output(`Deploy failed with: ${dResponse.statusCode}`);
-        throw new Error(`Lambda call to DeployVersionfailed with: ${dResponse.statusCode}`);
+        throw new Error(`Lambda call to DeployVersion failed with: ${dResponse.statusCode}`);
       }
     } else {
       throw new Error(`Lambda call to DeployVersion failed: ${JSON.stringify(response)}`);
