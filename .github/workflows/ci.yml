@@ -217,9 +217,19 @@ jobs:
             --context @pwrdrvr/microapps:deployReleaseApp=true \
             --require-approval never ${{ matrix.deployName }}
 
+      - name: Set Hotswap Flag on PRs
+        run: |
+          if [ -n "${PR_NUMBER}" ]; then
+            echo "HOTSWAP_FLAG=--hotswap" >> $GITHUB_ENV
+          else
+            echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
+          fi
+
       - name: Deploy CDK Stack
         run: |
-          npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true \
+          npx cdk deploy \
+            ${HOTSWAP_FLAG} \
+            --context @pwrdrvr/microapps:deployDemoApp=true \
             --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
             --context @pwrdrvr/microapps:deployReleaseApp=true \
             --require-approval never ${{ matrix.deployName }}
