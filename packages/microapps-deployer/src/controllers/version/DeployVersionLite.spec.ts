@@ -145,67 +145,6 @@ describe('DeployVersionLite', () => {
         })
         .resolves({});
 
-      lambdaClient
-        .onAnyCommand()
-        .rejects()
-        .on(lambda.GetPolicyCommand, {
-          FunctionName: fakeLambdaARN,
-        })
-        .rejects({
-          name: 'ResourceNotFoundException',
-        })
-        // Mock permission add for version root
-        .on(lambda.AddPermissionCommand, {
-          Principal: 'apigateway.amazonaws.com',
-          StatementId: 'microapps-version-root',
-          Action: 'lambda:InvokeFunction',
-          FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
-        })
-        .resolves({})
-        // Mock permission add for version/*
-        .on(lambda.AddPermissionCommand, {
-          Principal: 'apigateway.amazonaws.com',
-          StatementId: 'microapps-version',
-          Action: 'lambda:InvokeFunction',
-          FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
-        })
-        .resolves({});
-
-      apigwyClient
-        .onAnyCommand()
-        .rejects()
-        // Mock API Gateway Integration Create for Version
-        .on(apigwy.CreateIntegrationCommand, {
-          ApiId: config.apigwy.apiId,
-          IntegrationType: apigwy.IntegrationType.AWS_PROXY,
-          IntegrationMethod: 'POST',
-          PayloadFormatVersion: '2.0',
-          IntegrationUri: fakeLambdaARN,
-        })
-        .resolves({
-          IntegrationId: fakeIntegrationID,
-        })
-        // Mock create route - this might fail
-        .on(apigwy.CreateRouteCommand, {
-          ApiId: config.apigwy.apiId,
-          Target: `integrations/${fakeIntegrationID}`,
-          RouteKey: `ANY /${appName}/${semVer}`,
-        })
-        .resolves({
-          RouteId: 'route123',
-        })
-        // Mock create route for /*
-        .on(apigwy.CreateRouteCommand, {
-          ApiId: config.apigwy.apiId,
-          Target: `integrations/${fakeIntegrationID}`,
-          RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
-        })
-        .resolves({
-          RouteId: 'route456',
-        });
-
       const request: IDeployVersionRequest = {
         appName,
         semVer,
@@ -322,67 +261,6 @@ describe('DeployVersionLite', () => {
           Key: `${pathPrefix}${appName}/${semVer}/index.html`,
         })
         .resolves({});
-
-      lambdaClient
-        .onAnyCommand()
-        .rejects()
-        .on(lambda.GetPolicyCommand, {
-          FunctionName: fakeLambdaARN,
-        })
-        .rejects({
-          name: 'ResourceNotFoundException',
-        })
-        // Mock permission add for version root
-        .on(lambda.AddPermissionCommand, {
-          Principal: 'apigateway.amazonaws.com',
-          StatementId: 'microapps-version-root',
-          Action: 'lambda:InvokeFunction',
-          FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}`,
-        })
-        .resolves({})
-        // Mock permission add for version/*
-        .on(lambda.AddPermissionCommand, {
-          Principal: 'apigateway.amazonaws.com',
-          StatementId: 'microapps-version',
-          Action: 'lambda:InvokeFunction',
-          FunctionName: fakeLambdaARN,
-          SourceArn: `arn:aws:execute-api:${config.awsRegion}:${config.awsAccountID}:${config.apigwy.apiId}/*/*/${appName}/${semVer}/{proxy+}`,
-        })
-        .resolves({});
-
-      apigwyClient
-        .onAnyCommand()
-        .rejects()
-        // Mock API Gateway Integration Create for Version
-        .on(apigwy.CreateIntegrationCommand, {
-          ApiId: config.apigwy.apiId,
-          IntegrationType: apigwy.IntegrationType.AWS_PROXY,
-          IntegrationMethod: 'POST',
-          PayloadFormatVersion: '2.0',
-          IntegrationUri: fakeLambdaARN,
-        })
-        .resolves({
-          IntegrationId: fakeIntegrationID,
-        })
-        // Mock create route - this might fail
-        .on(apigwy.CreateRouteCommand, {
-          ApiId: config.apigwy.apiId,
-          Target: `integrations/${fakeIntegrationID}`,
-          RouteKey: `ANY /${appName}/${semVer}`,
-        })
-        .resolves({
-          RouteId: 'route123',
-        })
-        // Mock create route for /*
-        .on(apigwy.CreateRouteCommand, {
-          ApiId: config.apigwy.apiId,
-          Target: `integrations/${fakeIntegrationID}`,
-          RouteKey: `ANY /${appName}/${semVer}/{proxy+}`,
-        })
-        .resolves({
-          RouteId: 'route456',
-        });
 
       const response = await handler(
         {

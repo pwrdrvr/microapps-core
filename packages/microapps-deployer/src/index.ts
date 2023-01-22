@@ -78,7 +78,8 @@ export async function handler(
   try {
     // Handle proxied requests when in proxy mode
     if (config.parentDeployerLambdaARN) {
-      if (['deployVersionPreflight', 'deployVersion', 'deleteVersion'].includes(event.type)) {
+      // TODO: Need `deployVersionLite` here that only cleans DB records and/or S3 files
+      if (['deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(event.type)) {
         const response = await lambdaClient.send(
           new InvokeCommand({
             FunctionName: config.parentDeployerLambdaARN,
