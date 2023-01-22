@@ -181,6 +181,7 @@ describe('LambdaAlias', () => {
       expect(response.statusCode).toBe(200);
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(response.functionUrl).toBe('https://fakeurl.com');
       expect(lambdaClient.calls()).toHaveLength(4);
     });
 
@@ -256,6 +257,7 @@ describe('LambdaAlias', () => {
       expect(response.actionTaken).toBe('verified');
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(response.functionUrl).toBe('https://fakeurl.com');
       expect(lambdaClient.calls()).toHaveLength(4);
     });
 
@@ -326,6 +328,7 @@ describe('LambdaAlias', () => {
       expect(response.statusCode).toBe(201);
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(response.functionUrl).toBe('https://fakeurl.com');
       expect(lambdaClient.calls()).toHaveLength(5);
     });
 
@@ -411,6 +414,7 @@ describe('LambdaAlias', () => {
       expect(response.actionTaken).toBe('updated');
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(response.functionUrl).toBe('https://fakeurl.com');
       expect(lambdaClient.calls()).toHaveLength(5);
     });
 
@@ -496,6 +500,7 @@ describe('LambdaAlias', () => {
       expect(response.statusCode).toBe(201);
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(response.functionUrl).toBe('https://fakeurl.com');
       expect(lambdaClient.calls()).toHaveLength(7);
     });
   });

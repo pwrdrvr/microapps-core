@@ -37,6 +37,11 @@ interface IContext {
    * The ARN of the Lambda alias to use for the deploy
    */
   lambdaAliasArn: string;
+
+  /**
+   * Lambda Function URL returned by `LambdaAlias` for lambda-url type
+   */
+  lambdaUrl: string;
 }
 
 export class PublishCommand extends Command {
@@ -280,7 +285,7 @@ export class PublishCommand extends Command {
             });
 
             ctx.lambdaAliasArn = response.lambdaAliasARN;
-
+            ctx.lambdaUrl = response.functionUrl;
             task.title = origTitle;
           },
         },
@@ -434,7 +439,7 @@ export class PublishCommand extends Command {
               lambdaAliasArn: ctx.lambdaAliasArn,
               defaultFile: config.app.defaultFile,
               appType,
-              url: parsedFlags.url,
+              url: ctx.lambdaUrl ?? parsedFlags.url,
               ...(['lambda', 'lambda-url', 'static'].includes(appType)
                 ? { startupType: parsedFlags['startup-type'] as 'iframe' | 'direct' }
                 : { startupType: 'direct' }),

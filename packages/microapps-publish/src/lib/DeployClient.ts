@@ -178,7 +178,11 @@ export default class DeployClient {
         Buffer.from(response.Payload).toString('utf-8'),
       ) as ILambdaAliasResponse;
       if (dResponse.statusCode > 299) {
-        throw new Error(`LambdaAlias failed: ${JSON.stringify(dResponse)}`);
+        output(`LambdaAlias failed: ${JSON.stringify(dResponse)}`);
+        throw new Error('LambdaAlias failed');
+      } else if (!dResponse.functionUrl) {
+        output(`LambdaAlias failed to return functionUrl: ${JSON.stringify(dResponse)}`);
+        throw new Error('LambdaAlias failed to return functionUrl');
       } else if (dResponse.statusCode === 201) {
         output(`Alias created: ${dResponse.lambdaAliasARN}`);
         return { response: dResponse };
