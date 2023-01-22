@@ -85,13 +85,13 @@ jobs:
           echo 'RELEASE_APP_PACKAGE_VERSION='${RELEASE_APP_PACKAGE_VERSION}
 
       - name: Cache TypeScript Build Output
-        id: cache-node-modules
+        id: cache-typescript-build
         uses: actions/cache@v3
         with:
           path: |
             packages/**/dist
             packages/microapps-cdk/lib
-          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+          key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
 
       - name: Optionally Build All TypeScript
         run: yarn build 
@@ -168,13 +168,13 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Cache TypeScript Build Output
-        id: cache-node-modules
+        id: cache-typescript-build
         uses: actions/cache@v3
         with:
           path: |
             packages/**/dist
             packages/microapps-cdk/lib
-          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+          key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
 
       - name: Optionally Build All TypeScript
         run: yarn build
