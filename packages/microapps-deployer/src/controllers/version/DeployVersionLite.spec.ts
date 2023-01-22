@@ -102,11 +102,42 @@ describe('DeployVersionLite', () => {
     lambdaClient.restore();
   });
 
+  describe('deployVersionLite - proxy to parent', () => {
+    it('should invoke parent when configured', async () => {
+      const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
+      theConfig.parentDeployerLambdaARN =
+        'arn:aws:lambda:us-east-1:123456789:function:parent-deployer';
+
+      const request: IDeployVersionRequest = {
+        appName,
+        semVer,
+        defaultFile: 'index.html',
+        lambdaARN: fakeLambdaARN,
+        type: 'deployVersionLite',
+      };
+
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.InvokeCommand, {
+          FunctionName: config.parentDeployerLambdaARN,
+          Payload: Buffer.from(JSON.stringify(request)),
+        })
+        .resolves({ Payload: Buffer.from(JSON.stringify({ statusCode: 200 })) });
+
+      const response = await handler(request, { awsRequestId: '123' } as lambdaTypes.Context);
+      expect(response.statusCode).toEqual(200);
+      expect(lambdaClient.calls()).toHaveLength(1);
+    });
+  });
+
   describe('deployVersionLite - lambda (apigwy)', () => {
     const fakeLambdaARN = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
 
     it('should 201 version that does not exist', async () => {
-      const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
 
@@ -224,7 +255,6 @@ describe('DeployVersionLite', () => {
     });
 
     it('should 201 version that does not exist, with continuations', async () => {
-      const fakeIntegrationID = 'abc123integrationID';
       const appName = 'newapp';
       const semVer = '0.0.0';
 
