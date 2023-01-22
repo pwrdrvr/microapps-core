@@ -55,7 +55,7 @@ jobs:
           path: |
             node_modules
             packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -84,7 +84,16 @@ jobs:
           echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='${NEXTJS_DEMO_APP_PACKAGE_VERSION}
           echo 'RELEASE_APP_PACKAGE_VERSION='${RELEASE_APP_PACKAGE_VERSION}
 
-      - name: Build All TypeScript
+      - name: Cache TypeScript Build Output
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages/**/dist
+            packages/microapps-cdk/lib
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+
+      - name: Optionally Build All TypeScript
         run: yarn build 
     
       - name: Run Lint
@@ -152,13 +161,22 @@ jobs:
           path: |
             node_modules
             packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
-      - name: Build All TypeScript
+      - name: Cache TypeScript Build Output
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages/**/dist
+            packages/microapps-cdk/lib
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+
+      - name: Optionally Build All TypeScript
         run: yarn build
 
       - name: Build Edge-to-Origin for Local Deploy
@@ -429,7 +447,7 @@ jobs:
           path: |
             node_modules
             packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
