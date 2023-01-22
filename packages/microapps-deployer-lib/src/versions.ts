@@ -11,6 +11,6 @@ export interface IVersions {
  * @param version
  * @returns
  */
-export function createVersions(version: string): IVersions {
+export function createVersions(version: string): Required<IVersions> {
   return { version, alias: `v${version.replace(/\./g, '_')}` };
 }

@@ -251,6 +251,9 @@ export class MicroAppsStack extends Stack {
         removalPolicy,
       });
 
+      const appVersion = (demoApp.lambdaFunction as lambda.Function).currentVersion;
+      appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
+
       new CfnOutput(this, 'demo-app-func-name', {
         value: `${demoApp.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-demo-app-func-name`,
@@ -266,6 +269,7 @@ export class MicroAppsStack extends Stack {
       });
 
       const appVersion = (app.lambdaFunction as lambda.Function).currentVersion;
+      appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
       new CfnOutput(this, 'release-app-func-name', {
         value: `${app.lambdaFunction.functionName}`,
@@ -288,6 +292,7 @@ export class MicroAppsStack extends Stack {
       });
 
       const appVersion = (app.lambdaFunction as lambda.Function).currentVersion;
+      appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
       new CfnOutput(this, 'nextjs-demo-app-func-name', {
         value: `${app.lambdaFunction.functionName}`,

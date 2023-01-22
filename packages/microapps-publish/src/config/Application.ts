@@ -13,9 +13,6 @@ export interface IApplicationConfig {
   lambdaName: string;
   awsAccountID: string;
   awsRegion: string;
-  serverlessNextRouterPath: string;
-  ecrHost: string;
-  ecrRepoName: string;
 }
 
 @convict.Config({
@@ -98,25 +95,4 @@ export class ApplicationConfig implements IApplicationConfig {
     env: 'AWS_REGION',
   })
   public awsRegion: string;
-
-  @convict.Property({
-    doc: 'Path to the serverless-nextjs-router index.js file',
-    default: './node_modules/@pwrdrvr/serverless-nextjs-router/lib/index.js',
-    env: 'SERVERLESS_NEXTJS_ROUTER_INDEX_JS',
-  })
-  public serverlessNextRouterPath: string;
-
-  @convict.Property({
-    doc: 'ECR Host for app',
-    default: '',
-    env: 'APP_ECR_HOST',
-  })
-  public ecrHost: string;
-
-  @convict.Property({
-    doc: 'ECR Repo Name for app',
-    default: '',
-    env: 'APP_ECR_REPO_NAME',
-  })
-  public ecrRepoName: string;
 }

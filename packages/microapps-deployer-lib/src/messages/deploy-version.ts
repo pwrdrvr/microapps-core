@@ -26,7 +26,7 @@ export interface IDeployVersionRequestBase extends IRequestBase {
  * Represents a Deploy Version Request
  */
 export interface IDeployVersionRequest extends IDeployVersionRequestBase {
-  readonly type: 'deployVersion';
+  readonly type: 'deployVersion' | 'deployVersionLite';
   /**
    * Type of the app (which implies how it's routed)
    */

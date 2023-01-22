@@ -55,7 +55,7 @@ jobs:
           path: |
             node_modules
             packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -84,7 +84,17 @@ jobs:
           echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='${NEXTJS_DEMO_APP_PACKAGE_VERSION}
           echo 'RELEASE_APP_PACKAGE_VERSION='${RELEASE_APP_PACKAGE_VERSION}
 
-      - name: Build All TypeScript
+      - name: Cache TypeScript Build Output
+        id: cache-typescript-build
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages/**/dist
+            packages/microapps-cdk/lib
+          key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+
+      - name: Optionally Build All TypeScript
+        if: steps.cache-typescript-build.outputs.cache-hit != 'true'
         run: yarn build 
     
       - name: Run Lint
@@ -152,13 +162,23 @@ jobs:
           path: |
             node_modules
             packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
-      - name: Build All TypeScript
+      - name: Cache TypeScript Build Output
+        id: cache-typescript-build
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages/**/dist
+            packages/microapps-cdk/lib
+          key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+
+      - name: Optionally Build All TypeScript
+        if: steps.cache-typescript-build.outputs.cache-hit != 'true'
         run: yarn build
 
       - name: Build Edge-to-Origin for Local Deploy
@@ -217,9 +237,19 @@ jobs:
             --context @pwrdrvr/microapps:deployReleaseApp=true \
             --require-approval never ${{ matrix.deployName }}
 
+      - name: Set Hotswap Flag on PRs
+        run: |
+          if [ -n "${PR_NUMBER}" ]; then
+            echo "HOTSWAP_FLAG=--hotswap" >> $GITHUB_ENV
+          else
+            echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
+          fi
+
       - name: Deploy CDK Stack
         run: |
-          npx cdk deploy --context @pwrdrvr/microapps:deployDemoApp=true \
+          npx cdk deploy \
+            ${HOTSWAP_FLAG} \
+            --context @pwrdrvr/microapps:deployDemoApp=true \
             --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
             --context @pwrdrvr/microapps:deployReleaseApp=true \
             --require-approval never ${{ matrix.deployName }}
@@ -419,7 +449,7 @@ jobs:
           path: |
             node_modules
             packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', '**/yarn.lock') }}
+          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
 
       - name: Optionally Install Node Modules
         if: steps.cache-node-modules.outputs.cache-hit != 'true'

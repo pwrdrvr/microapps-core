@@ -41,4 +41,9 @@ export interface ILambdaAliasResponse extends IDeployerResponse {
    * - `verified` - Alias already points to the correct version
    */
   readonly actionTaken: 'created' | 'updated' | 'verified';
+
+  /**
+   * URL of the Lambda function version alias
+   */
+  readonly functionUrl?: string;
 }

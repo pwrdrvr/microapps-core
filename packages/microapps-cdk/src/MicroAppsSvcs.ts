@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
 import * as apigwyAuth from '@aws-cdk/aws-apigatewayv2-authorizers-alpha';
 import * as apigwyint from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import { Aws, Duration, PhysicalName, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Aws, Duration, PhysicalName, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -148,7 +148,7 @@ export interface MicroAppsSvcsProps {
   readonly rootPathPrefix?: string;
 
   /**
-   * Require IAM auth on API Gateway
+   * Require IAM auth on API Gateway and Lambda Function URLs
    *
    * @default true
    */
@@ -169,6 +169,15 @@ export interface MicroAppsSvcsProps {
    * @default created by construct
    */
   readonly table?: dynamodb.ITable;
+
+  /**
+   * Deployer timeout
+   *
+   * For larger applications this needs to be set up to 2-5 minutes for the S3 copy
+   *
+   * @default 2 minutes
+   */
+  readonly deployerTimeout?: Duration;
 }
 
 /**
@@ -223,6 +232,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       bucketApps,
       bucketAppsOAI,
       bucketAppsStaging,
+      deployerTimeout = Duration.minutes(2),
       s3PolicyBypassAROAs = [],
       s3PolicyBypassPrincipalARNs = [],
       s3StrictBucketPolicy = false,
@@ -284,7 +294,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_16_X,
-      timeout: Duration.seconds(15),
+      timeout: deployerTimeout,
       environment: {
         NODE_ENV: appEnv,
         ...(httpApi ? { APIGWY_ID: httpApi.httpApiId } : {}),
@@ -331,8 +341,11 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     this._table.grantReadWriteData(this._deployerFunc);
     this._table.grant(this._deployerFunc, 'dynamodb:DescribeTable');
 
+    // Add Tags to Deployer
+    Tags.of(this._deployerFunc).add('microapps-deployer', 'true');
+
     //
-    // Deloyer upload temp role
+    // Deployer upload temp role
     // Deployer assumes this role with a limited policy to generate
     // an STS temp token to return to microapps-publish for the upload.
     //

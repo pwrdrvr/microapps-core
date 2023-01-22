@@ -18,6 +18,9 @@ export interface IConfig {
   readonly awsAccountID: string;
   readonly awsRegion: string;
 
+  readonly parentDeployerLambdaARN: string;
+  readonly edgeToOriginRoleARN: string;
+
   readonly uploadRoleName: string;
 
   readonly rootPathPrefix: string;
@@ -127,4 +130,18 @@ export class Config implements IConfig {
     env: 'REQUIRE_IAM_AUTHORIZATION',
   })
   public requireIAMAuthorization!: boolean;
+
+  @convict.Property({
+    doc: 'ARN of parent deployer Lambda function',
+    default: '',
+    env: 'PARENT_DEPLOYER_LAMBDA_ARN',
+  })
+  public parentDeployerLambdaARN!: string;
+
+  @convict.Property({
+    doc: 'ARN of the Role used by the Edge to Origin Lambda function to invoke the app',
+    default: '',
+    env: 'EDGE_TO_ORIGIN_ROLE_ARN',
+  })
+  public edgeToOriginRoleARN!: string;
 }

@@ -6,7 +6,6 @@
     "staticAssetsPath": "./.serverless_nextjs/assets/appname/0.0.0/",
     "lambdaName": "appname",
     "awsAccountID": "00123456789012",
-    "awsRegion": "us-east-1",
-    "serverlessNextRouterPath": "./node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js"
+    "awsRegion": "us-east-1"
   }
 }

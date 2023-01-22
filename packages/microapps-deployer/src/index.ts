@@ -11,14 +11,22 @@ import {
   ILambdaAliasRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
-import type * as lambda from 'aws-lambda';
+import * as lambda from 'aws-lambda';
 import { Config } from './config/Config';
 import AppController from './controllers/AppController';
-import VersionController from './controllers/VersionController';
+import {
+  DeleteVersion,
+  DeployVersion,
+  DeployVersionPreflight,
+  LambdaAlias,
+} from './controllers/version';
 import Log from './lib/Log';
+import { DeployVersionLite } from './controllers/version/DeployVersionLite';
 
 const log = Log.Instance;
+const lambdaClient = new LambdaClient({});
 
 let dbManager: DBManager;
 let dynamoClient = new DynamoDBClient({
@@ -68,7 +76,30 @@ export async function handler(
   });
 
   try {
-    // Dispatch based on request type
+    // Handle proxied requests when in proxy mode
+    if (config.parentDeployerLambdaARN) {
+      // TODO: Need `deployVersionLite` here that only cleans DB records and/or S3 files
+      if (['deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(event.type)) {
+        const response = await lambdaClient.send(
+          new InvokeCommand({
+            FunctionName: config.parentDeployerLambdaARN,
+            Payload: Buffer.from(JSON.stringify(event)),
+          }),
+        );
+
+        const responsePayload = response.Payload
+          ? (JSON.parse(response.Payload.toString()) as IDeployerResponse)
+          : { statusCode: 500 };
+        Log.Instance.info('response from parent deployer', {
+          ...response,
+          Payload: responsePayload,
+        });
+
+        return responsePayload;
+      }
+    }
+
+    // Dispatch based on locally handled request type
     switch (event.type) {
       case 'createApp': {
         const request = event as ICreateApplicationRequest;
@@ -77,22 +108,27 @@ export async function handler(
 
       case 'deleteVersion': {
         const request = event as IDeleteVersionRequest;
-        return await VersionController.DeleteVersion({ dbManager, request, config });
+        return await DeleteVersion({ dbManager, request, config });
       }
 
       case 'deployVersionPreflight': {
         const request = event as IDeployVersionPreflightRequest;
-        return await VersionController.DeployVersionPreflight({ dbManager, request, config });
+        return await DeployVersionPreflight({ dbManager, request, config });
       }
 
       case 'deployVersion': {
         const request = event as IDeployVersionRequest;
-        return await VersionController.DeployVersion({ dbManager, request, config });
+        return await DeployVersion({ dbManager, request, config });
+      }
+
+      case 'deployVersionLite': {
+        const request = event as IDeployVersionRequest;
+        return await DeployVersionLite({ dbManager, request, config });
       }
 
       case 'lambdaAlias': {
         const request = event as ILambdaAliasRequest;
-        const response = await VersionController.LambdaAlias({ dbManager, request });
+        const response = await LambdaAlias({ request, config });
         Log.Instance.info('lambdaAlias response', { response });
         return response;
       }
