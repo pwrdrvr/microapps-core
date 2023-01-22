@@ -153,12 +153,8 @@ export async function DeployVersion(opts: {
           }
         }
       } catch (error: any) {
-        Log.Instance.error('Error getting Lambda version', error);
-
-        if (error.name === 'ResourceNotFoundException') {
-          return { statusCode: 404, errorMessage: error.message };
-        } else {
-          return { statusCode: 500, errorMessage: error.message };
+        if (error.name !== 'ResourceNotFoundException') {
+          throw error;
         }
       }
 
