@@ -6,7 +6,7 @@ import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
 import * as s3 from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer-lib';
+import type { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deployer-lib';
 import { contentType } from 'mime-types';
 import pMap from 'p-map';
 

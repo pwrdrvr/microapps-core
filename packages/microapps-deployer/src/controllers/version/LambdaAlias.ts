@@ -1,14 +1,13 @@
 import * as lambda from '@aws-sdk/client-lambda';
 import { IConfig } from '../../config/Config';
-import {
-  createVersions,
+import type {
   IDeployerResponse,
   ILambdaAliasRequest,
   ILambdaAliasResponse,
-  IVersions,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { promisify } from 'util';
 import Log from '../../lib/Log';
+import { createVersions, IVersions } from '../../lib/Versions';
 import { ExtractARNandAlias } from '../../lib/ExtractLambdaArn';
 
 const sleep = promisify(setTimeout);

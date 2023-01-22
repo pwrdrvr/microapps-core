@@ -1,4 +1,4 @@
-import { IDeployVersionRequestBase } from '@pwrdrvr/microapps-deployer-lib';
+import type { IDeployVersionRequestBase } from '@pwrdrvr/microapps-deployer-lib';
 
 export function GetAppNameOrRootTrailingSlash(
   request: Pick<IDeployVersionRequestBase, 'appName'>,

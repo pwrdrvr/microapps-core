@@ -30,7 +30,7 @@ Object.defineProperty(Config, 'instance', {
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { handler, overrideDBManager } from './index';
 import { Application, DBManager } from '@pwrdrvr/microapps-datalib';
-import { ICreateApplicationRequest } from '@pwrdrvr/microapps-deployer-lib';
+import type { ICreateApplicationRequest } from '@pwrdrvr/microapps-deployer-lib';
 
 let dynamoClient: dynamodb.DynamoDBClient;
 let dbManager: DBManager;

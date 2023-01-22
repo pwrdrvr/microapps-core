@@ -3,7 +3,7 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../../config/Config';
-import { IDeleteVersionRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
+import type { IDeleteVersionRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
 import Log from '../../lib/Log';
 import { ExtractARNandAlias } from '../../lib/ExtractLambdaArn';
 import { GetBucketPrefix } from '../../lib/GetBucketPrefix';

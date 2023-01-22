@@ -2,7 +2,7 @@ import 'jest-dynalite/withDb';
 import { DBManager, Application } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import { ICreateApplicationRequest } from '@pwrdrvr/microapps-deployer-lib';
+import type { ICreateApplicationRequest } from '@pwrdrvr/microapps-deployer-lib';
 import { handler, overrideDBManager } from '../index';
 
 let dynamoClient: dynamodb.DynamoDBClient;

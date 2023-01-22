@@ -1,5 +1,4 @@
 import { promises as fs } from 'fs-extra';
-import { IVersions } from '@pwrdrvr/microapps-deployer-lib';
 
 /**
  * Represents a File To Modify
@@ -82,4 +81,21 @@ export async function restoreFiles(filesToModify: IFileToModify[]): Promise<void
       // don't care... if the file doesn't exist we can't do anything
     }
   }
+}
+
+/**
+ * Represents a Versions
+ */
+export interface IVersions {
+  version: string;
+  alias?: string;
+}
+
+/**
+ * Setup version and alias strings
+ * @param version
+ * @returns
+ */
+export function createVersions(version: string): Required<IVersions> {
+  return { version, alias: `v${version.replace(/\./g, '_')}` };
 }

@@ -1,5 +1,5 @@
 import { Application, DBManager } from '@pwrdrvr/microapps-datalib';
-import { ICreateApplicationRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
+import type { ICreateApplicationRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
 
 function isNil(arg: string | undefined | null) {
   if (arg === undefined || arg === null || arg === '') return true;

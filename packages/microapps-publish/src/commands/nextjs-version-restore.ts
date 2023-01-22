@@ -1,8 +1,7 @@
 import 'reflect-metadata';
 import { Command, flags as flagsParser } from '@oclif/command';
 import { Listr } from 'listr2';
-import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
-import { restoreFiles } from '../lib/Versions';
+import { createVersions, IVersions, restoreFiles } from '../lib/Versions';
 
 export class NextJSVersionRestoreCommand extends Command {
   static description = 'Restore next.config.js';

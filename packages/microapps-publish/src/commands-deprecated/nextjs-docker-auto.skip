@@ -13,7 +13,7 @@ import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient
 import S3Uploader from '../lib/S3Uploader';
 import S3TransferUtility from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
-import { createVersions, IVersions } from '@pwrdrvr/microapps-deployer-lib';
+import { createVersions, IVersions } from '../lib/Versions';
 import { contentType } from 'mime-types';
 import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
 import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';

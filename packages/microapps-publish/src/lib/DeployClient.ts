@@ -1,5 +1,5 @@
 import * as lambda from '@aws-sdk/client-lambda';
-import {
+import type {
   ICreateApplicationRequest,
   IDeployerResponse,
   IDeployVersionPreflightRequest,

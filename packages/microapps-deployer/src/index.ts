@@ -1,7 +1,7 @@
 import 'source-map-support/register';
 // Used by ts-convict
 import 'reflect-metadata';
-import {
+import type {
   IRequestBase,
   IDeployVersionPreflightRequest,
   ICreateApplicationRequest,

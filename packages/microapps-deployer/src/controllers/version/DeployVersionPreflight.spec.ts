@@ -37,7 +37,7 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 
-import {
+import type {
   IDeployVersionPreflightRequest,
   ICreateApplicationRequest,
 } from '@pwrdrvr/microapps-deployer-lib';

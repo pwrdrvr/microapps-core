@@ -36,7 +36,10 @@ import * as dynamodb from '@aws-sdk/client-dynamodb';
 import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 
-import { ICreateApplicationRequest, IDeleteVersionRequest } from '@pwrdrvr/microapps-deployer-lib';
+import type {
+  ICreateApplicationRequest,
+  IDeleteVersionRequest,
+} from '@pwrdrvr/microapps-deployer-lib';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
 import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';

@@ -1,7 +1,7 @@
 import * as sts from '@aws-sdk/client-sts';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../../config/Config';
-import {
+import type {
   IDeployVersionPreflightRequest,
   IDeployVersionPreflightResponse,
 } from '@pwrdrvr/microapps-deployer-lib';

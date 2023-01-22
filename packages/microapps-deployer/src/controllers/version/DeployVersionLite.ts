@@ -1,6 +1,6 @@
 import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../../config/Config';
-import { IDeployVersionRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
+import type { IDeployVersionRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
 import Log from '../../lib/Log';
 import { GetBucketPrefix } from '../../lib/GetBucketPrefix';
 import { CopyToProdBucket } from '../../lib/S3';
