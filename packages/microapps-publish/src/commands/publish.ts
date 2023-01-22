@@ -22,6 +22,8 @@ const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
 });
 
+type DeployVersionArgs = Parameters<typeof DeployClient.DeployVersionLite>[0];
+
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;
   files: string[];
@@ -420,13 +422,12 @@ export class PublishCommand extends Command {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
-            const appType =
+            const appType: 'lambda' | 'lambda-url' | 'static' | 'url' =
               parsedFlags.type === 'apigwy'
                 ? 'lambda'
                 : (parsedFlags.type as 'lambda-url' | 'static' | 'url');
 
-            // Call Deployer to Deploy AppName/Version
-            await DeployClient.DeployVersion({
+            const request: DeployVersionArgs = {
               appName: config.app.name,
               semVer: config.app.semVer,
               deployerLambdaName: config.deployer.lambdaName,
@@ -439,7 +440,17 @@ export class PublishCommand extends Command {
                 : { startupType: 'direct' }),
               overwrite,
               output: (message: string) => (task.output = message),
-            });
+            };
+
+            // Use DeployVersionLite if createAlias is supported
+            if (ctx.preflightResult.response.capabilities?.['createAlias'] === 'true') {
+              task.output = 'Using DeployVersionLite';
+              await DeployClient.DeployVersionLite(request);
+            } else {
+              // Use legacy DeployVersion if createAlias is not supported
+              task.output = 'Using DeployVersion';
+              await DeployClient.DeployVersion(request);
+            }
 
             task.title = origTitle;
           },

@@ -19,6 +19,8 @@ export interface IDeployVersionPreflightResult {
   response: IDeployVersionPreflightResponse;
 }
 
+export type DeployVersionArgs = Parameters<typeof DeployClient.DeployVersionLite>;
+
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({
     maxAttempts: 8,
@@ -251,6 +253,71 @@ export default class DeployClient {
       }
     } else {
       throw new Error(`Lambda call to DeployVersion failed: ${JSON.stringify(response)}`);
+    }
+  }
+
+  /**
+   * Copy S3 static assets from staging to live bucket.
+   * Create DB records.
+   * Proxied to parent account if needed.
+   *
+   * @param config
+   * @param task
+   */
+  public static async DeployVersionLite(opts: {
+    appName: string;
+    semVer: string;
+    defaultFile?: string;
+    lambdaAliasArn?: string;
+    deployerLambdaName: string;
+    appType: 'lambda' | 'static' | 'lambda-url' | 'url';
+    startupType?: 'iframe' | 'direct';
+    url?: string;
+    overwrite: boolean;
+    output: (message: string) => void;
+  }): Promise<void> {
+    const {
+      appName,
+      semVer,
+      defaultFile,
+      lambdaAliasArn,
+      deployerLambdaName,
+      appType,
+      startupType = 'iframe',
+      url,
+      overwrite,
+      output,
+    } = opts;
+    const request: IDeployVersionRequest = {
+      type: 'deployVersionLite',
+      appType,
+      startupType,
+      appName,
+      semVer,
+      defaultFile: defaultFile,
+      url,
+      overwrite,
+      ...(['lambda', 'lambda-url'].includes(appType) ? { lambdaARN: lambdaAliasArn } : {}),
+    };
+    const response = await this._client.send(
+      new lambda.InvokeCommand({
+        FunctionName: deployerLambdaName,
+        Payload: Buffer.from(JSON.stringify(request)),
+      }),
+    );
+
+    if (response.$metadata.httpStatusCode === 200 && response.Payload !== undefined) {
+      const dResponse = JSON.parse(
+        Buffer.from(response.Payload).toString('utf-8'),
+      ) as IDeployerResponse;
+      if (dResponse.statusCode === 201) {
+        output(`Deploy succeeded: ${appName}/${semVer}`);
+      } else {
+        output(`Deploy failed with: ${dResponse.statusCode}`);
+        throw new Error(`Lambda call to DeployVersionLite failed with: ${dResponse.statusCode}`);
+      }
+    } else {
+      throw new Error(`Lambda call to DeployVersionLite failed: ${JSON.stringify(response)}`);
     }
   }
 }
