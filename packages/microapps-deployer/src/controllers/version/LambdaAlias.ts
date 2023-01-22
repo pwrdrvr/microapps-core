@@ -301,7 +301,9 @@ async function CreateOrUpdateLambdaAlias(opts: {
     // Alias does not exist, create it by falling through
   }
 
-  Log.Instance.info(`Creating the lambda alias for the desired version: ${lambdaVersion}`);
+  Log.Instance.info(
+    `Creating the lambda alias for the desired version: ${lambdaVersion}, lambdaArnBase: ${lambdaArnBase}`,
+  );
 
   const resultCreateAlias = await lambdaClient.send(
     new lambda.CreateAliasCommand({
