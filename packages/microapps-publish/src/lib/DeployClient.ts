@@ -175,7 +175,9 @@ export default class DeployClient {
       const dResponse = JSON.parse(
         Buffer.from(response.Payload).toString('utf-8'),
       ) as ILambdaAliasResponse;
-      if (dResponse.statusCode === 201) {
+      if (dResponse.statusCode > 299) {
+        throw new Error(`LambdaAlias failed: ${JSON.stringify(dResponse)}`);
+      } else if (dResponse.statusCode === 201) {
         output(`Alias created: ${dResponse.lambdaAliasARN}`);
         return { response: dResponse };
       } else {
@@ -243,6 +245,7 @@ export default class DeployClient {
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
         output(`Deploy succeeded: ${appName}/${semVer}`);
+        return dResponse;
       } else {
         output(`Deploy failed with: ${dResponse.statusCode}`);
         throw new Error(`Lambda call to DeployVersion failed with: ${dResponse.statusCode}`);
