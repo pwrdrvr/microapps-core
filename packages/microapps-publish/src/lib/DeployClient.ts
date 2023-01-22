@@ -245,7 +245,6 @@ export default class DeployClient {
       ) as IDeployerResponse;
       if (dResponse.statusCode === 201) {
         output(`Deploy succeeded: ${appName}/${semVer}`);
-        return dResponse;
       } else {
         output(`Deploy failed with: ${dResponse.statusCode}`);
         throw new Error(`Lambda call to DeployVersion failed with: ${dResponse.statusCode}`);
