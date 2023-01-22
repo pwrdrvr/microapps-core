@@ -192,12 +192,12 @@ export interface IMicroAppsSvcs {
   /**
    * Lambda function for the Deployer
    */
-  readonly deployerFunc: lambda.IFunction;
+  readonly deployerFunc: lambda.Function;
 
   /**
    * Lambda function for the Router
    */
-  readonly routerFunc?: lambda.IFunction;
+  readonly routerFunc?: lambda.Function;
 }
 
 /**
@@ -212,12 +212,12 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
   }
 
   private _deployerFunc: lambda.Function;
-  public get deployerFunc(): lambda.IFunction {
+  public get deployerFunc(): lambda.Function {
     return this._deployerFunc;
   }
 
   private _routerFunc?: lambda.Function;
-  public get routerFunc(): lambda.IFunction | undefined {
+  public get routerFunc(): lambda.Function | undefined {
     return this._routerFunc;
   }
 
@@ -286,11 +286,22 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     const iamRoleUploadName = assetNameRoot
       ? `${assetNameRoot}-deployer-upload${assetNameSuffix}`
       : undefined;
+    const iamRoleDeployerName = assetNameRoot
+      ? `${assetNameRoot}-deployer${assetNameSuffix}`
+      : undefined;
+    const iamRoleDeployer = new iam.Role(this, 'deployer-role', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      roleName: iamRoleDeployerName,
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
+    });
     const deployerFuncName = assetNameRoot
       ? `${assetNameRoot}-deployer${assetNameSuffix}`
       : undefined;
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
+      role: iamRoleDeployer,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_16_X,

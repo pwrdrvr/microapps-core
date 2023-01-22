@@ -246,6 +246,8 @@ jobs:
           fi
 
       - name: Deploy CDK Stack
+        env:
+          AWS_ACCOUNT_ID_CHILD: ${{ secrets.AWS_ACCOUNT_ID_CHILD }}
         run: |
           npx cdk deploy \
             ${HOTSWAP_FLAG} \
@@ -262,6 +264,7 @@ jobs:
           echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "NEXTJS_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
@@ -430,6 +433,63 @@ jobs:
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
           curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
+
+      #
+      # Child Account Deploy
+      #
+
+      # Change to Child Account Creds
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Child CDK Stack
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          npx cdk deploy \
+            ${HOTSWAP_FLAG} \
+            --require-approval never ${{ matrix.deployName }}-child
+
+      - name: Get Child CDK Exports
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        id: getChildCDKExports
+        run: |
+          echo "CHILD_DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+      
+      - name: Echo Exports
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          env | grep CHILD_
+
+      - name: Publish Demo App to Child MicroApps
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          npx microapps-publish publish \
+            -a ${DEMO_APP_NAME} \
+            -t lambda-url \
+            --startup-type direct \
+            -n 0.0.0-child.1 \
+            -d ${CHILD_DEPLOYER_LAMBDA_NAME} \
+            -l ${CHILD_DEMO_APP_LAMBDA_VERSION_ARN} \
+            -s packages/demo-app/static_files \
+            -i index.html --overwrite
+
+      - name: Test Demo App - Child
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0-child.1/index.html
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0-child.1/serverIncrement?currValue=1"
+          echo Testing App Method Invocation on _next/data Route
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0-child.1/serverIncrement?currValue=1"
 
   build-jsii:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII'))

@@ -134,6 +134,14 @@ export interface MicroAppsStackProps extends StackProps {
    * DynamoDB Table name - Needed for Edge routing
    */
   readonly tableName?: string;
+
+  /**
+   * Optional child account deployer role ARNs that
+   * can invoke this parent deployer Lambda
+   *
+   * @default []
+   */
+  readonly resourceArnsForGrantInvoke?: string[];
 }
 
 export class MicroAppsStack extends Stack {
@@ -166,6 +174,7 @@ export class MicroAppsStack extends Stack {
       rootPathPrefix,
       originRegion,
       tableName,
+      resourceArnsForGrantInvoke = [],
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -243,6 +252,16 @@ export class MicroAppsStack extends Stack {
       ...optionalCustomDomainOpts,
     });
 
+    // Give the current version an alias
+    const deployerAlias = new lambda.Alias(this, 'deployer-alias', {
+      aliasName: 'currentVersion',
+      version: microapps.svcs.deployerFunc.currentVersion,
+    });
+    // Allow cross-account invokes if specified
+    if (resourceArnsForGrantInvoke.length > 0) {
+      deployerAlias.resourceArnsForGrantInvoke.push(...resourceArnsForGrantInvoke);
+    }
+
     if (deployDemoApp) {
       const demoApp = new DemoApp(this, 'demo-app', {
         appName: 'demo-app',
@@ -257,6 +276,11 @@ export class MicroAppsStack extends Stack {
       new CfnOutput(this, 'demo-app-func-name', {
         value: `${demoApp.lambdaFunction.functionName}`,
         exportName: `${this.stackName}-demo-app-func-name`,
+      });
+
+      new CfnOutput(this, 'demo-app-vers-arn', {
+        value: `${appVersion.functionArn}`,
+        exportName: `${this.stackName}-demo-app-vers-arn`,
       });
     }
 

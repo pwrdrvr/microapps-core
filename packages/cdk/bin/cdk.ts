@@ -2,6 +2,7 @@
 import 'source-map-support/register';
 import { App, Environment } from 'aws-cdk-lib';
 import { MicroAppsStack } from '../lib/MicroApps';
+import { MicroAppsChildStack } from '../lib/MicroAppsChild';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 import { SharedProps } from '../lib/SharedProps';
 
@@ -36,6 +37,25 @@ new MicroAppsStack(app, 'microapps-core', {
   // We need to know the origin region for signing requests
   // Accessing Aws.REGION will end up writing a Token into the config file
   originRegion: shared.region,
+  ...(process.env.AWS_ACCOUNT_ID_CHILD
+    ? {
+        resourceArnsForGrantInvoke: [
+          `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghpublic-deployer${shared.envSuffix}${shared.prSuffix}`,
+        ],
+      }
+    : {}),
+});
+
+new MicroAppsChildStack(app, 'microapps-core-child', {
+  env,
+  stackName: `microapps-core-ghchild${shared.envSuffix}${shared.prSuffix}`,
+  autoDeleteEverything: true,
+  assetNameRoot: 'microapps-core-ghchild',
+  assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
+  // TODO: Pass an alias to current version of the parent deployer - allowing the parent
+  // account to change the version as needed without pointing to $LATEST or requiring
+  // child accounts to update their stacks
+  parentDeployerLambdaARN: `arn:aws:lambda:${shared.region}:${shared.account}:function:microapps-core-ghpublic-deployer${shared.envSuffix}${shared.prSuffix}:currentVersion`,
 });
 
 new MicroAppsStack(app, 'microapps-basic', {
