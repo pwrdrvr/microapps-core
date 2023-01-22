@@ -32,4 +32,5 @@ export interface IRequestBase {
  */
 export interface IResponseBase {
   readonly statusCode: number;
+  readonly errorMessage?: string;
 }

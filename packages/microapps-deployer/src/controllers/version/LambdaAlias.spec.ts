@@ -60,6 +60,7 @@ const TEST_TABLE_NAME = 'microapps';
 describe('LambdaAlias', () => {
   const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
+  const fakeLambdaARNBase = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
 
   beforeAll(() => {
     dynamoClient = new dynamodb.DynamoDBClient({
@@ -108,9 +109,7 @@ describe('LambdaAlias', () => {
     lambdaClient.restore();
   });
 
-  describe('lambdaAlias', () => {
-    const fakeLambdaARNBase = `arn:aws:lambda:${config.awsRegion}:${config.awsAccountID}:function:new-app-function`;
-
+  describe('lambdaAlias - version ARN passed', () => {
     it('should 200 for version that exists when !overwrite', async () => {
       const appName = 'newapp';
       const semVer = '0.0.0';
@@ -123,6 +122,16 @@ describe('LambdaAlias', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersion,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+            FunctionArn: `${fakeLambdaARNBase}:${fakeLambdaVersion}`,
+          },
+        })
         .on(lambda.GetAliasCommand, {
           FunctionName: fakeLambdaARNBase,
           Name: fakeLambdaAlias,
@@ -182,7 +191,7 @@ describe('LambdaAlias', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(4);
+      expect(lambdaClient.calls()).toHaveLength(5);
     });
 
     it('should 200 for version that exists when overwrite=true', async () => {
@@ -197,6 +206,16 @@ describe('LambdaAlias', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersion,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+            FunctionArn: `${fakeLambdaARNBase}:${fakeLambdaVersion}`,
+          },
+        })
         .on(lambda.GetAliasCommand, {
           FunctionName: fakeLambdaARNBase,
           Name: fakeLambdaAlias,
@@ -258,7 +277,7 @@ describe('LambdaAlias', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(4);
+      expect(lambdaClient.calls()).toHaveLength(5);
     });
 
     it('should 201 for version that !exists when !overwrite', async () => {
@@ -273,6 +292,16 @@ describe('LambdaAlias', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersion,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+            FunctionArn: `${fakeLambdaARNBase}:${fakeLambdaVersion}`,
+          },
+        })
         .on(lambda.GetAliasCommand, {
           FunctionName: fakeLambdaARNBase,
           Name: fakeLambdaAlias,
@@ -329,7 +358,7 @@ describe('LambdaAlias', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(5);
+      expect(lambdaClient.calls()).toHaveLength(6);
     });
 
     it('should 200 for version that exists when overwrite and version changed', async () => {
@@ -345,6 +374,16 @@ describe('LambdaAlias', () => {
       lambdaClient
         .onAnyCommand()
         .rejects()
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersionEnd,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+            FunctionArn: `${fakeLambdaARNBase}:${fakeLambdaVersionEnd}`,
+          },
+        })
         .on(lambda.GetAliasCommand, {
           FunctionName: fakeLambdaARNBase,
           Name: fakeLambdaAlias,
@@ -415,93 +454,105 @@ describe('LambdaAlias', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(5);
+      expect(lambdaClient.calls()).toHaveLength(6);
     });
 
-    it('should 201 for function ARN that !exists when !overwrite', async () => {
-      const appName = 'newapp';
-      const semVer = '0.0.0';
-      const fakeLambdaVersion = '31';
-      const fakeLambdaAlias = 'v0_0_0';
+    describe('lambdaAlias - function ARN passed', () => {
+      it('should 201 for function ARN that !exists when !overwrite', async () => {
+        const appName = 'newapp';
+        const semVer = '0.0.0';
+        const fakeLambdaVersion = '31';
+        const fakeLambdaAlias = 'v0_0_0';
 
-      s3Client.onAnyCommand().rejects();
-      stsClient.onAnyCommand().rejects();
-      lambdaClient
-        .onAnyCommand()
-        .rejects()
-        .on(lambda.PublishVersionCommand, {
-          FunctionName: fakeLambdaARNBase,
-        })
-        .resolves({
-          FunctionName: fakeLambdaARNBase,
-          Version: fakeLambdaVersion,
-        })
-        .on(lambda.GetFunctionCommand, {
-          FunctionName: fakeLambdaARNBase,
-          Qualifier: fakeLambdaVersion,
-        })
-        .resolves({
-          Configuration: {
-            LastUpdateStatus: 'Successful',
-          },
-        })
-        .on(lambda.GetAliasCommand, {
-          FunctionName: fakeLambdaARNBase,
-          Name: fakeLambdaAlias,
-        })
-        .rejects({
-          name: 'ResourceNotFoundException',
-        })
-        .on(lambda.CreateAliasCommand, {
-          FunctionName: fakeLambdaARNBase,
-          Name: fakeLambdaAlias,
-          FunctionVersion: fakeLambdaVersion,
-        })
-        .resolves({
-          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
-          FunctionVersion: fakeLambdaVersion,
-        })
-        // AddTagToFunction
-        .on(lambda.ListTagsCommand, {
-          Resource: fakeLambdaARNBase,
-        })
-        .resolves({
-          Tags: {
-            'app-name': appName,
-            'sem-ver': semVer,
-          },
-        })
-        .on(lambda.TagResourceCommand, {
-          Resource: fakeLambdaARNBase,
-          Tags: {
-            'microapp-managed': 'true',
-          },
-        })
-        .resolves({})
-        // AddOrUpdateFunctionUrl
-        .on(lambda.GetFunctionUrlConfigCommand, {
-          FunctionName: fakeLambdaARNBase,
-          Qualifier: fakeLambdaAlias,
-        })
-        .resolves({
-          FunctionUrl: 'https://fakeurl.com',
-        });
+        s3Client.onAnyCommand().rejects();
+        stsClient.onAnyCommand().rejects();
+        lambdaClient
+          .onAnyCommand()
+          .rejects()
+          .on(lambda.PublishVersionCommand, {
+            FunctionName: fakeLambdaARNBase,
+          })
+          .resolves({
+            FunctionName: fakeLambdaARNBase,
+            Version: fakeLambdaVersion,
+          })
+          .on(lambda.GetFunctionCommand, {
+            FunctionName: fakeLambdaARNBase,
+            Qualifier: fakeLambdaVersion,
+          })
+          .resolves({
+            Configuration: {
+              LastUpdateStatus: 'Successful',
+            },
+          })
+          .on(lambda.GetFunctionCommand, {
+            FunctionName: fakeLambdaARNBase,
+            Qualifier: fakeLambdaVersion,
+          })
+          .resolves({
+            Configuration: {
+              LastUpdateStatus: 'Successful',
+              FunctionArn: `${fakeLambdaARNBase}:${fakeLambdaVersion}`,
+            },
+          })
+          .on(lambda.GetAliasCommand, {
+            FunctionName: fakeLambdaARNBase,
+            Name: fakeLambdaAlias,
+          })
+          .rejects({
+            name: 'ResourceNotFoundException',
+          })
+          .on(lambda.CreateAliasCommand, {
+            FunctionName: fakeLambdaARNBase,
+            Name: fakeLambdaAlias,
+            FunctionVersion: fakeLambdaVersion,
+          })
+          .resolves({
+            AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+            FunctionVersion: fakeLambdaVersion,
+          })
+          // AddTagToFunction
+          .on(lambda.ListTagsCommand, {
+            Resource: fakeLambdaARNBase,
+          })
+          .resolves({
+            Tags: {
+              'app-name': appName,
+              'sem-ver': semVer,
+            },
+          })
+          .on(lambda.TagResourceCommand, {
+            Resource: fakeLambdaARNBase,
+            Tags: {
+              'microapp-managed': 'true',
+            },
+          })
+          .resolves({})
+          // AddOrUpdateFunctionUrl
+          .on(lambda.GetFunctionUrlConfigCommand, {
+            FunctionName: fakeLambdaARNBase,
+            Qualifier: fakeLambdaAlias,
+          })
+          .resolves({
+            FunctionUrl: 'https://fakeurl.com',
+          });
 
-      const request: ILambdaAliasRequest = {
-        appName,
-        semVer,
-        lambdaARN: fakeLambdaARNBase,
-        type: 'lambdaAlias',
-      };
-      const response = (await handler(request, {
-        awsRequestId: '123',
-      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+        const request: ILambdaAliasRequest = {
+          appName,
+          semVer,
+          lambdaARN: fakeLambdaARNBase,
+          type: 'lambdaAlias',
+        };
+        const response = (await handler(request, {
+          awsRequestId: '123',
+        } as lambdaTypes.Context)) as ILambdaAliasResponse;
 
-      expect(response.statusCode).toBe(201);
-      expect(response.type).toBe('lambdaAlias');
-      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
-      expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(7);
+        expect(response.statusCode).toBe(201);
+        expect(response.type).toBe('lambdaAlias');
+        expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+        expect(response.functionUrl).toBe('https://fakeurl.com');
+        expect(lambdaClient.calls()).toHaveLength(8);
+      });
     });
   });
 });

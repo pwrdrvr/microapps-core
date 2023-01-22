@@ -2,6 +2,7 @@ import * as lambda from '@aws-sdk/client-lambda';
 import { IConfig } from '../../config/Config';
 import {
   createVersions,
+  IDeployerResponse,
   ILambdaAliasRequest,
   ILambdaAliasResponse,
   IVersions,
@@ -17,9 +18,9 @@ const lambdaClient = new lambda.LambdaClient({});
 export async function LambdaAlias(opts: {
   request: ILambdaAliasRequest;
   config: IConfig;
-}): Promise<ILambdaAliasResponse> {
+}): Promise<ILambdaAliasResponse | IDeployerResponse> {
   const { config, request } = opts;
-  const { appName, lambdaARN, overwrite = false, semVer } = request;
+  const { lambdaARN, overwrite = false, semVer } = request;
 
   const parsedLambdaARN = ExtractARNandAlias({
     lambdaARN,
@@ -128,6 +129,31 @@ export async function LambdaAlias(opts: {
 
   if (!lambdaVersion) {
     throw new Error(`Lambda version not found: ${lambdaVersion}, for lambda: ${lambdaARN}`);
+  }
+
+  // Check if the function and version exist
+  try {
+    const resultGet = await lambdaClient.send(
+      new lambda.GetFunctionCommand({
+        FunctionName: parsedLambdaARN.lambdaARNBase,
+        Qualifier: lambdaVersion,
+      }),
+    );
+    if (resultGet.Configuration?.FunctionArn === undefined) {
+      Log.Instance.error(`Lambda version not found: ${lambdaVersion}, for lambda: ${lambdaARN}`);
+      return {
+        statusCode: 404,
+        errorMessage: `Lambda version not found: ${lambdaVersion}, for lambda: ${lambdaARN}`,
+      };
+    }
+  } catch (error: any) {
+    Log.Instance.error('Error getting Lambda version', error);
+
+    if (error.name === 'ResourceNotFoundException') {
+      return { statusCode: 404, errorMessage: error.message };
+    } else {
+      return { statusCode: 500, errorMessage: error.message };
+    }
   }
 
   const versions = createVersions(semVer);
