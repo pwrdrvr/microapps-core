@@ -342,9 +342,9 @@ export class MicroAppsStack extends Stack {
       value: `${microapps.svcs.deployerFunc.functionName}`,
       exportName: `${this.stackName}-deployer-func-name`,
     });
-    new CfnOutput(this, 'deployer-func-vers-arn', {
+    new CfnOutput(this, 'deployer-func-arn', {
       value: `${microapps.svcs.deployerFunc.functionArn}`,
-      exportName: `${this.stackName}-deployer-func-vers-arn`,
+      exportName: `${this.stackName}-deployer-func-arn`,
     });
   }
 }

@@ -113,9 +113,9 @@ export class MicroAppsChildStack extends Stack {
       exportName: `${this.stackName}-deployer-func-name`,
     });
 
-    new CfnOutput(this, 'deployer-func-vers-arn', {
+    new CfnOutput(this, 'deployer-func-arn', {
       value: `${microapps.deployerFunc.functionArn}`,
-      exportName: `${this.stackName}-deployer-func-vers-arn`,
+      exportName: `${this.stackName}-deployer-func-arn`,
     });
   }
 }

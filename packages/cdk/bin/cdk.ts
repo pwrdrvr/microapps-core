@@ -52,10 +52,7 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
   autoDeleteEverything: true,
   assetNameRoot: 'microapps-core-ghchild',
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
-  // TODO: Pass an alias to current version of the parent deployer - allowing the parent
-  // account to change the version as needed without pointing to $LATEST or requiring
-  // child accounts to update their stacks
-  parentDeployerLambdaARN: `arn:aws:lambda:${shared.region}:${process.env.AWS_ACCOUNT_ID}:function:microapps-core-ghpublic-deployer${shared.envSuffix}${shared.prSuffix}`,
+  parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
 });
 
 new MicroAppsStack(app, 'microapps-basic', {
