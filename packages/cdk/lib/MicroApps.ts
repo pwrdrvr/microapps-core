@@ -254,7 +254,7 @@ export class MicroAppsStack extends Stack {
     });
 
     // Give the current version an alias
-    new lambda.Alias(this, 'deployer-alias', {
+    const deployerAlias = new lambda.Alias(this, 'deployer-alias', {
       aliasName: 'currentVersion',
       version: microapps.svcs.deployerFunc.currentVersion,
     });
@@ -270,10 +270,10 @@ export class MicroAppsStack extends Stack {
         principal: childRole,
         scope: this,
       });
-      // deployerAlias.addPermission('deployer-child-permission-alias', {
-      //   principal: new iam.ArnPrincipal(resourceArnsForGrantInvoke[0]),
-      //   scope: this,
-      // });
+      deployerAlias.addPermission('deployer-child-permission-alias', {
+        principal: new iam.ArnPrincipal(resourceArnsForGrantInvoke[0]),
+        scope: this,
+      });
     }
 
     if (deployDemoApp) {

@@ -78,7 +78,6 @@ export async function handler(
   try {
     // Handle proxied requests when in proxy mode
     if (config.parentDeployerLambdaARN) {
-      // TODO: Need `deployVersionLite` here that only cleans DB records and/or S3 files
       if (['deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(event.type)) {
         const response = await lambdaClient.send(
           new InvokeCommand({
@@ -89,7 +88,7 @@ export async function handler(
         );
 
         const responsePayload = response.Payload
-          ? (JSON.parse(response.Payload.toString()) as IDeployerResponse)
+          ? (JSON.parse(Buffer.from(response.Payload).toString()) as IDeployerResponse)
           : { statusCode: 500 };
         Log.Instance.info('response from parent deployer', {
           ...response,
