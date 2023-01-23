@@ -459,7 +459,7 @@ jobs:
         run: |
           echo "CHILD_DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
           echo "CHILD_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "CHILD_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
       
       - name: Echo Exports
         if: ${{ matrix.deployName == 'microapps-core' }}
