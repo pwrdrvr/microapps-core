@@ -254,20 +254,20 @@ export class MicroAppsStack extends Stack {
     });
 
     // Give the current version an alias
-    const deployerAlias = new lambda.Alias(this, 'deployer-alias', {
+    new lambda.Alias(this, 'deployer-alias', {
       aliasName: 'currentVersion',
       version: microapps.svcs.deployerFunc.currentVersion,
     });
     // Allow cross-account invokes if specified
     if (resourceArnsForGrantInvoke.length > 0) {
-      // microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {
-      //   principal: new iam.ArnPrincipal(resourceArnsForGrantInvoke[0]),
-      //   scope: this,
-      // });
-      deployerAlias.addPermission('deployer-child-permission-alias', {
+      microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {
         principal: new iam.ArnPrincipal(resourceArnsForGrantInvoke[0]),
         scope: this,
       });
+      // deployerAlias.addPermission('deployer-child-permission-alias', {
+      //   principal: new iam.ArnPrincipal(resourceArnsForGrantInvoke[0]),
+      //   scope: this,
+      // });
     }
 
     if (deployDemoApp) {
