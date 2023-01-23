@@ -96,12 +96,35 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
     // Deployer Lambda Function
     //
 
+    const iamRoleDeployerName = assetNameRoot
+      ? `${assetNameRoot}-deployer${assetNameSuffix}`
+      : undefined;
+    const iamRoleDeployer = new iam.Role(this, 'deployer-role', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      roleName: iamRoleDeployerName,
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
+      inlinePolicies: {
+        deployPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['lambda:InvokeFunction'],
+              resources: [`${parentDeployerLambdaARN}:currentVersion`],
+            }),
+          ],
+        }),
+      },
+    });
+
     // Create Deployer Lambda Function
     const deployerFuncName = assetNameRoot
       ? `${assetNameRoot}-deployer${assetNameSuffix}`
       : undefined;
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
+      role: iamRoleDeployer,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_16_X,

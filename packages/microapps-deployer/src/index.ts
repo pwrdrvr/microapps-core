@@ -83,6 +83,7 @@ export async function handler(
         const response = await lambdaClient.send(
           new InvokeCommand({
             FunctionName: config.parentDeployerLambdaARN,
+            Qualifier: 'currentVersion',
             Payload: Buffer.from(JSON.stringify(event)),
           }),
         );

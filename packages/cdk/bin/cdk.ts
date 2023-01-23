@@ -55,7 +55,7 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
   // TODO: Pass an alias to current version of the parent deployer - allowing the parent
   // account to change the version as needed without pointing to $LATEST or requiring
   // child accounts to update their stacks
-  parentDeployerLambdaARN: `arn:aws:lambda:${shared.region}:${shared.account}:function:microapps-core-ghpublic-deployer${shared.envSuffix}${shared.prSuffix}:currentVersion`,
+  parentDeployerLambdaARN: `arn:aws:lambda:${shared.region}:${process.env.AWS_ACCOUNT_ID}:function:microapps-core-ghpublic-deployer${shared.envSuffix}${shared.prSuffix}`,
 });
 
 new MicroAppsStack(app, 'microapps-basic', {

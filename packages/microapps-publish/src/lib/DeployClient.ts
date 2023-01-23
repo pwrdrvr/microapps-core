@@ -130,7 +130,10 @@ export default class DeployClient {
       const dResponse = JSON.parse(
         Buffer.from(response.Payload).toString('utf-8'),
       ) as IDeployVersionPreflightResponse;
-      if (dResponse.statusCode === 404) {
+      if (dResponse.statusCode > 299) {
+        output(`DeployVersionPreflight failed: ${JSON.stringify(dResponse)}`);
+        throw new Error('DeployVersionPreflight failed');
+      } else if (dResponse.statusCode === 404) {
         output(`App/Version does not exist: ${config.app.name}/${config.app.semVer}`);
         return { exists: false, response: dResponse };
       } else {
