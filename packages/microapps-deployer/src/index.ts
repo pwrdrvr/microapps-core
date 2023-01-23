@@ -78,7 +78,11 @@ export async function handler(
   try {
     // Handle proxied requests when in proxy mode
     if (config.parentDeployerLambdaARN) {
-      if (['deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(event.type)) {
+      if (
+        ['createApp', 'deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(
+          event.type,
+        )
+      ) {
         const response = await lambdaClient.send(
           new InvokeCommand({
             FunctionName: config.parentDeployerLambdaARN,
