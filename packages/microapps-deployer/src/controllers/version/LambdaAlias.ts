@@ -415,7 +415,7 @@ async function AddCrossAccountPermissionsToAlias({
   }
 
   // Add statements if they do not already exist
-  if (addStatements) {
+  if (addStatements && config.edgeToOriginRoleARN) {
     await lambdaClient.send(
       new lambda.AddPermissionCommand({
         Principal: 'apigateway.amazonaws.com',
