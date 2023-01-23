@@ -127,6 +127,7 @@ describe('DeployVersionLite', () => {
         .rejects()
         .on(lambda.InvokeCommand, {
           FunctionName: config.parentDeployerLambdaARN,
+          Qualifier: 'currentVersion',
           Payload: Buffer.from(JSON.stringify(request)),
         })
         .resolves({ Payload: Buffer.from(JSON.stringify({ statusCode: 200 })) });
