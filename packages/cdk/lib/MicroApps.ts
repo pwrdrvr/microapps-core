@@ -260,8 +260,14 @@ export class MicroAppsStack extends Stack {
     });
     // Allow cross-account invokes if specified
     if (resourceArnsForGrantInvoke.length > 0) {
+      const childRole = iam.Role.fromRoleArn(
+        this,
+        'deployer-child-role',
+        resourceArnsForGrantInvoke[0],
+      );
+
       microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {
-        principal: new iam.ArnPrincipal(resourceArnsForGrantInvoke[0]),
+        principal: childRole,
         scope: this,
       });
       // deployerAlias.addPermission('deployer-child-permission-alias', {
