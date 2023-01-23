@@ -40,7 +40,7 @@ new MicroAppsStack(app, 'microapps-core', {
   ...(process.env.AWS_ACCOUNT_ID_CHILD
     ? {
         resourceArnsForGrantInvoke: [
-          `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghpublic-deployer${shared.envSuffix}${shared.prSuffix}`,
+          `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghchild-deployer${shared.envSuffix}${shared.prSuffix}`,
         ],
       }
     : {}),
