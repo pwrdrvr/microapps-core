@@ -16,6 +16,11 @@ export interface MicroAppsChildStackProps extends StackProps {
   readonly parentDeployerLambdaARN: string;
 
   /**
+   * ARN of the IAM Role for the Edge to Origin Lambda Function
+   */
+  readonly edgeToOriginRoleARN: string;
+
+  /**
    * Automatically destroy all assets when stack is deleted
    *
    * @default false
@@ -69,6 +74,7 @@ export class MicroAppsChildStack extends Stack {
       assetNameSuffix,
       nodeEnv = 'dev',
       parentDeployerLambdaARN,
+      edgeToOriginRoleARN,
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -83,6 +89,7 @@ export class MicroAppsChildStack extends Stack {
 
     const microapps = new MicroAppsChildDeployer(this, 'microapps-deployer', {
       parentDeployerLambdaARN,
+      edgeToOriginRoleARN,
       removalPolicy,
       appEnv: nodeEnv,
       ...optionalAssetNameOpts,

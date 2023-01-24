@@ -974,6 +974,14 @@ Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda 
 
 ---
 
+##### `edgeToOriginRoleARN`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.edgeToOriginRoleARN"></a>
+
+- *Type:* `string`
+
+ARN of the IAM Role for the Edge to Origin Lambda Function.
+
+---
+
 ##### `parentDeployerLambdaARN`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.parentDeployerLambdaARN"></a>
 
 - *Type:* `string`
@@ -1048,6 +1056,15 @@ Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Orig
 
 ---
 
+##### `allowedFunctionUrlAccounts`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.allowedFunctionUrlAccounts"></a>
+
+- *Type:* `string`[]
+- *Default:* []
+
+Account IDs allowed for cross-account Function URL invocations.
+
+---
+
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -1072,6 +1089,9 @@ Optional asset name suffix.
 - *Default:* undefined
 
 Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+Note that Lambda FunctionURLs get the region from the Lambda ARN
+and do not need this to be configured.
 
 ---
 
@@ -1178,6 +1198,15 @@ Can only be trusted if `signingMode` is enabled, which restricts
 access to API Gateway to only IAM signed requests.
 
 Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
+##### `allowedFunctionUrlAccounts`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.allowedFunctionUrlAccounts"></a>
+
+- *Type:* `string`[]
+- *Default:* []
+
+Account IDs allowed for cross-account Function URL invocations.
 
 ---
 

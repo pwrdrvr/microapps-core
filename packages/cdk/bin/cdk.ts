@@ -39,9 +39,10 @@ new MicroAppsStack(app, 'microapps-core', {
   originRegion: shared.region,
   ...(process.env.AWS_ACCOUNT_ID_CHILD
     ? {
-        resourceArnsForGrantInvoke: [
+        childDeployenRoleArns: [
           `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghchild-deployer${shared.envSuffix}${shared.prSuffix}`,
         ],
+        allowedFunctionUrlAccounts: [process.env.AWS_ACCOUNT_ID_CHILD],
       }
     : {}),
 });
@@ -53,6 +54,7 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
   assetNameRoot: 'microapps-core-ghchild',
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
   parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
+  edgeToOriginRoleARN: process.env.EDGE_TO_ORIGIN_ROLE_ARN || '',
 });
 
 new MicroAppsStack(app, 'microapps-basic', {

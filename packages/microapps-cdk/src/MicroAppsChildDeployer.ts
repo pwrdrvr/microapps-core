@@ -17,6 +17,11 @@ export interface MicroAppsChildDeployerProps {
   readonly parentDeployerLambdaARN: string;
 
   /**
+   * ARN of the IAM Role for the Edge to Origin Lambda Function
+   */
+  readonly edgeToOriginRoleARN: string;
+
+  /**
    * RemovalPolicy override for child resources
    *
    * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
@@ -90,6 +95,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
       assetNameSuffix,
       removalPolicy,
       parentDeployerLambdaARN,
+      edgeToOriginRoleARN,
     } = props;
 
     //
@@ -133,6 +139,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
         NODE_ENV: appEnv,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
         PARENT_DEPLOYER_LAMBDA_ARN: parentDeployerLambdaARN,
+        EDGE_TO_ORIGIN_ROLE_ARN: edgeToOriginRoleARN,
       },
     };
     if (

@@ -105,6 +105,9 @@ export interface MicroAppsEdgeToOriginProps {
    * for the config.yml on the Edge function to sign requests for
    * the correct region
    *
+   * Note that Lambda FunctionURLs get the region from the Lambda ARN
+   * and do not need this to be configured.
+   *
    * @default undefined
    */
   readonly originRegion?: string;
@@ -124,6 +127,13 @@ export interface MicroAppsEdgeToOriginProps {
    * @default false
    */
   readonly setupApiGatewayPermissions?: boolean;
+
+  /**
+   * Account IDs allowed for cross-account Function URL invocations
+   *
+   * @default []
+   */
+  readonly allowedFunctionUrlAccounts?: string[];
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -172,6 +182,7 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
 
     const {
       addXForwardedHostHeader = true,
+      allowedFunctionUrlAccounts = [],
       assetNameRoot,
       assetNameSuffix,
       originRegion,
@@ -240,6 +251,19 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
             StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
           },
         }),
+        //
+        // Grant permission to invoke Function URLs in listed accounts
+        //
+        ...(allowedFunctionUrlAccounts && allowedFunctionUrlAccounts.length > 0
+          ? [
+              new iam.PolicyStatement({
+                actions: ['lambda:InvokeFunctionUrl'],
+                resources: allowedFunctionUrlAccounts.map(
+                  (accountId) => `arn:aws:lambda:*:${accountId}:*`,
+                ),
+              }),
+            ]
+          : []),
       ],
       ...(removalPolicy ? { removalPolicy } : {}),
     };

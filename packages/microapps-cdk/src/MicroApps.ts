@@ -295,6 +295,13 @@ export interface MicroAppsProps {
    * Additional edge lambda functions
    */
   readonly edgeLambdas?: cf.EdgeLambda[];
+
+  /**
+   * Account IDs allowed for cross-account Function URL invocations
+   *
+   * @default []
+   */
+  readonly allowedFunctionUrlAccounts?: string[];
 }
 
 /**
@@ -394,6 +401,7 @@ export class MicroApps extends Construct implements IMicroApps {
       table,
       tableNameForEdgeToOrigin,
       originShieldRegion = originRegion,
+      allowedFunctionUrlAccounts = [],
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -450,6 +458,7 @@ export class MicroApps extends Construct implements IMicroApps {
         signingMode,
         rootPathPrefix,
         tableRulesArn: tableNameForEdgeToOrigin || this._svcs.table.tableName,
+        allowedFunctionUrlAccounts,
       });
 
       edgeLambdas.push(...this._edgeToOrigin.edgeToOriginLambdas);
