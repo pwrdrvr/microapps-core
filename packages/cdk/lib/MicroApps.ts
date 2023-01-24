@@ -301,6 +301,9 @@ export class MicroAppsStack extends Stack {
         removalPolicy,
       });
 
+      // TODO: Remove before merge
+      demoApp.lambdaFunction.addEnvironment('MICROAPPS_TRIGGER_DEPLOY', 'true');
+
       const appVersion = (demoApp.lambdaFunction as lambda.Function).currentVersion;
       appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
 

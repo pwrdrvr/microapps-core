@@ -45,7 +45,7 @@ export interface DemoAppProps {
  * Represents a `DemoApp`
  */
 export interface IDemoApp {
-  lambdaFunction: lambda.IFunction;
+  lambdaFunction: lambda.Function;
 }
 
 /**
@@ -57,7 +57,7 @@ export interface IDemoApp {
  */
 export class DemoApp extends Construct implements IDemoApp {
   private _lambdaFunction: lambda.Function;
-  public get lambdaFunction(): lambda.IFunction {
+  public get lambdaFunction(): lambda.Function {
     return this._lambdaFunction;
   }
 

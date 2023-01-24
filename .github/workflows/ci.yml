@@ -274,7 +274,7 @@ jobs:
 
       - name: Echo Exports
         run: |
-          env | grep EDGE_DOMAIN
+          env | grep EDGE_
           env | grep DEPLOYER_
           env | grep DEMO_APP_
           env | grep NEXTJS_DEMO_APP_
