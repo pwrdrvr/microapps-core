@@ -240,7 +240,7 @@ jobs:
       - name: Set Hotswap Flag on PRs
         run: |
           if [ -n "${PR_NUMBER}" ]; then
-            echo "HOTSWAP_FLAG=--hotswap" >> $GITHUB_ENV
+            echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
           else
             echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
           fi
