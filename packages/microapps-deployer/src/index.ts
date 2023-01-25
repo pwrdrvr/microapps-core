@@ -33,7 +33,7 @@ let dynamoClient = new DynamoDBClient({
   maxAttempts: 8,
 });
 
-const buildTrigger = '2023-01-24-03';
+const buildTrigger = '2023-01-24-04';
 Log.Instance.info('Deployer build trigger', { buildTrigger });
 
 export function overrideDBManager(opts: {
