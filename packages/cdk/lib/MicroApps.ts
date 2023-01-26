@@ -391,7 +391,7 @@ export class MicroAppsStack extends Stack {
       exportName: `${this.stackName}-edge-domain-name`,
     });
     new CfnOutput(this, 'edge-to-origin-role-arn', {
-      value: `${edgeToOriginFunc.role?.roleArn}`,
+      value: `${microapps.edgeToOrigin?.edgeToOriginFunction?.role?.roleArn}`,
       exportName: `${this.stackName}-edge-to-origin-arn`,
     });
     new CfnOutput(this, 'dynamodb-table-name', {
