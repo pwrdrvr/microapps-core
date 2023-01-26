@@ -180,7 +180,7 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
 
   constructor(scope: Construct, id: string, props: IMicroAppsEdgeToOriginRoleStackProps) {
     super(scope, id, {
-      stackName: `${props.assetNameRoot || 'MicroAppsEdgeToOrigin'}-Role${
+      stackName: `${props.assetNameRoot || 'MicroAppsEdgeToOrigin'}-role${
         props.assetNameSuffix || ''
       }`,
       env: props.env || {
