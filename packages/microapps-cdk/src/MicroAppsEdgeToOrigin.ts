@@ -3,7 +3,16 @@ import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, PhysicalName, RemovalPolicy, Stack, StackProps, Tags } from 'aws-cdk-lib';
+import {
+  Aws,
+  CfnOutput,
+  Duration,
+  PhysicalName,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+  Tags,
+} from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -171,7 +180,7 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
 
   constructor(scope: Construct, id: string, props: IMicroAppsEdgeToOriginRoleStackProps) {
     super(scope, id, {
-      stackName: `${props.assetNameRoot || 'MicroAppsEdgeToOrigin'}-Role${
+      stackName: `${props.assetNameRoot || 'MicroAppsEdgeToOrigin'}-role${
         props.assetNameSuffix || ''
       }`,
       env: props.env || {
@@ -255,6 +264,11 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
         effect: iam.Effect.ALLOW,
       }),
     );
+
+    new CfnOutput(this, 'edge-to-origin-role-arn', {
+      value: `${this.role.roleArn}`,
+      exportName: `${this.stackName}-role-arn`,
+    });
   }
 }
 
