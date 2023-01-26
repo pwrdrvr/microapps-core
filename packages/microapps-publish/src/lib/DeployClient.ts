@@ -133,11 +133,18 @@ export default class DeployClient {
       if (dResponse.statusCode === 404) {
         output(`App/Version does not exist: ${config.app.name}/${config.app.semVer}`);
         return { exists: false, response: dResponse };
+      } else if (dResponse.statusCode > 299) {
+        // @ts-expect-error remove awsCredentials from response
+        delete dResponse.awsCredentials;
+        output(`DeployVersionPreflight failed: ${JSON.stringify(dResponse)}`);
+        throw new Error('DeployVersionPreflight failed');
       } else {
         output(`App/Version exists: ${config.app.name}/${config.app.semVer}`);
         return { exists: true, response: dResponse };
       }
     } else {
+      // @ts-expect-error remove awsCredentials from response
+      delete dResponse.awsCredentials;
       throw new Error(`Lambda call to DeployVersionPreflight failed: ${JSON.stringify(response)}`);
     }
   }

@@ -228,6 +228,51 @@ The CloudFront distribution.
 ---
 
 
+### MicroAppsChildDeployer <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer"></a>
+
+- *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsChildDeployer`](#@pwrdrvr/microapps-cdk.IMicroAppsChildDeployer)
+
+Create a new MicroApps Child Deployer construct.
+
+#### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.Initializer"></a>
+
+```typescript
+import { MicroAppsChildDeployer } from '@pwrdrvr/microapps-cdk'
+
+new MicroAppsChildDeployer(scope: Construct, id: string, props?: MicroAppsChildDeployerProps)
+```
+
+##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.scope"></a>
+
+- *Type:* [`constructs.Construct`](#constructs.Construct)
+
+---
+
+##### `id`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.id"></a>
+
+- *Type:* `string`
+
+---
+
+##### `props`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.props"></a>
+
+- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps`](#@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps)
+
+---
+
+
+
+#### Properties <a name="Properties"></a>
+
+##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.deployerFunc"></a>
+
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+
+Lambda function for the Deployer.
+
+---
+
+
 ### MicroAppsEdgeToOrigin <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin"></a>
 
 - *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
@@ -416,7 +461,7 @@ new MicroAppsSvcs(scope: Construct, id: string, props?: MicroAppsSvcsProps)
 
 ##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.deployerFunc"></a>
 
-- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+- *Type:* [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 Lambda function for the Deployer.
 
@@ -432,7 +477,7 @@ DynamoDB table used by Router, Deployer, and Release console app.
 
 ##### `routerFunc`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcs.routerFunc"></a>
 
-- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+- *Type:* [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 Lambda function for the Router.
 
@@ -909,6 +954,82 @@ Path prefix on the root of the CloudFront distribution.
 
 ---
 
+### MicroAppsChildDeployerProps <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps"></a>
+
+Properties to initialize an instance of `MicroAppsChildDeployer`.
+
+#### Initializer <a name="[object Object].Initializer"></a>
+
+```typescript
+import { MicroAppsChildDeployerProps } from '@pwrdrvr/microapps-cdk'
+
+const microAppsChildDeployerProps: MicroAppsChildDeployerProps = { ... }
+```
+
+##### `appEnv`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.appEnv"></a>
+
+- *Type:* `string`
+
+Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda functions.
+
+---
+
+##### `edgeToOriginRoleARN`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.edgeToOriginRoleARN"></a>
+
+- *Type:* `string`
+
+ARN of the IAM Role for the Edge to Origin Lambda Function.
+
+---
+
+##### `parentDeployerLambdaARN`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.parentDeployerLambdaARN"></a>
+
+- *Type:* `string`
+
+ARN of the parent Deployer Lambda Function.
+
+---
+
+##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.assetNameRoot"></a>
+
+- *Type:* `string`
+- *Default:* resource names auto assigned
+
+Optional asset name root.
+
+---
+
+##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.assetNameSuffix"></a>
+
+- *Type:* `string`
+- *Default:* none
+
+Optional asset name suffix.
+
+---
+
+##### `deployerTimeout`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.deployerTimeout"></a>
+
+- *Type:* [`aws-cdk-lib.Duration`](#aws-cdk-lib.Duration)
+- *Default:* 2 minutes
+
+Deployer timeout.
+
+For larger applications this needs to be set up to 2-5 minutes for the S3 copy
+
+---
+
+##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.removalPolicy"></a>
+
+- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
+- *Default:* per resource default
+
+RemovalPolicy override for child resources.
+
+Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
+
+---
+
 ### MicroAppsEdgeToOriginProps <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps"></a>
 
 Properties to initialize an instance of `MicroAppsEdgeToOrigin`.
@@ -932,6 +1053,15 @@ Can only be trusted if `signingMode` is enabled, which restricts
 access to API Gateway to only IAM signed requests.
 
 Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
+##### `allowedFunctionUrlAccounts`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.allowedFunctionUrlAccounts"></a>
+
+- *Type:* `string`[]
+- *Default:* []
+
+Account IDs allowed for cross-account Function URL invocations.
 
 ---
 
@@ -959,6 +1089,9 @@ Optional asset name suffix.
 - *Default:* undefined
 
 Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region.
+
+Note that Lambda FunctionURLs get the region from the Lambda ARN
+and do not need this to be configured.
 
 ---
 
@@ -1065,6 +1198,15 @@ Can only be trusted if `signingMode` is enabled, which restricts
 access to API Gateway to only IAM signed requests.
 
 Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Origin
+
+---
+
+##### `allowedFunctionUrlAccounts`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.allowedFunctionUrlAccounts"></a>
+
+- *Type:* `string`[]
+- *Default:* []
+
+Account IDs allowed for cross-account Function URL invocations.
 
 ---
 
@@ -1744,6 +1886,23 @@ The CloudFront distribution.
 
 ---
 
+### IMicroAppsChildDeployer <a name="@pwrdrvr/microapps-cdk.IMicroAppsChildDeployer"></a>
+
+- *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsChildDeployer`](#@pwrdrvr/microapps-cdk.MicroAppsChildDeployer), [`@pwrdrvr/microapps-cdk.IMicroAppsChildDeployer`](#@pwrdrvr/microapps-cdk.IMicroAppsChildDeployer)
+
+Represents a MicroApps Child Deployer.
+
+
+#### Properties <a name="Properties"></a>
+
+##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsChildDeployer.deployerFunc"></a>
+
+- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+
+Lambda function for the Deployer.
+
+---
+
 ### IMicroAppsEdgeToOrigin <a name="@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin"></a>
 
 - *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin), [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
@@ -1831,7 +1990,7 @@ Represents a MicroApps Services.
 
 ##### `deployerFunc`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.deployerFunc"></a>
 
-- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+- *Type:* [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 Lambda function for the Deployer.
 
@@ -1847,7 +2006,7 @@ DynamoDB table used by Router, Deployer, and Release console app.
 
 ##### `routerFunc`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsSvcs.routerFunc"></a>
 
-- *Type:* [`aws-cdk-lib.aws_lambda.IFunction`](#aws-cdk-lib.aws_lambda.IFunction)
+- *Type:* [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
 
 Lambda function for the Router.
 

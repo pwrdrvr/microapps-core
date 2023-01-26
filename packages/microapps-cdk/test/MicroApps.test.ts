@@ -16,6 +16,7 @@ describe('MicroApps', () => {
     });
     const construct = new MicroApps(stack, 'construct', {
       appEnv: 'dev',
+      tableNameForEdgeToOrigin: 'table',
     });
 
     expect(construct).toBeDefined();
@@ -75,6 +76,7 @@ describe('MicroApps', () => {
     const construct = new MicroApps(stack, 'construct', {
       appEnv: 'dev',
       domainNameEdge: 'mydeploy.test.pwrdrvr.com',
+      tableNameForEdgeToOrigin: 'table',
       certEdge,
       certOrigin: certEdge,
       r53Zone,
@@ -136,6 +138,7 @@ describe('MicroApps', () => {
     const construct = new MicroApps(stack, 'construct', {
       appEnv: 'dev',
       domainNameEdge: 'mydeploy.test.pwrdrvr.com',
+      tableNameForEdgeToOrigin: 'table',
       certEdge,
       certOrigin: certEdge,
       r53Zone,
@@ -205,6 +208,7 @@ describe('MicroApps', () => {
     const construct = new MicroApps(stack, 'construct', {
       appEnv: 'dev',
       domainNameEdge: 'mydeploy.test.pwrdrvr.com',
+      tableNameForEdgeToOrigin: 'table',
       certEdge,
       certOrigin: certEdge,
       r53Zone,

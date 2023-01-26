@@ -4,6 +4,9 @@ import { readFileSync } from 'fs';
 
 const html = readFileSync(`./index.html`, 'utf8');
 
+const buildTrigger = '2023-01-24-01';
+console.info('Demo-app build trigger', { buildTrigger });
+
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function handler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

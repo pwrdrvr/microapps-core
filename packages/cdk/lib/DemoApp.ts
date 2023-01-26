@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Tags } from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -45,7 +45,7 @@ export interface DemoAppProps {
  * Represents a `DemoApp`
  */
 export interface IDemoApp {
-  lambdaFunction: lambda.IFunction;
+  lambdaFunction: lambda.Function;
 }
 
 /**
@@ -57,7 +57,7 @@ export interface IDemoApp {
  */
 export class DemoApp extends Construct implements IDemoApp {
   private _lambdaFunction: lambda.Function;
-  public get lambdaFunction(): lambda.IFunction {
+  public get lambdaFunction(): lambda.Function {
     return this._lambdaFunction;
   }
 
@@ -100,5 +100,6 @@ export class DemoApp extends Construct implements IDemoApp {
     if (removalPolicy !== undefined) {
       this._lambdaFunction.applyRemovalPolicy(removalPolicy);
     }
+    Tags.of(this._lambdaFunction).add('microapp-managed', 'true');
   }
 }

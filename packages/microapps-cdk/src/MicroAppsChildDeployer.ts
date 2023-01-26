@@ -17,6 +17,11 @@ export interface MicroAppsChildDeployerProps {
   readonly parentDeployerLambdaARN: string;
 
   /**
+   * ARN of the IAM Role for the Edge to Origin Lambda Function
+   */
+  readonly edgeToOriginRoleARN: string;
+
+  /**
    * RemovalPolicy override for child resources
    *
    * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
@@ -90,11 +95,34 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
       assetNameSuffix,
       removalPolicy,
       parentDeployerLambdaARN,
+      edgeToOriginRoleARN,
     } = props;
 
     //
     // Deployer Lambda Function
     //
+
+    const iamRoleDeployerName = assetNameRoot
+      ? `${assetNameRoot}-deployer${assetNameSuffix}`
+      : undefined;
+    const iamRoleDeployer = new iam.Role(this, 'deployer-role', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      roleName: iamRoleDeployerName,
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
+      inlinePolicies: {
+        deployPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['lambda:InvokeFunction'],
+              resources: [`${parentDeployerLambdaARN}:currentVersion`],
+            }),
+          ],
+        }),
+      },
+    });
 
     // Create Deployer Lambda Function
     const deployerFuncName = assetNameRoot
@@ -102,6 +130,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
       : undefined;
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
+      role: iamRoleDeployer,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_16_X,
@@ -110,6 +139,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
         NODE_ENV: appEnv,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
         PARENT_DEPLOYER_LAMBDA_ARN: parentDeployerLambdaARN,
+        EDGE_TO_ORIGIN_ROLE_ARN: edgeToOriginRoleARN,
       },
     };
     if (

@@ -33,6 +33,9 @@ let dynamoClient = new DynamoDBClient({
   maxAttempts: 8,
 });
 
+const buildTrigger = '2023-01-26-01';
+Log.Instance.info('Deployer build trigger', { buildTrigger });
+
 export function overrideDBManager(opts: {
   dbManager: DBManager;
   dynamoClient: DynamoDBClient;
@@ -78,17 +81,21 @@ export async function handler(
   try {
     // Handle proxied requests when in proxy mode
     if (config.parentDeployerLambdaARN) {
-      // TODO: Need `deployVersionLite` here that only cleans DB records and/or S3 files
-      if (['deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(event.type)) {
+      if (
+        ['createApp', 'deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(
+          event.type,
+        )
+      ) {
         const response = await lambdaClient.send(
           new InvokeCommand({
             FunctionName: config.parentDeployerLambdaARN,
+            Qualifier: 'currentVersion',
             Payload: Buffer.from(JSON.stringify(event)),
           }),
         );
 
         const responsePayload = response.Payload
-          ? (JSON.parse(response.Payload.toString()) as IDeployerResponse)
+          ? (JSON.parse(Buffer.from(response.Payload).toString()) as IDeployerResponse)
           : { statusCode: 500 };
         Log.Instance.info('response from parent deployer', {
           ...response,

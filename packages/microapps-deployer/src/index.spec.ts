@@ -9,7 +9,7 @@ Object.defineProperty(Config, 'instance', {
   enumerable: false,
   get: jest.fn((): IConfig => {
     return {
-      awsAccountID: 123456,
+      awsAccountID: '0123456',
       awsRegion: 'mock',
       db: {
         tableName: 'microapps',
@@ -24,6 +24,7 @@ Object.defineProperty(Config, 'instance', {
       uploadRoleName: 'microapps-upload-test-role',
       rootPathPrefix: 'qa',
       requireIAMAuthorization: false,
+      edgeToOriginRoleARN: 'arn:aws:iam::123456789012:role/edge-to-origin-role',
     };
   }),
 });

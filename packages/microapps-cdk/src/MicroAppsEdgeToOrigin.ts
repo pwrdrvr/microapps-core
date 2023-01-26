@@ -3,7 +3,16 @@ import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { Aws, Duration, RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
+import {
+  Aws,
+  CfnOutput,
+  Duration,
+  PhysicalName,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+  Tags,
+} from 'aws-cdk-lib';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -27,6 +36,11 @@ export interface IMicroAppsEdgeToOrigin {
    * Configuration of the edge to origin lambda functions
    */
   readonly edgeToOriginLambdas: cf.EdgeLambda[];
+
+  /**
+   * The IAM Role for the edge to origin function
+   */
+  readonly edgeToOriginRole: iam.Role;
 }
 
 /**
@@ -105,6 +119,9 @@ export interface MicroAppsEdgeToOriginProps {
    * for the config.yml on the Edge function to sign requests for
    * the correct region
    *
+   * Note that Lambda FunctionURLs get the region from the Lambda ARN
+   * and do not need this to be configured.
+   *
    * @default undefined
    */
   readonly originRegion?: string;
@@ -124,6 +141,13 @@ export interface MicroAppsEdgeToOriginProps {
    * @default false
    */
   readonly setupApiGatewayPermissions?: boolean;
+
+  /**
+   * Account IDs allowed for cross-account Function URL invocations
+   *
+   * @default []
+   */
+  readonly allowedFunctionUrlAccounts?: string[];
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
@@ -133,6 +157,119 @@ export interface GenerateEdgeToOriginConfigOptions {
   readonly replaceHostHeader: boolean;
   readonly tableName?: string;
   readonly rootPathPrefix?: string;
+}
+
+interface IMicroAppsEdgeToOriginRoleStackProps extends StackProps {
+  assetNameRoot?: string;
+  assetNameSuffix?: string;
+  setupApiGatewayPermissions?: boolean;
+
+  /**
+   * Account IDs allowed for cross-account Function URL invocations
+   *
+   * @default []
+   */
+  readonly allowedFunctionUrlAccounts?: string[];
+}
+
+class MicroAppsEdgeToOriginRoleStack extends Stack {
+  private _role: iam.Role;
+  public get role(): iam.Role {
+    return this._role;
+  }
+
+  constructor(scope: Construct, id: string, props: IMicroAppsEdgeToOriginRoleStackProps) {
+    super(scope, id, {
+      stackName: `${props.assetNameRoot || 'MicroAppsEdgeToOrigin'}-role${
+        props.assetNameSuffix || ''
+      }`,
+      env: props.env || {
+        region: Aws.REGION,
+      },
+    });
+
+    const {
+      assetNameRoot,
+      assetNameSuffix,
+      setupApiGatewayPermissions,
+      allowedFunctionUrlAccounts,
+    } = props;
+
+    // Create IAM Role for the Edge Function
+    this._role = new iam.Role(this, 'edge-to-origin-role', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      roleName: assetNameRoot
+        ? `${assetNameRoot}-edge-to-origin-role${assetNameSuffix}`
+        : PhysicalName.GENERATE_IF_NEEDED,
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
+      inlinePolicies: {
+        edgeToOriginPolicy: new iam.PolicyDocument({
+          statements: [
+            // This can't have a reference to the httpApi because it would mean
+            // the parent stack (this stack) has to be created before the us-east-1
+            // child stack for the Edge Lambda Function.
+            // That's why we use a tag-based policy to allow the Edge Function
+            // to invoke any API Gateway API that we apply a tag to
+            // We allow the edge function to sign for all regions since
+            // we may use custom closest region in the future.
+            ...(setupApiGatewayPermissions
+              ? [
+                  new iam.PolicyStatement({
+                    actions: ['execute-api:Invoke'],
+                    resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
+                    // Unfortunately, API Gateway access cannot be restricted using
+                    // tags on the target resource
+                    // https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
+                    // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#networking_svcs
+                    // conditions: {
+                    //   // TODO: Set this to a string unique to each stack
+                    //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+                    // },
+                  }),
+                ]
+              : []),
+            //
+            // Grant permission to invoke tagged Function URLs
+            //
+            new iam.PolicyStatement({
+              actions: ['lambda:InvokeFunctionUrl'],
+              resources: [`arn:aws:lambda:*:${Aws.ACCOUNT_ID}:*`],
+              conditions: {
+                StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
+              },
+            }),
+            //
+            // Grant permission to invoke Function URLs in listed accounts
+            //
+            ...(allowedFunctionUrlAccounts && allowedFunctionUrlAccounts.length > 0
+              ? [
+                  new iam.PolicyStatement({
+                    actions: ['lambda:InvokeFunctionUrl'],
+                    resources: allowedFunctionUrlAccounts.map(
+                      (accountId) => `arn:aws:lambda:*:${accountId}:*`,
+                    ),
+                  }),
+                ]
+              : []),
+          ],
+        }),
+      },
+    });
+    this._role.assumeRolePolicy?.addStatements(
+      new iam.PolicyStatement({
+        principals: [new iam.ServicePrincipal('edgelambda.amazonaws.com')],
+        actions: ['sts:AssumeRole'],
+        effect: iam.Effect.ALLOW,
+      }),
+    );
+
+    new CfnOutput(this, 'edge-to-origin-role-arn', {
+      value: `${this.role.roleArn}`,
+      exportName: `${this.stackName}-role-arn`,
+    });
+  }
 }
 
 /**
@@ -163,6 +300,11 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
     return this._edgeToOriginLambdas;
   }
 
+  private _edgeToOriginRole: iam.Role;
+  public get edgeToOriginRole(): iam.Role {
+    return this._edgeToOriginRole;
+  }
+
   constructor(scope: Construct, id: string, props: MicroAppsEdgeToOriginProps) {
     super(scope, id);
 
@@ -172,6 +314,7 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
 
     const {
       addXForwardedHostHeader = true,
+      allowedFunctionUrlAccounts = [],
       assetNameRoot,
       assetNameSuffix,
       originRegion,
@@ -197,50 +340,29 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
         : {}),
     });
 
+    const roleStack = new MicroAppsEdgeToOriginRoleStack(this, 'role-stack', {
+      assetNameRoot,
+      assetNameSuffix,
+      allowedFunctionUrlAccounts,
+      setupApiGatewayPermissions,
+      env: {
+        region: Stack.of(this).region,
+        account: Stack.of(this).account,
+      },
+    });
+    Stack.of(this).addDependency(roleStack);
+    this._edgeToOriginRole = roleStack.role;
+
     //
     // Create the Edge to Origin Function
     //
     const edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: assetNameRoot ? `${assetNameRoot}-edge-to-origin${assetNameSuffix}` : undefined,
+      role: this._edgeToOriginRole,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_16_X,
       timeout: Duration.seconds(5),
-      initialPolicy: [
-        // This can't have a reference to the httpApi because it would mean
-        // the parent stack (this stack) has to be created before the us-east-1
-        // child stack for the Edge Lambda Function.
-        // That's why we use a tag-based policy to allow the Edge Function
-        // to invoke any API Gateway API that we apply a tag to
-        // We allow the edge function to sign for all regions since
-        // we may use custom closest region in the future.
-        ...(setupApiGatewayPermissions
-          ? [
-              new iam.PolicyStatement({
-                actions: ['execute-api:Invoke'],
-                resources: [`arn:aws:execute-api:*:${Aws.ACCOUNT_ID}:*/*/*/*`],
-                // Unfortunately, API Gateway access cannot be restricted using
-                // tags on the target resource
-                // https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html
-                // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html#networking_svcs
-                // conditions: {
-                //   // TODO: Set this to a string unique to each stack
-                //   StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
-                // },
-              }),
-            ]
-          : []),
-        //
-        // Grant permission to invoke tagged Function URLs
-        //
-        new iam.PolicyStatement({
-          actions: ['lambda:InvokeFunctionUrl'],
-          resources: [`arn:aws:lambda:*:${Aws.ACCOUNT_ID}:*`],
-          conditions: {
-            StringEquals: { 'aws:ResourceTag/microapp-managed': 'true' },
-          },
-        }),
-      ],
       ...(removalPolicy ? { removalPolicy } : {}),
     };
     const rootDistPath = path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist');

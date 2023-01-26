@@ -18,8 +18,8 @@ export interface IConfig {
   readonly awsAccountID: string;
   readonly awsRegion: string;
 
-  readonly parentDeployerLambdaARN: string;
-  readonly edgeToOriginRoleARN: string;
+  readonly parentDeployerLambdaARN?: string;
+  readonly edgeToOriginRoleARN?: string;
 
   readonly uploadRoleName: string;
 
