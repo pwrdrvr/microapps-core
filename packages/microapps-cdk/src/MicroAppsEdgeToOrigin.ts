@@ -179,14 +179,7 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
   }
 
   constructor(scope: Construct, id: string, props: IMicroAppsEdgeToOriginRoleStackProps) {
-    super(scope, id, {
-      stackName: `${props.assetNameRoot || 'MicroAppsEdgeToOrigin'}-role${
-        props.assetNameSuffix || ''
-      }`,
-      env: props.env || {
-        region: Aws.REGION,
-      },
-    });
+    super(scope, id, props);
 
     const {
       assetNameRoot,
@@ -352,6 +345,11 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
     });
     Stack.of(this).addDependency(roleStack);
     this._edgeToOriginRole = roleStack.role;
+
+    new CfnOutput(this, 'role-stack-name', {
+      value: `${roleStack.stackName}`,
+      exportName: `${Stack.of(this).stackName}-role-stack`,
+    });
 
     //
     // Create the Edge to Origin Function
