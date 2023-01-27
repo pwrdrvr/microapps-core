@@ -342,6 +342,14 @@ Configuration of the edge to origin lambda functions.
 
 ---
 
+##### `edgeToOriginRole`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.edgeToOriginRole"></a>
+
+- *Type:* [`aws-cdk-lib.aws_iam.Role`](#aws-cdk-lib.aws_iam.Role)
+
+The IAM Role for the edge to origin function.
+
+---
+
 
 ### MicroAppsS3 <a name="@pwrdrvr/microapps-cdk.MicroAppsS3"></a>
 
@@ -1927,6 +1935,14 @@ The generated `config.yml` is included in the Lambda's code.
 - *Type:* [`aws-cdk-lib.aws_cloudfront.EdgeLambda`](#aws-cdk-lib.aws_cloudfront.EdgeLambda)[]
 
 Configuration of the edge to origin lambda functions.
+
+---
+
+##### `edgeToOriginRole`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin.edgeToOriginRole"></a>
+
+- *Type:* [`aws-cdk-lib.aws_iam.Role`](#aws-cdk-lib.aws_iam.Role)
+
+The IAM Role for the edge to origin function.
 
 ---
 
