@@ -30,7 +30,7 @@
     "clean:super": "npm run clean:dist && npm run clean:modules && npm run clean:tsbuildinfo",
     "clean:dist": "npm exec --workspaces -- npx rimraf dist && npx rimraf dist",
     "clean:modules": "npm exec --workspaces -- npx rimraf node_modules && npx rimraf node_modules",
-    "clean:tsbuildinfo": "npm exec --workspaces -- npx rimraf \"*.tsbuildinfo\"",
+    "clean:tsbuildinfo": "npm exec --workspaces -- npx rimraf tsconfig.tsbuildinfo",
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
     "format": "prettier --write \"packages/**/*.{js,ts}\"",
     "start:publish": "node packages/microapps-publish/dist/src/index.js",

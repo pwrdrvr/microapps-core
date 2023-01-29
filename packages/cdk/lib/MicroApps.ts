@@ -159,7 +159,7 @@ export interface MicroAppsStackProps extends StackProps {
    *
    * @default []
    */
-  readonly parentEdgeToOriginRoleArns?: string[];
+  // readonly parentEdgeToOriginRoleArns?: string[];
 }
 
 export class MicroAppsStack extends Stack {
@@ -194,7 +194,6 @@ export class MicroAppsStack extends Stack {
       tableName,
       childDeployenRoleArns = [],
       allowedFunctionUrlAccounts = [],
-      parentEdgeToOriginRoleArns = [],
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -279,8 +278,8 @@ export class MicroAppsStack extends Stack {
       version: microapps.svcs.deployerFunc.currentVersion,
     });
     // Allow cross-account invokes if specified
-    // TODO: Actually handle the list of account ID
-    if (childDeployenRoleArns.length > 0) {
+    // TODO: Actually handle the list of account IDs
+    if (childDeployenRoleArns?.length > 0) {
       const childRole = iam.Role.fromRoleArn(this, 'deployer-child-role', childDeployenRoleArns[0]);
 
       microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {

@@ -252,7 +252,10 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
     });
     this._role.assumeRolePolicy?.addStatements(
       new iam.PolicyStatement({
-        principals: [new iam.ServicePrincipal('edgelambda.amazonaws.com')],
+        principals: [
+          new iam.ServicePrincipal('edgelambda.amazonaws.com'),
+          new iam.ServicePrincipal('lambda.amazonaws.com'),
+        ],
         actions: ['sts:AssumeRole'],
         effect: iam.Effect.ALLOW,
       }),
