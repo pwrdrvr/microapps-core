@@ -280,14 +280,14 @@ export class MicroAppsStack extends Stack {
     // Allow cross-account invokes if specified
     // TODO: Actually handle the list of account IDs
     if (childDeployenRoleArns?.length > 0) {
-      const childRole = iam.Role.fromRoleArn(this, 'deployer-child-role', childDeployenRoleArns[0]);
+      const childRole = new iam.ArnPrincipal(childDeployenRoleArns[0]);
 
       microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {
         principal: childRole,
         scope: this,
       });
       deployerAlias.addPermission('deployer-child-permission-alias', {
-        principal: new iam.ArnPrincipal(childDeployenRoleArns[0]),
+        principal: childRole,
         scope: this,
       });
     }
