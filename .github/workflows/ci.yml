@@ -510,6 +510,15 @@ jobs:
         run: |
           env | grep CHILD_
 
+      - name: Allow Child Deployer to Invoke Parent Deployer
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        env:
+          PARENT_DEPLOYER_LAMBDA_ARN: ${{ env.DEPLOYER_LAMBDA_ARN }}
+          AWS_ACCOUNT_ID_CHILD: ${{ secrets.AWS_ACCOUNT_ID_CHILD }}
+        run: |
+          npx cdk deploy \
+            --require-approval never ${{ matrix.deployName }}-child-priv
+
       - name: Publish Demo App to Child MicroApps
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
