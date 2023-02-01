@@ -34,7 +34,7 @@ export class MicroAppsChildPrivStack extends Stack {
 
     const { parentDeployerLambdaARN, childDeployenRoleArns } = props;
 
-    if (childDeployenRoleArns.length > 0) {
+    if (childDeployenRoleArns.length > 0 && parentDeployerLambdaARN) {
       const deployerFunc = lambda.Function.fromFunctionArn(
         this,
         'deployer',
