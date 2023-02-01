@@ -481,7 +481,8 @@ jobs:
       #
 
       # Change to Child Account Creds
-      - name: Configure AWS Credentials
+      - name: Change to Child Account
+        if: ${{ matrix.deployName == 'microapps-core' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-session-name: microapps-ghpublic-build
@@ -510,6 +511,14 @@ jobs:
         run: |
           env | grep CHILD_
 
+      - name: Change Back to Parent AWS Account
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Allow Child Deployer to Invoke Parent Deployer
         if: ${{ matrix.deployName == 'microapps-core' }}
         env:
@@ -518,6 +527,14 @@ jobs:
         run: |
           npx cdk deploy \
             --require-approval never ${{ matrix.deployName }}-child-priv
+
+      - name: Change Back to Child Account
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Publish Demo App to Child MicroApps
         if: ${{ matrix.deployName == 'microapps-core' }}
