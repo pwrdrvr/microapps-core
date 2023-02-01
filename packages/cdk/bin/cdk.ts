@@ -38,6 +38,11 @@ new MicroAppsStack(app, 'microapps-core', {
   // We need to know the origin region for signing requests
   // Accessing Aws.REGION will end up writing a Token into the config file
   originRegion: shared.region,
+  ...(process.env.AWS_ACCOUNT_ID_CHILD
+    ? {
+        allowedFunctionUrlAccounts: [process.env.AWS_ACCOUNT_ID_CHILD],
+      }
+    : {}),
 });
 
 new MicroAppsChildStack(app, 'microapps-core-child', {

@@ -326,26 +326,10 @@ export class MicroAppsStack extends Stack {
       });
     }
 
-    // Import the Edge to Origin Lambda function so we can get the role ARN
-    const edgeToOriginFunc = lambda.Function.fromFunctionArn(
-      this,
-      'edge-to-origin-func-import',
-      // The functionArn will have the version number at the end, so we need to
-      // remove that to get the ARN of the function itself
-      (microapps.edgeToOrigin?.edgeToOriginFunction?.functionArn || '')
-        .split(':')
-        .slice(0, 7)
-        .join(':'),
-    );
-
     // Exports
     new CfnOutput(this, 'edge-domain-name', {
       value: domainNameEdge ? domainNameEdge : microapps.cf.cloudFrontDistro.domainName,
       exportName: `${this.stackName}-edge-domain-name`,
-    });
-    new CfnOutput(this, 'edge-to-origin-role-arn', {
-      value: `${microapps.edgeToOrigin?.edgeToOriginFunction?.role?.roleArn}`,
-      exportName: `${this.stackName}-edge-to-origin-arn`,
     });
     new CfnOutput(this, 'dynamodb-table-name', {
       value: `${tableName ? tableName : microapps.svcs.table.tableName}`,
