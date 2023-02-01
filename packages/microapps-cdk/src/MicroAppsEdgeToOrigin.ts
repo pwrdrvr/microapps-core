@@ -461,6 +461,11 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       const tableRules = dynamodb.Table.fromTableName(this, 'tableRules', tableRulesArn);
       tableRules.grantReadData(this._edgeToOriginFunction);
     }
+
+    new CfnOutput(this, 'edge-stack-name', {
+      value: `${Stack.of(this._edgeToOriginFunction).stackName}`,
+      exportName: `${Stack.of(this).stackName}-edge-stack`,
+    });
   }
 
   /**

@@ -35,14 +35,67 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - name: Configure AWS Credentials
+      #
+      # Cleanup the Lambda Resource Policy allowing Child Deployer
+      # to invoke the Parent Deployer, when applicable
+      #
+      - name: Change to Parent Account
+        if: ${{ matrix.deployName == 'microapps-core' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Destroy CDK Stack
+      - name: Destroy Parent Privilege CDK Stack for Child Deploy
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghchild-priv-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "${{ matrix.deployName }}-ghchild-priv-${NODE_ENV}-pr-${PR_NUMBER}"
+
+      #
+      # Cleanup the Child Deployer, when applicable
+      #
+      - name: Change to Child Account
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Destroy Child CDK Stack
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghchild-${NODE_ENV}-pr-${PR_NUMBER}"
+          aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "${{ matrix.deployName }}-ghchild-${NODE_ENV}-pr-${PR_NUMBER}"
+
+      #
+      # Cleanup the Lambda Resource Policy allowing Child Deployer
+      # to invoke the Parent Deployer, when applicable
+      #
+      - name: Change to Parent Account
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Destroy Parent CDK Stack
         run: |
           aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
           aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+
+      # TODO - Need to get the stack name from the parent stack export
+      # - name: Destroy Parent Edge to Origin Stack
+      #   run: |
+      #     aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+      #     aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+
+      # Example:
+      # microapps-core-ghpublic-prod-pr-303-edge-role
+      # - name: Destroy Parent Edge to Origin Stack
+      #   run: |
+      #     aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}-edge-role"
+      #     aws cloudformation wait stack-delete-complete --no-paginate --output text --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}-edge-role"
