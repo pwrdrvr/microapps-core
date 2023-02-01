@@ -189,10 +189,10 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
     } = props;
 
     // Create IAM Role for the Edge Function
-    this._role = new iam.Role(this, 'edge-to-origin-role', {
+    this._role = new iam.Role(this, 'edge-role', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: assetNameRoot
-        ? `${assetNameRoot}-edge-to-origin-role${assetNameSuffix}`
+        ? `${assetNameRoot}-edge-role${assetNameSuffix}`
         : PhysicalName.GENERATE_IF_NEEDED,
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
@@ -224,7 +224,7 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
                 ]
               : []),
             //
-            // Grant permission to invoke tagged Function URLs
+            // Grant permission to invoke tagged Function URLs (in same account)
             //
             new iam.PolicyStatement({
               actions: ['lambda:InvokeFunctionUrl'],
@@ -337,6 +337,7 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
     });
 
     const roleStack = new MicroAppsEdgeToOriginRoleStack(this, 'role-stack', {
+      stackName: `${Stack.of(this).stackName}-edge-role`,
       assetNameRoot,
       assetNameSuffix,
       allowedFunctionUrlAccounts,

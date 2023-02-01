@@ -142,15 +142,6 @@ export interface MicroAppsStackProps extends StackProps {
    * @default []
    */
   readonly allowedFunctionUrlAccounts?: string[];
-
-  /**
-   * Optional parent account origin request lambdas
-   * granted permission to invoke the function URL
-   * via a resource policy on each alias
-   *
-   * @default []
-   */
-  // readonly parentEdgeToOriginRoleArns?: string[];
 }
 
 export class MicroAppsStack extends Stack {
@@ -278,19 +269,6 @@ export class MicroAppsStack extends Stack {
 
       const appVersion = (demoApp.lambdaFunction as lambda.Function).currentVersion;
       appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
-
-      // TODO: Grant any parent Edge to Origin Lambdas permission to invoke this function
-      // via URL
-
-      // if (parentEdgeToOriginRoleArns && parentEdgeToOriginRoleArns.length > 0) {
-      //   parentEdgeToOriginRoleArns.forEach((parentRoleArn) => {
-      //     appVersion.addPermission('demo-app-permission', {
-      //       principal: new iam.ArnPrincipal(parentRoleArn),
-      //       scope: this,
-      //       action: 'lambda:InvokeFunctionUrl',
-      //     });
-      //   });
-      // }
 
       new CfnOutput(this, 'demo-app-func-name', {
         value: `${demoApp.lambdaFunction.functionName}`,
