@@ -1,7 +1,6 @@
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { MicroApps, MicroAppsProps, MicroAppsTable } from '@pwrdrvr/microapps-cdk';
@@ -137,14 +136,6 @@ export interface MicroAppsStackProps extends StackProps {
   readonly tableName?: string;
 
   /**
-   * Optional child account deployer role ARNs that
-   * can invoke this parent deployer Lambda
-   *
-   * @default []
-   */
-  readonly childDeployenRoleArns?: string[];
-
-  /**
    * Account IDs allowed for cross-account Function URL invocations
    *
    * @example ['123456789012']
@@ -192,7 +183,6 @@ export class MicroAppsStack extends Stack {
       rootPathPrefix,
       originRegion,
       tableName,
-      childDeployenRoleArns = [],
       allowedFunctionUrlAccounts = [],
     } = props;
 
@@ -273,24 +263,10 @@ export class MicroAppsStack extends Stack {
     });
 
     // Give the current version an alias
-    const deployerAlias = new lambda.Alias(this, 'deployer-alias', {
+    new lambda.Alias(this, 'deployer-alias', {
       aliasName: 'currentVersion',
       version: microapps.svcs.deployerFunc.currentVersion,
     });
-    // Allow cross-account invokes if specified
-    // TODO: Actually handle the list of account IDs
-    if (childDeployenRoleArns?.length > 0) {
-      const childRole = new iam.ArnPrincipal(childDeployenRoleArns[0]);
-
-      microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {
-        principal: childRole,
-        scope: this,
-      });
-      deployerAlias.addPermission('deployer-child-permission-alias', {
-        principal: childRole,
-        scope: this,
-      });
-    }
 
     if (deployDemoApp) {
       const demoApp = new DemoApp(this, 'demo-app', {
