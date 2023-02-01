@@ -34,14 +34,18 @@ export class MicroAppsChildPrivStack extends Stack {
 
     const { parentDeployerLambdaARN, childDeployenRoleArns } = props;
 
-    const deployerFunc = lambda.Function.fromFunctionArn(this, 'deployer', parentDeployerLambdaARN);
-    const deployerFuncAlias = lambda.Function.fromFunctionArn(
-      this,
-      'deployer-alias',
-      `${parentDeployerLambdaARN}:currentVersion`,
-    );
-
     if (childDeployenRoleArns.length > 0) {
+      const deployerFunc = lambda.Function.fromFunctionArn(
+        this,
+        'deployer',
+        parentDeployerLambdaARN,
+      );
+      const deployerFuncAlias = lambda.Function.fromFunctionArn(
+        this,
+        'deployer-alias',
+        `${parentDeployerLambdaARN}:currentVersion`,
+      );
+
       const childRole = new iam.ArnPrincipal(childDeployenRoleArns[0]);
 
       deployerFunc.addPermission('deployer-child-permission', {

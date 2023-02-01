@@ -52,7 +52,7 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
 
 new MicroAppsChildPrivStack(app, 'microapps-core-child-priv', {
   env,
-  stackName: `microapps-core-ghchild${shared.envSuffix}${shared.prSuffix}`,
+  stackName: `microapps-core-ghchild-priv${shared.envSuffix}${shared.prSuffix}`,
   parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
   childDeployenRoleArns: [
     `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghchild-deployer${shared.envSuffix}${shared.prSuffix}`,
