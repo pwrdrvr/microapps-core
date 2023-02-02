@@ -75,7 +75,6 @@ jobs:
       # to invoke the Parent Deployer, when applicable
       #
       - name: Change to Parent Account
-        if: ${{ matrix.deployName == 'microapps-core' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-session-name: microapps-ghpublic-build
