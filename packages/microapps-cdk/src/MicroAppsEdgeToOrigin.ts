@@ -189,10 +189,10 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
     } = props;
 
     // Create IAM Role for the Edge Function
-    this._role = new iam.Role(this, 'edge-to-origin-role', {
+    this._role = new iam.Role(this, 'edge-role', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: assetNameRoot
-        ? `${assetNameRoot}-edge-to-origin-role${assetNameSuffix}`
+        ? `${assetNameRoot}-edge-role${assetNameSuffix}`
         : PhysicalName.GENERATE_IF_NEEDED,
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
@@ -224,7 +224,7 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
                 ]
               : []),
             //
-            // Grant permission to invoke tagged Function URLs
+            // Grant permission to invoke tagged Function URLs (in same account)
             //
             new iam.PolicyStatement({
               actions: ['lambda:InvokeFunctionUrl'],
@@ -252,7 +252,10 @@ class MicroAppsEdgeToOriginRoleStack extends Stack {
     });
     this._role.assumeRolePolicy?.addStatements(
       new iam.PolicyStatement({
-        principals: [new iam.ServicePrincipal('edgelambda.amazonaws.com')],
+        principals: [
+          new iam.ServicePrincipal('edgelambda.amazonaws.com'),
+          new iam.ServicePrincipal('lambda.amazonaws.com'),
+        ],
         actions: ['sts:AssumeRole'],
         effect: iam.Effect.ALLOW,
       }),
@@ -334,6 +337,7 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
     });
 
     const roleStack = new MicroAppsEdgeToOriginRoleStack(this, 'role-stack', {
+      stackName: `${Stack.of(this).stackName}-edge-role`,
       assetNameRoot,
       assetNameSuffix,
       allowedFunctionUrlAccounts,
@@ -457,6 +461,13 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       const tableRules = dynamodb.Table.fromTableName(this, 'tableRules', tableRulesArn);
       tableRules.grantReadData(this._edgeToOriginFunction);
     }
+
+    (this._edgeToOriginFunction as cf.experimental.EdgeFunction).stack.stackName;
+
+    new CfnOutput(this, 'edge-stack-name', {
+      value: `${(this._edgeToOriginFunction as cf.experimental.EdgeFunction).stack.stackName}`,
+      exportName: `${Stack.of(this).stackName}-edge-stack`,
+    });
   }
 
   /**

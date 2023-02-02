@@ -1,7 +1,6 @@
 import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { MicroApps, MicroAppsProps, MicroAppsTable } from '@pwrdrvr/microapps-cdk';
@@ -137,29 +136,12 @@ export interface MicroAppsStackProps extends StackProps {
   readonly tableName?: string;
 
   /**
-   * Optional child account deployer role ARNs that
-   * can invoke this parent deployer Lambda
-   *
-   * @default []
-   */
-  readonly childDeployenRoleArns?: string[];
-
-  /**
    * Account IDs allowed for cross-account Function URL invocations
    *
    * @example ['123456789012']
    * @default []
    */
   readonly allowedFunctionUrlAccounts?: string[];
-
-  /**
-   * Optional parent account origin request lambdas
-   * granted permission to invoke the function URL
-   * via a resource policy on each alias
-   *
-   * @default []
-   */
-  readonly parentEdgeToOriginRoleArns?: string[];
 }
 
 export class MicroAppsStack extends Stack {
@@ -192,9 +174,7 @@ export class MicroAppsStack extends Stack {
       rootPathPrefix,
       originRegion,
       tableName,
-      childDeployenRoleArns = [],
       allowedFunctionUrlAccounts = [],
-      parentEdgeToOriginRoleArns = [],
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -274,24 +254,10 @@ export class MicroAppsStack extends Stack {
     });
 
     // Give the current version an alias
-    const deployerAlias = new lambda.Alias(this, 'deployer-alias', {
+    new lambda.Alias(this, 'deployer-alias', {
       aliasName: 'currentVersion',
       version: microapps.svcs.deployerFunc.currentVersion,
     });
-    // Allow cross-account invokes if specified
-    // TODO: Actually handle the list of account ID
-    if (childDeployenRoleArns.length > 0) {
-      const childRole = iam.Role.fromRoleArn(this, 'deployer-child-role', childDeployenRoleArns[0]);
-
-      microapps.svcs.deployerFunc.addPermission('deployer-child-permission', {
-        principal: childRole,
-        scope: this,
-      });
-      deployerAlias.addPermission('deployer-child-permission-alias', {
-        principal: new iam.ArnPrincipal(childDeployenRoleArns[0]),
-        scope: this,
-      });
-    }
 
     if (deployDemoApp) {
       const demoApp = new DemoApp(this, 'demo-app', {
@@ -303,19 +269,6 @@ export class MicroAppsStack extends Stack {
 
       const appVersion = (demoApp.lambdaFunction as lambda.Function).currentVersion;
       appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
-
-      // TODO: Grant any parent Edge to Origin Lambdas permission to invoke this function
-      // via URL
-
-      // if (parentEdgeToOriginRoleArns && parentEdgeToOriginRoleArns.length > 0) {
-      //   parentEdgeToOriginRoleArns.forEach((parentRoleArn) => {
-      //     appVersion.addPermission('demo-app-permission', {
-      //       principal: new iam.ArnPrincipal(parentRoleArn),
-      //       scope: this,
-      //       action: 'lambda:InvokeFunctionUrl',
-      //     });
-      //   });
-      // }
 
       new CfnOutput(this, 'demo-app-func-name', {
         value: `${demoApp.lambdaFunction.functionName}`,
@@ -373,26 +326,10 @@ export class MicroAppsStack extends Stack {
       });
     }
 
-    // Import the Edge to Origin Lambda function so we can get the role ARN
-    const edgeToOriginFunc = lambda.Function.fromFunctionArn(
-      this,
-      'edge-to-origin-func-import',
-      // The functionArn will have the version number at the end, so we need to
-      // remove that to get the ARN of the function itself
-      (microapps.edgeToOrigin?.edgeToOriginFunction?.functionArn || '')
-        .split(':')
-        .slice(0, 7)
-        .join(':'),
-    );
-
     // Exports
     new CfnOutput(this, 'edge-domain-name', {
       value: domainNameEdge ? domainNameEdge : microapps.cf.cloudFrontDistro.domainName,
       exportName: `${this.stackName}-edge-domain-name`,
-    });
-    new CfnOutput(this, 'edge-to-origin-role-arn', {
-      value: `${microapps.edgeToOrigin?.edgeToOriginFunction?.role?.roleArn}`,
-      exportName: `${this.stackName}-edge-to-origin-arn`,
     });
     new CfnOutput(this, 'dynamodb-table-name', {
       value: `${tableName ? tableName : microapps.svcs.table.tableName}`,

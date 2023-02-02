@@ -373,6 +373,7 @@ async function AddCrossAccountPermissionsToAlias({
 }): Promise<void> {
   // Bail if there is no parent account
   if (!config.parentDeployerLambdaARN) {
+    Log.Instance.info('No parent account, skipping cross-account permissions');
     return;
   }
 

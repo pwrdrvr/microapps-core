@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import { App, Environment } from 'aws-cdk-lib';
 import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsChildStack } from '../lib/MicroAppsChild';
+import { MicroAppsChildPrivStack } from '../lib/MicroAppsChildPriv';
 import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 import { SharedProps } from '../lib/SharedProps';
 
@@ -39,9 +40,6 @@ new MicroAppsStack(app, 'microapps-core', {
   originRegion: shared.region,
   ...(process.env.AWS_ACCOUNT_ID_CHILD
     ? {
-        childDeployenRoleArns: [
-          `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghchild-deployer${shared.envSuffix}${shared.prSuffix}`,
-        ],
         allowedFunctionUrlAccounts: [process.env.AWS_ACCOUNT_ID_CHILD],
       }
     : {}),
@@ -55,6 +53,15 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
   parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
   edgeToOriginRoleARN: process.env.EDGE_TO_ORIGIN_ROLE_ARN || '',
+});
+
+new MicroAppsChildPrivStack(app, 'microapps-core-child-priv', {
+  env,
+  stackName: `microapps-core-ghchild-priv${shared.envSuffix}${shared.prSuffix}`,
+  parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
+  childDeployenRoleArns: [
+    `arn:aws:iam::${process.env.AWS_ACCOUNT_ID_CHILD}:role/microapps-core-ghchild-deployer${shared.envSuffix}${shared.prSuffix}`,
+  ],
 });
 
 new MicroAppsStack(app, 'microapps-basic', {
