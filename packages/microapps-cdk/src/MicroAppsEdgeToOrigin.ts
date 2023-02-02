@@ -462,8 +462,10 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       tableRules.grantReadData(this._edgeToOriginFunction);
     }
 
+    (this._edgeToOriginFunction as cf.experimental.EdgeFunction).stack.stackName;
+
     new CfnOutput(this, 'edge-stack-name', {
-      value: `${Stack.of(this._edgeToOriginFunction).stackName}`,
+      value: `${(this._edgeToOriginFunction as cf.experimental.EdgeFunction).stack.stackName}`,
       exportName: `${Stack.of(this).stackName}-edge-stack`,
     });
   }
