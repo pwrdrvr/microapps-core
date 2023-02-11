@@ -103,6 +103,14 @@ export async function handler(
         });
 
         return responsePayload;
+      } else if (['deployVersion'].includes(event.type)) {
+        // If we're in proxy mode, we don't want to deploy the version
+        // ourselves, but we do want to return a response that indicates
+        // that the version is deployed
+        return {
+          statusCode: 400,
+          errorMessage: 'Deployer is in proxy mode - `deployVersion` is not allowed',
+        };
       }
     }
 

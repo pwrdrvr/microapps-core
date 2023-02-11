@@ -19,7 +19,7 @@ export interface MicroAppsChildPrivStackProps extends StackProps {
    *
    * @default []
    */
-  readonly childDeployenRoleArns: string[];
+  readonly childDeployerRoleArns: string[];
 }
 
 export class MicroAppsChildPrivStack extends Stack {
@@ -32,9 +32,9 @@ export class MicroAppsChildPrivStack extends Stack {
 
     SharedTags.addSharedTags(this);
 
-    const { parentDeployerLambdaARN, childDeployenRoleArns } = props;
+    const { parentDeployerLambdaARN, childDeployerRoleArns } = props;
 
-    if (childDeployenRoleArns.length > 0 && parentDeployerLambdaARN) {
+    if (childDeployerRoleArns.length > 0 && parentDeployerLambdaARN) {
       const deployerFunc = lambda.Function.fromFunctionArn(
         this,
         'deployer',
@@ -46,7 +46,7 @@ export class MicroAppsChildPrivStack extends Stack {
         `${parentDeployerLambdaARN}:currentVersion`,
       );
 
-      const childRole = new iam.ArnPrincipal(childDeployenRoleArns[0]);
+      const childRole = new iam.ArnPrincipal(childDeployerRoleArns[0]);
 
       deployerFunc.addPermission('deployer-child-permission', {
         principal: childRole,
