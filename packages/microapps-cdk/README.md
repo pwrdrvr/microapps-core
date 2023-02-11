@@ -1,4 +1,4 @@
-![Build/Deploy CI](https://github.com/pwrdrvr/microapps-core/actions/workflows/ci.yml/badge.svg) ![Main Build](https://github.com/pwrdrvr/microapps-core/actions/workflows/main-build.yml/badge.svg) ![Release](https://github.com/pwrdrvr/microapps-core/actions/workflows/release.yml/badge.svg)
+[![CI](https://github.com/pwrdrvr/microapps-core/actions/workflows/ci.yml/badge.svg)](https://github.com/pwrdrvr/microapps-core/actions/workflows/ci.yml) [![Merge to Main Build](https://github.com/pwrdrvr/microapps-core/actions/workflows/main-build.yml/badge.svg)](https://github.com/pwrdrvr/microapps-core/actions/workflows/main-build.yml) [![Release Packages](https://github.com/pwrdrvr/microapps-core/actions/workflows/release.yml/badge.svg)](https://github.com/pwrdrvr/microapps-core/actions/workflows/release.yml)
 
 # Overview
 
@@ -15,6 +15,7 @@ For development / testing purposes only, each version of an applicaton can be ac
 # Table of Contents <!-- omit in toc -->
 
 - [Overview](#overview)
+- [Request Dispatch Model for Multi-Account Deployments](#request-dispatch-model-for-multi-account-deployments)
 - [Video Preview of the Deploying CDK Construct](#video-preview-of-the-deploying-cdk-construct)
 - [Installation / CDK Constructs](#installation--cdk-constructs)
 - [Tutorial - Bootstrapping a Deploy](#tutorial---bootstrapping-a-deploy)
