@@ -36,6 +36,12 @@ For development / testing purposes only, each version of an applicaton can be ac
   - [CloudFront Requests to API Gateway are Rejected with 403 Forbidden](#cloudfront-requests-to-api-gateway-are-rejected-with-403-forbidden)
     - [SignatureV4 Headers](#signaturev4-headers)
 
+# Request Dispatch Model for Multi-Account Deployments
+
+Note: requests can also be dispatched into the same account, but this model is more likely to be used by organizations with many AWS accounts.
+
+![211132720-604510fa-de44-4ac6-a79b-c28c829d2490](https://user-images.githubusercontent.com/5617868/218237120-65b3ae44-31ba-4b6d-8722-4d3fb7da5577.png)
+
 # Video Preview of the Deploying CDK Construct
 
 ![Video Preview of Deploying](https://raw.githubusercontent.com/pwrdrvr/microapps-core/main/assets/videos/microapps-core-demo-deploy.gif)
