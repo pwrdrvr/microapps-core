@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - '!**/README.md'
   # When testing changes to workflow
   # pull_request:
   #   branches:
