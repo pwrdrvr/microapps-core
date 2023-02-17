@@ -2,11 +2,11 @@
 
 exports[`S3TransferUtility collects the files 1`] = `
 [
-  "/Users/huntharo/pwrdrvr/microapps-core/packages/microapps-publish/tests/files/dir1/.touch",
-  "/Users/huntharo/pwrdrvr/microapps-core/packages/microapps-publish/tests/files/dir2/dir21/dir211/some211-1.json",
-  "/Users/huntharo/pwrdrvr/microapps-core/packages/microapps-publish/tests/files/dir2/dir21/dir211/some211-2.json",
-  "/Users/huntharo/pwrdrvr/microapps-core/packages/microapps-publish/tests/files/dir2/dir21/some21.json",
-  "/Users/huntharo/pwrdrvr/microapps-core/packages/microapps-publish/tests/files/dir2/dir22/some22.json",
-  "/Users/huntharo/pwrdrvr/microapps-core/packages/microapps-publish/tests/files/some.json",
+  "dir1/.touch",
+  "dir2/dir21/dir211/some211-1.json",
+  "dir2/dir21/dir211/some211-2.json",
+  "dir2/dir21/some21.json",
+  "dir2/dir22/some22.json",
+  "some.json",
 ]
 `;
