@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Command, flags as flagsParser } from '@oclif/command';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pMap = require('p-map');
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
@@ -210,7 +212,7 @@ export class PublishCommand extends Command {
         {
           // TODO: Disable this task if no static assets path
           title: 'Upload Static Files to S3',
-          task: (ctx, task) => {
+          task: async (ctx, task) => {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
@@ -239,41 +241,81 @@ export class PublishCommand extends Command {
               : `max-age=${24 * 60 * 60}, public`;
 
             const pathWithoutAppAndVer = path.join(S3Uploader.TempDir, destinationPrefix);
+            // Listr causes OOM if passes a list of, say, 5,000 to 20,000 files
+            if (ctx.files.length > 200) {
+              const fileCountMsgInterval = Math.floor(ctx.files.length / 10);
+              let filesPublished = 0;
 
-            const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
-              task: async (ctx: IContext, subtask) => {
-                const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
+              await pMap(
+                ctx.files,
+                async (filePath: string) => {
+                  // Can't use tasks for each file
+                  const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
 
-                const origTitle = relFilePath;
-                subtask.title = RUNNING + origTitle;
+                  if (
+                    ctx.files.length > 1000 &&
+                    (filesPublished % fileCountMsgInterval === 0 ||
+                      filesPublished === ctx.files.length)
+                  ) {
+                    task.output = `Uploaded ${filesPublished} of ${ctx.files.length} files`;
+                  } else if (ctx.files.length <= 1000) {
+                    task.output = `Uploading ${relFilePath}`;
+                  }
 
-                const upload = new Upload({
-                  client: s3Client,
-                  leavePartsOnError: false,
-                  params: {
-                    Bucket: bucketName,
-                    Key: path.relative(S3Uploader.TempDir, filePath),
-                    Body: createReadStream(filePath),
-                    ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
-                    CacheControl,
-                  },
-                });
-                await upload.done();
+                  const upload = new Upload({
+                    client: s3Client,
+                    leavePartsOnError: false,
+                    params: {
+                      Bucket: bucketName,
+                      Key: path.relative(S3Uploader.TempDir, filePath),
+                      Body: createReadStream(filePath),
+                      ContentType:
+                        contentType(path.basename(filePath)) || 'application/octet-stream',
+                      CacheControl,
+                    },
+                  });
+                  await upload.done();
+                  filesPublished++;
+                },
+                { concurrency: 40 },
+              );
+            } else {
+              const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
+                task: async (ctx: IContext, subtask) => {
+                  const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
 
-                subtask.title = origTitle;
-              },
-            }));
+                  const origTitle = relFilePath;
+                  subtask.title = RUNNING + origTitle;
 
-            task.title = origTitle;
+                  const upload = new Upload({
+                    client: s3Client,
+                    leavePartsOnError: false,
+                    params: {
+                      Bucket: bucketName,
+                      Key: path.relative(S3Uploader.TempDir, filePath),
+                      Body: createReadStream(filePath),
+                      ContentType:
+                        contentType(path.basename(filePath)) || 'application/octet-stream',
+                      CacheControl,
+                    },
+                  });
+                  await upload.done();
 
-            return task.newListr(tasks, {
-              concurrent: 8,
-              rendererOptions: {
-                clearOutput: false,
-                showErrorMessage: true,
-                showTimer: true,
-              },
-            });
+                  subtask.title = origTitle;
+                },
+              }));
+
+              task.title = origTitle;
+
+              return task.newListr(tasks, {
+                concurrent: 8,
+                rendererOptions: {
+                  clearOutput: false,
+                  showErrorMessage: true,
+                  showTimer: true,
+                },
+              });
+            }
           },
         },
         {

@@ -377,13 +377,24 @@ export class PublishCommand extends Command {
 
             // Listr causes OOM if passes a list of, say, 5,000 to 20,000 files
             if (ctx.files.length > 200) {
+              const fileCountMsgInterval = Math.floor(ctx.files.length / 10);
+              let filesPublished = 0;
+
               await pMap(
                 ctx.files,
                 async (filePath: string) => {
                   // Can't use tasks for each file
                   const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
 
-                  task.output = `Uploading ${relFilePath}`;
+                  if (
+                    ctx.files.length > 1000 &&
+                    (filesPublished % fileCountMsgInterval === 0 ||
+                      filesPublished === ctx.files.length)
+                  ) {
+                    task.output = `Uploaded ${filesPublished} of ${ctx.files.length} files`;
+                  } else if (ctx.files.length <= 1000) {
+                    task.output = `Uploading ${relFilePath}`;
+                  }
 
                   const upload = new Upload({
                     client: s3Client,
@@ -398,6 +409,7 @@ export class PublishCommand extends Command {
                     },
                   });
                   await upload.done();
+                  filesPublished++;
                 },
                 { concurrency: 40 },
               );
