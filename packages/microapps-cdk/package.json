@@ -37,7 +37,9 @@
     "organization": true
   },
   "devDependencies": {
+    "@types/jest": "^26.0.24",
     "@types/node": "^12",
+    "@types/yargs": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "aws-cdk-lib": "2.24.1",

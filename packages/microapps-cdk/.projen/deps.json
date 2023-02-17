@@ -1,8 +1,18 @@
 {
   "dependencies": [
     {
+      "name": "@types/jest",
+      "version": "^26.0.24",
+      "type": "build"
+    },
+    {
       "name": "@types/node",
       "version": "^12",
+      "type": "build"
+    },
+    {
+      "name": "@types/yargs",
+      "version": "^16.0.0",
       "type": "build"
     },
     {
