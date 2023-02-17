@@ -8,8 +8,8 @@ import { Listr, ListrTask } from 'listr2';
 import { createVersions, IVersions } from '../lib/Versions';
 import { Config } from '../config/Config';
 import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
-import S3Uploader from '../lib/S3Uploader';
-import S3TransferUtility from '../lib/S3TransferUtility';
+import { S3Uploader } from '../lib/S3Uploader';
+import { S3TransferUtility } from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
 import { contentType } from 'mime-types';
 
@@ -198,11 +198,11 @@ export class PublishCommand extends Command {
         {
           // TODO: Disable this task if no static assets path
           title: 'Enumerate Files to Upload to S3',
-          task: async (ctx, task) => {
+          task: (ctx, task) => {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
-            ctx.files = (await S3TransferUtility.GetFiles(S3Uploader.TempDir)) as string[];
+            ctx.files = S3TransferUtility.GetFiles(S3Uploader.TempDir);
 
             task.title = origTitle;
           },

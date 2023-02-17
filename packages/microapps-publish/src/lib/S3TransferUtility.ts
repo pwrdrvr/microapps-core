@@ -2,7 +2,7 @@
 // From: https://stackoverflow.com/a/65862128/878903
 //
 
-import { promises as fs, createReadStream } from 'fs';
+import { createReadStream, readdirSync } from 'fs';
 import * as path from 'path';
 import * as s3 from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
@@ -10,7 +10,7 @@ import type { IDeployVersionPreflightResponse } from '@pwrdrvr/microapps-deploye
 import { contentType } from 'mime-types';
 import pMap from 'p-map';
 
-export default class S3TransferUtility {
+export class S3TransferUtility {
   /**
    * @deprecated 2021-11-27
    *
@@ -36,7 +36,7 @@ export default class S3TransferUtility {
     });
 
     // console.log('Uploading files to S3');
-    const files = (await S3TransferUtility.GetFiles(s3Path)) as string[];
+    const files = S3TransferUtility.GetFiles(s3Path);
     // const pathWithoutAppAndVer = path.join(s3Path, destPrefixPath);
     // for (const filePath of files) {
     //   const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
@@ -82,14 +82,32 @@ export default class S3TransferUtility {
    * @param dir
    * @returns
    */
-  public static async GetFiles(dir: string): Promise<string | string[]> {
-    const dirents = await fs.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(
-      dirents.map((dirent) => {
-        const res = path.resolve(dir, dirent.name);
-        return dirent.isDirectory() ? S3TransferUtility.GetFiles(res) : res;
-      }),
-    );
-    return Array.prototype.concat(...files);
+  public static GetFiles(dir: string): string[] {
+    const dirents = readdirSync(dir, { withFileTypes: true });
+    const files: string[] = [];
+    const toScan = dirents.map((dirent) => ({
+      path: path.resolve(dir, dirent.name),
+      isDirectory: dirent.isDirectory(),
+    }));
+
+    // Iteratively collect all the files in the directories
+    // Do not use function call recursion
+    while (toScan.length > 0) {
+      const dirOrFile = toScan.pop();
+
+      if (dirOrFile.isDirectory) {
+        const direntsChild = readdirSync(dirOrFile.path, { withFileTypes: true });
+        const toScanChild = direntsChild.map((dirent) => ({
+          path: path.resolve(dirOrFile.path, dirent.name),
+          isDirectory: dirent.isDirectory(),
+        }));
+        Array.prototype.push.apply(toScan, toScanChild);
+      } else {
+        files.push(dirOrFile.path);
+      }
+    }
+
+    // Reverse the array so that the files are in the same order as the original
+    return files.reverse();
   }
 }

@@ -34,21 +34,21 @@
     "lambda-log": "^3.1.0",
     "p-map": "^4.0.0",
     "reflect-metadata": "^0.1.13",
-    "source-map-support": "^0.5.19",
+    "source-map-support": "0.5.21",
     "ts-convict": "^1.1.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.72",
+    "@types/aws-lambda": "8.10.110",
     "@types/convict": "^6.0.2",
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/fs-extra": "^9.0.11",
     "@types/jest": "^26.0.24",
     "@types/js-yaml": "^4.0.1",
     "@types/lambda-log": "^2.2.0",
-    "@types/node": "^16.9.2",
+    "@types/node": "16.9.2",
     "@types/sinon": "^10.0.0",
-    "@types/source-map-support": "^0.5.4",
+    "@types/source-map-support": "0.5.6",
     "aws-sdk-client-mock": "^0.3.0",
     "sinon": "^10.0.0"
   }
