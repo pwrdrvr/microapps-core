@@ -14,12 +14,12 @@
     "cdk": "cdk"
   },
   "dependencies": {
-    "@pwrdrvr/microapps-app-nextjs-demo-cdk": "^0.4.1",
+    "@pwrdrvr/microapps-app-nextjs-demo-cdk": "0.5.1",
     "@pwrdrvr/microapps-app-release-cdk": "^0.4.7",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "0.5.21"
   },
   "devDependencies": {
-    "@types/node": "^16.9.2",
+    "@types/node": "16.9.2",
     "aws-cdk-lib": "2.24.1",
     "constructs": "10.0.5",
     "ts-node": "^9.0.0",

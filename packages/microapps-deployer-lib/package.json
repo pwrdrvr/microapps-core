@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "devDependencies": {
-    "@types/node": "^16.9.2"
+    "@types/node": "16.9.2"
   }
 }
