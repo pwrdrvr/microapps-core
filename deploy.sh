@@ -22,7 +22,7 @@ RELEASE_APP_LAMBDA_NAME=$(aws cloudformation list-exports --query "Exports[?Name
 EDGE_DOMAIN=$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-demo-deploy-${NODE_ENV}-edge-domain-name\`].Value" --no-paginate --output text)
 
 # Deploy the Release App
-npx microapps-publish publish -a release -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/.static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
+npx microapps-publish publish -a release -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache
 
 # Print App URL
 echo "App Available at URL: https://${EDGE_DOMAIN}/release/"
