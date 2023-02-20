@@ -214,17 +214,17 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
-      - name: Cache TypeScript Build Output
-        id: cache-typescript-build
-        uses: actions/cache@v3
-        with:
-          path: |
-            packages/**/dist
-            packages/microapps-cdk/lib
-          key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+      # - name: Cache TypeScript Build Output
+      #   id: cache-typescript-build
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       packages/**/dist
+      #       packages/microapps-cdk/lib
+      #     key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
 
       - name: Optionally Build All TypeScript
-        if: steps.cache-typescript-build.outputs.cache-hit != 'true'
+        # if: steps.cache-typescript-build.outputs.cache-hit != 'true'
         run: yarn build
 
       - name: Build Edge-to-Origin for Local Deploy
