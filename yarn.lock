@@ -2533,10 +2533,10 @@
   resolved "https://registry.yarnpkg.com/@oozcitak/util/-/util-8.3.8.tgz"
   integrity sha512-T8TbSnGsxo6TDBJx/Sgv/BlVJL3tshxZP7Aq5R1mSnM5OcHY2dQaxLMu2+E8u3gN0MLOzdjurqN4ZRVuzQycOQ==
 
-"@pwrdrvr/microapps-app-nextjs-demo-cdk@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.5.1.tgz#39e9eadcba491f92891cbaed9d79ced36b1f4b79"
-  integrity sha512-+urGudQ8zU5NRSzwxlluX9Ly+YfMUdiPhw5ctOtcpZ/zO2fzv7V9Mq46Xehp2MKBu4H4Pl7YoCsYTDuAbwTDyg==
+"@pwrdrvr/microapps-app-nextjs-demo-cdk@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.6.1.tgz#ec94458069e1a3a5c39eb3d73ee7d4c1c81657ba"
+  integrity sha512-ratFjKbxL+RFQ5jqp1ZxOAkgDqz5IL+N+7BOknn13AWgh5KK1beDV3fdC3/iOT29Cltw0Hycr8oaGi78zI8VvA==
 
 "@pwrdrvr/microapps-app-release-cdk@^0.4.7":
   version "0.4.7"
