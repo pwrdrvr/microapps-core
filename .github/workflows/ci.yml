@@ -443,7 +443,7 @@ jobs:
           target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.NEXTJS_DEMO_APP_NAME }}?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
 
       - name: Test Nextjs Demo App
-        if: ${{ matrix.deployName != 'microapps-basic-prefix' }}}
+        if: ${{ matrix.deployName != 'microapps-basic-prefix' }}
         run: |
           echo Testing App Page Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}
@@ -475,7 +475,7 @@ jobs:
           target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
 
       - name: Test Release App
-        if: ${{ matrix.deployName != 'microapps-basic-prefix' }}}
+        if: ${{ matrix.deployName != 'microapps-basic-prefix' }}
         run: |
           echo Testing App Frame Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}
