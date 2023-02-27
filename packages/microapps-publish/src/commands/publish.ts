@@ -11,7 +11,10 @@ import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
 import { createVersions, IVersions } from '../lib/Versions';
 import { Config, IConfig } from '../config/Config';
-import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
+import DeployClient, {
+  DeployVersionArgs,
+  IDeployVersionPreflightResult,
+} from '../lib/DeployClient';
 import { S3Uploader } from '../lib/S3Uploader';
 import { S3TransferUtility } from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
@@ -23,8 +26,6 @@ const asyncSetTimeout = util.promisify(setTimeout);
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
 });
-
-type DeployVersionArgs = Parameters<typeof DeployClient.DeployVersionLite>[0];
 
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;

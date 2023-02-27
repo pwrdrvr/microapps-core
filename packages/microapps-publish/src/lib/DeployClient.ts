@@ -19,7 +19,7 @@ export interface IDeployVersionPreflightResult {
   response: IDeployVersionPreflightResponse;
 }
 
-export type DeployVersionArgs = Parameters<typeof DeployClient.DeployVersionLite>;
+export type DeployVersionArgs = Parameters<typeof DeployClient.DeployVersionLite>[0];
 
 export default class DeployClient {
   static readonly _client = new lambda.LambdaClient({

@@ -9,7 +9,10 @@ import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
 import { createVersions, IVersions } from '../lib/Versions';
 import { Config } from '../config/Config';
-import DeployClient, { IDeployVersionPreflightResult } from '../lib/DeployClient';
+import DeployClient, {
+  DeployVersionArgs,
+  IDeployVersionPreflightResult,
+} from '../lib/DeployClient';
 import { S3Uploader } from '../lib/S3Uploader';
 import { S3TransferUtility } from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
@@ -336,8 +339,7 @@ export class PublishCommand extends Command {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
-            // Call Deployer to Deploy AppName/Version
-            await DeployClient.DeployVersion({
+            const request: DeployVersionArgs = {
               appName: config.app.name,
               semVer: config.app.semVer,
               deployerLambdaName: config.deployer.lambdaName,
@@ -345,7 +347,17 @@ export class PublishCommand extends Command {
               appType: 'static',
               overwrite,
               output: (message: string) => (task.output = message),
-            });
+            };
+
+            // Use DeployVersionLite if createAlias is supported
+            if (ctx.preflightResult.response.capabilities?.['createAlias'] === 'true') {
+              task.output = 'Using DeployVersionLite';
+              await DeployClient.DeployVersionLite(request);
+            } else {
+              // Use legacy DeployVersion if createAlias is not supported
+              task.output = 'Using DeployVersion';
+              await DeployClient.DeployVersion(request);
+            }
 
             task.title = origTitle;
           },
