@@ -1269,7 +1269,7 @@ describe('edge-to-origin - routing - without prefix', () => {
       AppName: '[root]',
       DefaultFile: 'bat.html',
       IntegrationID: 'abcd',
-      SemVer: '3.2.1-beta.1',
+      SemVer: '3.2.1-beta.3',
       Status: 'deployed',
       Type: 'static',
     });
@@ -1278,7 +1278,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     const rules = new Rules({
       AppName: '[root]',
       Version: 0,
-      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+      RuleSet: { default: { SemVer: '3.2.1-beta.3', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
@@ -1300,7 +1300,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/3.2.1-beta.1',
+                uri: '/3.2.1-beta.3',
               },
             },
           },
@@ -1313,7 +1313,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('status');
     expect(responseResponse.status).toBe('302');
     expect(responseResponse.headers).toHaveProperty('location');
-    expect(responseResponse.headers?.location[0].value).toContain('/3.2.1-beta.1/bat.html');
+    expect(responseResponse.headers?.location[0].value).toContain('/3.2.1-beta.3/bat.html');
   });
 
   it('static app - request to [root]/x.y.z/ should redirect to defaultFile', async () => {
@@ -1327,7 +1327,7 @@ describe('edge-to-origin - routing - without prefix', () => {
       AppName: '[root]',
       DefaultFile: 'bat.html',
       IntegrationID: 'abcd',
-      SemVer: '3.2.1-beta.1',
+      SemVer: '3.2.1-beta.2',
       Status: 'deployed',
       Type: 'static',
     });
@@ -1336,7 +1336,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     const rules = new Rules({
       AppName: '[root]',
       Version: 0,
-      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+      RuleSet: { default: { SemVer: '3.2.1-beta.2', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
@@ -1358,7 +1358,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/3.2.1-beta.1',
+                uri: '/3.2.1-beta.2',
               },
             },
           },
@@ -1371,7 +1371,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('status');
     expect(responseResponse.status).toBe('302');
     expect(responseResponse.headers).toHaveProperty('location');
-    expect(responseResponse.headers?.location[0].value).toBe('/3.2.1-beta.1/bat.html');
+    expect(responseResponse.headers?.location[0].value).toBe('/3.2.1-beta.2/bat.html');
   });
 
   it('static app - request to [root]/notVersion should load app frame with defaultFile', async () => {

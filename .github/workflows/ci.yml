@@ -371,6 +371,12 @@ jobs:
           echo Testing App Method Invocation on _next/data Route
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
 
+      - name: Run Integration Tests
+        env:
+          DEMO_APP_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/${{ env.DEMO_APP_NAME }}
+        run: |
+          npm run test:integration
+
       - name: Publish Demo App to MicroApps - To Delete
         run: |
           npx microapps-publish publish \

@@ -229,17 +229,11 @@ USAGE
   $ microapps-publish delete
 
 OPTIONS
-  -a, --appName=appName                        Name of the MicroApp
-
-  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer
-                                               lambda function
-
-  -n, --newVersion=newVersion                  (required) New semantic version
-                                               to apply
-
-  -v, --version                                show CLI version
-
-  --help                                       show CLI help
+  -a, --app-name=app-name                          MicroApps app name (this becomes the path the app is rooted at)
+  -d, --deployer-lambda-name=deployer-lambda-name  Name of the deployer lambda function
+  -n, --new-version=new-version                    New semantic version to apply
+  -v, --version                                    show CLI version
+  --help                                           show CLI help
 
 EXAMPLE
   $ microapps-publish delete -d microapps-deployer-dev -a release -n 0.0.13

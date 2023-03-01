@@ -4,6 +4,7 @@ import path from 'path';
 import { pathExistsSync, readFileSync } from 'fs-extra';
 import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
 import Log from './lib/log';
+import { AppVersionCache } from './app-version-cache';
 
 const log = Log.Instance;
 
@@ -487,10 +488,10 @@ async function RedirectToDefaultFile(opts: {
     appNameOrRootTrailingSlash,
     semVer,
   } = opts;
-  let versionInfo: Version;
+  let versionInfo: Version | undefined;
 
   try {
-    versionInfo = await Version.LoadVersion({
+    versionInfo = await AppVersionCache.LoadVersion({
       dbManager,
       key: { AppName: appName, SemVer: semVer },
     });

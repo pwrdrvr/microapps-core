@@ -97,7 +97,7 @@ describe('router - without prefix', () => {
     const version = new Version({
       AppName: 'Bat',
       IntegrationID: 'abcd',
-      SemVer: '3.2.1-beta.1',
+      SemVer: '3.2.1-beta.2',
       Status: 'deployed',
       Type: 'static',
     });
@@ -106,17 +106,17 @@ describe('router - without prefix', () => {
     const rules = new Rules({
       AppName: 'Bat',
       Version: 0,
-      RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+      RuleSet: { default: { SemVer: '3.2.1-beta.2', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
     // Call the handler
-    const response = await GetRoute({ dbManager, rawPath: '/bat/3.2.1-beta.1/' });
+    const response = await GetRoute({ dbManager, rawPath: '/bat/3.2.1-beta.2/' });
 
     expect(response).toHaveProperty('appName');
     expect(response.appName).toBe('bat');
     expect(response).toHaveProperty('semVer');
-    expect(response.semVer).toBe('3.2.1-beta.1');
+    expect(response.semVer).toBe('3.2.1-beta.2');
   });
 
   it('static app - request to app/x.y.z/ should redirect to defaultFile', async () => {
