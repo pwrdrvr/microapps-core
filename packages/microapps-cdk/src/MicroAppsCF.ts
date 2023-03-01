@@ -455,11 +455,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     }
 
     //
-    // Get the Edge to Origin Lambdas
-    //
-
-    //
-    // CloudFront Distro
+    // Create fallback to S3 origin group
     //
     const appOrigin = httpApi
       ? new cforigins.HttpOrigin(httpOriginFQDN, {
@@ -468,6 +464,15 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originShieldRegion,
       })
       : bucketAppsOrigin;
+    const appOriginFallbackToS3 = new cforigins.OriginGroup({
+      primaryOrigin: appOrigin,
+      fallbackOrigin: bucketAppsOrigin,
+      fallbackStatusCodes: [403, 404],
+    });
+
+    //
+    // CloudFront Distro
+    //
     this._cloudFrontDistro = new cf.Distribution(this, 'cft', {
       comment: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : domainNameEdge,
       domainNames: domainNameEdge !== undefined ? [domainNameEdge] : undefined,
@@ -478,7 +483,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
         compress: true,
         originRequestPolicy: appOriginRequestPolicy,
-        origin: appOrigin,
+        origin: appOriginFallbackToS3,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         edgeLambdas,
       },
@@ -495,7 +500,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     // Add routes to the CloudFront Distribution
     MicroAppsCF.addRoutes(scope, {
-      appOrigin,
+      appOrigin: appOriginFallbackToS3,
       bucketAppsOrigin,
       distro: this._cloudFrontDistro,
       appOriginRequestPolicy,
