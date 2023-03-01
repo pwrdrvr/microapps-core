@@ -185,7 +185,7 @@ export interface AddRoutesOptions {
   /**
    * S3 Bucket CloudFront Origin for static assets
    */
-  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly bucketAppsOrigin: cforigins.S3Origin | cforigins.OriginGroup;
 
   /**
    * CloudFront Distribution to add the Behaviors (Routes) to
@@ -302,7 +302,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
    */
   public static addRoutes(_scope: Construct, props: AddRoutesOptions) {
     const {
-      appOrigin: defaultOrigin,
+      appOrigin,
       bucketAppsOrigin,
       distro,
       appOriginRequestPolicy,
@@ -337,17 +337,9 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     // such as: /release/0.0.0/api/update/default/release/0.0.0
     //
     if (createAPIPathRoute) {
-      distro.addBehavior(
-        posixPath.join(rootPathPrefix, '*/api/*'),
-        defaultOrigin,
-        appBehaviorOptions,
-      );
+      distro.addBehavior(posixPath.join(rootPathPrefix, '*/api/*'), appOrigin, appBehaviorOptions);
 
-      distro.addBehavior(
-        posixPath.join(rootPathPrefix, 'api/*'),
-        defaultOrigin,
-        appBehaviorOptions,
-      );
+      distro.addBehavior(posixPath.join(rootPathPrefix, 'api/*'), appOrigin, appBehaviorOptions);
     }
 
     //
@@ -361,7 +353,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // to the app origin as iframe-less will have no version before _next/data
         // in the path
         posixPath.join(rootPathPrefix, '*/_next/data/*'),
-        defaultOrigin,
+        appOrigin,
         appBehaviorOptions,
       );
 
@@ -370,7 +362,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         // to the app origin as iframe-less will have no version before _next/data
         // in the path
         posixPath.join(rootPathPrefix, '_next/data/*'),
-        defaultOrigin,
+        appOrigin,
         appBehaviorOptions,
       );
     }
@@ -398,7 +390,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     // There is no trailing slash because Serverless Next.js wants
     // go load pages at /release/0.0.3 (with no trailing slash).
     //
-    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), defaultOrigin, appBehaviorOptions);
+    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), appOrigin, appBehaviorOptions);
   }
 
   private _cloudFrontDistro: cf.Distribution;
@@ -483,7 +475,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
         compress: true,
         originRequestPolicy: appOriginRequestPolicy,
-        origin: appOriginFallbackToS3,
+        origin: appOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         edgeLambdas,
       },
@@ -500,8 +492,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     // Add routes to the CloudFront Distribution
     MicroAppsCF.addRoutes(scope, {
-      appOrigin: appOriginFallbackToS3,
-      bucketAppsOrigin,
+      appOrigin,
+      bucketAppsOrigin: appOriginFallbackToS3,
       distro: this._cloudFrontDistro,
       appOriginRequestPolicy,
       rootPathPrefix,
