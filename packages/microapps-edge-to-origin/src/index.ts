@@ -75,6 +75,12 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // eslint-disable-next-line no-console
     log.info('got request', { event, context });
 
+    // If the origin is S3 but the path is not `/signal` then we let the request
+    // flow through to S3
+    if (request.origin?.s3?.domainName && request.origin?.s3?.path !== '/signal') {
+      return request as unknown as lambda.CloudFrontResultResponse;
+    }
+
     // Add x-forwarded-host before signing
     if (config.addXForwardedHostHeader && request.headers['host']) {
       // Overwrite to prevent spoofed value from getting through
