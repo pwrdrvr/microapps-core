@@ -50,6 +50,17 @@ export async function handler(
     };
   }
 
+  // Route for testing files served by the app
+  if (event.rawPath.endsWith('/notfound.html')) {
+    return {
+      statusCode: 404,
+      headers: {
+        'Powered-By': 'demo-app',
+      },
+      isBase64Encoded: false,
+    };
+  }
+
   if (event.headers?.accept && event.headers.accept.includes('text/html')) {
     return {
       statusCode: 200,
