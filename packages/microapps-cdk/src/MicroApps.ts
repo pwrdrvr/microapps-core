@@ -477,6 +477,7 @@ export class MicroApps extends Construct implements IMicroApps {
       r53Zone,
       certEdge,
       bucketAppsOrigin: this._s3.bucketAppsOrigin,
+      bucketAppsOriginSignal: this._s3.bucketAppsOriginSignal,
       bucketLogs: this._s3.bucketLogs,
       rootPathPrefix,
       createAPIPathRoute,

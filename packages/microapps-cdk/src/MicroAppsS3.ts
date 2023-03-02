@@ -24,6 +24,12 @@ export interface IMicroAppsS3 {
   readonly bucketAppsOrigin: cforigins.S3Origin;
 
   /**
+   * CloudFront Origin for the deployed applications bucket, used as a signal
+   * that this is the primary origin before fallback
+   */
+  readonly bucketAppsOriginSignal: cforigins.S3Origin;
+
+  /**
    * S3 bucket for staged applications (prior to deploy)
    */
   readonly bucketAppsStaging: s3.IBucket;
@@ -117,6 +123,11 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     return this._bucketAppsOrigin;
   }
 
+  private _bucketAppsOriginSignal: cforigins.S3Origin;
+  public get bucketAppsOriginSignal(): cforigins.S3Origin {
+    return this._bucketAppsOriginSignal;
+  }
+
   private _bucketAppsStaging: s3.IBucket;
   public get bucketAppsStaging(): s3.IBucket {
     return this._bucketAppsStaging;
@@ -173,6 +184,10 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     // Add Origin for CloudFront
     this._bucketAppsOrigin = new cforigins.S3Origin(this._bucketApps, {
       originAccessIdentity: this.bucketAppsOAI,
+      originShieldRegion,
+    });
+
+    this._bucketAppsOriginSignal = new cforigins.S3Origin(this._bucketApps, {
       originShieldRegion,
     });
   }
