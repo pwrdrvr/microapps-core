@@ -188,6 +188,8 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     });
 
     this._bucketAppsOriginSignal = new cforigins.S3Origin(this._bucketApps, {
+      originAccessIdentity: this.bucketAppsOAI,
+      originPath: '/signal',
       originShieldRegion,
     });
   }
