@@ -79,6 +79,21 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // flow through to S3
     if (request.origin?.s3?.domainName && request.origin?.s3?.path !== '/signal') {
       log.info('request is for S3 origin', { request });
+
+      if (
+        request.headers['host']?.[0]?.value &&
+        request.headers['host']?.[0]?.value !== request.origin?.s3?.domainName
+      ) {
+        // Overwrite the host because it gets wrong value after the Primary
+        // Origin in the OriginGroup overwrites it and we fallback here.
+        request.headers['host'] = [
+          {
+            key: 'Host',
+            value: request.origin?.s3?.domainName,
+          },
+        ];
+      }
+
       return request as unknown as lambda.CloudFrontResultResponse;
     }
 
