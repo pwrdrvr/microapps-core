@@ -414,6 +414,14 @@ CloudFront Origin for the deployed applications bucket.
 
 ---
 
+##### `bucketAppsOriginSignal`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOriginSignal"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+
+CloudFront Origin for the deployed applications bucket, used as a signal that this is the primary origin before fallback.
+
+---
+
 ##### `bucketAppsStaging`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsStaging"></a>
 
 - *Type:* [`aws-cdk-lib.aws_s3.IBucket`](#aws-cdk-lib.aws_s3.IBucket)
@@ -570,7 +578,7 @@ Origin Request policy for API Gateway Origin.
 
 ##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketAppsOrigin"></a>
 
-- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin) | [`aws-cdk-lib.aws_cloudfront_origins.OriginGroup`](#aws-cdk-lib.aws_cloudfront_origins.OriginGroup)
 
 S3 Bucket CloudFront Origin for static assets.
 
@@ -823,6 +831,14 @@ const microAppsCFProps: MicroAppsCFProps = { ... }
 - *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
 S3 bucket origin for deployed applications.
+
+---
+
+##### `bucketAppsOriginSignal`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketAppsOriginSignal"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+
+S3 bucket origin for deployed applications without an OAI, used as a signal that this is the primary origin before fallback.
 
 ---
 
@@ -1976,6 +1992,14 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 - *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
 CloudFront Origin for the deployed applications bucket.
+
+---
+
+##### `bucketAppsOriginSignal`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOriginSignal"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+
+CloudFront Origin for the deployed applications bucket, used as a signal that this is the primary origin before fallback.
 
 ---
 
