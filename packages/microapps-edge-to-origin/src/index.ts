@@ -73,7 +73,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     let requestToReturn = request;
 
     // eslint-disable-next-line no-console
-    console.dir({ event, context }, { depth: null });
+    log.info('got request', { event, context });
 
     // Add x-forwarded-host before signing
     if (config.addXForwardedHostHeader && request.headers['host']) {
