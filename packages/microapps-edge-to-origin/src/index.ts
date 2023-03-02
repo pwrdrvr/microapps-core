@@ -78,6 +78,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // If the origin is S3 but the path is not `/signal` then we let the request
     // flow through to S3
     if (request.origin?.s3?.domainName && request.origin?.s3?.path !== '/signal') {
+      log.info('request is for S3 origin', { request });
       return request as unknown as lambda.CloudFrontResultResponse;
     }
 
@@ -255,9 +256,9 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       log.info('not signing request');
     }
 
-    log.info('returning request', {
-      requestToReturn,
-    });
+    // log.debug('returning request', {
+    //   requestToReturn,
+    // });
 
     return requestToReturn as unknown as lambda.CloudFrontResultResponse;
   } catch (error) {
