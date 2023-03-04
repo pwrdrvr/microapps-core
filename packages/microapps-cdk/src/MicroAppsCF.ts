@@ -35,14 +35,15 @@ export interface MicroAppsCFProps {
 
   /**
    * S3 bucket origin for deployed applications
+   * Marked with `x-microapps-origin: s3`
    */
-  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly bucketAppsOriginS3: cforigins.S3Origin;
 
   /**
    * S3 bucket origin for deployed applications
-   * without an OAI, used as a signal that this is the primary origin before fallback
+   * Marked with `x-microapps-origin: app`
    */
-  readonly bucketAppsOriginSignal: cforigins.S3Origin;
+  readonly bucketAppsOriginApp: cforigins.S3Origin;
 
   /**
    * S3 bucket for CloudFront logs
@@ -429,8 +430,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       assetNameSuffix,
       r53Zone,
       bucketLogs,
-      bucketAppsOrigin,
-      bucketAppsOriginSignal,
+      bucketAppsOriginS3: bucketAppsOrigin,
+      bucketAppsOriginApp: bucketAppsOriginPrimary,
       rootPathPrefix,
       createAPIPathRoute = !!props.httpApi,
       createNextDataPathRoute = !!props.httpApi,
@@ -463,7 +464,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
         originShieldRegion,
       })
-      : bucketAppsOriginSignal ?? bucketAppsOrigin;
+      : bucketAppsOriginPrimary ?? bucketAppsOrigin;
     const appOriginFallbackToS3 = new cforigins.OriginGroup({
       primaryOrigin: appOrigin,
       fallbackOrigin: bucketAppsOrigin,

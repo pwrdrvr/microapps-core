@@ -73,11 +73,14 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     let requestToReturn = request;
 
     // eslint-disable-next-line no-console
-    log.info('got request', { event, context });
+    log.debug('got request', { event, context });
 
-    // If the origin is S3 but the path is not `/signal` then we let the request
-    // flow through to S3
-    if (request.origin?.s3?.domainName && request.origin?.s3?.path !== '/signal') {
+    // If the origin is S3 but the `x-microapps-origin` header is set to
+    // `s3`, then we let the request fall through to S3
+    if (
+      request.origin?.s3?.domainName &&
+      request.origin?.s3?.customHeaders['x-microapps-origin']?.[0]?.value === 's3'
+    ) {
       log.info('request is for S3 origin', { request });
 
       if (

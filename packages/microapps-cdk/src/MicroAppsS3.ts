@@ -20,14 +20,19 @@ export interface IMicroAppsS3 {
 
   /**
    * CloudFront Origin for the deployed applications bucket
+   * Marked with `x-microapps-origin: app` so the OriginRequest function
+   * knows to send the request to the application origin first, if configured
+   * for a particular application.
    */
-  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly bucketAppsOriginApp: cforigins.S3Origin;
 
   /**
-   * CloudFront Origin for the deployed applications bucket, used as a signal
-   * that this is the primary origin before fallback
+   * CloudFront Origin for the deployed applications bucket
+   * Marked with `x-microapps-origin: s3` so the OriginRequest function
+   * knows to NOT send the request to the application origin and instead
+   * let it fall through to the S3 bucket.
    */
-  readonly bucketAppsOriginSignal: cforigins.S3Origin;
+  readonly bucketAppsOriginS3: cforigins.S3Origin;
 
   /**
    * S3 bucket for staged applications (prior to deploy)
@@ -118,14 +123,14 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     return this._bucketAppsOAI;
   }
 
-  private _bucketAppsOrigin: cforigins.S3Origin;
-  public get bucketAppsOrigin(): cforigins.S3Origin {
-    return this._bucketAppsOrigin;
+  private _bucketAppsOriginApp: cforigins.S3Origin;
+  public get bucketAppsOriginApp(): cforigins.S3Origin {
+    return this._bucketAppsOriginApp;
   }
 
-  private _bucketAppsOriginSignal: cforigins.S3Origin;
-  public get bucketAppsOriginSignal(): cforigins.S3Origin {
-    return this._bucketAppsOriginSignal;
+  private _bucketAppsOriginS3: cforigins.S3Origin;
+  public get bucketAppsOriginS3(): cforigins.S3Origin {
+    return this._bucketAppsOriginS3;
   }
 
   private _bucketAppsStaging: s3.IBucket;
@@ -182,15 +187,20 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     }
 
     // Add Origin for CloudFront
-    this._bucketAppsOrigin = new cforigins.S3Origin(this._bucketApps, {
+    this._bucketAppsOriginS3 = new cforigins.S3Origin(this._bucketApps, {
       originAccessIdentity: this.bucketAppsOAI,
       originShieldRegion,
+      customHeaders: {
+        'x-microapps-origin': 'primary',
+      },
     });
 
-    this._bucketAppsOriginSignal = new cforigins.S3Origin(this._bucketApps, {
+    this._bucketAppsOriginApp = new cforigins.S3Origin(this._bucketApps, {
       originAccessIdentity: this.bucketAppsOAI,
-      originPath: '/signal',
       originShieldRegion,
+      customHeaders: {
+        'x-microapps-origin': 'fallback',
+      },
     });
   }
 }
