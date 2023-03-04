@@ -21,30 +21,30 @@ describe('MicroAppsCF', () => {
 
     const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
       apiName: 'some-api',
-      // defaultDomainMapping: {
-      //   domainName: new apigwy.DomainName(stack, 'domain-name', {
-      //     domainName: 'apps.pwrdrvr.com',
-      //     certificate: new acm.Certificate(stack, 'cert', {
-      //       domainName: 'apps.pwrdrvr.com',
-      //     }),
-      //   }),
-      // },
     });
+    const bucket = new s3.Bucket(stack, 'bucket-apps', {});
+    const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
       httpApi,
-      bucketAppsOrigin: new cforigins.S3Origin(new s3.Bucket(stack, 'bucket-apps', {}), {
-        originAccessIdentity: new cf.OriginAccessIdentity(stack, 'oai', {}),
+      bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
+        customHeaders: {
+          'x-microapps-origin': 'app',
+        },
+        originAccessIdentity: oai,
+      }),
+      bucketAppsOriginS3: new cforigins.S3Origin(bucket, {
+        customHeaders: {
+          'x-microapps-origin': 's3',
+        },
+        originAccessIdentity: oai,
       }),
     });
 
     expect(construct).toBeDefined();
     expect(construct.cloudFrontDistro).toBeDefined();
     expect(construct.node).toBeDefined();
-    // expect(stack).toHaveResource('AWS::S3::Bucket');
-    // expect(Template.fromStack(stack).toJSON()).toMatchSnapshot();
 
     Template.fromStack(stack).resourceCountIs('AWS::CloudFront::Distribution', 1);
-    // Template.fromStack(stack).resourceCountIs('AWS::CloudFront::OriginRequestPolicy', 1);
   });
 
   it('works with params', () => {
@@ -56,14 +56,6 @@ describe('MicroAppsCF', () => {
     });
     const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
       apiName: 'some-api',
-      // defaultDomainMapping: {
-      //   domainName: new apigwy.DomainName(stack, 'domain-name', {
-      //     domainName: 'apps.pwrdrvr.com',
-      //     certificate: new acm.Certificate(stack, 'cert', {
-      //       domainName: 'apps.pwrdrvr.com',
-      //     }),
-      //   }),
-      // },
     });
     const r53Zone = new r53.HostedZone(stack, 'zone', {
       zoneName: 'test.pwrdrvr.com',
@@ -71,10 +63,21 @@ describe('MicroAppsCF', () => {
     const certOrigin = new acm.Certificate(stack, 'cert', {
       domainName: '*.test.pwrdrvr.com',
     });
+    const bucket = new s3.Bucket(stack, 'bucket-apps', {});
+    const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
       httpApi,
-      bucketAppsOrigin: new cforigins.S3Origin(new s3.Bucket(stack, 'bucket-apps', {}), {
-        originAccessIdentity: new cf.OriginAccessIdentity(stack, 'oai', {}),
+      bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
+        customHeaders: {
+          'x-microapps-origin': 'app',
+        },
+        originAccessIdentity: oai,
+      }),
+      bucketAppsOriginS3: new cforigins.S3Origin(bucket, {
+        customHeaders: {
+          'x-microapps-origin': 's3',
+        },
+        originAccessIdentity: oai,
       }),
       domainNameEdge: 'some.test.pwrdrvr.com',
       domainNameOrigin: 'some-origin.test.pwrdvr.com',
