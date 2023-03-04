@@ -559,12 +559,15 @@ import { AddRoutesOptions } from '@pwrdrvr/microapps-cdk'
 const addRoutesOptions: AddRoutesOptions = { ... }
 ```
 
-##### `appOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.appOrigin"></a>
+##### `appOnlyOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.appOnlyOrigin"></a>
 
-- *Type:* [`aws-cdk-lib.aws_cloudfront.IOrigin`](#aws-cdk-lib.aws_cloudfront.IOrigin) | [`aws-cdk-lib.aws_cloudfront_origins.OriginGroup`](#aws-cdk-lib.aws_cloudfront_origins.OriginGroup)
-- *Default:* invalid URL (never used)
+- *Type:* [`aws-cdk-lib.aws_cloudfront.IOrigin`](#aws-cdk-lib.aws_cloudfront.IOrigin)
 
-Default origin.
+Application origin.
+
+Typically an S3 bucket with a `x-microapps-origin: app` custom header
+
+The request never actually falls through to the S3 bucket.
 
 ---
 
@@ -576,11 +579,11 @@ Origin Request policy for API Gateway Origin.
 
 ---
 
-##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketAppsOrigin"></a>
+##### `bucketOriginFallbackToApp`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketOriginFallbackToApp"></a>
 
-- *Type:* [`aws-cdk-lib.aws_cloudfront.IOrigin`](#aws-cdk-lib.aws_cloudfront.IOrigin) | [`aws-cdk-lib.aws_cloudfront_origins.OriginGroup`](#aws-cdk-lib.aws_cloudfront_origins.OriginGroup)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.OriginGroup`](#aws-cdk-lib.aws_cloudfront_origins.OriginGroup)
 
-S3 Bucket CloudFront Origin for static assets.
+Origin Group with Primary of S3 bucket with `x-microapps-origin: s3` custom header and Fallback of `appOnlyOrigin`.
 
 ---
 
