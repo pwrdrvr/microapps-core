@@ -561,7 +561,8 @@ jobs:
             --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN} \
             --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_VERSION_ARN} \
             --static-assets-path packages/demo-app/static_files \
-            --default-file index.html --overwrite
+            --default-file index.html \
+            --overwrite
 
       - name: Test Demo App - Child
         if: ${{ matrix.deployName == 'microapps-core' }}
