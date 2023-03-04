@@ -183,16 +183,19 @@ export interface CreateAPIOriginPolicyOptions {
  */
 export interface AddRoutesOptions {
   /**
-   * Default origin
+   * Application origin
    *
-   * @default invalid URL (never used)
+   * Typically an S3 bucket with a `x-microapps-origin: app` custom header
+   *
+   * The request never actually falls through to the S3 bucket.
    */
-  readonly appOrigin: cf.IOrigin | cforigins.OriginGroup;
+  readonly appOnlyOrigin: cf.IOrigin;
 
   /**
-   * S3 Bucket CloudFront Origin for static assets
+   * Origin Group with Primary of S3 bucket with `x-microapps-origin: s3` custom header
+   * and Fallback of `appOnlyOrigin`
    */
-  readonly bucketAppsOrigin: cf.IOrigin | cforigins.OriginGroup;
+  readonly bucketOriginFallbackToApp: cforigins.OriginGroup;
 
   /**
    * CloudFront Distribution to add the Behaviors (Routes) to
@@ -281,8 +284,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
    */
   public static addRoutes(_scope: Construct, props: AddRoutesOptions) {
     const {
-      appOrigin,
-      bucketAppsOrigin,
+      appOnlyOrigin,
+      bucketOriginFallbackToApp,
       distro,
       appOriginRequestPolicy,
       rootPathPrefix = '',
@@ -295,11 +298,11 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
       compress: true,
-      originRequestPolicy: cf.OriginRequestPolicy.CORS_S3_ORIGIN,
+      originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
     };
-    const appBehaviorOptions: cf.AddBehaviorOptions = {
+    const appOnlyBehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
@@ -315,7 +318,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     distro.addBehavior(
       posixPath.join(rootPathPrefix, '*/static/*.*'),
-      bucketAppsOrigin,
+      bucketOriginFallbackToApp,
       s3BehaviorOptions,
     );
 
@@ -323,7 +326,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     // Default to sending everything else to the app first
     // Fall back to the S3 on 403/404
     //
-    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), appOrigin, appBehaviorOptions);
+    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), appOnlyOrigin, appOnlyBehaviorOptions);
   }
 
   private _cloudFrontDistro: cf.Distribution;
@@ -393,7 +396,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       fallbackOrigin: bucketAppsOriginS3,
       fallbackStatusCodes: [403, 404],
     });
-    const staticOriginFallbackToApp = new cforigins.OriginGroup({
+    const bucketOriginFallbackToApp = new cforigins.OriginGroup({
       primaryOrigin: bucketAppsOriginS3,
       fallbackOrigin: appOrigin,
       fallbackStatusCodes: [403, 404],
@@ -412,7 +415,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
         compress: true,
         originRequestPolicy: appOriginRequestPolicy,
-        origin: appOriginFallbackToS3,
+        origin: appOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         edgeLambdas,
       },
@@ -429,8 +432,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     // Add routes to the CloudFront Distribution
     MicroAppsCF.addRoutes(scope, {
-      appOrigin: appOriginFallbackToS3,
-      bucketAppsOrigin: staticOriginFallbackToApp,
+      appOnlyOrigin: appOrigin,
+      bucketOriginFallbackToApp,
       distro: this._cloudFrontDistro,
       appOriginRequestPolicy,
       rootPathPrefix,
