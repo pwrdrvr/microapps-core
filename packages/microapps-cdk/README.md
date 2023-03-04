@@ -6,11 +6,9 @@ The MicroApps project enables rapidly deploying many web apps to AWS on a single
 
 MicroApps allows many versions of an application to be deployed either as ephemeral deploys (e.g. for pull request builds) or as semi-permanent deploys. The `microapps-router` Lambda function handled routing requests to apps to the current version targeted for a particular application start request using rules as complex as one is interested in implementing (e.g. A/B testing integration, canary releases, per-user rules for logged in users, per-group, per-deparment, and default rules).
 
-2023-01-01 NOTE: The next paragraph is dated as the `iframe` is no longer required for frameworks that write absolute URLs for their static resources and API requests.
+Users start applications via a URL such as `[/{prefix}]/{appname}/`, which hits the `microapps-router` Lambda@Edge OriginRequest handler that looks up the version of the application to be run, and either forwards the request to the target Lambda Function URL (`--startupType direct` invoke mode) or returns a transparent `iframe` (`--startupType iframe`) with a link to that version.  `direct` mode works with frameworks, like Next.js, that can return pages that have build-time computed relative URLs to static resources and API calls.  `iframe` mode works with frameworks that do not write computed relative URLs at build time and/or that do not use URLs that are completely relative to wherever the applications is rooted at runtime; this mode is primarily for quick prototyping as it has other complications (such as indirect access to query strings). The URL seen by the user in the browser (and available for bookmarking) has no version in it, so subsequent launches (e.g. the next day or just in another tab) will lookup the version again. All relative URL API requests (e.g. `some/api/path`) will go to the corresponding API version that matches the version of the loaded static files, eliminating issues of incompatibility between static files and API deployments.
 
-Users start applications via a URL such as `[/{prefix}]/{appname}/`, which hits the `microapps-router` that looks up the version of the application to be run, then renders a transparent `iframe` with a link to that version. The URL seen by the user in the browser (and available for bookmarking) has no version in it, so subsequent launches (e.g. the next day or just in another tab) will lookup the version again. All relative URL API requests (e.g. `some/api/path`) will go to the corresponding API version that matches the version of the loaded static files, eliminating issues of incompatibility between static files and API deployments.
-
-For development / testing purposes only, each version of an applicaton can be accessed directly via a URL of the pattern `[/{prefix}]/{appname}/{semver}/`. These "versioned" URLs are not intended to be advertised to end users as they would cause a user to be stuck on a particular version of the app if the URL was bookmarked. Note that the system does not limit access to particular versions of an application, as of 2022-01-26, but that can be added as a feature.
+For development / testing purposes only, each version of an applicaton can be accessed directly via a URL of the patterns `[/{prefix}]/{appname}?appver={semver}` for `direct` mode or `[/{prefix}]/{appname}/{semver}/` for `iframe` mode. These "versioned" URLs are not intended to be advertised to end users as they would cause a user to be stuck on a particular version of the app if the URL was bookmarked. Note that the system does not limit access to particular versions of an application, as of 2023-03-04, but that can be added as a feature.
 
 # Table of Contents <!-- omit in toc -->
 
@@ -93,21 +91,6 @@ Note: requests can also be dispatched into the same account, but this model is m
 
 # Limitations / Future Development
 
-- `iframes`
-  - Yeah, yeah: `iframes` are not framesets and most of the hate about iframes is probably better directed at framesets
-  - The iframe serves a purpose but it stinks that it is there, primarily because it will cause issues with search bot indexing (SEO)
-  - There are other options available to implement that have their own drabacks:
-    - Using the `microapps-router` to proxy the "app start" request to a particular version of an app that then renders all of it's API resource requests to versioned URLs
-      - Works only with frameworks that support hashing filenams for each deploy to unique names
-      - This page would need to be marked as non-cachable
-      - This may work well with Next.js which wants to know the explicit path that it will be running at (it writes that path into all resource and API requests)
-      - Possible issue: the app would need to work ok being displayed at `[/{prefix}]/{appname}` when it may think that it's being displayed at `[/{prefix}]/{appname}/{semver}`
-      - Disadvantage: requires some level of UI framework features (e.g. writing the absolute resource paths) to work correctly - may not work as easily for all UI frameworks
-    - HTML5 added features to allow setting the relative path of all subsequent requests to be different than that displayed in the address bar
-      - Gotta see if this works in modern browsers
-    - Option to ditch the multiple-versions feature
-      - Works only with frameworks that support hashing filenams for each deploy to unique names
-      - Allows usage of the deploy and routing tooling without advantages and disadvantages of multiple-versions support
 - AWS Only
   - For the time being this has only been implemented for AWS technologies and APIs
   - It is possible that Azure and GCP have sufficient support to enable porting the framework
