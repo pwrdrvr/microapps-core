@@ -19,22 +19,40 @@ export class DeleteCommand extends Command {
       char: 'v',
     }),
     help: flagsParser.help(),
+    // Deprecated
     appName: flagsParser.string({
-      char: 'a',
       multiple: false,
       required: false,
-      description: 'Name of the MicroApp',
+      hidden: true,
     }),
+    'app-name': flagsParser.string({
+      char: 'a',
+      multiple: false,
+      exactlyOne: ['app-name', 'appName'],
+      description: 'MicroApps app name (this becomes the path the app is rooted at)',
+    }),
+    // Deprecated
     newVersion: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'new-version': flagsParser.string({
       char: 'n',
       multiple: false,
-      required: true,
+      exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
+    // Deprecated
     deployerLambdaName: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'deployer-lambda-name': flagsParser.string({
       char: 'd',
       multiple: false,
-      required: true,
+      exactlyOne: ['deployer-lambda-name', 'deployerLambdaName'],
       description: 'Name of the deployer lambda function',
     }),
   };
@@ -47,10 +65,12 @@ export class DeleteCommand extends Command {
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(DeleteCommand);
-    const version = parsedFlags.newVersion;
-    const appName = parsedFlags.appName ?? config.app.name;
-    const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
-    const semVer = parsedFlags.newVersion ?? config.app.semVer;
+    const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'] ?? config.app.semVer;
+    const appName = parsedFlags.appName ?? parsedFlags['app-name'] ?? config.app.name;
+    const deployerLambdaName =
+      parsedFlags.deployerLambdaName ??
+      parsedFlags['deployer-lambda-name'] ??
+      config.deployer.lambdaName;
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
@@ -87,7 +107,7 @@ export class DeleteCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Confirm the Version Does Not Exist in Published State
-            task.output = `Deleting app/version ${config.app.name}/${version}`;
+            task.output = `Deleting app/version ${config.app.name}/${semVer}`;
             const result = await DeployClient.DeleteVersion({
               config,
               output: (message: string) => (task.output = message),

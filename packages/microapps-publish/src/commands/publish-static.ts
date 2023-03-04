@@ -43,32 +43,64 @@ export class PublishCommand extends Command {
       char: 'v',
     }),
     help: flagsParser.help(),
+    // Deprecated
     deployerLambdaName: flagsParser.string({
-      char: 'd',
-      multiple: false,
-      required: true,
-      description: 'Name of the deployer lambda function',
-    }),
-    newVersion: flagsParser.string({
-      char: 'n',
-      multiple: false,
-      required: true,
-      description: 'New semantic version to apply',
-    }),
-    appName: flagsParser.string({
-      char: 'a',
       multiple: false,
       required: false,
-      description: 'MicroApps app name',
+      hidden: true,
     }),
+    'deployer-lambda-name': flagsParser.string({
+      char: 'd',
+      multiple: false,
+      exactlyOne: ['deployer-lambda-name', 'deployerLambdaName'],
+      description: 'Name of the deployer lambda function',
+    }),
+    // Deprecated
+    newVersion: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'new-version': flagsParser.string({
+      char: 'n',
+      multiple: false,
+      exactlyOne: ['new-version', 'newVersion'],
+      description: 'New semantic version to apply',
+    }),
+    // Deprecated
+    appName: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'app-name': flagsParser.string({
+      char: 'a',
+      multiple: false,
+      exactlyOne: ['app-name', 'appName'],
+      description: 'MicroApps app name (this becomes the path the app is rooted at)',
+    }),
+    // Deprecated
     staticAssetsPath: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'static-assets-path': flagsParser.string({
       char: 's',
       multiple: false,
       required: false,
+      exactlyOne: ['static-assets-path', 'staticAssetsPath'],
       description:
         'Path to files to be uploaded to S3 static bucket at app/version/ path.  Do include app/version/ in path if files are already "rooted" under that path locally.',
     }),
+    // Deprecated
     defaultFile: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+      exclusive: ['default-file'],
+    }),
+    'default-file': flagsParser.string({
       char: 'i',
       multiple: false,
       required: false,
@@ -82,14 +114,18 @@ export class PublishCommand extends Command {
       description:
         'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
     }),
+    // Deprecated
     noCache: flagsParser.boolean({
+      required: false,
+      default: false,
+      hidden: true,
+    }),
+    'no-cache': flagsParser.boolean({
       required: false,
       default: false,
       description: 'Force revalidation of CloudFront and browser caching of static assets',
     }),
   };
-
-  private VersionAndAlias: IVersions;
 
   async run(): Promise<void> {
     const config = Config.instance;
@@ -99,11 +135,18 @@ export class PublishCommand extends Command {
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(PublishCommand);
-    const appName = parsedFlags.appName ?? config.app.name;
-    const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
-    const semVer = parsedFlags.newVersion ?? config.app.semVer;
-    const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
-    const defaultFile = parsedFlags.defaultFile ?? config.app.defaultFile;
+    const appName = parsedFlags.appName ?? parsedFlags['app-name'] ?? config.app.name;
+    const deployerLambdaName =
+      parsedFlags.deployerLambdaName ??
+      parsedFlags['deployer-lambda-name'] ??
+      config.deployer.lambdaName;
+    const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'] ?? config.app.semVer;
+    const staticAssetsPath =
+      parsedFlags.staticAssetsPath ??
+      parsedFlags['static-assets-path'] ??
+      config.app.staticAssetsPath;
+    const defaultFile =
+      parsedFlags.defaultFile ?? parsedFlags['default-file'] ?? config.app.defaultFile;
     const overwrite = parsedFlags.overwrite;
     const noCache = parsedFlags.noCache;
 
@@ -129,8 +172,6 @@ export class PublishCommand extends Command {
         config.app.awsRegion = stsClient.config.region as string;
       }
     }
-
-    this.VersionAndAlias = createVersions(semVer);
 
     if (config.app.staticAssetsPath === undefined) {
       this.error('staticAssetsPath must be specified');

@@ -18,13 +18,27 @@ export class NextJSVersionCommand extends Command {
       char: 'v',
     }),
     help: flagsParser.help(),
+    // Deprecated
     newVersion: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'new-version': flagsParser.string({
       char: 'n',
       multiple: false,
-      required: true,
+      exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
+    // Deprecated
     leaveCopy: flagsParser.boolean({
+      char: 'l',
+      default: false,
+      required: false,
+      hidden: true,
+      exclusive: ['leave-copy'],
+    }),
+    'leave-copy': flagsParser.boolean({
       char: 'l',
       default: false,
       required: false,
@@ -44,14 +58,14 @@ export class NextJSVersionCommand extends Command {
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(NextJSVersionCommand);
-    const version = parsedFlags.newVersion;
-    const leaveFiles = parsedFlags.leaveCopy;
+    const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'];
+    const leaveFiles = parsedFlags.leaveCopy ?? parsedFlags['leave-copy'];
 
     // Override the config value
     const config = Config.instance;
-    config.app.semVer = version;
+    config.app.semVer = semVer;
 
-    this.VersionAndAlias = createVersions(version);
+    this.VersionAndAlias = createVersions(semVer);
     const versionOnly = { version: this.VersionAndAlias.version };
 
     this.FILES_TO_MODIFY = [{ path: 'next.config.js', versions: versionOnly }];

@@ -69,38 +69,77 @@ export class PublishCommand extends Command {
       char: 'v',
     }),
     help: flagsParser.help(),
+    // Deprecated
     deployerLambdaName: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'deployer-lambda-name': flagsParser.string({
       char: 'd',
       multiple: false,
-      required: true,
+      exactlyOne: ['deployer-lambda-name', 'deployerLambdaName'],
       description: 'Name of the deployer lambda function',
     }),
+    // Deprecated
     newVersion: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'new-version': flagsParser.string({
       char: 'n',
       multiple: false,
-      required: true,
+      exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
+    // Deprecated
     appLambdaName: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'app-lambda-name': flagsParser.string({
       char: 'l',
       multiple: false,
-      required: false,
+      exactlyOne: ['app-lambda-name', 'appLambdaName'],
       description: 'ARN of lambda version, alias, or function (name or ARN) to deploy',
     }),
+    // Deprecated
     appName: flagsParser.string({
-      char: 'a',
       multiple: false,
       required: false,
+      hidden: true,
+      exclusive: ['app-name'],
+    }),
+    'app-name': flagsParser.string({
+      char: 'a',
+      multiple: false,
+      exactlyOne: ['app-name', 'appName'],
       description: 'MicroApps app name (this becomes the path the app is rooted at)',
     }),
+    // Deprecated
     staticAssetsPath: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+      exclusive: ['static-assets-path'],
+    }),
+    'static-assets-path': flagsParser.string({
       char: 's',
       multiple: false,
       required: false,
       description:
         'Path to files to be uploaded to S3 static bucket at app/version/ path.  Do include app/version/ in path if files are already "rooted" under that path locally.',
     }),
+    // Deprecated
     defaultFile: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+      exclusive: ['default-file'],
+    }),
+    'default-file': flagsParser.string({
       char: 'i',
       multiple: false,
       required: false,
@@ -114,7 +153,13 @@ export class PublishCommand extends Command {
       description:
         'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
     }),
+    // Deprecated
     noCache: flagsParser.boolean({
+      required: false,
+      default: false,
+      hidden: true,
+    }),
+    'no-cache': flagsParser.boolean({
       required: false,
       default: false,
       description: 'Force revalidation of CloudFront and browser caching of static assets',
@@ -152,14 +197,22 @@ export class PublishCommand extends Command {
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(PublishCommand);
-    const appLambdaName = parsedFlags.appLambdaName ?? config.app.lambdaName;
-    const appName = parsedFlags.appName ?? config.app.name;
-    const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
-    const semVer = parsedFlags.newVersion ?? config.app.semVer;
-    const staticAssetsPath = parsedFlags.staticAssetsPath ?? config.app.staticAssetsPath;
-    const defaultFile = parsedFlags.defaultFile ?? config.app.defaultFile;
+    const appLambdaName =
+      parsedFlags.appLambdaName ?? parsedFlags['app-lambda-name'] ?? config.app.lambdaName;
+    const appName = parsedFlags.appName ?? parsedFlags['app-name'] ?? config.app.name;
+    const deployerLambdaName =
+      parsedFlags.deployerLambdaName ??
+      parsedFlags['deployer-lambda-name'] ??
+      config.deployer.lambdaName;
+    const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'] ?? config.app.semVer;
+    const staticAssetsPath =
+      parsedFlags.staticAssetsPath ??
+      parsedFlags['static-assets-path'] ??
+      config.app.staticAssetsPath;
+    const defaultFile =
+      parsedFlags.defaultFile ?? parsedFlags['default-file'] ?? config.app.defaultFile;
     const overwrite = parsedFlags.overwrite;
-    const noCache = parsedFlags.noCache;
+    const noCache = parsedFlags.noCache ?? parsedFlags['no-cache'];
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
