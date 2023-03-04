@@ -191,7 +191,7 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
       originAccessIdentity: this.bucketAppsOAI,
       originShieldRegion,
       customHeaders: {
-        'x-microapps-origin': 'app',
+        'x-microapps-origin': 's3',
       },
     });
 
@@ -199,7 +199,7 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
       originAccessIdentity: this.bucketAppsOAI,
       originShieldRegion,
       customHeaders: {
-        'x-microapps-origin': 's3',
+        'x-microapps-origin': 'app',
       },
     });
   }
