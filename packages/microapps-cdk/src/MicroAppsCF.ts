@@ -35,8 +35,15 @@ export interface MicroAppsCFProps {
 
   /**
    * S3 bucket origin for deployed applications
+   * Marked with `x-microapps-origin: s3`
    */
-  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly bucketAppsOriginS3: cforigins.S3Origin;
+
+  /**
+   * S3 bucket origin for deployed applications
+   * Marked with `x-microapps-origin: app`
+   */
+  readonly bucketAppsOriginApp: cforigins.S3Origin;
 
   /**
    * S3 bucket for CloudFront logs
@@ -176,16 +183,19 @@ export interface CreateAPIOriginPolicyOptions {
  */
 export interface AddRoutesOptions {
   /**
-   * Default origin (invalid URL or API Gateway)
+   * Application origin
    *
-   * @default invalid URL (never used)
+   * Typically an S3 bucket with a `x-microapps-origin: app` custom header
+   *
+   * The request never actually falls through to the S3 bucket.
    */
-  readonly appOrigin: cf.IOrigin;
+  readonly appOnlyOrigin: cf.IOrigin;
 
   /**
-   * S3 Bucket CloudFront Origin for static assets
+   * Origin Group with Primary of S3 bucket with `x-microapps-origin: s3` custom header
+   * and Fallback of `appOnlyOrigin`
    */
-  readonly bucketAppsOrigin: cforigins.S3Origin;
+  readonly bucketOriginFallbackToApp: cforigins.OriginGroup;
 
   /**
    * CloudFront Distribution to add the Behaviors (Routes) to
@@ -203,34 +213,6 @@ export interface AddRoutesOptions {
    * @example dev/
    */
   readonly rootPathPrefix?: string;
-
-  /**
-   * Create an extra Behavior (Route) for /api/ that allows
-   * API routes to have a period in them.
-   *
-   * When false API routes with a period in the path will get routed to S3.
-   *
-   * When true API routes that contain /api/ in the path will get routed to API Gateway
-   * even if they have a period in the path.
-   *
-   * @default false
-   */
-  readonly createAPIPathRoute?: boolean;
-
-  /**
-   * Create an extra Behavior (Route) for /_next/data/
-   * This route is used by Next.js to load data from the API Gateway
-   * on `getServerSideProps` calls.  The requests can end in `.json`,
-   * which would cause them to be routed to S3 if this route is not created.
-   *
-   * When false API routes with a period in the path will get routed to S3.
-   *
-   * When true API routes that contain /_next/data/ in the path will get routed to API Gateway
-   * even if they have a period in the path.
-   *
-   * @default false
-   */
-  readonly createNextDataPathRoute?: boolean;
 
   /**
    * Edge lambdas to associate with the API Gateway routes
@@ -302,13 +284,11 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
    */
   public static addRoutes(_scope: Construct, props: AddRoutesOptions) {
     const {
-      appOrigin: defaultOrigin,
-      bucketAppsOrigin,
+      appOnlyOrigin,
+      bucketOriginFallbackToApp,
       distro,
       appOriginRequestPolicy,
       rootPathPrefix = '',
-      createAPIPathRoute = false,
-      createNextDataPathRoute = false,
     } = props;
 
     //
@@ -318,10 +298,20 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
       compress: true,
-      originRequestPolicy: cf.OriginRequestPolicy.CORS_S3_ORIGIN,
+      originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: props.edgeLambdas,
     };
-    const appBehaviorOptions: cf.AddBehaviorOptions = {
+    const s3FallbackToAppOptions: cf.AddBehaviorOptions = {
+      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      // TODO: Caching needs to be set by the app response
+      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy: appOriginRequestPolicy,
+      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: props.edgeLambdas,
+    };
+    const appOnlyBehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
@@ -332,73 +322,30 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     };
 
     //
-    // If a route specifically has `/api/` in it, send it to API Gateway
-    // This is needed to catch routes that have periods in the API path data,
-    // such as: /release/0.0.0/api/update/default/release/0.0.0
-    //
-    if (createAPIPathRoute) {
-      distro.addBehavior(
-        posixPath.join(rootPathPrefix, '*/api/*'),
-        defaultOrigin,
-        appBehaviorOptions,
-      );
-
-      distro.addBehavior(
-        posixPath.join(rootPathPrefix, 'api/*'),
-        defaultOrigin,
-        appBehaviorOptions,
-      );
-    }
-
-    //
-    // If a route specifically has `/_next/data/` in it, send it to API Gateway
-    // This is needed to catch routes that have periods in the API path data,
-    // such as: /release/0.0.0/_next/data/app.json
-    //
-    if (createNextDataPathRoute) {
-      distro.addBehavior(
-        // Note: send anything with _next/data after the appName (and optional version)
-        // to the app origin as iframe-less will have no version before _next/data
-        // in the path
-        posixPath.join(rootPathPrefix, '*/_next/data/*'),
-        defaultOrigin,
-        appBehaviorOptions,
-      );
-
-      distro.addBehavior(
-        // Note: send anything with _next/data after the appName (and optional version)
-        // to the app origin as iframe-less will have no version before _next/data
-        // in the path
-        posixPath.join(rootPathPrefix, '_next/data/*'),
-        defaultOrigin,
-        appBehaviorOptions,
-      );
-    }
-
-    //
-    // All static assets are assumed to have a dot in them
+    // Handle designated static assets
+    // Falls back to the app on 403/404
     //
     distro.addBehavior(
-      posixPath.join(rootPathPrefix, '/*/*/*.*'),
-      bucketAppsOrigin,
+      posixPath.join(rootPathPrefix, '*/static/*.*'),
+      // TODO: 2023-03-04 - This could be the bucket origin without fallback, at least as an option
+      // which would allow skipping the OriginRequest (which has invoke cost and throughtput limits).
+      // This would be a distinct config from the `*/*.*` route below, which always has to have
+      // the OriginRequest function.
+      bucketOriginFallbackToApp,
       s3BehaviorOptions,
+    );
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '*/*.*'),
+      bucketOriginFallbackToApp,
+      s3FallbackToAppOptions,
     );
 
     //
-    // Root app static resources
+    // Default to sending everything else to the app only
+    // This is necessary because we allow all methods for the app but that is not
+    // allowed for an OriginGroup
     //
-    distro.addBehavior(
-      posixPath.join(rootPathPrefix, '/*.*.*/*.*'),
-      bucketAppsOrigin,
-      s3BehaviorOptions,
-    );
-
-    //
-    // Everything that isn't a static asset is going to API Gateway
-    // There is no trailing slash because Serverless Next.js wants
-    // go load pages at /release/0.0.3 (with no trailing slash).
-    //
-    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), defaultOrigin, appBehaviorOptions);
+    distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), appOnlyOrigin, appOnlyBehaviorOptions);
   }
 
   private _cloudFrontDistro: cf.Distribution;
@@ -430,10 +377,9 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       assetNameSuffix,
       r53Zone,
       bucketLogs,
-      bucketAppsOrigin,
+      bucketAppsOriginS3,
+      bucketAppsOriginApp,
       rootPathPrefix,
-      createAPIPathRoute = !!props.httpApi,
-      createNextDataPathRoute = !!props.httpApi,
       edgeLambdas,
       originShieldRegion,
     } = props;
@@ -455,11 +401,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     }
 
     //
-    // Get the Edge to Origin Lambdas
-    //
-
-    //
-    // CloudFront Distro
+    // Create fallback to S3 origin group
     //
     const appOrigin = httpApi
       ? new cforigins.HttpOrigin(httpOriginFQDN, {
@@ -467,7 +409,16 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
         originShieldRegion,
       })
-      : bucketAppsOrigin;
+      : bucketAppsOriginApp ?? bucketAppsOriginS3;
+    const bucketOriginFallbackToApp = new cforigins.OriginGroup({
+      primaryOrigin: bucketAppsOriginS3,
+      fallbackOrigin: appOrigin,
+      fallbackStatusCodes: [403, 404],
+    });
+
+    //
+    // CloudFront Distro
+    //
     this._cloudFrontDistro = new cf.Distribution(this, 'cft', {
       comment: assetNameRoot ? `${assetNameRoot}${assetNameSuffix}` : domainNameEdge,
       domainNames: domainNameEdge !== undefined ? [domainNameEdge] : undefined,
@@ -495,13 +446,11 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     // Add routes to the CloudFront Distribution
     MicroAppsCF.addRoutes(scope, {
-      appOrigin,
-      bucketAppsOrigin,
+      appOnlyOrigin: appOrigin,
+      bucketOriginFallbackToApp,
       distro: this._cloudFrontDistro,
       appOriginRequestPolicy,
       rootPathPrefix,
-      createAPIPathRoute,
-      createNextDataPathRoute,
       edgeLambdas,
     });
 

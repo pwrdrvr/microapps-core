@@ -6,22 +6,22 @@ The MicroApps project enables rapidly deploying many web apps to AWS on a single
 
 MicroApps allows many versions of an application to be deployed either as ephemeral deploys (e.g. for pull request builds) or as semi-permanent deploys. The `microapps-router` Lambda function handled routing requests to apps to the current version targeted for a particular application start request using rules as complex as one is interested in implementing (e.g. A/B testing integration, canary releases, per-user rules for logged in users, per-group, per-deparment, and default rules).
 
-2023-01-01 NOTE: The next paragraph is dated as the `iframe` is no longer required for frameworks that write absolute URLs for their static resources and API requests.
+Users start applications via a URL such as `[/{prefix}]/{appname}/`, which hits the `microapps-router` Lambda@Edge OriginRequest handler that looks up the version of the application to be run, and either forwards the request to the target Lambda Function URL (`--startupType direct` invoke mode) or returns a transparent `iframe` (`--startupType iframe`) with a link to that version.  `direct` mode works with frameworks, like Next.js, that can return pages that have build-time computed relative URLs to static resources and API calls.  `iframe` mode works with frameworks that do not write computed relative URLs at build time and/or that do not use URLs that are completely relative to wherever the applications is rooted at runtime; this mode is primarily for quick prototyping as it has other complications (such as indirect access to query strings). The URL seen by the user in the browser (and available for bookmarking) has no version in it, so subsequent launches (e.g. the next day or just in another tab) will lookup the version again. All relative URL API requests (e.g. `some/api/path`) will go to the corresponding API version that matches the version of the loaded static files, eliminating issues of incompatibility between static files and API deployments.
 
-Users start applications via a URL such as `[/{prefix}]/{appname}/`, which hits the `microapps-router` that looks up the version of the application to be run, then renders a transparent `iframe` with a link to that version. The URL seen by the user in the browser (and available for bookmarking) has no version in it, so subsequent launches (e.g. the next day or just in another tab) will lookup the version again. All relative URL API requests (e.g. `some/api/path`) will go to the corresponding API version that matches the version of the loaded static files, eliminating issues of incompatibility between static files and API deployments.
-
-For development / testing purposes only, each version of an applicaton can be accessed directly via a URL of the pattern `[/{prefix}]/{appname}/{semver}/`. These "versioned" URLs are not intended to be advertised to end users as they would cause a user to be stuck on a particular version of the app if the URL was bookmarked. Note that the system does not limit access to particular versions of an application, as of 2022-01-26, but that can be added as a feature.
+For development / testing purposes only, each version of an applicaton can be accessed directly via a URL of the patterns `[/{prefix}]/{appname}?appver={semver}` for `direct` mode or `[/{prefix}]/{appname}/{semver}/` for `iframe` mode. These "versioned" URLs are not intended to be advertised to end users as they would cause a user to be stuck on a particular version of the app if the URL was bookmarked. Note that the system does not limit access to particular versions of an application, as of 2023-03-04, but that can be added as a feature.
 
 # Table of Contents <!-- omit in toc -->
 
 - [Overview](#overview)
+- [Why MicroApps](#why-microapps)
+- [Request Routing for Static Assets / App - Diagram](#request-routing-for-static-assets--app---diagram)
 - [Request Dispatch Model for Multi-Account Deployments](#request-dispatch-model-for-multi-account-deployments)
 - [Video Preview of the Deploying CDK Construct](#video-preview-of-the-deploying-cdk-construct)
 - [Installation / CDK Constructs](#installation--cdk-constructs)
 - [Tutorial - Bootstrapping a Deploy](#tutorial---bootstrapping-a-deploy)
-- [Why MicroApps](#why-microapps)
 - [Limitations / Future Development](#limitations--future-development)
 - [Related Projects / Components](#related-projects--components)
+- [Why Lambda @ Origin and Not Lambda @ Edge for Apps](#why-lambda--origin-and-not-lambda--edge-for-apps)
 - [Architecure Diagram](#architecure-diagram)
 - [Project Layout](#project-layout)
 - [Creating a MicroApp Using Zip Lambda Functions](#creating-a-microapp-using-zip-lambda-functions)
@@ -31,17 +31,29 @@ For development / testing purposes only, each version of an applicaton can be ac
     - [Install Dependencies](#install-dependencies)
     - [Dockerfile](#dockerfile)
     - [next.config.js](#nextconfigjs)
-    - [deploy.json](#deployjson)
-    - [serverless.yaml](#serverlessyaml)
 - [Troubleshooting](#troubleshooting)
   - [CloudFront Requests to API Gateway are Rejected with 403 Forbidden](#cloudfront-requests-to-api-gateway-are-rejected-with-403-forbidden)
     - [SignatureV4 Headers](#signaturev4-headers)
+
+# Why MicroApps
+
+MicroApps are like micro services, but for Web UIs. A MicroApp allows a single functional site to be developed by many independent teams within an organization. Teams must coordinate deployments and agree upon one implementation technology and framework when building a monolithic, or even a monorepo, web application.
+
+Teams using MicroApps can deploy independently of each other with coordination being required only at points of intentional integration (e.g. adding a feature to pass context from one MicroApp to another or coordination of a major feature release to users) and sharing UI styles, if desired (it is possible to build styles that look the same across many different UI frameworks).
+
+MicroApps also allow each team to use a UI framework and backend language that is most appropriate for their solving their business problem. Not every app has to use React or Next.js or even Node on the backend, but instead they can use whatever framework they want and Java, Go, C#, Python, etc. for UI API calls.
+
+For internal sites, or logged-in-customer sites, different tools or products can be hosted in entirely independent MicroApps. A menuing system / toolbar application can be created as a MicroApp and that menu app can open the apps in the system within a transparent iframe. For externally facing sites, such as for an e-commerce site, it is possible to have a MicroApp serving `/product/...`, another serving `/search/...`, another serving `/`, etc.
+
+# Request Routing for Static Assets / App - Diagram
+
+![Request Routing for Static Assets and App](https://user-images.githubusercontent.com/5617868/222913451-0e6ed906-b6ee-461f-99a7-61db13135ce1.png)
 
 # Request Dispatch Model for Multi-Account Deployments
 
 Note: requests can also be dispatched into the same account, but this model is more likely to be used by organizations with many AWS accounts.
 
-![211132720-604510fa-de44-4ac6-a79b-c28c829d2490](https://user-images.githubusercontent.com/5617868/218237120-65b3ae44-31ba-4b6d-8722-4d3fb7da5577.png)
+![Request Dispatch Model for Mulit-Account Deployments](https://user-images.githubusercontent.com/5617868/218237120-65b3ae44-31ba-4b6d-8722-4d3fb7da5577.png)
 
 # Video Preview of the Deploying CDK Construct
 
@@ -68,10 +80,6 @@ Note: requests can also be dispatched into the same account, but this model is m
   - Of course, there are other methods of setting env vars
 - `aws sso login`
   - Establish an AWS SSO session
-- `cdk-sso-sync`
-  - Using `npm i -g cdk-sso-sync`
-  - Sets AWS SSO credentials in a way that CDK can use them
-  - Not necessary if not using AWS SSO
 - `export AWS_REGION=us-east-2`
   - Region needs to be set for the Lambda invoke - This can be done other ways in `~/.aws/config` as well
 - `./deploy.sh`
@@ -81,33 +89,8 @@ Note: requests can also be dispatched into the same account, but this model is m
     - `npx microapps-publish publish -a release -n ${RELEASE_APP_PACKAGE_VERSION} -d ${DEPLOYER_LAMBDA_NAME} -l ${RELEASE_APP_LAMBDA_NAME} -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --noCache`
   - URL will be printed as last output
 
-# Why MicroApps
-
-MicroApps are like micro services, but for Web UIs. A MicroApp allows a single functional site to be developed by many independent teams within an organization. Teams must coordinate deployments and agree upon one implementation technology and framework when building a monolithic, or even a monorepo, web application.
-
-Teams using MicroApps can deploy independently of each other with coordination being required only at points of intentional integration (e.g. adding a feature to pass context from one MicroApp to another or coordination of a major feature release to users) and sharing UI styles, if desired (it is possible to build styles that look the same across many different UI frameworks).
-
-MicroApps also allow each team to use a UI framework and backend language that is most appropriate for their solving their business problem. Not every app has to use React or Next.js or even Node on the backend, but instead they can use whatever framework they want and Java, Go, C#, Python, etc. for UI API calls.
-
-For internal sites, or logged-in-customer sites, different tools or products can be hosted in entirely independent MicroApps. A menuing system / toolbar application can be created as a MicroApp and that menu app can open the apps in the system within a transparent iframe. For externally facing sites, such as for an e-commerce site, it is possible to have a MicroApp serving `/product/...`, another serving `/search/...`, another serving `/`, etc.
-
 # Limitations / Future Development
 
-- `iframes`
-  - Yeah, yeah: `iframes` are not framesets and most of the hate about iframes is probably better directed at framesets
-  - The iframe serves a purpose but it stinks that it is there, primarily because it will cause issues with search bot indexing (SEO)
-  - There are other options available to implement that have their own drabacks:
-    - Using the `microapps-router` to proxy the "app start" request to a particular version of an app that then renders all of it's API resource requests to versioned URLs
-      - Works only with frameworks that support hashing filenams for each deploy to unique names
-      - This page would need to be marked as non-cachable
-      - This may work well with Next.js which wants to know the explicit path that it will be running at (it writes that path into all resource and API requests)
-      - Possible issue: the app would need to work ok being displayed at `[/{prefix}]/{appname}` when it may think that it's being displayed at `[/{prefix}]/{appname}/{semver}`
-      - Disadvantage: requires some level of UI framework features (e.g. writing the absolute resource paths) to work correctly - may not work as easily for all UI frameworks
-    - HTML5 added features to allow setting the relative path of all subsequent requests to be different than that displayed in the address bar
-      - Gotta see if this works in modern browsers
-    - Option to ditch the multiple-versions feature
-      - Works only with frameworks that support hashing filenams for each deploy to unique names
-      - Allows usage of the deploy and routing tooling without advantages and disadvantages of multiple-versions support
 - AWS Only
   - For the time being this has only been implemented for AWS technologies and APIs
   - It is possible that Azure and GCP have sufficient support to enable porting the framework
@@ -134,30 +117,39 @@ For internal sites, or logged-in-customer sites, different tools or products can
 - Next.js Demo App
   - The Next.js Tutorial application deployed as a MicroApp
   - [pwrdrvr/serverless-nextjs-demo](https://github.com/pwrdrvr/serverless-nextjs-demo)
-- Serverless Next.js Router
-  - [pwrdrvr/serverless-nextjs-router](https://github.com/pwrdrvr/serverless-nextjs-router)
-  - Complementary to [@sls-next/serverless-component](https://github.com/serverless-nextjs/serverless-next.js)
-  - Allows Next.js apps to run as Lambda @ Origin for speed and cost improvements vs Lambda@Edge
-  - Essentially the router translates CloudFront Lambda events to API Gateway Lambda events and vice versa for responses
-  - The `serverless-nextjs` project allows Next.js apps to run as Lambda functions without Express, but there was a design change to make the Lambda functions run at Edge (note: need to recheck if this changed after early 2021)
-    - Lambda@Edge is _at least_ 3x more expensive than Lambda at the origin:
-      - In US East 1, the price per GB-Second is $0.00005001 for Lambda@Edge vs $0.0000166667 for Lambda at the origin
-    - Additionally, any DB or services calls from Lambda@Edge back to the origin will pay that 3x higher per GB-Second cost for any time spent waiting to send the request and get a response. Example:
-      - Lambda@Edge
-        - 0.250s Round Trip Time (RTT) for EU-zone edge request to hit US-East 1 Origin
-        - 0.200s DB lookup time
-        - 0.050s CPU usage to process the DB response
-        - 0.500s total billed time @ $0.00005001 @ 128 MB
-        - $0.000003125625 total charge
-      - Lambda at Origin
-        - RTT does not apply (it's effectively 1-2 ms to hit a DB in the same region)
-        - 0.200s DB lookup time
-        - 0.050s CPU usage to process the DB response
-        - 0.250s total billed time @ $0.0000166667 @ 128 MB
-        - Half the billed time of running on Lambda@Edge
-        - 1/6th the cost of running on Lambda@Edge:
-          - $0.000000520834375 total charge (assuming no CPU time to process the response)
-          - $0.000003125625 / $0.000000520834375 = 6x more expensive in Lambda@Edge
+
+
+# Why Lambda @ Origin and Not Lambda @ Edge for Apps
+
+Calling resources (DBs and other services) and waiting for a long synchronous response is an anti-pattern in Lambda as the Lambda function will be billed for the time spent waiting for the response. This is especially true for Lambda@Edge as the cost is 3x higher than Lambda at the origin.
+
+With Lambda@Edge (even with Origin Requests) the cost is 3x higher per GB-second and the time spent waiting for a 1 ms service response from an origin that is 250 ms away is 750x higher (250 ms / 1ms * 3x higher cost) than making that same request within the region where the resource resides.
+
+- Lambda@Edge is _at least_ 3x more expensive than Lambda at the origin:
+  - In US East 1, the price per GB-Second is $0.00005001 for Lambda@Edge
+    - Source: https://aws.amazon.com/lambda/pricing/ (bottom of page)
+    - Updated: 2023-03-04
+  - In US East 1, the price per GB-Second is $0.0000166667 for Lambda at the origin on x86
+    - Source: https://aws.amazon.com/lambda/pricing/
+    - Updated: 2023-03-04
+  - Ratio
+    - Lambda@Edge / Lambda@Origin = $0.00005001 / $0.0000166667 = 3.0006x
+- Any DB or services calls from Lambda@Edge back to the origin will pay that 3x higher per GB-Second cost for any time spent waiting to send the request and get a response. Example:
+  - Lambda@Edge
+    - 0.250s Round Trip Time (RTT) for EU-zone edge request to hit US-East 1 Origin
+    - 0.200s DB lookup time
+    - 0.050s CPU usage to process the DB response
+    - 0.500s total billed time @ $0.00005001 @ 128 MB
+    - $0.000003125625 total charge
+  - Lambda at Origin
+    - RTT does not apply (it's effectively 1-2 ms to hit a DB in the same region)
+    - 0.200s DB lookup time
+    - 0.050s CPU usage to process the DB response
+    - 0.250s total billed time @ $0.0000166667 @ 128 MB
+    - Half the billed time of running on Lambda@Edge
+    - 1/6th the cost of running on Lambda@Edge:
+      - $0.000000520834375 total charge (assuming no CPU time to process the response)
+      - $0.000003125625 / $0.000000520834375 = 6x more expensive in Lambda@Edge
 
 # Architecure Diagram
 
@@ -221,10 +213,12 @@ Replace the version with `0.0.0` so it can be modified by the `microapps-publish
 ### Install Dependencies
 
 ```
-npm i --save-dev @sls-next/serverless-component@1.19.0 @pwrdrvr/serverless-nextjs-router @pwrdrvr/microapps-publish
+npm i --save-dev @pwrdrvr/microapps-publish
 ```
 
 ### Dockerfile
+
+FIXME: Out of date 2023-03-04
 
 Add this file to the root of the app.
 
@@ -258,6 +252,8 @@ CMD [ "./index.handler" ]
 
 ### next.config.js
 
+FIXME: Out of date 2023-03-04
+
 Add this file to the root of the app.
 
 Replace `appname` with your URL path-compatible application name.
@@ -277,37 +273,6 @@ module.exports = {
     staticFolder: appRoot,
   },
 };
-```
-
-### deploy.json
-
-Add this file to the root of the app.
-
-Replace `appname` with your URL path-compatible application name.
-
-```json
-{
-  "AppName": "appname",
-  "SemVer": "0.0.0",
-  "DefaultFile": "",
-  "StaticAssetsPath": "./.serverless_nextjs/assets/appname/0.0.0/",
-  "LambdaARN": "arn:aws:lambda:us-east-1:123456789012:function:appname:v0_0_0",
-  "AWSAccountID": "123456789012",
-  "AWSRegion": "us-east-2",
-  "ServerlessNextRouterPath": "./node_modules/@pwrdrvr/serverless-nextjs-router/dist/index.js"
-}
-```
-
-### serverless.yaml
-
-Add this file to the root of the app.
-
-```yaml
-nextApp:
-  component: './node_modules/@sls-next/serverless-component'
-  inputs:
-    deploy: false
-    uploadStaticAssetsFromBuild: false
 ```
 
 # Troubleshooting

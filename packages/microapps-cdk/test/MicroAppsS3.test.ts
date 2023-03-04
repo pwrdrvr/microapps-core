@@ -15,7 +15,8 @@ describe('MicroAppsS3', () => {
     expect(construct.bucketAppsStaging).toBeDefined();
     expect(construct.bucketLogs).toBeDefined();
     expect(construct.bucketAppsOAI).toBeDefined();
-    expect(construct.bucketAppsOrigin).toBeDefined();
+    expect(construct.bucketAppsOriginApp).toBeDefined();
+    expect(construct.bucketAppsOriginS3).toBeDefined();
 
     expect(construct.node).toBeDefined();
     Template.fromStack(stack).resourceCountIs('AWS::S3::Bucket', 3);

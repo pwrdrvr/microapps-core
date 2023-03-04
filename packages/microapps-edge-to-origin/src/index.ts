@@ -72,6 +72,34 @@ export const handler: lambda.CloudFrontRequestHandler = async (
   try {
     let requestToReturn = request;
 
+    // eslint-disable-next-line no-console
+    log.debug('got request', { event, context });
+
+    // If the origin is S3 but the `x-microapps-origin` header is set to
+    // `s3`, then we let the request fall through to S3
+    if (
+      request.origin?.s3?.domainName &&
+      request.origin?.s3?.customHeaders['x-microapps-origin']?.[0]?.value === 's3'
+    ) {
+      log.info('request is for S3 origin', { request });
+
+      if (
+        request.headers['host']?.[0]?.value &&
+        request.headers['host']?.[0]?.value !== request.origin?.s3?.domainName
+      ) {
+        // Overwrite the host because it gets wrong value after the Primary
+        // Origin in the OriginGroup overwrites it and we fallback here.
+        request.headers['host'] = [
+          {
+            key: 'Host',
+            value: request.origin?.s3?.domainName,
+          },
+        ];
+      }
+
+      return request as unknown as lambda.CloudFrontResultResponse;
+    }
+
     // Add x-forwarded-host before signing
     if (config.addXForwardedHostHeader && request.headers['host']) {
       // Overwrite to prevent spoofed value from getting through
@@ -246,9 +274,9 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       log.info('not signing request');
     }
 
-    log.info('returning request', {
-      requestToReturn,
-    });
+    // log.debug('returning request', {
+    //   requestToReturn,
+    // });
 
     return requestToReturn as unknown as lambda.CloudFrontResultResponse;
   } catch (error) {

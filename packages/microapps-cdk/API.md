@@ -406,11 +406,19 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 
 ---
 
-##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOrigin"></a>
+##### `bucketAppsOriginApp`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOriginApp"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
-CloudFront Origin for the deployed applications bucket.
+CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application.
+
+---
+
+##### `bucketAppsOriginS3`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsS3.bucketAppsOriginS3"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+
+CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket.
 
 ---
 
@@ -551,12 +559,15 @@ import { AddRoutesOptions } from '@pwrdrvr/microapps-cdk'
 const addRoutesOptions: AddRoutesOptions = { ... }
 ```
 
-##### `appOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.appOrigin"></a>
+##### `appOnlyOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.appOnlyOrigin"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront.IOrigin`](#aws-cdk-lib.aws_cloudfront.IOrigin)
-- *Default:* invalid URL (never used)
 
-Default origin (invalid URL or API Gateway).
+Application origin.
+
+Typically an S3 bucket with a `x-microapps-origin: app` custom header
+
+The request never actually falls through to the S3 bucket.
 
 ---
 
@@ -568,11 +579,11 @@ Origin Request policy for API Gateway Origin.
 
 ---
 
-##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketAppsOrigin"></a>
+##### `bucketOriginFallbackToApp`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.bucketOriginFallbackToApp"></a>
 
-- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.OriginGroup`](#aws-cdk-lib.aws_cloudfront_origins.OriginGroup)
 
-S3 Bucket CloudFront Origin for static assets.
+Origin Group with Primary of S3 bucket with `x-microapps-origin: s3` custom header and Fallback of `appOnlyOrigin`.
 
 ---
 
@@ -581,34 +592,6 @@ S3 Bucket CloudFront Origin for static assets.
 - *Type:* [`aws-cdk-lib.aws_cloudfront.Distribution`](#aws-cdk-lib.aws_cloudfront.Distribution)
 
 CloudFront Distribution to add the Behaviors (Routes) to.
-
----
-
-##### `createAPIPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createAPIPathRoute"></a>
-
-- *Type:* `boolean`
-- *Default:* false
-
-Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them.
-
-When false API routes with a period in the path will get routed to S3.
-
-When true API routes that contain /api/ in the path will get routed to API Gateway
-even if they have a period in the path.
-
----
-
-##### `createNextDataPathRoute`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.AddRoutesOptions.createNextDataPathRoute"></a>
-
-- *Type:* `boolean`
-- *Default:* false
-
-Create an extra Behavior (Route) for /_next/data/ This route is used by Next.js to load data from the API Gateway on `getServerSideProps` calls.  The requests can end in `.json`, which would cause them to be routed to S3 if this route is not created.
-
-When false API routes with a period in the path will get routed to S3.
-
-When true API routes that contain /_next/data/ in the path will get routed to API Gateway
-even if they have a period in the path.
 
 ---
 
@@ -818,11 +801,19 @@ import { MicroAppsCFProps } from '@pwrdrvr/microapps-cdk'
 const microAppsCFProps: MicroAppsCFProps = { ... }
 ```
 
-##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketAppsOrigin"></a>
+##### `bucketAppsOriginApp`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketAppsOriginApp"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
-S3 bucket origin for deployed applications.
+S3 bucket origin for deployed applications Marked with `x-microapps-origin: app`.
+
+---
+
+##### `bucketAppsOriginS3`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.bucketAppsOriginS3"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+
+S3 bucket origin for deployed applications Marked with `x-microapps-origin: s3`.
 
 ---
 
@@ -1971,11 +1962,19 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 
 ---
 
-##### `bucketAppsOrigin`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOrigin"></a>
+##### `bucketAppsOriginApp`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOriginApp"></a>
 
 - *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
 
-CloudFront Origin for the deployed applications bucket.
+CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application.
+
+---
+
+##### `bucketAppsOriginS3`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsS3.bucketAppsOriginS3"></a>
+
+- *Type:* [`aws-cdk-lib.aws_cloudfront_origins.S3Origin`](#aws-cdk-lib.aws_cloudfront_origins.S3Origin)
+
+CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket.
 
 ---
 

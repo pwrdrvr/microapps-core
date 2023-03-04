@@ -19,22 +19,40 @@ export class PreflightCommand extends Command {
       char: 'v',
     }),
     help: flagsParser.help(),
+    // Deprecated
     appName: flagsParser.string({
-      char: 'a',
       multiple: false,
       required: false,
-      description: 'Name of the MicroApp',
+      hidden: true,
     }),
+    'app-name': flagsParser.string({
+      char: 'a',
+      multiple: false,
+      exactlyOne: ['app-name', 'appName'],
+      description: 'MicroApps app name (this becomes the path the app is rooted at)',
+    }),
+    // Deprecated
     newVersion: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'new-version': flagsParser.string({
       char: 'n',
       multiple: false,
-      required: true,
+      exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
+    // Deprecated
     deployerLambdaName: flagsParser.string({
+      multiple: false,
+      required: false,
+      hidden: true,
+    }),
+    'deployer-lambda-name': flagsParser.string({
       char: 'd',
       multiple: false,
-      required: true,
+      exactlyOne: ['deployer-lambda-name', 'deployerLambdaName'],
       description: 'Name of the deployer lambda function',
     }),
     overwrite: flagsParser.boolean({
@@ -54,10 +72,12 @@ export class PreflightCommand extends Command {
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     const { flags: parsedFlags } = this.parse(PreflightCommand);
-    const version = parsedFlags.newVersion;
-    const appName = parsedFlags.appName ?? config.app.name;
-    const deployerLambdaName = parsedFlags.deployerLambdaName ?? config.deployer.lambdaName;
-    const semVer = parsedFlags.newVersion ?? config.app.semVer;
+    const appName = parsedFlags.appName ?? parsedFlags['app-name'] ?? config.app.name;
+    const deployerLambdaName =
+      parsedFlags.deployerLambdaName ??
+      parsedFlags['deployer-lambda-name'] ??
+      config.deployer.lambdaName;
+    const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'] ?? config.app.semVer;
     const overwrite = parsedFlags.overwrite;
 
     // Override the config value
@@ -95,7 +115,7 @@ export class PreflightCommand extends Command {
             task.title = RUNNING + origTitle;
 
             // Confirm the Version Does Not Exist in Published State
-            task.output = `Checking if deployed app/version already exists for ${config.app.name}/${version}`;
+            task.output = `Checking if deployed app/version already exists for ${config.app.name}/${semVer}`;
             const preflightResult = await DeployClient.DeployVersionPreflight({
               config,
               needS3Creds: false,
