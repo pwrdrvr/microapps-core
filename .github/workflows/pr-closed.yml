@@ -21,6 +21,7 @@ env:
 
 jobs:
   cleanup-pr:
+    if: github.actor != 'dependabot[bot]'
     environment:
       name: ghpublic
     strategy:
