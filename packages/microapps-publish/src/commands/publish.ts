@@ -98,11 +98,12 @@ export class PublishCommand extends Command {
       multiple: false,
       required: false,
       hidden: true,
+      exclusive: ['app-lambda-name'],
     }),
     'app-lambda-name': flagsParser.string({
       char: 'l',
       multiple: false,
-      exactlyOne: ['app-lambda-name', 'appLambdaName'],
+      required: false,
       description: 'ARN of lambda version, alias, or function (name or ARN) to deploy',
     }),
     // Deprecated
