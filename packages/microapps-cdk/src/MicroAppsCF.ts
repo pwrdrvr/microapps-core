@@ -302,6 +302,15 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
     };
+    const s3FallbackToAppOptions: cf.AddBehaviorOptions = {
+      allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      // TODO: Caching needs to be set by the app response
+      cachePolicy: cf.CachePolicy.CACHING_DISABLED,
+      compress: true,
+      originRequestPolicy: appOriginRequestPolicy,
+      viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: props.edgeLambdas,
+    };
     const appOnlyBehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       // TODO: Caching needs to be set by the app response
@@ -314,17 +323,27 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     //
     // Handle designated static assets
-    // Fallsback to the app on 403/404
+    // Falls back to the app on 403/404
     //
     distro.addBehavior(
       posixPath.join(rootPathPrefix, '*/static/*.*'),
+      // TODO: 2023-03-04 - This could be the bucket origin without fallback, at least as an option
+      // which would allow skipping the OriginRequest (which has invoke cost and throughtput limits).
+      // This would be a distinct config from the `*/*.*` route below, which always has to have
+      // the OriginRequest function.
       bucketOriginFallbackToApp,
       s3BehaviorOptions,
     );
+    distro.addBehavior(
+      posixPath.join(rootPathPrefix, '*/*.*'),
+      bucketOriginFallbackToApp,
+      s3FallbackToAppOptions,
+    );
 
     //
-    // Default to sending everything else to the app first
-    // Fall back to the S3 on 403/404
+    // Default to sending everything else to the app only
+    // This is necessary because we allow all methods for the app but that is not
+    // allowed for an OriginGroup
     //
     distro.addBehavior(posixPath.join(rootPathPrefix, '/*'), appOnlyOrigin, appOnlyBehaviorOptions);
   }
