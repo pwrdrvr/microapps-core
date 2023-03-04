@@ -152,6 +152,7 @@ jobs:
         run: yarn test
 
   deploy:
+    if: github.actor != 'dependabot[bot]'
     strategy:
       matrix:
         deployName:
