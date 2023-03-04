@@ -34,7 +34,7 @@
 Publish tool for deploying apps and updates
 
 VERSION
-  @pwrdrvr/microapps-publish/0.0.0 darwin-x64 node-v16.13.1
+  @pwrdrvr/microapps-publish/0.0.0 darwin-arm64 node-v18.12.1
 
 USAGE
   $ microapps-publish [COMMAND]
@@ -42,15 +42,12 @@ USAGE
 COMMANDS
   delete                  Delete app/version
   help                    display help for microapps-publish
-  nextjs-version          Apply version to next.config.js overtop of 0.0.0
-                          placeholder
+  nextjs-version          Apply version to next.config.js overtop of 0.0.0 placeholder
   nextjs-version-restore  Restore next.config.js
   preflight               Check if app/version are available
-  publish                 Publish arbitrary framework app - deploy static
-                          assets to S3, alias the $LATEST Lambda function, and
-                          add integration/route to API Gateway.
-  publish-static          Publish arbitrary framework static app - deploy
-                          static assets to S3 only.
+  publish                 Publish arbitrary framework app - deploy static assets to S3, alias the $LATEST Lambda
+                          function, and add integration/route to API Gateway.
+  publish-static          Publish arbitrary framework static app - deploy static assets to S3 only.
 ```
 
 ## Command - preflight
@@ -64,17 +61,17 @@ USAGE
   $ microapps-publish preflight
 
 OPTIONS
-  -a, --appName=appName                        Name of the MicroApp
-  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer lambda function
-  -n, --newVersion=newVersion                  (required) New semantic version to apply
+  -a, --app-name=app-name                          MicroApps app name (this becomes the path the app is rooted at)
+  -d, --deployer-lambda-name=deployer-lambda-name  Name of the deployer lambda function
+  -n, --new-version=new-version                    New semantic version to apply
 
-  -o, --overwrite                              Allow overwrite - Warn but do not fail if version exists.
-                                               Discouraged outside of test envs if cacheable static files
-                                               have changed.
+  -o, --overwrite                                  Allow overwrite - Warn but do not fail if version exists.
+                                                   Discouraged outside of test envs if cacheable static files have
+                                                   changed.
 
-  -v, --version                                show CLI version
+  -v, --version                                    show CLI version
 
-  --help                                       show CLI help
+  --help                                           show CLI help
 
 EXAMPLE
   $ microapps-publish preflight -d microapps-deployer-dev -a release -n 0.0.13
@@ -92,30 +89,37 @@ USAGE
   $ microapps-publish publish
 
 OPTIONS
-  -a, --appName=appName                        MicroApps app name
-  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer lambda function
+  -a, --app-name=app-name                          MicroApps app name (this becomes the path the app is rooted at)
+  -d, --deployer-lambda-name=deployer-lambda-name  Name of the deployer lambda function
 
-  -i, --defaultFile=defaultFile                Default file to return when the app is loaded via the
-                                               router without a version (e.g. when app/ is requested).
+  -i, --default-file=default-file                  Default file to return when the app is loaded via the router
+                                                   without a version (e.g. when app/ is requested).
 
-  -l, --appLambdaName=appLambdaName            Name of the application lambda function
+  -l, --app-lambda-name=app-lambda-name            ARN of lambda version, alias, or function (name or ARN) to deploy
 
-  -n, --newVersion=newVersion                  (required) New semantic version to apply
+  -n, --new-version=new-version                    New semantic version to apply
 
-  -o, --overwrite                              Allow overwrite - Warn but do not fail if version exists.
-                                               Discouraged outside of test envs if cacheable static files
-                                               have changed.
+  -o, --overwrite                                  Allow overwrite - Warn but do not fail if version exists.
+                                                   Discouraged outside of test envs if cacheable static files have
+                                                   changed.
 
-  -s, --staticAssetsPath=staticAssetsPath      Path to files to be uploaded to S3 static bucket at
-                                               app/version/ path.  Do include app/version/ in path if
-                                               files are already "rooted" under that path locally.
+  -s, --static-assets-path=static-assets-path      Path to files to be uploaded to S3 static bucket at app/version/
+                                                   path.  Do include app/version/ in path if files are already
+                                                   "rooted" under that path locally.
 
-  -v, --version                                show CLI version
+  -t, --type=(apigwy|lambda-url|url|static)        [default: lambda-url] Type of the application and how its
+                                                   requests are routed
 
-  --help                                       show CLI help
+  -u, --url=url                                    URL for `url` type applications
 
-  --noCache                                    Force revalidation of CloudFront and browser caching of
-                                               static assets
+  -v, --version                                    show CLI version
+
+  --help                                           show CLI help
+
+  --no-cache                                       Force revalidation of CloudFront and browser caching of static
+                                                   assets
+
+  --startup-type=(iframe|direct)                   [default: iframe] How the app should be loaded
 
 EXAMPLE
   $ microapps-publish publish -d microapps-deployer-dev -l microapps-app-release-dev -a release -n 0.0.21
@@ -140,32 +144,31 @@ USAGE
   $ microapps-publish publish-static
 
 OPTIONS
-  -a, --appName=appName                        MicroApps app name
-  -d, --deployerLambdaName=deployerLambdaName  (required) Name of the deployer lambda function
+  -a, --app-name=app-name                          MicroApps app name (this becomes the path the app is rooted at)
+  -d, --deployer-lambda-name=deployer-lambda-name  Name of the deployer lambda function
 
-  -i, --defaultFile=defaultFile                Default file to return when the app is loaded via the
-                                               router without a version (e.g. when app/ is requested).
+  -i, --default-file=default-file                  Default file to return when the app is loaded via the router
+                                                   without a version (e.g. when app/ is requested).
 
-  -n, --newVersion=newVersion                  (required) New semantic version to apply
+  -n, --new-version=new-version                    New semantic version to apply
 
-  -o, --overwrite                              Allow overwrite - Warn but do not fail if version exists.
-                                               Discouraged outside of test envs if cacheable static files
-                                               have changed.
+  -o, --overwrite                                  Allow overwrite - Warn but do not fail if version exists.
+                                                   Discouraged outside of test envs if cacheable static files have
+                                                   changed.
 
-  -s, --staticAssetsPath=staticAssetsPath      Path to files to be uploaded to S3 static bucket at
-                                               app/version/ path.  Do include app/version/ in path if
-                                               files are already "rooted" under that path locally.
+  -s, --static-assets-path=static-assets-path      Path to files to be uploaded to S3 static bucket at app/version/
+                                                   path.  Do include app/version/ in path if files are already
+                                                   "rooted" under that path locally.
 
-  -v, --version                                show CLI version
+  -v, --version                                    show CLI version
 
-  --help                                       show CLI help
+  --help                                           show CLI help
 
-  --noCache                                    Force revalidation of CloudFront and browser caching of
-                                               static assets
+  --no-cache                                       Force revalidation of CloudFront and browser caching of static
+                                                   assets
 
 EXAMPLE
-  $ microapps-publish publish-static -d microapps-deployer-dev -l microapps-app-release-dev -a release -n
-   0.0.21
+  $ microapps-publish publish-static -d microapps-deployer-dev -l microapps-app-release-dev -a release -n 0.0.21
   ✔ Get S3 Temp Credentials [1s]
   ✔ Confirm Static Assets Folder Exists [0.0s]
   ✔ Copy Static Files to Local Upload Dir [0.0s]
@@ -186,10 +189,10 @@ USAGE
   $ microapps-publish nextjs-version
 
 OPTIONS
-  -l, --leaveCopy              Leave a copy of the modifed files as .modified
-  -n, --newVersion=newVersion  (required) New semantic version to apply
-  -v, --version                show CLI version
-  --help                       show CLI help
+  -l, --leave-copy               Leave a copy of the modifed files as .modified
+  -n, --new-version=new-version  New semantic version to apply
+  -v, --version                  show CLI version
+  --help                         show CLI help
 
 EXAMPLE
   $ microapps-publish nextjs-version -n 0.0.13
@@ -201,20 +204,18 @@ EXAMPLE
 `npx microapps-publish nextjs-version-restore help`
 
 ```
-Apply version to next.config.js overtop of 0.0.0 placeholder
+Restore next.config.js
 
 USAGE
-  $ microapps-publish nextjs-version
+  $ microapps-publish nextjs-version-restore
 
 OPTIONS
-  -l, --leaveCopy              Leave a copy of the modifed files as .modified
-  -n, --newVersion=newVersion  (required) New semantic version to apply
-  -v, --version                show CLI version
-  --help                       show CLI help
+  -v, --version  show CLI version
+  --help         show CLI help
 
 EXAMPLE
-  $ microapps-publish nextjs-version -n 0.0.13
-  ✔ Modifying Config Files [0.0s]
+  $ microapps-publish nextjs-version-restore
+  ✔ Restoring Modified Config Files [0.0s]
 ```
 
 ## Command - delete

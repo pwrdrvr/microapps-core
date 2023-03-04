@@ -347,7 +347,8 @@ jobs:
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${DEMO_APP_LAMBDA_NAME} \
             -s packages/demo-app/static_files \
-            -i index.html --overwrite --noCache
+            -i index.html \
+            --overwrite
 
       - name: Demo App URL
         uses: Sibz/github-status-action@v1
@@ -380,11 +381,14 @@ jobs:
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${DEMO_APP_LAMBDA_NAME} \
             -s packages/demo-app/static_files \
-            -i index.html --overwrite --noCache
+            -i index.html \
+            --overwrite \
+            --no-cache
 
       - name: Delete Demo App - To Delete
         run: |
-          npx microapps-publish delete -a ${DEMO_APP_NAME} \
+          npx microapps-publish delete \
+            -a ${DEMO_APP_NAME} \
             -n 0.0.0-test.1  \
             -d ${DEPLOYER_LAMBDA_NAME}
 
@@ -398,7 +402,8 @@ jobs:
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${DEMO_APP_LAMBDA_NAME} \
             -s packages/demo-app/static_files \
-            -i index.html --overwrite --noCache
+            -i index.html \
+            --overwrite
 
       - name: Demo App URL - Root App
         uses: Sibz/github-status-action@v1
