@@ -391,11 +391,6 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
         originShieldRegion,
       })
       : bucketAppsOriginApp ?? bucketAppsOriginS3;
-    const appOriginFallbackToS3 = new cforigins.OriginGroup({
-      primaryOrigin: appOrigin,
-      fallbackOrigin: bucketAppsOriginS3,
-      fallbackStatusCodes: [403, 404],
-    });
     const bucketOriginFallbackToApp = new cforigins.OriginGroup({
       primaryOrigin: bucketAppsOriginS3,
       fallbackOrigin: appOrigin,
