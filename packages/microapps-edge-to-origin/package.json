@@ -15,12 +15,12 @@
     "aws-sdk-client-mock": "^0.6.2"
   },
   "dependencies": {
-    "@aws-crypto/sha256-browser": "^2.0.1",
-    "@aws-sdk/client-secrets-manager": "~3.78.0",
-    "@aws-sdk/credential-provider-node": "~3.78.0",
-    "@aws-sdk/signature-v4": "~3.78.0",
-    "@aws-sdk/protocol-http": "~3.78.0",
-    "@aws-sdk/node-http-handler": "~3.78.0",
+    "@aws-crypto/sha256-browser": "4.0.0",
+    "@aws-sdk/client-secrets-manager": "3.78.0",
+    "@aws-sdk/credential-provider-node": "3.78.0",
+    "@aws-sdk/signature-v4": "3.78.0",
+    "@aws-sdk/protocol-http": "3.78.0",
+    "@aws-sdk/node-http-handler": "3.78.0",
     "convict": "^6.1.0",
     "convict-format-with-validator": "^6.0.1",
     "fs-extra": "^9.1.0",
