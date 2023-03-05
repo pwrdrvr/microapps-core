@@ -1,4 +1,4 @@
-// index.test.ts
+// index.spec.ts
 /// <reference types="jest" />
 import 'reflect-metadata';
 import 'jest-dynalite/withDb';
