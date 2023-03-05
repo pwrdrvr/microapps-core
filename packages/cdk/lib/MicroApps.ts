@@ -289,7 +289,7 @@ export class MicroAppsStack extends Stack {
         removalPolicy,
       });
 
-      const appVersion = (app.lambdaFunction as lambda.Function).currentVersion;
+      const appVersion = (app.lambdaFunction as unknown as lambda.Function).currentVersion;
       appVersion.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
       new CfnOutput(this, 'release-app-func-name', {

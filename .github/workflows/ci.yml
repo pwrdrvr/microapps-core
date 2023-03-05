@@ -80,10 +80,10 @@ jobs:
         id: appVersions
         run: |
           # find . -type d -name microapps-app-nextjs-demo-cdk
-          echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='$(node -p -e "(require('./packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json')).version") >> $GITHUB_ENV
-          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "(require('./packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/package.json')).version") >> $GITHUB_ENV
-          echo "::set-output name=nextjsDemoAppPackageVersion::$(node -p -e "(require('./packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json')).version")"
-          echo "::set-output name=releaseAppPackageVersion::$(node -p -e "(require('./packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/package.json')).version")"
+          echo 'NEXTJS_DEMO_APP_PACKAGE_VERSION='$(node -p -e "(require('./node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json')).version") >> $GITHUB_ENV
+          echo 'RELEASE_APP_PACKAGE_VERSION='$(node -p -e "(require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json')).version") >> $GITHUB_ENV
+          echo "::set-output name=nextjsDemoAppPackageVersion::$(node -p -e "(require('./node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/package.json')).version")"
+          echo "::set-output name=releaseAppPackageVersion::$(node -p -e "(require('./node_modules/@pwrdrvr/microapps-app-release-cdk/package.json')).version")"
 
       - name: Versions
         run: |
@@ -430,7 +430,7 @@ jobs:
             -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
+            -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
             --overwrite
 
       - name: Nextjs Demo App URL
@@ -462,7 +462,7 @@ jobs:
             -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
             -d ${DEPLOYER_LAMBDA_NAME} \
             -l ${RELEASE_APP_LAMBDA_VERSION_ARN} \
-            -s packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
+            -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
             --overwrite
 
       - name: Release App URL
