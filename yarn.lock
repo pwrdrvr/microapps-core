@@ -10,21 +10,6 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@aws-cdk/asset-awscli-v1@^2.2.65":
-  version "2.2.74"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.74.tgz#60c40b65b618131c34f754015700e698b3ee54fe"
-  integrity sha512-YoLl74xG1q5byb7iY2enz809j9Vc4aAAe+w0OsGZdRPR1iXipnPXLGGJxiM3uCB8UNIfqzs+gw8HMU9tECsBVA==
-
-"@aws-cdk/asset-kubectl-v20@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-kubectl-v20/-/asset-kubectl-v20-2.1.1.tgz#d01c1efb867fb7f2cfd8c8b230b8eae16447e156"
-  integrity sha512-U1ntiX8XiMRRRH5J1IdC+1t5CE89015cwyt5U63Cpk0GnMlN5+h9WsWMlKlPXZR4rdq/m806JRlBMRpBUB2Dhw==
-
-"@aws-cdk/asset-node-proxy-agent-v5@^2.0.54":
-  version "2.0.63"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-node-proxy-agent-v5/-/asset-node-proxy-agent-v5-2.0.63.tgz#e9ffce7882fa9b63421c3a0f4e74b75a41129c33"
-  integrity sha512-2FC27PQC6Twy9MIVGhb44F2JuWgyF+cwWBbpB/sbVAFY72RmYA3GmDJpvjjrWBsXjPVZ+sUq9e2wn9/V15mh6g==
-
 "@aws-cdk/aws-apigatewayv2-alpha@^2.24.1-alpha.0":
   version "2.24.1-alpha.0"
   resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-alpha/-/aws-apigatewayv2-alpha-2.24.1-alpha.0.tgz"
@@ -2487,13 +2472,10 @@
   resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.6.3.tgz#2916b8e6cd88b7072d2e25da3e6489c35ae09a38"
   integrity sha512-EnL3ogfaVuIPQ1Fc0ned5me+UZ9jJA4l8v6NL9XZmoU5d87+r6BATIiOa7GUQAYlcJsXX6rcv3IkhB+WTWUP7A==
 
-"@pwrdrvr/microapps-app-release-cdk@0.5.2":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.5.2.tgz#b2658fad14b41ac76e6af86f6b2f621aab7bd5ec"
-  integrity sha512-FF6ajNWTAkUHx5tyE8xWPURhKTG0xlSH/4Urum5ER41bWFlyvmvq/QoDh3crd38QMzT9MMEYDRq2+6ocvNiUYQ==
-  dependencies:
-    aws-cdk-lib "^2.24.0"
-    constructs "^10.0.5"
+"@pwrdrvr/microapps-app-release-cdk@0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-release-cdk/-/microapps-app-release-cdk-0.5.3.tgz#2a7541d36306b942de2f9316325c8d84f020ddff"
+  integrity sha512-mscP6oFQW4ZaAt6h839fWGdgnvdTOL8d4TDznSVJQWUtm+mAbdWNhtnsOwmYYa9Eth65dGXIgVqC9+iqIwUixw==
 
 "@sideway/address@^4.1.3":
   version "4.1.4"
@@ -3330,24 +3312,6 @@ aws-cdk-lib@2.24.1:
     semver "^7.3.7"
     yaml "1.10.2"
 
-aws-cdk-lib@^2.24.0:
-  version "2.65.0"
-  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.65.0.tgz#0f709f1aaa7cfd8029d8b017bec1e6a4c15fabd9"
-  integrity sha512-yTeBe9+Li8ZHZICJc0y1uarbSruc3KIXP1KC7tjVrkg+ye7EE8eJTZm7+PpJd6O0ciPinn/k/dE9gHwUImygGA==
-  dependencies:
-    "@aws-cdk/asset-awscli-v1" "^2.2.65"
-    "@aws-cdk/asset-kubectl-v20" "^2.1.1"
-    "@aws-cdk/asset-node-proxy-agent-v5" "^2.0.54"
-    "@balena/dockerignore" "^1.0.2"
-    case "1.6.3"
-    fs-extra "^9.1.0"
-    ignore "^5.2.4"
-    jsonschema "^1.4.1"
-    minimatch "^3.1.2"
-    punycode "^2.3.0"
-    semver "^7.3.8"
-    yaml "1.10.2"
-
 aws-cdk@^2.24.1:
   version "2.24.1"
   resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.24.1.tgz"
@@ -3930,7 +3894,7 @@ console-control-strings@^1.1.0:
   resolved "https://registry.yarnpkg.com/console-control-strings/-/console-control-strings-1.1.0.tgz"
   integrity sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=
 
-constructs@10.0.5, constructs@^10.0.5:
+constructs@10.0.5:
   version "10.0.5"
   resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.0.5.tgz"
   integrity sha512-IwOwekzrASFC3qt4ozCtV09rteAIAesuCGsW0p+uBfqHd2XcvA5CXqJjgf4eUqm6g8e/noXlVCMDWwC8GaLtrg==
@@ -5842,11 +5806,6 @@ ignore@^5.2.0:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.2.0.tgz"
   integrity sha512-CmxgYGiEPCLhfLnpPp1MoRmifwEIOgjcHXxOBjv7mY96c+eWScsOP9c112ZyLdWHi0FxHjI+4uVhKYp/gcdRmQ==
 
-ignore@^5.2.4:
-  version "5.2.4"
-  resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.2.4.tgz#a291c0c6178ff1b960befe47fcdec301674a6324"
-  integrity sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==
-
 immediate@^3.2.3:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.3.0.tgz"
@@ -6896,7 +6855,7 @@ jsonparse@^1.2.0, jsonparse@^1.3.1:
   resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.3.1.tgz"
   integrity sha1-P02uSpH6wxX3EGL4UhzCOfE2YoA=
 
-jsonschema@^1.4.0, jsonschema@^1.4.1:
+jsonschema@^1.4.0:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/jsonschema/-/jsonschema-1.4.1.tgz"
   integrity sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==
@@ -8252,11 +8211,6 @@ punycode@^2.1.0, punycode@^2.1.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-punycode@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
-  integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
-
 pupa@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/pupa/-/pupa-2.1.1.tgz"
@@ -8633,13 +8587,6 @@ semver@^6.0.0, semver@^6.2.0, semver@^6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
-
-semver@^7.3.8:
-  version "7.3.8"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.8.tgz#07a78feafb3f7b32347d725e33de7e2a2df67798"
-  integrity sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==
-  dependencies:
-    lru-cache "^6.0.0"
 
 set-blocking@^2.0.0:
   version "2.0.0"

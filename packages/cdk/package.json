@@ -15,13 +15,13 @@
   },
   "dependencies": {
     "@pwrdrvr/microapps-app-nextjs-demo-cdk": "0.6.3",
-    "@pwrdrvr/microapps-app-release-cdk": "0.5.2",
-    "source-map-support": "0.5.21"
+    "@pwrdrvr/microapps-app-release-cdk": "0.5.3",
+    "source-map-support": "0.5.21",
+    "aws-cdk-lib": "2.24.1",
+    "constructs": "10.0.5"
   },
   "devDependencies": {
     "@types/node": "16.9.2",
-    "aws-cdk-lib": "2.24.1",
-    "constructs": "10.0.5",
     "tslib": "2.5.0"
   }
 }

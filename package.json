@@ -19,9 +19,8 @@
     "nohoist": [
       "**/@types/convict-format-with-validator",
       "**/@types/convict-format-with-validator/**",
-      "**/aws-cdk-lib",
-      "**/aws-cdk-lib/**",
-      "**/constructs"
+      "packages/microapps-cdk/aws-cdk-lib/**",
+      "packages/microapps-cdk/constructs/**"
     ]
   },
   "private": true,
@@ -53,6 +52,8 @@
     "@typescript-eslint/eslint-plugin": "5.54.0",
     "@typescript-eslint/parser": "5.54.0",
     "aws-cdk": "^2.24.1",
+    "aws-cdk-lib": "2.24.1",
+    "constructs": "10.0.5",
     "cross-env": "7.0.3",
     "esbuild": "0.17.11",
     "eslint": "8.35.0",
