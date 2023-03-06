@@ -28,7 +28,7 @@
     "packages/**/.projenrc.js",
     "packages/**/.projenrc.ts",
     "packages/**/*.ts",
-    "test/**/*.ts"
+    "tests/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

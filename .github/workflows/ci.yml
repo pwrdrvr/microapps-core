@@ -330,24 +330,25 @@ jobs:
       - name: Publish URL App to MicroApps
         run: |
           npx microapps-publish publish \
-            -a blog \
-            -t url \
-            -n ${PACKAGE_VERSION} \
-            -d ${DEPLOYER_LAMBDA_NAME} \
-            -u https://www.pwrdrvr.com \
+            --app-name blog \
+            --type url \
+            --new-version ${PACKAGE_VERSION} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --url https://www.pwrdrvr.com \
             --overwrite
 
       - name: Publish Demo App to MicroApps
         run: |
           npx microapps-publish publish \
-            -a ${DEMO_APP_NAME} \
-            -t lambda-url \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
             --startup-type direct \
-            -n ${PACKAGE_VERSION} \
-            -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${DEMO_APP_LAMBDA_NAME} \
-            -s packages/demo-app/static_files \
-            -i index.html --overwrite --noCache
+            --new-version ${PACKAGE_VERSION} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
 
       - name: Demo App URL
         uses: Sibz/github-status-action@v1
@@ -373,32 +374,36 @@ jobs:
       - name: Publish Demo App to MicroApps - To Delete
         run: |
           npx microapps-publish publish \
-            -a ${DEMO_APP_NAME} \
-            -t lambda-url \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
             --startup-type direct \
-            -n 0.0.0-test.1 \
-            -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${DEMO_APP_LAMBDA_NAME} \
-            -s packages/demo-app/static_files \
-            -i index.html --overwrite --noCache
+            --new-version 0.0.0-test.1 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite \
+            --no-cache
 
       - name: Delete Demo App - To Delete
         run: |
-          npx microapps-publish delete -a ${DEMO_APP_NAME} \
-            -n 0.0.0-test.1  \
-            -d ${DEPLOYER_LAMBDA_NAME}
+          npx microapps-publish delete \
+            --app-name ${DEMO_APP_NAME} \
+            --new-version 0.0.0-test.1  \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME}
 
       - name: Publish Demo App to MicroApps - Root App
         run: |
           npx microapps-publish publish \
-            -a '[root]' \
-            -t lambda-url \
+            --app-name '[root]' \
+            --type lambda-url \
             --startup-type direct \
-            -n ${PACKAGE_VERSION} \
-            -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${DEMO_APP_LAMBDA_NAME} \
-            -s packages/demo-app/static_files \
-            -i index.html --overwrite --noCache
+            --new-version ${PACKAGE_VERSION} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
 
       - name: Demo App URL - Root App
         uses: Sibz/github-status-action@v1
@@ -424,13 +429,13 @@ jobs:
       - name: Publish Nextjs Demo App to MicroApps
         run: |
           npx microapps-publish publish \
-            -t lambda-url \
+            --app-name ${NEXTJS_DEMO_APP_NAME} \
+            --type lambda-url \
             --startup-type direct \
-            -a ${NEXTJS_DEMO_APP_NAME} \
-            -n ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
-            -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
-            -s node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
+            --new-version ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
+            --static-assets-path node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
             --overwrite
 
       - name: Nextjs Demo App URL
@@ -456,13 +461,13 @@ jobs:
       - name: Publish Release App to MicroApps
         run: |
           npx microapps-publish publish \
-            -t lambda-url \
+            --app-name ${RELEASE_APP_NAME} \
+            --type lambda-url \
             --startup-type direct \
-            -a ${RELEASE_APP_NAME} \
-            -n ${{ needs.build.outputs.releaseAppPackageVersion }} \
-            -d ${DEPLOYER_LAMBDA_NAME} \
-            -l ${RELEASE_APP_LAMBDA_VERSION_ARN} \
-            -s node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
+            --new-version ${{ needs.build.outputs.releaseAppPackageVersion }} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${RELEASE_APP_LAMBDA_VERSION_ARN} \
+            --static-assets-path node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
             --overwrite
 
       - name: Release App URL
@@ -549,14 +554,15 @@ jobs:
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
           npx microapps-publish publish \
-            -a ${DEMO_APP_NAME} \
-            -t lambda-url \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
             --startup-type direct \
-            -n 0.0.0-child.1 \
-            -d ${CHILD_DEPLOYER_LAMBDA_ARN} \
-            -l ${CHILD_DEMO_APP_LAMBDA_VERSION_ARN} \
-            -s packages/demo-app/static_files \
-            -i index.html --overwrite
+            --new-version 0.0.0-child.1 \
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN} \
+            --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_VERSION_ARN} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
 
       - name: Test Demo App - Child
         if: ${{ matrix.deployName == 'microapps-core' }}

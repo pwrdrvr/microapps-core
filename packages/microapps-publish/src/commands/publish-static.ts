@@ -275,12 +275,9 @@ export class PublishCommand extends Command {
 
             // Setup caching on static assets
             // NoCache - Only used for test deploys, requires browser and CloudFront to refetch every time
-            // Overwrite - Reduces default cache time period from 24 hours to 15 minutes
             // Default - 24 hours
             const CacheControl = noCache
               ? 'max-age=0, must-revalidate, public'
-              : overwrite
-              ? `max-age=${15 * 60}, public`
               : `max-age=${24 * 60 * 60}, public`;
 
             const pathWithoutAppAndVer = path.join(S3Uploader.TempDir, destinationPrefix);
