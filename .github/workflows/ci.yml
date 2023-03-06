@@ -594,12 +594,6 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
-      # - name: Generate Projen Files
-      #   working-directory: packages/microapps-cdk/
-      #   run: |
-      #     npx projen --version
-      #     yarn projen
-
       - name: Modify microapps-cdk tsconfig.json
         run: |
           mv packages/microapps-cdk/tsconfig.json packages/microapps-cdk/tsconfig.jsii.json
@@ -608,17 +602,9 @@ jobs:
       - name: Build All TypeScript
         run: yarn build 
     
-      # - name: Move root modules out of the way for CDK Construct build
-      #   run: mv node_modules node_modules_hide
-      
-      # - name: Optionally Install CDK Construct Deps
-      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      #   working-directory: packages/microapps-cdk/
-      #   run: yarn install --frozen-lockfile
-
-      # - name: Post Install Patch of api-gatewayv2
-      #   working-directory: packages/microapps-cdk/
-      #   run: npx patch-package
+      - name: Install CDK Construct Deps
+        working-directory: packages/microapps-cdk/
+        run: yarn install --frozen-lockfile
 
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
