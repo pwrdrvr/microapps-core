@@ -30,8 +30,6 @@
     "tslib": "2.5.0"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.78.0",
-    "@aws-sdk/lib-dynamodb": "3.78.0",
     "class-transformer": "0.5.1"
   },
   "devDependencies": {
