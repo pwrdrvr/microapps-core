@@ -51,8 +51,10 @@ describe('demo-app', () => {
   });
 
   describe('single account - root app', () => {
+    const rootVer = '0.0.0';
+
     it('should return a status of 200', async () => {
-      const response = await axios.get(baseUrl.toString(), {
+      const response = await axios.get(new URL(`/?appver=${rootVer}`, baseUrl).toString(), {
         headers: { Accept: 'text/html' },
       });
       expect(response.status).toEqual(200);
@@ -62,7 +64,7 @@ describe('demo-app', () => {
     });
 
     it('should return HTML with an expected string', async () => {
-      const response = await axios.get(baseUrl.toString(), {
+      const response = await axios.get(new URL(`/?appver=${rootVer}`, baseUrl).toString(), {
         headers: { Accept: 'text/html' },
       });
       const data = response.data;
@@ -75,7 +77,7 @@ describe('demo-app', () => {
 
     it('should return JSON with an expected value', async () => {
       const response = await axios.get(
-        new URL('/serverIncrement?currValue=1', baseUrl).toString(),
+        new URL(`/serverIncrement?currValue=1&appver=${rootVer}`, baseUrl).toString(),
         {
           headers: { Accept: 'application/json' },
         },

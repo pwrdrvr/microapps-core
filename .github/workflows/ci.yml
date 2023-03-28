@@ -373,7 +373,7 @@ jobs:
 
       - name: Run Integration Tests
         env:
-          DEMO_APP_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/${{ env.DEMO_APP_NAME }}
+          BASE_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/
         run: |
           npm run test:integration
 
