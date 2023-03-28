@@ -20,7 +20,7 @@ export async function handler(
 
   const standardHeaders = {
     'Powered-By': 'demo-app',
-    'X-MicroApps-App': event.headers['x-microapps-app'] ?? 'unknown',
+    'X-MicroApps-AppName': event.headers['x-microapps-appname'] ?? 'unknown',
     'X-MicroApps-SemVer': event.headers['x-microapps-semver'] ?? 'unknown',
   };
 
