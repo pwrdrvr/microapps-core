@@ -39,6 +39,8 @@ import * as s3 from '@aws-sdk/client-s3';
 import type {
   ICreateApplicationRequest,
   IDeleteVersionRequest,
+  IGetVersionRequest,
+  IGetVersionResponse,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
@@ -230,6 +232,189 @@ describe('DeleteVersion', () => {
       expect(response.statusCode).toBeDefined();
       expect(response.statusCode).toEqual(200);
       expect(lambdaClient.calls().length).toEqual(3);
+      expect(apigwyClient.calls().length).toEqual(3);
+      expect(s3Client.calls().length).toEqual(3);
+
+      // Confirm the version record is deleted
+      const noRecord = await Version.LoadVersion({
+        dbManager,
+        key: {
+          AppName: appName,
+          SemVer: semVer,
+        },
+      });
+      expect(noRecord).toBeUndefined();
+    });
+  });
+
+  describe('deleteVersion - Child Account', () => {
+    it('200s and cleans up only the lambda and proxies to the parent', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+
+      theConfig.parentDeployerLambdaARN =
+        'arn:aws:lambda:us-east-1:123456789:function:parent-deployer';
+
+      const parentGetRequest: IGetVersionRequest = {
+        appName,
+        semVer,
+        type: 'getVersion',
+      };
+      const parentGetResponse: IGetVersionResponse = {
+        statusCode: 200,
+        type: 'getVersion',
+        version: {
+          appName,
+          semVer,
+          type: 'lambda',
+          lambdaArn: 'arn:aws:lambda:us-east-1:123456789012:function:my-function:my-alias',
+        },
+      };
+
+      const parentDeleteRequest: IDeleteVersionRequest = {
+        appName,
+        semVer,
+        type: 'deleteVersion',
+      };
+
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.InvokeCommand, {
+          FunctionName: config.parentDeployerLambdaARN,
+          Qualifier: 'currentVersion',
+          Payload: Buffer.from(JSON.stringify(parentGetRequest)),
+        })
+        .resolves({ Payload: Buffer.from(JSON.stringify(parentGetResponse)) })
+        .on(lambda.InvokeCommand, {
+          FunctionName: config.parentDeployerLambdaARN,
+          Qualifier: 'currentVersion',
+          Payload: Buffer.from(JSON.stringify(parentDeleteRequest)),
+        })
+        .resolves({ Payload: Buffer.from(JSON.stringify({ statusCode: 200 })) })
+        .on(lambda.GetAliasCommand, {
+          FunctionName: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          Name: 'my-alias',
+        })
+        .resolves({
+          FunctionVersion: '1',
+        })
+        .on(lambda.DeleteAliasCommand, {
+          FunctionName: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          Name: 'my-alias',
+        })
+        .resolves({})
+        .on(lambda.DeleteFunctionCommand, {
+          FunctionName: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          Qualifier: '1',
+        })
+        .resolves({});
+      s3Client.onAnyCommand().rejects();
+      apigwyClient.onAnyCommand().rejects();
+
+      const request: IDeleteVersionRequest = {
+        appName,
+        semVer,
+        type: 'deleteVersion',
+      };
+
+      const response = await handler(request, { awsRequestId: '123' } as lambdaTypes.Context);
+      expect(response).toBeDefined();
+      expect(response.statusCode).toBeDefined();
+      expect(response.statusCode).toEqual(200);
+      expect(lambdaClient.calls().length).toEqual(4);
+      expect(apigwyClient.calls().length).toEqual(0);
+      expect(s3Client.calls().length).toEqual(0);
+    });
+  });
+
+  describe('deleteVersion - Parent Account', () => {
+    it('200s and cleans up everything except Lambda', async () => {
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeIntegrationID = 'integration123';
+      const fakeRoute1ID = 'route123';
+      const fakeRoute2ID = 'route456';
+
+      lambdaClient.onAnyCommand().rejects();
+      s3Client
+        .onAnyCommand()
+        .rejects()
+        // Mock S3 get for staging bucket - return one file name
+        .on(s3.ListObjectsV2Command, {
+          Bucket: config.filestore.destinationBucket,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: true,
+          NextContinuationToken: 'nothing-to-see-here-yet',
+        })
+        .on(s3.ListObjectsV2Command, {
+          ContinuationToken: 'nothing-to-see-here-yet',
+          Bucket: config.filestore.destinationBucket,
+          Prefix: `${pathPrefix}${appName}/${semVer}/`,
+        })
+        .resolves({
+          IsTruncated: false,
+          Contents: [{ Key: `${pathPrefix}${appName}/${semVer}/index.html` }],
+        })
+        .on(s3.DeleteObjectsCommand, {
+          Bucket: config.filestore.destinationBucket,
+          Delete: {
+            Objects: [
+              {
+                Key: `${pathPrefix}${appName}/${semVer}/index.html`,
+              },
+            ],
+          },
+        })
+        .resolves({});
+      apigwyClient
+        .onAnyCommand()
+        .rejects()
+        .on(apigwy.DeleteIntegrationCommand, {
+          ApiId: config.apigwy.apiId,
+          IntegrationId: fakeIntegrationID,
+        })
+        .resolves({})
+        .on(apigwy.DeleteRouteCommand, {
+          ApiId: config.apigwy.apiId,
+          RouteId: fakeRoute1ID,
+        })
+        .resolves({})
+        .on(apigwy.DeleteRouteCommand, {
+          ApiId: config.apigwy.apiId,
+          RouteId: fakeRoute2ID,
+        })
+        .resolves({});
+
+      const version = new Version({
+        AppName: appName,
+        SemVer: semVer,
+        DefaultFile: '',
+        IntegrationID: fakeIntegrationID,
+        RouteIDAppVersion: fakeRoute1ID,
+        RouteIDAppVersionSplat: fakeRoute2ID,
+        // Note: Pending is reported as "does not exist"
+        // So don't set this to pending or the test will fail
+        Status: 'routed',
+        Type: 'lambda',
+        LambdaARN: 'arn:aws:lambda:us-east-1:123456789012:function:my-function:my-alias',
+      });
+      await version.Save(dbManager);
+
+      const request: IDeleteVersionRequest = {
+        appName,
+        semVer,
+        type: 'deleteVersion',
+        requestFromChildAccount: true,
+      };
+
+      const response = await handler(request, { awsRequestId: '123' } as lambdaTypes.Context);
+      expect(response).toBeDefined();
+      expect(response.statusCode).toBeDefined();
+      expect(response.statusCode).toEqual(200);
+      expect(lambdaClient.calls().length).toEqual(0);
       expect(apigwyClient.calls().length).toEqual(3);
       expect(s3Client.calls().length).toEqual(3);
 

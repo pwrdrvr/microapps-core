@@ -3,10 +3,16 @@ import * as lambda from '@aws-sdk/client-lambda';
 import * as s3 from '@aws-sdk/client-s3';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import { IConfig } from '../../config/Config';
-import type { IDeleteVersionRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
+import type {
+  IDeleteVersionRequest,
+  IDeployerResponse,
+  IGetVersionRequest,
+  IGetVersionResponse,
+} from '@pwrdrvr/microapps-deployer-lib';
 import Log from '../../lib/Log';
 import { ExtractARNandAlias } from '../../lib/ExtractLambdaArn';
 import { GetBucketPrefix } from '../../lib/GetBucketPrefix';
+import { InvokeCommand } from '@aws-sdk/client-lambda';
 
 const lambdaClient = new lambda.LambdaClient({
   maxAttempts: 8,
@@ -29,99 +35,149 @@ export async function DeleteVersion(opts: {
   config: IConfig;
 }): Promise<IDeployerResponse> {
   const { dbManager, request, config } = opts;
+  const { requestFromChildAccount = false } = request;
 
   Log.Instance.debug('Got Body:', request);
 
-  // Check if the version exists
-  const record = await Version.LoadVersion({
-    dbManager,
-    key: { AppName: request.appName, SemVer: request.semVer },
-  });
-  if (record === undefined) {
-    Log.Instance.info('Error: App/Version does not exist', {
-      appName: request.appName,
-      semVer: request.semVer,
+  let record: Version | undefined;
+
+  // Perform cleanups in single-account deployments or in the **parent** account
+  // of a multi-account deployment
+  if (!config.parentDeployerLambdaARN || requestFromChildAccount) {
+    // Check if the version exists
+    record = await Version.LoadVersion({
+      dbManager,
+      key: { AppName: request.appName, SemVer: request.semVer },
     });
+    if (record === undefined) {
+      Log.Instance.info('Error: App/Version does not exist', {
+        appName: request.appName,
+        semVer: request.semVer,
+      });
 
-    return { statusCode: 404 };
-  }
+      return { statusCode: 404 };
+    }
 
-  // Delete files in destinationBucket
-  const destinationPrefix = GetBucketPrefix(request, config) + '/';
-  await DeleteFromDestinationBucket(destinationPrefix, config);
+    // Delete files in destinationBucket
+    const destinationPrefix = GetBucketPrefix(request, config) + '/';
+    await DeleteFromDestinationBucket(destinationPrefix, config);
 
-  if (record.Type === 'lambda') {
-    // Get the API Gateway
-    const apiId = config.apigwy.apiId;
+    if (record.Type === 'lambda') {
+      // Get the API Gateway
+      const apiId = config.apigwy.apiId;
 
-    //
-    // Remove the routes to API Gateway for appName/version/{proxy+}
-    //
-    if (record.RouteIDAppVersion === '' && record.RouteIDAppVersionSplat === '') {
-      Log.Instance.warn('no RouteIDs to delete');
-    } else {
-      for (const routeId of [record.RouteIDAppVersion, record.RouteIDAppVersionSplat]) {
-        try {
-          await apigwyClient.send(
-            new apigwy.DeleteRouteCommand({
-              ApiId: apiId,
-              RouteId: routeId,
-            }),
-          );
-        } catch (err: any) {
-          if (err.name === 'AccessDeniedException') {
-            Log.Instance.error('AccessDeniedException removing route from API Gateway', {
+      //
+      // Remove the routes to API Gateway for appName/version/{proxy+}
+      //
+      if (record.RouteIDAppVersion === '' && record.RouteIDAppVersionSplat === '') {
+        Log.Instance.warn('no RouteIDs to delete');
+      } else {
+        for (const routeId of [record.RouteIDAppVersion, record.RouteIDAppVersionSplat]) {
+          try {
+            await apigwyClient.send(
+              new apigwy.DeleteRouteCommand({
+                ApiId: apiId,
+                RouteId: routeId,
+              }),
+            );
+          } catch (err: any) {
+            if (err.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException removing route from API Gateway', {
+                error: err,
+                apiId,
+                routeId,
+              });
+              return { statusCode: 401 };
+            }
+
+            // Don't care
+            Log.Instance.error('Caught unexpected error on app/ver route remove', {
               error: err,
               apiId,
               routeId,
             });
-            return { statusCode: 401 };
           }
-
-          // Don't care
-          Log.Instance.error('Caught unexpected error on app/ver route remove', {
-            error: err,
-            apiId,
-            routeId,
-          });
         }
-      }
 
-      //
-      // Remove Integration pointing to Lambda Function Alias
-      //
-      if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
-        try {
-          await apigwyClient.send(
-            new apigwy.DeleteIntegrationCommand({
-              ApiId: apiId,
-              IntegrationId: record.IntegrationID,
-            }),
-          );
-        } catch (error: any) {
-          if (error.name === 'AccessDeniedException') {
-            Log.Instance.error('AccessDeniedException removing integration from API Gateway', {
-              error,
+        //
+        // Remove Integration pointing to Lambda Function Alias
+        //
+        if (record.IntegrationID !== undefined && record.IntegrationID !== '') {
+          try {
+            await apigwyClient.send(
+              new apigwy.DeleteIntegrationCommand({
+                ApiId: apiId,
+                IntegrationId: record.IntegrationID,
+              }),
+            );
+          } catch (error: any) {
+            if (error.name === 'AccessDeniedException') {
+              Log.Instance.error('AccessDeniedException removing integration from API Gateway', {
+                error,
+                apiId,
+                integrationId: record.IntegrationID,
+              });
+              return { statusCode: 401 };
+            }
+
+            Log.Instance.error('Caught unexpected error removing integration from API Gateway', {
+              error: error,
               apiId,
               integrationId: record.IntegrationID,
             });
-            return { statusCode: 401 };
           }
-
-          Log.Instance.error('Caught unexpected error removing integration from API Gateway', {
-            error: error,
-            apiId,
-            integrationId: record.IntegrationID,
-          });
         }
       }
     }
   }
 
-  if ((record.Type === 'lambda' || record.Type === 'lambda-url') && record.LambdaARN) {
+  const versionRequest: IGetVersionRequest = {
+    appName: request.appName,
+    semVer: request.semVer,
+    type: 'getVersion',
+  };
+  const getVersionResponseWrapped =
+    !record && config.parentDeployerLambdaARN
+      ? await lambdaClient.send(
+          new InvokeCommand({
+            FunctionName: config.parentDeployerLambdaARN,
+            Qualifier: 'currentVersion',
+            Payload: Buffer.from(JSON.stringify(versionRequest)),
+          }),
+        )
+      : undefined;
+  const getVersionResponse = getVersionResponseWrapped?.Payload
+    ? (JSON.parse(
+        Buffer.from(getVersionResponseWrapped.Payload).toString('utf-8'),
+      ) as IGetVersionResponse)
+    : undefined;
+
+  if (!getVersionResponse && !record) {
+    throw new Error('Could not find version record and did not get version response from parent');
+  }
+
+  const versionInfo: IGetVersionResponse = {
+    type: 'getVersion',
+    version: {
+      appName: request.appName,
+      semVer: request.semVer,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      type: record ? record.Type : getVersionResponse!.version!.type,
+      lambdaArn: record ? record?.LambdaARN : getVersionResponse?.version?.lambdaArn,
+    },
+    statusCode: 200,
+  };
+
+  // Perform cleanups in single-account deployments or in the **child** account
+  // of a multi-account deployment
+  if (
+    !requestFromChildAccount &&
+    (versionInfo.version?.type === 'lambda' || versionInfo.version?.type === 'lambda-url') &&
+    versionInfo.version?.lambdaArn
+  ) {
     // Get base of lambda arn
     const { lambdaARNBase, lambdaAlias } = ExtractARNandAlias({
-      lambdaARN: record.LambdaARN,
+      lambdaARN: versionInfo.version?.lambdaArn,
       config,
     });
 
