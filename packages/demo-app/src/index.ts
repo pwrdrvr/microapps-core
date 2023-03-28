@@ -18,6 +18,12 @@ export async function handler(
   // eslint-disable-next-line no-console
   console.log('event', event);
 
+  const standardHeaders = {
+    'Powered-By': 'demo-app',
+    'X-MicroApps-App': event.headers['x-microapps-app'] ?? 'unknown',
+    'X-MicroApps-SemVer': event.headers['x-microapps-semver'] ?? 'unknown',
+  };
+
   if (event.rawPath.endsWith('/serverIncrement')) {
     const currValue = parseInt(event.queryStringParameters?.currValue ?? '0', 10);
     const newValue = currValue + 1;
@@ -25,8 +31,8 @@ export async function handler(
     return {
       statusCode: 200,
       headers: {
+        ...standardHeaders,
         'Content-Type': 'application/json',
-        'Powered-By': 'demo-app',
       },
       isBase64Encoded: false,
       body: {
@@ -42,8 +48,8 @@ export async function handler(
     return {
       statusCode: 200,
       headers: {
+        ...standardHeaders,
         'Content-Type': 'text/html',
-        'Powered-By': 'demo-app',
       },
       isBase64Encoded: false,
       body: file,
@@ -55,7 +61,7 @@ export async function handler(
     return {
       statusCode: 404,
       headers: {
-        'Powered-By': 'demo-app',
+        ...standardHeaders,
       },
       isBase64Encoded: false,
     };
@@ -65,8 +71,8 @@ export async function handler(
     return {
       statusCode: 200,
       headers: {
+        ...standardHeaders,
         'Content-Type': 'text/html',
-        'Powered-By': 'demo-app',
       },
       isBase64Encoded: false,
       body: html,
@@ -76,8 +82,8 @@ export async function handler(
   return {
     statusCode: 404,
     headers: {
+      ...standardHeaders,
       'Content-Type': 'text/plain',
-      'Powered-By': 'demo-app',
     },
     isBase64Encoded: false,
     body: `${new Date().toUTCString()} - default failure`,
