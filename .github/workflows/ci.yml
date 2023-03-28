@@ -570,7 +570,7 @@ jobs:
           npx microapps-publish delete \
             --app-name ${DEMO_APP_NAME} \
             --new-version 0.0.0-childDelete.1  \
-            --deployer-lambda-name ${CHILD_DEMO_APP_LAMBDA_VERSION_ARN}
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN}
 
       - name: Publish Demo App to Child MicroApps
         if: ${{ matrix.deployName == 'microapps-core' }}
