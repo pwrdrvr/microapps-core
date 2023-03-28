@@ -24,6 +24,7 @@ export interface IRequestBase {
     | 'deployVersion'
     | 'deployVersionLite'
     | 'deployVersionPreflight'
+    | 'getVersion'
     | 'lambdaAlias';
 }
 

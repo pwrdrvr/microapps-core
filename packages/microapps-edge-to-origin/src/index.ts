@@ -177,6 +177,18 @@ export const handler: lambda.CloudFrontRequestHandler = async (
         originHost = url.hostname;
       }
 
+      // Add headers with the app name and version
+      if (route.appName) {
+        request.headers['x-microapps-appname'] = [
+          { key: 'X-MicroApps-AppName', value: route.appName },
+        ];
+      }
+      if (route.semVer) {
+        request.headers['x-microapps-semver'] = [
+          { key: 'X-MicroApps-SemVer', value: route.semVer },
+        ];
+      }
+
       // We've got a table name to lookup targets
       // const appName = 'release';
       // const semVer = '0.2.4';

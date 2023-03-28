@@ -550,6 +550,28 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Publish Demo App to Child MicroApps - To Delete
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          npx microapps-publish publish \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version 0.0.0-childDelete.1 \
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN} \
+            --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
+
+      - name: Delete Demo App from Child MicroApps - To Delete
+        if: ${{ matrix.deployName == 'microapps-core' }}
+        run: |
+          npx microapps-publish delete \
+            --app-name ${DEMO_APP_NAME} \
+            --new-version 0.0.0-childDelete.1  \
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN}
+
       - name: Publish Demo App to Child MicroApps
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
@@ -559,7 +581,7 @@ jobs:
             --startup-type direct \
             --new-version 0.0.0-child.1 \
             --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN} \
-            --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_VERSION_ARN} \
+            --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_NAME} \
             --static-assets-path packages/demo-app/static_files \
             --default-file index.html \
             --overwrite

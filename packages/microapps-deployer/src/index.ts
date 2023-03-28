@@ -9,6 +9,7 @@ import type {
   IDeployVersionRequest,
   IDeleteVersionRequest,
   ILambdaAliasRequest,
+  IGetVersionRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
@@ -20,6 +21,7 @@ import {
   DeleteVersion,
   DeployVersion,
   DeployVersionPreflight,
+  GetVersion,
   LambdaAlias,
 } from './controllers/version';
 import Log from './lib/Log';
@@ -79,13 +81,10 @@ export async function handler(
   });
 
   try {
-    // Handle proxied requests when in proxy mode
+    // Handle 100% proxied requests when in proxy mode
+    // Note: Delete is not 100% proxied, some happens locally, some in the parent account
     if (config.parentDeployerLambdaARN) {
-      if (
-        ['createApp', 'deployVersionPreflight', 'deployVersionLite', 'deleteVersion'].includes(
-          event.type,
-        )
-      ) {
+      if (['createApp', 'deployVersionPreflight', 'deployVersionLite'].includes(event.type)) {
         const response = await lambdaClient.send(
           new InvokeCommand({
             FunctionName: config.parentDeployerLambdaARN,
@@ -139,6 +138,11 @@ export async function handler(
       case 'deployVersionLite': {
         const request = event as IDeployVersionRequest;
         return await DeployVersionLite({ dbManager, request, config });
+      }
+
+      case 'getVersion': {
+        const request = event as IGetVersionRequest;
+        return await GetVersion({ dbManager, request, config });
       }
 
       case 'lambdaAlias': {
