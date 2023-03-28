@@ -275,6 +275,7 @@ describe('DeleteVersion', () => {
         appName,
         semVer,
         type: 'deleteVersion',
+        requestFromChildAccount: true,
       };
 
       lambdaClient
@@ -322,7 +323,7 @@ describe('DeleteVersion', () => {
       expect(response).toBeDefined();
       expect(response.statusCode).toBeDefined();
       expect(response.statusCode).toEqual(200);
-      expect(lambdaClient.calls().length).toEqual(4);
+      expect(lambdaClient.calls().length).toEqual(5);
       expect(apigwyClient.calls().length).toEqual(0);
       expect(s3Client.calls().length).toEqual(0);
     });

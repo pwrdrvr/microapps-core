@@ -224,11 +224,38 @@ export async function DeleteVersion(opts: {
     }
   }
 
-  // Delete DynamoDB record
-  await Version.DeleteVersion({
-    dbManager,
-    key: { AppName: request.appName, SemVer: request.semVer },
-  });
+  if (config.parentDeployerLambdaARN) {
+    // Send the delete request to the parent account
+    const parentDeleteRequest: IDeleteVersionRequest = {
+      ...request,
+      requestFromChildAccount: true,
+    };
+    const deleteVersionResponseWrapped =
+      !record && config.parentDeployerLambdaARN
+        ? await lambdaClient.send(
+            new InvokeCommand({
+              FunctionName: config.parentDeployerLambdaARN,
+              Qualifier: 'currentVersion',
+              Payload: Buffer.from(JSON.stringify(parentDeleteRequest)),
+            }),
+          )
+        : undefined;
+    const deleteVersionResponse = deleteVersionResponseWrapped?.Payload
+      ? (JSON.parse(
+          Buffer.from(deleteVersionResponseWrapped.Payload).toString('utf-8'),
+        ) as IGetVersionResponse)
+      : undefined;
+
+    if (!deleteVersionResponse) {
+      throw new Error('Did not get delete response from parent');
+    }
+  } else {
+    // Delete DynamoDB record
+    await Version.DeleteVersion({
+      dbManager,
+      key: { AppName: request.appName, SemVer: request.semVer },
+    });
+  }
 
   Log.Instance.info('finished request');
 
