@@ -191,6 +191,10 @@ jobs:
         working-directory: packages/microapps-datalib
         run: |
           npm publish --dry-run
+      - name: Release Router Lib - NPM - Dry Run
+        working-directory: packages/microapps-router-lib
+        run: |
+          npm publish --dry-run
 
   package-js:
     needs: [ build ]
