@@ -233,7 +233,7 @@ jobs:
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
         run: |
-          npm publish
+          npm publish --access public
   release_maven:
     name: Publish to Maven Central
     needs: release
