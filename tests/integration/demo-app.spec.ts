@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 jest.setTimeout(10000);
-jest.retryTimes(3);
+jest.retryTimes(2);
 
 const DEMO_AND_ROOT_APP_VER = process.env.DEMO_AND_ROOT_APP_VER || '0.0.0';
 
