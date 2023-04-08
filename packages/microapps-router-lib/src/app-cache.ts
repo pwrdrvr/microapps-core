@@ -6,6 +6,7 @@ interface ICacheEntry<T> {
 }
 
 export class AppVersionCache {
+  private negativeAppNameCache: Map<string, ICacheEntry<undefined>>;
   private appRulesCache: Map<string, ICacheEntry<Rules>>;
   private appVersionsCache: Map<string, Map<string, ICacheEntry<Version>>>;
   private dbManager: DBManager;
@@ -24,6 +25,7 @@ export class AppVersionCache {
   }
 
   constructor({ dbManager }: { dbManager: DBManager }) {
+    this.negativeAppNameCache = new Map();
     this.appRulesCache = new Map();
     this.appVersionsCache = new Map();
     this.dbManager = dbManager;
@@ -46,6 +48,17 @@ export class AppVersionCache {
       dbManager: this.dbManager,
       key: { AppName },
     });
+
+    if (!versionsAndRules || (versionsAndRules.Versions.length === 0 && !versionsAndRules.Rules)) {
+      this.negativeAppNameCache.set(AppName.toLowerCase(), {
+        timestamp: Date.now(),
+        data: undefined,
+      });
+      return;
+    }
+
+    // Remove negative cache entry if it exists
+    this.negativeAppNameCache.delete(AppName.toLowerCase());
 
     this.appRulesCache.set(AppName.toLowerCase(), {
       timestamp: Date.now(),
@@ -85,6 +98,14 @@ export class AppVersionCache {
   }): Promise<Rules | undefined> {
     const now = Date.now();
 
+    // Check the negative cache first
+    const negativeCacheEntry = this.negativeAppNameCache.get(AppName.toLowerCase());
+    if (negativeCacheEntry && now - negativeCacheEntry.timestamp < 60000) {
+      return undefined;
+    } else if (negativeCacheEntry) {
+      this.negativeAppNameCache.delete(AppName.toLowerCase());
+    }
+
     const ruleCacheEntry = this.appRulesCache.get(AppName.toLowerCase());
     if (ruleCacheEntry && now - ruleCacheEntry.timestamp < 60000) {
       return ruleCacheEntry.data;
@@ -122,6 +143,14 @@ export class AppVersionCache {
     key: { AppName: string; SemVer: string };
   }): Promise<Version | undefined> {
     const now = Date.now();
+
+    // Check the negative cache first
+    const negativeCacheEntry = this.negativeAppNameCache.get(AppName.toLowerCase());
+    if (negativeCacheEntry && now - negativeCacheEntry.timestamp < 60000) {
+      return undefined;
+    } else if (negativeCacheEntry) {
+      this.negativeAppNameCache.delete(AppName.toLowerCase());
+    }
 
     // Check if we have the item cached and if it is fresh enough
     const versionCacheEntry = this.appVersionsCache.get(AppName.toLowerCase());

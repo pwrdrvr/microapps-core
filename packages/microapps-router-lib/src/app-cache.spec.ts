@@ -130,8 +130,7 @@ describe('app-cache', () => {
       expect(versionWhenDBCleared).toEqual(versionWhenDBExists);
     });
 
-    // 2023-04-08 - Didn't do negative cache in this version
-    it.skip('Negative Cache', async () => {
+    it('Negative Cache', async () => {
       const appVersionCache = new AppVersionCache({ dbManager });
 
       // Seed the negative cache
