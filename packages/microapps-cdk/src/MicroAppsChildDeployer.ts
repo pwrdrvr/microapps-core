@@ -187,5 +187,14 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
       },
     });
     this._deployerFunc.addToRolePolicy(policyAPIManageLambdas);
+    const policyReadonlyLambdas = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['lambda:GetFunction', 'lambda:GetAlias'],
+      resources: [
+        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*`,
+        `arn:aws:lambda:${Aws.REGION}:${Aws.ACCOUNT_ID}:function:*:*`,
+      ],
+    });
+    this._deployerFunc.addToRolePolicy(policyReadonlyLambdas);
   }
 }

@@ -159,6 +159,13 @@ jobs:
           path: |
             packages/microapps-datalib/
             !packages/microapps-datalib/node_modules/
+      - name: Upload Router Lib artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: router-lib-dist
+          path: |
+            packages/microapps-router-lib/
+            !packages/microapps-router-lib/node_modules/
   #
   # Release Assets - Dry Run Only
   #
@@ -181,6 +188,11 @@ jobs:
         with:
           name: datalib-dist
           path: packages/microapps-datalib
+      - name: Download Router Lib build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: router-lib-dist
+          path: packages/microapps-router-lib
       - name: NPM registry authentication
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
       - name: Release Publish Tool - NPM - Dry Run
@@ -189,6 +201,10 @@ jobs:
           npm publish --dry-run
       - name: Release DataLib - NPM - Dry Run
         working-directory: packages/microapps-datalib
+        run: |
+          npm publish --dry-run
+      - name: Release Router Lib - NPM - Dry Run
+        working-directory: packages/microapps-router-lib
         run: |
           npm publish --dry-run
 
