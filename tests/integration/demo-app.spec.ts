@@ -10,6 +10,9 @@ describe('demo-app', () => {
   const baseUrl = new URL(process.env.BASE_URL || 'https://apps.ghpublic.pwrdrvr.com/');
   const demoAppUrl = new URL('demo-app', baseUrl);
 
+  const describeOnlyOnCore =
+    process.env.DEPLOY_NAME === 'microapps-core' ? describe : describe.skip;
+
   describe('single account - non-root app', () => {
     it('should return a status of 200', async () => {
       const response = await axios.get(demoAppUrl.toString(), {
@@ -100,7 +103,7 @@ describe('demo-app', () => {
     });
   });
 
-  describe('single account - child account version of app', () => {
+  describeOnlyOnCore('single account - child account version of app', () => {
     const childVer = '0.0.0-child.1';
 
     it('should return a status of 200', async () => {

@@ -43,7 +43,7 @@
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
     "postinstall": "npx patch-package",
-    "test:integration": "DEMO_APP_URL=${DEMO_APP_URL:-https://apps.ghpublic.pwrdrvr.com/demo-app} jest --config ./jest.int.config.js"
+    "test:integration": "jest --config ./jest.int.config.js"
   },
   "devDependencies": {
     "@types/jest": "29.5.0",
