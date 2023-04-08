@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import 'jest-dynalite/withDb';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, Version, Rules } from '@pwrdrvr/microapps-datalib';
+import { AppVersionCache } from '@pwrdrvr/microapps-router-lib/src/app-cache';
 import * as lambda from 'aws-lambda';
 import { Config, IConfig } from './config/config';
 jest.mock('./config/config');
@@ -48,6 +49,9 @@ describe('edge-to-origin - routing - without prefix', () => {
     jest.resetModules(); // Most important - it clears the cache
 
     overrideDBManager({ dbManager, dynamoClient });
+
+    const appVersionCache = AppVersionCache.GetInstance({ dbManager });
+    appVersionCache.ClearCache();
 
     // Reset the config that's visible to the handler back to defaults
     Object.keys(origConfig).forEach((key) => {

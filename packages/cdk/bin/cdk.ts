@@ -4,7 +4,6 @@ import { App, Environment } from 'aws-cdk-lib';
 import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsChildStack } from '../lib/MicroAppsChild';
 import { MicroAppsChildPrivStack } from '../lib/MicroAppsChildPriv';
-import { MicroAppsBuilder } from '../lib/MicroAppsBuilder';
 import { SharedProps } from '../lib/SharedProps';
 
 const app = new App();
@@ -89,10 +88,4 @@ new MicroAppsStack(app, 'microapps-basic-prefix', {
   // Accessing Aws.REGION will end up writing a Token into the config file
   originRegion: shared.region,
   tableName: `microapps-basic-prefix-ghpublic${shared.envSuffix}${shared.prSuffix}`,
-});
-
-new MicroAppsBuilder(app, 'microapps-builder', {
-  stackName: `microapps-ghpublic-builder${shared.envSuffix}`,
-  shared,
-  env,
 });

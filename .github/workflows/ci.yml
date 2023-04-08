@@ -343,7 +343,7 @@ jobs:
             --app-name ${DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
-            --new-version ${PACKAGE_VERSION} \
+            --new-version 0.0.0 \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
             --static-assets-path packages/demo-app/static_files \
@@ -358,18 +358,18 @@ jobs:
           description: 'Passed'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}/?appver=${{ env.PACKAGE_VERSION }}
+          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_APP_NAME }}/?appver=0.0.0
 
       - name: Test Demo App
         run: |
           echo Testing App Frame Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
           echo Testing App HTML Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/index.html
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0/index.html
           echo Testing App Method Invocation
-          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0/serverIncrement?currValue=1"
           echo Testing App Method Invocation on _next/data Route
-          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0/serverIncrement?currValue=1"
 
       - name: Publish Demo App to MicroApps - To Delete
         run: |
@@ -377,7 +377,7 @@ jobs:
             --app-name ${DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
-            --new-version 0.0.0-test.1 \
+            --new-version 0.0.0-delete.1 \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
             --static-assets-path packages/demo-app/static_files \
@@ -389,7 +389,7 @@ jobs:
         run: |
           npx microapps-publish delete \
             --app-name ${DEMO_APP_NAME} \
-            --new-version 0.0.0-test.1  \
+            --new-version 0.0.0-delete.1  \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME}
 
       - name: Publish Demo App to MicroApps - Root App
@@ -398,7 +398,7 @@ jobs:
             --app-name '[root]' \
             --type lambda-url \
             --startup-type direct \
-            --new-version ${PACKAGE_VERSION} \
+            --new-version 0.0.0 \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
             --static-assets-path packages/demo-app/static_files \
@@ -420,11 +420,11 @@ jobs:
           echo Testing App Frame Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/
           echo Testing App HTML Loading
-          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${PACKAGE_VERSION}/index.html
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/0.0.0/index.html
           echo Testing App Method Invocation
-          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/0.0.0/serverIncrement?currValue=1"
           echo Testing App Method Invocation on _next/data Route
-          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/_next/data/${PACKAGE_VERSION}/serverIncrement?currValue=1"
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/_next/data/0.0.0/serverIncrement?currValue=1"
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
@@ -597,6 +597,14 @@ jobs:
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0-child.1/serverIncrement?currValue=1"
           echo Testing App Method Invocation on _next/data Route
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0-child.1/serverIncrement?currValue=1"
+
+      - name: Run Integration Tests
+        env:
+          BASE_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/
+          DEMO_AND_ROOT_APP_VER: '${{ env.PACKAGE_VERSION }}'
+          NEXTJS_DEMO_APP_VER: '${{ needs.build.outputs.nextjsDemoAppPackageVersion }}'
+        run: |
+          npm run test:integration
 
   build-jsii:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII'))

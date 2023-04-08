@@ -12,7 +12,7 @@
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/lambda-log": "^2.2.0",
     "@types/node": "16.9.2",
-    "aws-sdk-client-mock": "^0.6.2"
+    "aws-sdk-client-mock": "2.1.0"
   },
   "dependencies": {
     "@aws-crypto/sha256-browser": "4.0.0",
