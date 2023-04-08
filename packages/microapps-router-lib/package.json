@@ -1,8 +1,8 @@
 {
   "name": "@pwrdrvr/microapps-router-lib",
   "version": "0.0.0",
-  "private": true,
   "description": "Router library for the microapps framework",
+  "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,17 +17,28 @@
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "dependencies": {
+  "peerDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "fs-extra": "^9.0.0",
+    "lambda-log": "^3.0.0",
+    "source-map-support": "^0.5.0",
+    "tslib": "^2.0.0"
+  },
+  "devDependencies": {
     "@aws-sdk/client-dynamodb": "3.78.0",
+    "@types/aws-lambda": "8.10.110",
+    "@types/lambda-log": "^2.2.0",
+    "@types/node": "16.9.2",
+    "@types/source-map-support": "0.5.6",
     "fs-extra": "^9.1.0",
     "lambda-log": "^3.1.0",
     "source-map-support": "0.5.21",
     "tslib": "^2.1.0"
   },
-  "devDependencies": {
-    "@types/aws-lambda": "8.10.110",
-    "@types/lambda-log": "^2.2.0",
-    "@types/node": "16.9.2",
-    "@types/source-map-support": "0.5.6"
-  }
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "LICENSE"
+  ]
 }
