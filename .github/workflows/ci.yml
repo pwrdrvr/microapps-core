@@ -371,13 +371,6 @@ jobs:
           echo Testing App Method Invocation on _next/data Route
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0/serverIncrement?currValue=1"
 
-      - name: Run Integration Tests
-        env:
-          BASE_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/
-          DEMO_AND_ROOT_APP_VER: '${{ env.PACKAGE_VERSION }}'
-        run: |
-          npm run test:integration
-
       - name: Publish Demo App to MicroApps - To Delete
         run: |
           npx microapps-publish publish \
@@ -604,6 +597,13 @@ jobs:
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0-child.1/serverIncrement?currValue=1"
           echo Testing App Method Invocation on _next/data Route
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0-child.1/serverIncrement?currValue=1"
+
+      - name: Run Integration Tests
+        env:
+          BASE_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/
+          DEMO_AND_ROOT_APP_VER: '${{ env.PACKAGE_VERSION }}'
+        run: |
+          npm run test:integration
 
   build-jsii:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII'))
