@@ -4,9 +4,11 @@ import axios from 'axios';
 jest.setTimeout(10000);
 jest.retryTimes(3);
 
+const DEMO_AND_ROOT_APP_VER = process.env.DEMO_AND_ROOT_APP_VER || '0.0.0';
+
 describe('demo-app', () => {
   const baseUrl = new URL(process.env.BASE_URL || 'https://apps.ghpublic.pwrdrvr.com/');
-  const demoAppUrl = new URL('demo-app/', baseUrl);
+  const demoAppUrl = new URL('demo-app', baseUrl);
 
   describe('single account - non-root app', () => {
     it('should return a status of 200', async () => {
@@ -51,33 +53,37 @@ describe('demo-app', () => {
   });
 
   describe('single account - root app', () => {
-    const rootVer = '0.0.0';
-
     it('should return a status of 200', async () => {
-      const response = await axios.get(new URL(`/?appver=${rootVer}`, baseUrl).toString(), {
-        headers: { Accept: 'text/html' },
-      });
+      const response = await axios.get(
+        new URL(`/?appver=${DEMO_AND_ROOT_APP_VER}`, baseUrl).toString(),
+        {
+          headers: { Accept: 'text/html' },
+        },
+      );
       expect(response.status).toEqual(200);
       expect(response.headers).toHaveProperty('powered-by', 'demo-app');
       expect(response.headers).toHaveProperty('x-microapps-appname', '[root]');
-      expect(response.headers).toHaveProperty('x-microapps-semver', '0.0.0');
+      expect(response.headers).toHaveProperty('x-microapps-semver', DEMO_AND_ROOT_APP_VER);
     });
 
     it('should return HTML with an expected string', async () => {
-      const response = await axios.get(new URL(`/?appver=${rootVer}`, baseUrl).toString(), {
-        headers: { Accept: 'text/html' },
-      });
+      const response = await axios.get(
+        new URL(`/?appver=${DEMO_AND_ROOT_APP_VER}`, baseUrl).toString(),
+        {
+          headers: { Accept: 'text/html' },
+        },
+      );
       const data = response.data;
 
       expect(data).toContain('<div>This is a simple demo app</div>');
       expect(response.headers).toHaveProperty('powered-by', 'demo-app');
       expect(response.headers).toHaveProperty('x-microapps-appname', '[root]');
-      expect(response.headers).toHaveProperty('x-microapps-semver', '0.0.0');
+      expect(response.headers).toHaveProperty('x-microapps-semver', DEMO_AND_ROOT_APP_VER);
     });
 
     it('should return JSON with an expected value', async () => {
       const response = await axios.get(
-        new URL(`/serverIncrement?currValue=1&appver=${rootVer}`, baseUrl).toString(),
+        new URL(`/serverIncrement?currValue=1&appver=${DEMO_AND_ROOT_APP_VER}`, baseUrl).toString(),
         {
           headers: { Accept: 'application/json' },
         },
@@ -90,7 +96,7 @@ describe('demo-app', () => {
       });
       expect(response.headers).toHaveProperty('powered-by', 'demo-app');
       expect(response.headers).toHaveProperty('x-microapps-appname', '[root]');
-      expect(response.headers).toHaveProperty('x-microapps-semver', '0.0.0');
+      expect(response.headers).toHaveProperty('x-microapps-semver', DEMO_AND_ROOT_APP_VER);
     });
   });
 
