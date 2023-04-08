@@ -1,10 +1,9 @@
-// Used by ts-convict
 import 'source-map-support/register';
 import path from 'path';
 import { pathExistsSync, readFileSync } from 'fs-extra';
-import { Application, DBManager, IVersionsAndRules, Version } from '@pwrdrvr/microapps-datalib';
+import { DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import Log from './lib/log';
-import { AppVersionCache } from './app-version-cache';
+import { AppVersionCache } from './app-cache';
 
 const log = Log.Instance;
 
@@ -160,10 +159,13 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
     const partsAfterPrefix = pathAfterPrefix.split('/');
 
-    const { versionsAndRules, appName } = await GetAppInfo({
+    const appName = await GetAppInfo({
       dbManager,
       appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
     });
+    if (!appName) {
+      return { statusCode: 404, errorMessage: 'App not found' };
+    }
 
     const isRootApp = appName === '[root]';
     const appNameOrRootTrailingSlash = isRootApp ? '' : `${appName}/`;
@@ -216,7 +218,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // ^  ^^^^^^^^^^^^
     // 0             1
     // Got at least an application name, try to route it
-    const response = RouteApp({
+    const response = await RouteApp({
       dbManager,
       normalizedPathPrefix,
       event,
@@ -225,7 +227,6 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       possibleSemVerPathAfterApp,
       possibleSemVerQuery: queryStringParameters?.get('appver') || '',
       additionalParts,
-      versionsAndRules,
       appNameOrRootTrailingSlash,
     });
     if (response) {
@@ -245,44 +246,32 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
   }
 }
 
-export interface IAppInfo {
-  appName: string;
-  versionsAndRules: IVersionsAndRules;
-}
-
 /**
- * Get info about an app or the root app
+ * Determine if we have an appname or a catch all app
  */
 export async function GetAppInfo(opts: {
   dbManager: DBManager;
   appName: string;
-}): Promise<IAppInfo> {
+}): Promise<string | undefined> {
   const { dbManager, appName } = opts;
 
-  let versionsAndRules: IVersionsAndRules;
+  let rules: Rules | undefined;
 
-  versionsAndRules = await Application.GetVersionsAndRules({
-    dbManager,
-    key: { AppName: appName },
-  });
+  const appVersionCache = AppVersionCache.GetInstance({ dbManager });
 
-  if (versionsAndRules.Versions.length > 0) {
-    return {
-      appName,
-      versionsAndRules,
-    };
+  // Check if we got a matching app name
+  rules = await appVersionCache.GetRules({ key: { AppName: appName } });
+  if (rules && rules.AppName === appName.toLowerCase()) {
+    return appName;
   }
 
   // Check if we have a `[root]` app that is a catch all
-  versionsAndRules = await Application.GetVersionsAndRules({
-    dbManager,
-    key: { AppName: '[root]' },
-  });
+  rules = await appVersionCache.GetRules({ key: { AppName: '[root]' } });
+  if (rules && rules.AppName === '[root]') {
+    return '[root]';
+  }
 
-  return {
-    appName: '[root]',
-    versionsAndRules,
-  };
+  return undefined;
 }
 
 /**
@@ -294,7 +283,7 @@ export async function GetAppInfo(opts: {
  * @param log
  * @returns
  */
-function RouteApp(opts: {
+async function RouteApp(opts: {
   dbManager: DBManager;
   event: IGetRouteEvent;
   appName: string;
@@ -303,10 +292,10 @@ function RouteApp(opts: {
   possibleSemVerQuery?: string;
   additionalParts: string;
   normalizedPathPrefix?: string;
-  versionsAndRules: IVersionsAndRules;
   appNameOrRootTrailingSlash: string;
-}): IGetRouteResult {
+}): Promise<IGetRouteResult> {
   const {
+    dbManager,
     event,
     normalizedPathPrefix = '',
     appName,
@@ -314,21 +303,28 @@ function RouteApp(opts: {
     possibleSemVerPathAfterApp,
     possibleSemVerQuery,
     additionalParts,
-    versionsAndRules,
     appNameOrRootTrailingSlash,
   } = opts;
 
   let versionInfoToUse: Version | undefined;
 
+  const appVersionCache = AppVersionCache.GetInstance({ dbManager });
+
   // Check if the semver placeholder is actually a defined version
   const possibleSemVerPathAfterAppVersionInfo = possibleSemVerPathAfterApp
-    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPathAfterApp)
+    ? await appVersionCache.GetVersionInfo({
+        key: { AppName: appName, SemVer: possibleSemVerPathAfterApp },
+      })
     : undefined;
   const possibleSemVerPathNextDataVersionInfo = possibleSemVerPathNextData
-    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerPathNextData)
+    ? await appVersionCache.GetVersionInfo({
+        key: { AppName: appName, SemVer: possibleSemVerPathNextData },
+      })
     : undefined;
   const possibleSemVerQueryVersionInfo = possibleSemVerQuery
-    ? versionsAndRules.Versions.find((item) => item.SemVer === possibleSemVerQuery)
+    ? await appVersionCache.GetVersionInfo({
+        key: { AppName: appName, SemVer: possibleSemVerQuery },
+      })
     : undefined;
 
   // If there is a version in the path, use it
@@ -378,7 +374,8 @@ function RouteApp(opts: {
     //     80% to 1.1.0, 20% to default (1.0.3)
     //
 
-    const defaultVersion = versionsAndRules.Rules?.RuleSet.default?.SemVer;
+    const rules = await appVersionCache.GetRules({ key: { AppName: appName } });
+    const defaultVersion = rules?.RuleSet.default?.SemVer;
 
     if (defaultVersion == null) {
       log.error(`could not find app ${appName}, for path ${event.rawPath} - returning 404`, {
@@ -391,10 +388,9 @@ function RouteApp(opts: {
       };
     }
 
-    // TODO: Yeah, this is lame - We should save these in a dictionary keyed by SemVer
-    const defaultVersionInfo = versionsAndRules.Versions.find(
-      (item) => item.SemVer === defaultVersion,
-    );
+    const defaultVersionInfo = await appVersionCache.GetVersionInfo({
+      key: { AppName: appName, SemVer: defaultVersion },
+    });
 
     versionInfoToUse = defaultVersionInfo;
   }
@@ -491,8 +487,10 @@ async function RedirectToDefaultFile(opts: {
   let versionInfo: Version | undefined;
 
   try {
-    versionInfo = await AppVersionCache.LoadVersion({
-      dbManager,
+    // Get the cache
+    const appVersionCache = AppVersionCache.GetInstance({ dbManager });
+
+    versionInfo = await appVersionCache.GetVersionInfo({
       key: { AppName: appName, SemVer: semVer },
     });
   } catch (error) {

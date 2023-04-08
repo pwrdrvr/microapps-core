@@ -1100,6 +1100,7 @@ describe('edge-to-origin - routing - without prefix', () => {
   });
 
   it('static app - request to app/x.y.z/ should not redirect if no defaultFile', async () => {
+    const AppName = 'BatRedirectNoDefaultFile';
     const app = new Application({
       AppName: 'Bat',
       DisplayName: 'Bat App',
@@ -1107,7 +1108,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta.1',
       Status: 'deployed',
@@ -1116,7 +1117,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
     });
@@ -1140,7 +1141,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/bat/3.2.1-beta.1',
+                uri: `/${AppName}/3.2.1-beta.1`,
               },
             },
           },
@@ -1272,14 +1273,15 @@ describe('edge-to-origin - routing - without prefix', () => {
   });
 
   it('static app - request to app/notVersion should load app frame with defaultFile', async () => {
+    const AppName = 'BatAppNotVersion';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: 'bat.html',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta.1',
@@ -1289,7 +1291,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
     });
@@ -1313,7 +1315,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/bat/notVersion',
+                uri: `/${AppName}/notVersion`,
               },
             },
           },
@@ -1328,18 +1330,21 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('body');
     expect(responseResponse.headers).not.toHaveProperty('location');
     expect(responseResponse.body?.length).toBeGreaterThan(80);
-    expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta.1/bat.html" seamless');
+    expect(responseResponse.body).toContain(
+      `<iframe src="/${AppName}/3.2.1-beta.1/bat.html" seamless`,
+    );
   });
 
   it('should serve appframe with no default file', async () => {
+    const AppName = 'BatNoDefaultFile';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: '',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta1',
@@ -1349,7 +1354,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta1', AttributeName: '', AttributeValue: '' } },
     });
@@ -1373,7 +1378,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/bat/',
+                uri: `/${AppName}/`,
               },
             },
           },
@@ -1388,18 +1393,19 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('body');
     expect(responseResponse.headers).not.toHaveProperty('location');
     expect(responseResponse.body?.length).toBeGreaterThan(80);
-    expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta1" seamless');
+    expect(responseResponse.body).toContain(`<iframe src="/${AppName}/3.2.1-beta1" seamless`);
   });
 
   it('should serve appframe with sub-sub-route - beta2', async () => {
+    const AppName = 'BatBeta2';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: '',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta2',
@@ -1409,7 +1415,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta2', AttributeName: '', AttributeValue: '' } },
     });
@@ -1433,7 +1439,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/bat/demo/grid',
+                uri: `/${AppName}/demo/grid`,
               },
             },
           },
@@ -1448,18 +1454,21 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('body');
     expect(responseResponse.headers).not.toHaveProperty('location');
     expect(responseResponse.body?.length).toBeGreaterThan(80);
-    expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta2/demo/grid" seamless');
+    expect(responseResponse.body).toContain(
+      `<iframe src="/${AppName}/3.2.1-beta2/demo/grid" seamless`,
+    );
   });
 
   it('should serve appframe with sub-route - beta3', async () => {
+    const AppName = 'BatSubRouteBeta3';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: 'someFile.html',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta3',
@@ -1469,7 +1478,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta3', AttributeName: '', AttributeValue: '' } },
     });
@@ -1493,7 +1502,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 method: 'GET',
                 querystring: '',
                 clientIp: '1.1.1.1',
-                uri: '/bat/demo',
+                uri: `/${AppName}/demo`,
               },
             },
           },
@@ -1508,7 +1517,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse).toHaveProperty('body');
     expect(responseResponse.headers).not.toHaveProperty('location');
     expect(responseResponse.body?.length).toBeGreaterThan(80);
-    expect(responseResponse.body).toContain('<iframe src="/bat/3.2.1-beta3/demo" seamless');
+    expect(responseResponse.body).toContain(`<iframe src="/${AppName}/3.2.1-beta3/demo" seamless`);
   });
 
   it('should return 404 for /favicon.ico', async () => {

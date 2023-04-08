@@ -153,14 +153,15 @@ describe('router - without prefix', () => {
   });
 
   it('static app - request to app/notVersion should load app frame with defaultFile', async () => {
+    const AppName = 'Bat123';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: 'bat.html',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta.1',
@@ -170,30 +171,31 @@ describe('router - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
     // Call the handler
-    const response = await GetRoute({ dbManager, rawPath: '/bat/notVersion' });
+    const response = await GetRoute({ dbManager, rawPath: `/${AppName}/notVersion` });
 
     expect(response).toHaveProperty('statusCode');
     expect(response.statusCode).toBe(200);
     expect(response).toBeDefined();
-    expect(response.iFrameAppVersionPath).toBe('/bat/3.2.1-beta.1/bat.html');
+    expect(response.iFrameAppVersionPath).toBe(`/${AppName}/3.2.1-beta.1/bat.html`);
   });
 
   it('should serve appframe with no default file', async () => {
+    const AppName = 'Bat124';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: '',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta1',
@@ -203,30 +205,31 @@ describe('router - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta1', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
     // Call the handler
-    const response = await GetRoute({ dbManager, rawPath: '/bat/' });
+    const response = await GetRoute({ dbManager, rawPath: `/${AppName}/` });
 
     expect(response).toBeDefined();
     expect(response).toHaveProperty('statusCode');
     expect(response.statusCode).toBe(200);
-    expect(response.iFrameAppVersionPath).toBe('/bat/3.2.1-beta1');
+    expect(response.iFrameAppVersionPath).toBe(`/${AppName}/3.2.1-beta1`);
   });
 
   it('should serve appframe with sub-route', async () => {
+    const AppName = 'Bat125';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: '',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta2',
@@ -236,30 +239,31 @@ describe('router - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta2', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
     // Call the handler
-    const response = await GetRoute({ dbManager, rawPath: '/bat/demo/grid' });
+    const response = await GetRoute({ dbManager, rawPath: `/${AppName}/demo/grid` });
 
     expect(response).toBeDefined();
     expect(response).toHaveProperty('statusCode');
     expect(response.statusCode).toBe(200);
-    expect(response.iFrameAppVersionPath).toBe('/bat/3.2.1-beta2/demo/grid');
+    expect(response.iFrameAppVersionPath).toBe(`/${AppName}/3.2.1-beta2/demo/grid`);
   });
 
   it('should serve appframe with sub-route', async () => {
+    const AppName = 'Bat126';
     const app = new Application({
-      AppName: 'Bat',
+      AppName,
       DisplayName: 'Bat App',
     });
     await app.Save(dbManager);
 
     const version = new Version({
-      AppName: 'Bat',
+      AppName,
       DefaultFile: 'someFile.html',
       IntegrationID: 'abcd',
       SemVer: '3.2.1-beta3',
@@ -269,19 +273,19 @@ describe('router - without prefix', () => {
     await version.Save(dbManager);
 
     const rules = new Rules({
-      AppName: 'Bat',
+      AppName,
       Version: 0,
       RuleSet: { default: { SemVer: '3.2.1-beta3', AttributeName: '', AttributeValue: '' } },
     });
     await rules.Save(dbManager);
 
     // Call the handler
-    const response = await GetRoute({ dbManager, rawPath: '/bat/demo' });
+    const response = await GetRoute({ dbManager, rawPath: `/${AppName}/demo` });
 
     expect(response).toBeDefined();
     expect(response).toHaveProperty('statusCode');
     expect(response.statusCode).toBe(200);
-    expect(response.iFrameAppVersionPath).toBe('/bat/3.2.1-beta3/demo');
+    expect(response.iFrameAppVersionPath).toBe(`/${AppName}/3.2.1-beta3/demo`);
   });
 
   it('should return 404 for /favicon.ico', async () => {
