@@ -603,7 +603,7 @@ jobs:
           BASE_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/
           DEMO_AND_ROOT_APP_VER: '${{ env.PACKAGE_VERSION }}'
           NEXTJS_DEMO_APP_VER: '${{ needs.build.outputs.nextjsDemoAppPackageVersion }}'
-          DEPLOY_TYPE: ${{ matrix.deployName }}
+          DEPLOY_NAME: ${{ matrix.deployName }}
         run: |
           npm run test:integration
 
