@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import axios from 'axios';
+import posixPath from 'path/posix';
 
 jest.setTimeout(10000);
 jest.retryTimes(2);
@@ -8,7 +9,9 @@ const NEXTJS_DEMO_APP_VER = process.env.NEXTJS_DEMO_APP_VER || '0.0.0';
 
 describe('nextjs-demo', () => {
   const baseUrl = new URL(process.env.BASE_URL || 'https://apps.ghpublic.pwrdrvr.com/');
-  const demoAppUrl = new URL('nextjs-demo', baseUrl);
+  const demoAppUrl = new URL(posixPath.join(baseUrl.pathname, 'nextjs-demo'), baseUrl);
+
+  const itSkipBasicPrefix = process.env.DEPLOY_NAME === 'microapps-basic-prefix' ? it.skip : it;
 
   it('should return a status of 200', async () => {
     const response = await axios.get(demoAppUrl.toString(), {
@@ -29,9 +32,12 @@ describe('nextjs-demo', () => {
   });
 
   it('should sub page HTML with an expected string - ssg-ssr', async () => {
-    const response = await axios.get(new URL('/nextjs-demo/posts/ssg-ssr', baseUrl).toString(), {
-      headers: { Accept: 'text/html' },
-    });
+    const response = await axios.get(
+      new URL(posixPath.join(baseUrl.pathname, '/nextjs-demo/posts/ssg-ssr'), baseUrl).toString(),
+      {
+        headers: { Accept: 'text/html' },
+      },
+    );
     const data = response.data;
 
     expect(data).toContain(
@@ -42,7 +48,10 @@ describe('nextjs-demo', () => {
 
   it('should sub page HTML with an expected string - pre-rendering', async () => {
     const response = await axios.get(
-      new URL('/nextjs-demo/posts/pre-rendering', baseUrl).toString(),
+      new URL(
+        posixPath.join(baseUrl.pathname, '/nextjs-demo/posts/pre-rendering'),
+        baseUrl,
+      ).toString(),
       {
         headers: { Accept: 'text/html' },
       },
@@ -53,9 +62,15 @@ describe('nextjs-demo', () => {
     expect(response.headers).toHaveProperty('x-powered-by', 'Next.js');
   });
 
-  it('should return JSON for home page _next/data route', async () => {
+  itSkipBasicPrefix('should return JSON for home page _next/data route', async () => {
     const response = await axios.get(
-      new URL(`/nextjs-demo/_next/data/${NEXTJS_DEMO_APP_VER}/index.json`, baseUrl).toString(),
+      new URL(
+        posixPath.join(
+          baseUrl.pathname,
+          `/nextjs-demo/_next/data/${NEXTJS_DEMO_APP_VER}/index.json`,
+        ),
+        baseUrl,
+      ).toString(),
       {
         headers: { Accept: 'application/json' },
       },
