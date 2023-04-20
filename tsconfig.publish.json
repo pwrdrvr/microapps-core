@@ -9,6 +9,9 @@
     },
     {
       "path": "packages/microapps-publish/"
+    },
+    {
+      "path": "packages/microapps-router-lib/"
     }
   ]
 }
