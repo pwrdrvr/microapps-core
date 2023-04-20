@@ -60,7 +60,7 @@ jobs:
         run: npm version v$(cat packages/microapps-cdk/dist/version.txt) --no-git-tag-version --workspaces
       - name: Check for new commits
         id: git_remote
-        run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
+        run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
       - name: Upload version.txt
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v3
@@ -115,7 +115,7 @@ jobs:
           node-version: 16
       - name: Check for new commits
         id: git_remote
-        run: echo ::set-output name=latest_commit::"$(git ls-remote origin -h ${{ github.ref }} | cut -f1)"
+        run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
       - name: Download version.txt
         uses: actions/download-artifact@v3
         with:
