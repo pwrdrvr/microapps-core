@@ -7,6 +7,8 @@ import { AppVersionCache } from './app-cache';
 
 const log = Log.Instance;
 
+export { AppVersionCache };
+
 /**
  * Find and load the appFrame file
  * @returns
