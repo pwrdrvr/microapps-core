@@ -168,9 +168,14 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       partsAfterPrefix[1] === '_next' &&
       partsAfterPrefix[2] === 'data'
     ) {
+      // if partsAfterPrefix[4] has .json suffix, strip it
+      const possibleAppName = partsAfterPrefix[4].endsWith('.json')
+        ? partsAfterPrefix[4].slice(0, partsAfterPrefix[4].length - 5)
+        : partsAfterPrefix[4];
+
       appName = await GetAppInfo({
         dbManager,
-        appName: partsAfterPrefix[4],
+        appName: possibleAppName,
       });
     }
 
@@ -233,7 +238,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     const possibleSemVerPathNextDataBasePath =
       partsAfterAppName.length >= 4 ? partsAfterAppName[3] : '';
     const possibleSemVerPathNextData =
-      partsAfterPrefix.length >= 5 &&
+      partsAfterPrefix.length >= 4 &&
       partsAfterPrefix[1] === '_next' &&
       partsAfterPrefix[2] == 'data'
         ? partsAfterPrefix[3]

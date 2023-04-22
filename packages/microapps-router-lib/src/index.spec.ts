@@ -370,6 +370,68 @@ describe('router - without prefix', () => {
       expect(response.url).toBe('https://abc123.lambda-url.us-east-1.on.aws');
     });
 
+    describe('/_next/data/ no-basePath', () => {
+      const testCases = [
+        [
+          'DirectBatNextData',
+          '3.2.1-beta3',
+          'directbatnextdata/demo.json',
+          'https://abc123.lambda-url.us-east-1.on.aws',
+        ],
+        [
+          'AnotherAppName',
+          '1.0.0',
+          'anotherappname.json',
+          'https://abc124.lambda-url.us-east-1.on.aws',
+        ],
+        // Add more test cases as needed
+      ];
+
+      it.each(testCases)(
+        'should serve direct app with /_next/data/%s/%s/%s route',
+        async (AppName, SemVer, RoutePathSuffix, LambdaFunctionURL) => {
+          const app = new Application({
+            AppName,
+            DisplayName: 'Bat App',
+          });
+          await app.Save(dbManager);
+
+          const version = new Version({
+            AppName,
+            DefaultFile: 'someFile.html',
+            IntegrationID: 'abcd',
+            SemVer,
+            Status: 'deployed',
+            Type: 'lambda-url',
+            StartupType: 'direct',
+            URL: LambdaFunctionURL,
+            LambdaARN: 'arn:aws:lambda:us-east-1:123456789012:function:my-function',
+          });
+          await version.Save(dbManager);
+
+          const rules = new Rules({
+            AppName,
+            Version: 0,
+            RuleSet: { default: { SemVer, AttributeName: '', AttributeValue: '' } },
+          });
+          await rules.Save(dbManager);
+
+          // Call the handler
+          const response = await GetRoute({
+            dbManager,
+            rawPath: `/_next/data/${SemVer}/${RoutePathSuffix}`,
+          });
+
+          expect(response).toBeDefined();
+          expect(response).toHaveProperty('statusCode');
+          expect(response.appName).toBe(AppName.toLowerCase());
+          expect(response.semVer).toBe(SemVer);
+          expect(response.statusCode).toBe(200);
+          expect(response.url).toBe(LambdaFunctionURL);
+        },
+      );
+    });
+
     it('should serve direct app with /_next/data/[semver]/[appname]/route route', async () => {
       const AppName = 'DirectBatNextData';
       const app = new Application({

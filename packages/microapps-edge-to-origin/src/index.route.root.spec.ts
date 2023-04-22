@@ -1855,7 +1855,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     });
   });
 
-  it('should route `direct` /_next/data/[sember]/[appname] request to root when [appname] does not exist', async () => {
+  it('should route `direct` /_next/data/[semver]/[appname] request to root when [appname] does not exist', async () => {
     return jest.isolateModulesAsync(async () => {
       const { Config } = await import('./config/config');
 
