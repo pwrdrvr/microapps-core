@@ -161,10 +161,26 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
     const partsAfterPrefix = pathAfterPrefix.split('/');
 
-    const appName = await GetAppInfo({
-      dbManager,
-      appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
-    });
+    // Handle ${prefix}/_next/data/${semver}/${appname}/route
+    let appName: string | undefined;
+    if (
+      partsAfterPrefix.length >= 4 &&
+      partsAfterPrefix[1] === '_next' &&
+      partsAfterPrefix[2] === 'data'
+    ) {
+      appName = await GetAppInfo({
+        dbManager,
+        appName: partsAfterPrefix[4],
+      });
+    }
+
+    if (!appName) {
+      appName = await GetAppInfo({
+        dbManager,
+        appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
+      });
+    }
+
     if (!appName) {
       return { statusCode: 404, errorMessage: 'App not found' };
     }
@@ -455,6 +471,7 @@ async function RouteApp(opts: {
     }
 
     return {
+      statusCode: 200,
       appName,
       semVer: versionInfoToUse.SemVer,
       startupType: 'direct',
