@@ -161,10 +161,31 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
     const partsAfterPrefix = pathAfterPrefix.split('/');
 
-    const appName = await GetAppInfo({
-      dbManager,
-      appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
-    });
+    // Handle ${prefix}/_next/data/${semver}/${appname}/route
+    let appName: string | undefined;
+    if (
+      partsAfterPrefix.length >= 4 &&
+      partsAfterPrefix[1] === '_next' &&
+      partsAfterPrefix[2] === 'data'
+    ) {
+      // if partsAfterPrefix[4] has .json suffix, strip it
+      const possibleAppName = partsAfterPrefix[4].endsWith('.json')
+        ? partsAfterPrefix[4].slice(0, partsAfterPrefix[4].length - 5)
+        : partsAfterPrefix[4];
+
+      appName = await GetAppInfo({
+        dbManager,
+        appName: possibleAppName,
+      });
+    }
+
+    if (!appName) {
+      appName = await GetAppInfo({
+        dbManager,
+        appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
+      });
+    }
+
     if (!appName) {
       return { statusCode: 404, errorMessage: 'App not found' };
     }
@@ -213,7 +234,16 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // Examples
     //  / semVer / somepath
     //  / _next / data / semVer / somepath
-    const possibleSemVerPathNextData = partsAfterAppName.length >= 4 ? partsAfterAppName[3] : '';
+    // Get the version afer `/_next/data/` from partsAfterPrefix
+    const possibleSemVerPathNextDataBasePath =
+      partsAfterAppName.length >= 4 ? partsAfterAppName[3] : '';
+    const possibleSemVerPathNextData =
+      partsAfterPrefix.length >= 4 &&
+      partsAfterPrefix[1] === '_next' &&
+      partsAfterPrefix[2] == 'data'
+        ? partsAfterPrefix[3]
+        : possibleSemVerPathNextDataBasePath;
+
     const possibleSemVerPathAfterApp = partsAfterAppName.length >= 2 ? partsAfterAppName[1] : '';
 
     //  (/ something)?
@@ -336,6 +366,7 @@ async function RouteApp(opts: {
     // This is a version, and it's in the path already, route the request to it
     // without creating iframe
     return {
+      statusCode: 200,
       appName,
       semVer: possibleSemVerPathVersionInfo.SemVer,
       ...(possibleSemVerPathVersionInfo?.URL ? { url: possibleSemVerPathVersionInfo?.URL } : {}),
@@ -455,6 +486,7 @@ async function RouteApp(opts: {
     }
 
     return {
+      statusCode: 200,
       appName,
       semVer: versionInfoToUse.SemVer,
       startupType: 'direct',

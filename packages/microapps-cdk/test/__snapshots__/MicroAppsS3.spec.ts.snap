@@ -17,6 +17,16 @@ exports[`MicroAppsS3 works with no params 1`] = `
     },
     "constructlogsBC77618C": {
       "DeletionPolicy": "Retain",
+      "Properties": {
+        "AccessControl": "BucketOwnerFullControl",
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerPreferred",
+            },
+          ],
+        },
+      },
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },
