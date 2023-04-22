@@ -27,7 +27,7 @@ describe('nextjs-demo', () => {
     });
     const data = response.data;
 
-    expect(data).toContain('<title>PwrDrvr Website - 2</title>');
+    expect(data).toContain('<title>PwrDrvr - Next.js Demo</title>');
     expect(response.headers).toHaveProperty('x-powered-by', 'Next.js');
   });
 
