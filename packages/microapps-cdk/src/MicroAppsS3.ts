@@ -161,6 +161,7 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     this._bucketLogs = new s3.Bucket(this, 'logs', {
       bucketName: props.bucketLogsName,
       autoDeleteObjects: s3AutoDeleteItems,
+      accessControl: s3.BucketAccessControl.LOG_DELIVERY_WRITE,
       removalPolicy,
     });
 
