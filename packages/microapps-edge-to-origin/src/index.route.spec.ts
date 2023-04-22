@@ -291,7 +291,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
   });
 
-  it('should route `direct` _next/data request with appName and version to origin', async () => {
+  it('should route `direct` /[appname]/_next/data request with appName and version to origin', async () => {
     theConfig.replaceHostHeader = true;
 
     const app = new Application({
@@ -387,6 +387,115 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse.headers.host[0].key).toBe('Host');
     expect(requestResponse.headers.host[0].value).toBe('abc1234567.lambda-url.us-east-1.on.aws');
     expect(requestResponse.uri).toBe('/batdirect/_next/data/1.2.2-beta.1/abc123.json');
+    expect(requestResponse).toHaveProperty('origin');
+    expect(requestResponse.origin).toHaveProperty('custom');
+    expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
+    expect(requestResponse?.origin?.custom?.domainName).toBe(
+      'abc1234567.lambda-url.us-east-1.on.aws',
+    );
+  });
+
+  it('should route `direct` /_next/data/[sember]/[appname] request to [appname] when it exists', async () => {
+    theConfig.replaceHostHeader = true;
+    const AppName = 'BatDirectNoBaseNextData';
+
+    const app = new Application({
+      AppName,
+      DisplayName: 'Direct Bat App',
+    });
+    await app.Save(dbManager);
+    {
+      const version = new Version({
+        AppName,
+        SemVer: '1.2.1-beta.1',
+        Status: 'deployed',
+        Type: 'lambda-url',
+        StartupType: 'direct',
+        URL: 'https://abc123.lambda-url.us-east-1.on.aws/',
+      });
+      await version.Save(dbManager);
+    }
+    {
+      const version = new Version({
+        AppName,
+        SemVer: '1.2.2-beta.1',
+        Status: 'deployed',
+        Type: 'lambda-url',
+        StartupType: 'direct',
+        URL: 'https://abc1234567.lambda-url.us-east-1.on.aws/',
+      });
+      await version.Save(dbManager);
+    }
+    const rules = new Rules({
+      AppName,
+      Version: 0,
+      RuleSet: { default: { SemVer: '1.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    // @ts-expect-error no callback
+    const response = await handler(
+      {
+        Records: [
+          {
+            cf: {
+              config: {
+                distributionDomainName: 'zyz.cloudfront.net',
+                distributionId: '123',
+                eventType: 'origin-request',
+                requestId: '123',
+              },
+              request: {
+                headers: {
+                  host: [
+                    {
+                      key: 'Host',
+                      value: 'zyz.cloudfront.net',
+                    },
+                  ],
+                },
+                method: 'GET',
+                querystring: '',
+                clientIp: '1.1.1.1',
+                uri: `/_next/data/1.2.2-beta.1/${AppName.toLowerCase()}/abc123.json`,
+                origin: {
+                  custom: {
+                    customHeaders: {},
+                    domainName: 'zyz.cloudfront.net',
+                    keepaliveTimeout: 5,
+                    path: '',
+                    port: 443,
+                    protocol: 'https',
+                    readTimeout: 30,
+                    sslProtocols: ['TLSv1.2'],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      } as lambda.CloudFrontRequestEvent,
+      {} as lambda.Context,
+    );
+
+    const requestResponse = response as lambda.CloudFrontRequest;
+    expect(requestResponse).toBeDefined();
+    expect(requestResponse).not.toHaveProperty('status');
+    expect(requestResponse).not.toHaveProperty('body');
+    expect(requestResponse).toHaveProperty('headers');
+    expect(requestResponse.headers).toHaveProperty('host');
+    expect(requestResponse.headers.host).toHaveLength(1);
+    expect(requestResponse.headers.host[0].key).toBe('Host');
+    expect(requestResponse.headers.host[0].value).toBe('abc1234567.lambda-url.us-east-1.on.aws');
+    expect(requestResponse.headers['x-microapps-appname'][0].key).toBe('X-MicroApps-AppName');
+    expect(requestResponse.headers['x-microapps-appname'][0].value).toBe(AppName.toLowerCase());
+    expect(requestResponse.headers).toHaveProperty('x-microapps-semver');
+    expect(requestResponse.headers['x-microapps-semver'][0].key).toBe('X-MicroApps-SemVer');
+    expect(requestResponse.headers['x-microapps-semver'][0].value).toBe('1.2.2-beta.1');
+    expect(requestResponse.uri).toBe(
+      `/_next/data/1.2.2-beta.1/${AppName.toLowerCase()}/abc123.json`,
+    );
     expect(requestResponse).toHaveProperty('origin');
     expect(requestResponse.origin).toHaveProperty('custom');
     expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
