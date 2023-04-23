@@ -13,6 +13,7 @@ const theConfig: Writeable<IConfig> = {
   signingMode: 'sign',
   tableName: '',
   rootPathPrefix: '',
+  locales: [],
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {

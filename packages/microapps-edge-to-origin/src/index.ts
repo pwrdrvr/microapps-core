@@ -123,6 +123,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
 
       const route = await GetRoute({
         dbManager,
+        locales: config.locales,
         rawPath: event.Records[0].cf.request.uri,
         queryStringParameters: url.searchParams,
         normalizedPathPrefix,

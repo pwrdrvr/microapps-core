@@ -122,6 +122,11 @@ export interface IGetRouteEvent {
   readonly rawPath: string;
 
   /**
+   * List of locale prefixes after the normalizedPathPrefix
+   */
+  readonly locales: string[];
+
+  /**
    * Configured prefix of the deployment, must start with a / and not end with a /
    */
   readonly normalizedPathPrefix?: string;
@@ -142,7 +147,7 @@ export interface IGetRouteEvent {
  * @returns IGetRouteResult
  */
 export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> {
-  const { dbManager, normalizedPathPrefix = '', queryStringParameters } = event;
+  const { dbManager, normalizedPathPrefix = '', queryStringParameters, locales = [] } = event;
 
   try {
     if (normalizedPathPrefix && !event.rawPath.startsWith(normalizedPathPrefix)) {
@@ -155,23 +160,30 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
         ? event.rawPath.slice(normalizedPathPrefix.length - 1)
         : event.rawPath;
 
+    const pathAfterPrefixAndLocale = locales.reduce((path, locale) => {
+      if (path.startsWith(`/${locale}/`)) {
+        return path.slice(locale.length + 1);
+      }
+      return path;
+    }, pathAfterPrefix);
+
     // /someapp will split into length 2 with ["", "someapp"] as results
     // /someapp/somepath will split into length 3 with ["", "someapp", "somepath"] as results
     // /someapp/somepath/ will split into length 3 with ["", "someapp", "somepath", ""] as results
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
-    const partsAfterPrefix = pathAfterPrefix.split('/');
+    const partsAfterPrefixAndLocale = pathAfterPrefixAndLocale.split('/');
 
     // Handle ${prefix}/_next/data/${semver}/${appname}/route
     let appName: string | undefined;
     if (
-      partsAfterPrefix.length >= 4 &&
-      partsAfterPrefix[1] === '_next' &&
-      partsAfterPrefix[2] === 'data'
+      partsAfterPrefixAndLocale.length >= 4 &&
+      partsAfterPrefixAndLocale[1] === '_next' &&
+      partsAfterPrefixAndLocale[2] === 'data'
     ) {
       // if partsAfterPrefix[4] has .json suffix, strip it
-      const possibleAppName = partsAfterPrefix[4].endsWith('.json')
-        ? partsAfterPrefix[4].slice(0, partsAfterPrefix[4].length - 5)
-        : partsAfterPrefix[4];
+      const possibleAppName = partsAfterPrefixAndLocale[4].endsWith('.json')
+        ? partsAfterPrefixAndLocale[4].slice(0, partsAfterPrefixAndLocale[4].length - 5)
+        : partsAfterPrefixAndLocale[4];
 
       appName = await GetAppInfo({
         dbManager,
@@ -182,7 +194,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     if (!appName) {
       appName = await GetAppInfo({
         dbManager,
-        appName: partsAfterPrefix.length >= 2 ? partsAfterPrefix[1] : '[root]',
+        appName: partsAfterPrefixAndLocale.length >= 2 ? partsAfterPrefixAndLocale[1] : '[root]',
       });
     }
 
@@ -195,8 +207,8 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
 
     // Strip the appName from the start of the path, if there was one
     const pathAfterAppName = isRootApp
-      ? pathAfterPrefix
-      : pathAfterPrefix.slice(appName.length + 1);
+      ? pathAfterPrefixAndLocale
+      : pathAfterPrefixAndLocale.slice(appName.length + 1);
     const partsAfterAppName = pathAfterAppName.split('/');
 
     // Pass any parts after the appName/Version to the route handler
@@ -238,10 +250,10 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     const possibleSemVerPathNextDataBasePath =
       partsAfterAppName.length >= 4 ? partsAfterAppName[3] : '';
     const possibleSemVerPathNextData =
-      partsAfterPrefix.length >= 4 &&
-      partsAfterPrefix[1] === '_next' &&
-      partsAfterPrefix[2] == 'data'
-        ? partsAfterPrefix[3]
+      partsAfterPrefixAndLocale.length >= 4 &&
+      partsAfterPrefixAndLocale[1] === '_next' &&
+      partsAfterPrefixAndLocale[2] == 'data'
+        ? partsAfterPrefixAndLocale[3]
         : possibleSemVerPathNextDataBasePath;
 
     const possibleSemVerPathAfterApp = partsAfterAppName.length >= 2 ? partsAfterAppName[1] : '';

@@ -48,6 +48,16 @@ export interface IConfig {
    * Path prefix on the root of the MicroApps deployment
    */
   readonly rootPathPrefix: string;
+
+  /**
+   * List of allowed locale prefixes for pages
+   * If there is a match then the 1st path after the `rootPathPrefix` is
+   * removed from the path before looking up the AppName and Version.
+   *
+   * @example ['en', 'fr', 'es']
+   * @default none
+   */
+  readonly locales: string[];
 }
 
 /**
@@ -171,4 +181,11 @@ export class Config implements IConfig {
     env: 'ROOT_PATH_PREFIX',
   })
   public rootPathPrefix!: string;
+
+  @convict.Property({
+    doc: 'Allowed locales for pages',
+    default: [],
+    env: 'LOCALES',
+  })
+  public locales!: string[];
 }

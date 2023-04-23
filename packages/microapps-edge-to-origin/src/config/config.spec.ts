@@ -18,6 +18,7 @@ describe('config', () => {
       signingMode: 'sign',
       tableName: 'microapps',
       rootPathPrefix: '',
+      locales: [],
     };
     const loader = new TSConvict<Config>(Config);
     const config = loader.load(rawConfig);
