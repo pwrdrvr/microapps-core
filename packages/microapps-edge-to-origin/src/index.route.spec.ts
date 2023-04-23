@@ -307,6 +307,7 @@ describe('edge-to-origin - routing - without prefix', () => {
 
     const app = new Application({
       AppName,
+      // ExtraAppNames: [AppNameExtraRoute],
       DisplayName: 'Direct Bat App',
     });
     await app.Save(dbManager);
