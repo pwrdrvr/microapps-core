@@ -33,6 +33,9 @@ describe('application records', () => {
 
     await application.Save(dbManager);
 
+    //
+    // Single item key
+    //
     {
       const { Item } = await dbManager.ddbDocClient.get({
         TableName: TEST_TABLE_NAME,
@@ -45,6 +48,9 @@ describe('application records', () => {
       expect(Item?.DisplayName).toBe('Dog');
     }
 
+    //
+    // List key
+    //
     {
       const { Item } = await dbManager.ddbDocClient.get({
         TableName: TEST_TABLE_NAME,
@@ -54,6 +60,96 @@ describe('application records', () => {
       expect(Item).toBeDefined();
       expect(Item?.PK).toBe('applications');
       expect(Item?.SK).toBe('appname#cat');
+      expect(Item?.AppName).toBe('cat');
+      expect(Item?.DisplayName).toBe('Dog');
+    }
+  });
+
+  it.only('saving an application with two extra appnames should create four records', async () => {
+    const application = new Application();
+    application.AppName = 'Cat';
+    application.DisplayName = 'Dog';
+    application.ExtraAppNames = ['Kitty', 'Kitten'];
+
+    await application.Save(dbManager);
+
+    //
+    // Single item key
+    //
+
+    // Get the primary app record
+    {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: 'appname#cat', SK: 'application' },
+      });
+      expect(Item).toBeDefined();
+      expect(Item?.PK).toBe('appname#cat');
+      expect(Item?.SK).toBe('application');
+      expect(Item?.AppName).toBe('cat');
+      expect(Item?.DisplayName).toBe('Dog');
+    }
+
+    // Get the secondary app records
+    {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: 'appname#kitty', SK: 'application' },
+      });
+      expect(Item).toBeDefined();
+      expect(Item?.PK).toBe('appname#kitty');
+      expect(Item?.SK).toBe('application');
+      expect(Item?.AppName).toBe('cat');
+      expect(Item?.DisplayName).toBe('Dog');
+    }
+    {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: 'appname#kitten', SK: 'application' },
+      });
+      expect(Item).toBeDefined();
+      expect(Item?.PK).toBe('appname#kitten');
+      expect(Item?.SK).toBe('application');
+      expect(Item?.AppName).toBe('cat');
+      expect(Item?.DisplayName).toBe('Dog');
+    }
+
+    //
+    // List key
+    //
+    {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: 'applications', SK: 'appname#cat' },
+        // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+      });
+      expect(Item).toBeDefined();
+      expect(Item?.PK).toBe('applications');
+      expect(Item?.SK).toBe('appname#cat');
+      expect(Item?.AppName).toBe('cat');
+      expect(Item?.DisplayName).toBe('Dog');
+    }
+    {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: 'applications', SK: 'appname#keey' },
+        // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+      });
+      expect(Item).toBeDefined();
+      expect(Item?.PK).toBe('applications');
+      expect(Item?.SK).toBe('appname#kitty');
+      expect(Item?.AppName).toBe('cat');
+      expect(Item?.DisplayName).toBe('Dog');
+    }
+    {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: 'applications', SK: 'appname#kitten' },
+        // ProjectionExpression: 'PK,SK,AppName,DisplayName',
+      });
+      expect(Item).toBeDefined();
+      expect(Item?.PK).toBe('applications');
+      expect(Item?.SK).toBe('appname#kitten');
       expect(Item?.AppName).toBe('cat');
       expect(Item?.DisplayName).toBe('Dog');
     }
