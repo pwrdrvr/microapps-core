@@ -392,6 +392,11 @@ describe('edge-to-origin - routing - without prefix', () => {
     const AppName = 'BatDirect';
     const SemVer = '1.2.1-beta.1';
     const Locale = 'sv';
+    // it('should route `direct` app request with *additional* appName to origin for actual appName', async () => {
+    //   theConfig.replaceHostHeader = true;
+    //   const AppName = 'BatDirect';
+    //   const SemVer = '1.2.1-beta.1';
+    //   const AppNameExtraRoute = 'BatDirectExtraRoute';
 
     const app = new Application({
       AppName,
@@ -442,6 +447,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                 querystring: '',
                 clientIp: '1.1.1.1',
                 uri: `/${Locale}/${AppName.toLowerCase()}`,
+                // uri: `/${AppNameExtraRoute.toLowerCase()}`,
                 origin: {
                   custom: {
                     customHeaders: {},
