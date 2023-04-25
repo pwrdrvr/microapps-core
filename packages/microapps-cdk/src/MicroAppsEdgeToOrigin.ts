@@ -295,7 +295,7 @@ ${props.tableName ? `tableName: '${props.tableName}'` : ''}
 ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}
 ${
   props.locales && props.locales.length > 0
-    ? `locales: ${props.locales.map((locale) => `'${locale}'`).join(', ')}`
+    ? `locales: [${props.locales.map((locale) => `'${locale}'`).join(', ')}]`
     : ''
 }`;
   }
