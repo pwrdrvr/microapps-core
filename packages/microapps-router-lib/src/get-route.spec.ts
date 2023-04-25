@@ -372,24 +372,47 @@ describe('router - without prefix', () => {
 
     describe('/_next/data/ no-basePath', () => {
       const testCases = [
-        [
-          'DirectBatNextData',
-          '3.2.1-beta3',
-          'directbatnextdata/demo.json',
-          'https://abc123.lambda-url.us-east-1.on.aws',
-        ],
-        [
-          'AnotherAppName',
-          '1.0.0',
-          'anotherappname.json',
-          'https://abc124.lambda-url.us-east-1.on.aws',
-        ],
+        {
+          AppName: 'DirectBatNextData',
+          SemVer: '3.2.1-beta3',
+          Locales: ['en'],
+          LambdaFunctionURL: 'https://abc123.lambda-url.us-east-1.on.aws',
+          RawPath: '/_next/data/3.2.1-beta3/directbatnextdata/demo.json',
+        },
+        {
+          AppName: 'AnotherAppName',
+          SemVer: '1.0.0',
+          Locales: ['en'],
+          LambdaFunctionURL: 'https://abc124.lambda-url.us-east-1.on.aws',
+          RawPath: '/_next/data/1.0.0/anotherappname.json',
+        },
+        {
+          AppName: 'AppWithLocales',
+          SemVer: '1.0.0',
+          Locales: ['en', 'sv'],
+          LambdaFunctionURL: 'https://abc125.lambda-url.us-east-1.on.aws',
+          RawPath: '/_next/data/1.0.0/sv/appwithlocales.json',
+        },
+        {
+          AppName: 'ComplicatedLocales',
+          SemVer: '1.0.0',
+          Locales: ['en', 'en-US', 'sv', 'zh-Hant'],
+          LambdaFunctionURL: 'https://abc125.lambda-url.us-east-1.on.aws',
+          RawPath: '/_next/data/1.0.0/en-US/complicatedlocales.json',
+        },
+        {
+          AppName: 'ComplicatedLocales',
+          SemVer: '1.0.0',
+          Locales: ['en', 'en-US', 'sv', 'zh-Hant'],
+          LambdaFunctionURL: 'https://abc125.lambda-url.us-east-1.on.aws',
+          RawPath: '/_next/data/1.0.0/en-US/complicatedlocales/index.json',
+        },
         // Add more test cases as needed
       ];
 
       it.each(testCases)(
-        'should serve direct app with /_next/data/%s/%s/%s route',
-        async (AppName, SemVer, RoutePathSuffix, LambdaFunctionURL) => {
+        'should serve direct app with $RawPath route',
+        async ({ AppName, SemVer, LambdaFunctionURL, Locales = [], RawPath }) => {
           const app = new Application({
             AppName,
             DisplayName: 'Bat App',
@@ -419,7 +442,8 @@ describe('router - without prefix', () => {
           // Call the handler
           const response = await GetRoute({
             dbManager,
-            rawPath: `/_next/data/${SemVer}/${RoutePathSuffix}`,
+            locales: Locales,
+            rawPath: RawPath,
           });
 
           expect(response).toBeDefined();

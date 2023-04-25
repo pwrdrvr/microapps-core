@@ -294,7 +294,7 @@ describe('edge-to-origin - routing - without prefix', () => {
 
   it('should route `direct` app request with *locale* to origin for appName', async () => {
     theConfig.replaceHostHeader = true;
-    theConfig.locales = ['sv', 'en'];
+    theConfig.locales = ['en', 'sv'];
 
     const AppName = 'BatDirect';
     const SemVer = '1.2.1-beta.1';
@@ -397,6 +397,8 @@ describe('edge-to-origin - routing - without prefix', () => {
         SemVer1: '1.2.1-beta.1',
         LambdaURL2: 'https://abc1234567.lambda-url.us-east-1.on.aws/',
         SemVer2: '1.2.1-beta.2',
+        Locales: [],
+        RawPath: '/_next/data/1.2.1-beta.2/batdirectnobasenextdata/route.json',
         SuffixPath: 'batdirectnobasenextdata/route.json',
       },
       {
@@ -405,14 +407,36 @@ describe('edge-to-origin - routing - without prefix', () => {
         SemVer1: '1.2.1-beta.3',
         LambdaURL2: 'https://abc1234568.lambda-url.us-east-1.on.aws/',
         SemVer2: '1.2.1-beta.4',
+        Locales: [],
+        RawPath: '/_next/data/1.2.1-beta.4/batdirectnobasenextdatarootroute.json',
         SuffixPath: 'batdirectnobasenextdatarootroute.json',
+      },
+      {
+        AppName: 'BatDirectNoBaseNextDataRootRouteLocale',
+        LambdaURL1: 'https://abc124.lambda-url.us-east-1.on.aws/',
+        SemVer1: '1.2.1-beta.3',
+        LambdaURL2: 'https://abc1234568.lambda-url.us-east-1.on.aws/',
+        SemVer2: '1.2.1-beta.4',
+        Locales: ['en', 'sv'],
+        RawPath: '/_next/data/1.2.1-beta.4/sv/batdirectnobasenextdatarootroutelocale.json',
+        SuffixPath: 'batdirectnobasenextdatarootroutelocale.json',
       },
     ];
 
     it.each(testCases)(
       'should route `direct` /_next/data/[$SemVer2]/[$AppName] request to [$AppName] when it exists but $SemVer1 is the default',
-      async ({ AppName, LambdaURL1, SemVer1, LambdaURL2, SemVer2, SuffixPath }) => {
+      async ({
+        AppName,
+        LambdaURL1,
+        SemVer1,
+        LambdaURL2,
+        SemVer2,
+        RawPath,
+        Locales,
+        SuffixPath,
+      }) => {
         theConfig.replaceHostHeader = true;
+        theConfig.locales = Locales;
 
         const app = new Application({
           AppName,
@@ -473,7 +497,7 @@ describe('edge-to-origin - routing - without prefix', () => {
                     method: 'GET',
                     querystring: '',
                     clientIp: '1.1.1.1',
-                    uri: `/_next/data/${SemVer2}/${SuffixPath}`,
+                    uri: `${RawPath}`,
                     origin: {
                       custom: {
                         customHeaders: {},
@@ -508,7 +532,7 @@ describe('edge-to-origin - routing - without prefix', () => {
         expect(requestResponse.headers).toHaveProperty('x-microapps-semver');
         expect(requestResponse.headers['x-microapps-semver'][0].key).toBe('X-MicroApps-SemVer');
         expect(requestResponse.headers['x-microapps-semver'][0].value).toBe(SemVer2);
-        expect(requestResponse.uri).toBe(`/_next/data/${SemVer2}/${SuffixPath}`);
+        expect(requestResponse.uri).toBe(`${RawPath}`);
         expect(requestResponse).toHaveProperty('origin');
         expect(requestResponse.origin).toHaveProperty('custom');
         expect(requestResponse?.origin?.custom).toHaveProperty('domainName');

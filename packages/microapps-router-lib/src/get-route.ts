@@ -72,8 +72,10 @@ export interface IGetRouteEvent {
 
   /**
    * List of locale prefixes after the normalizedPathPrefix
+   *
+   * @default []
    */
-  readonly locales: string[];
+  readonly locales?: string[];
 
   /**
    * Configured prefix of the deployment, must start with a / and not end with a /
@@ -100,7 +102,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
   const { dbManager, normalizedPathPrefix = '', queryStringParameters, locales = [] } = event;
 
   try {
-    if (normalizedPathPrefix && !event.rawPath.startsWith(normalizedPathPrefix)) {
+    if (!!normalizedPathPrefix && !event.rawPath.startsWith(normalizedPathPrefix)) {
       // The prefix is required if configured, if missing we cannot serve this app
       return { statusCode: 404, errorMessage: 'Request not routable' };
     }
@@ -123,17 +125,25 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     // /someapp/somepath/somefile.foo will split into length 4 with ["", "someapp", "somepath", "somefile.foo", ""] as results
     const partsAfterPrefixAndLocale = pathAfterPrefixAndLocale.split('/');
 
-    // Handle ${prefix}/_next/data/${semver}/${appname}/route
+    // Handle ${prefix}/_next/data/${semver}[/${locale}]/${appname}/route
     let appName: string | undefined;
     if (
       partsAfterPrefixAndLocale.length >= 4 &&
       partsAfterPrefixAndLocale[1] === '_next' &&
       partsAfterPrefixAndLocale[2] === 'data'
     ) {
-      // if partsAfterPrefix[4] has .json suffix, strip it
-      const possibleAppName = partsAfterPrefixAndLocale[4].endsWith('.json')
-        ? partsAfterPrefixAndLocale[4].slice(0, partsAfterPrefixAndLocale[4].length - 5)
+      // Remove locale if present after SemVer
+      const localeIsPresent =
+        partsAfterPrefixAndLocale.length >= 5 &&
+        locales.some((locale) => partsAfterPrefixAndLocale[4] === locale);
+      const possibleAppNamePart = localeIsPresent
+        ? partsAfterPrefixAndLocale[5]
         : partsAfterPrefixAndLocale[4];
+
+      // if partsAfterPrefix[4] has .json suffix, strip it
+      const possibleAppName = possibleAppNamePart.endsWith('.json')
+        ? possibleAppNamePart.slice(0, possibleAppNamePart.length - 5)
+        : possibleAppNamePart;
 
       appName = await GetAppInfo({
         dbManager,
