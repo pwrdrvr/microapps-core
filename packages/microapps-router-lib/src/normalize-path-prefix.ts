@@ -11,7 +11,7 @@ export function normalizePathPrefix(pathPrefix: string): string {
     normalizedPathPrefix = '/' + pathPrefix;
   }
   if (normalizedPathPrefix.endsWith('/')) {
-    normalizedPathPrefix.substring(0, normalizedPathPrefix.length - 1);
+    normalizedPathPrefix = normalizedPathPrefix.substring(0, normalizedPathPrefix.length - 1);
   }
 
   return normalizedPathPrefix;
