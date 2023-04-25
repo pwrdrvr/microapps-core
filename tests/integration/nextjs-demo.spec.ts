@@ -67,7 +67,7 @@ describe('nextjs-demo', () => {
       new URL(
         posixPath.join(
           baseUrl.pathname,
-          `/_next/data/${NEXTJS_DEMO_APP_VER}/sv/nextjs-demo/index.json`,
+          `/_next/data/${NEXTJS_DEMO_APP_VER}/sv/nextjs-demo.json`,
         ),
         baseUrl,
       ).toString(),
