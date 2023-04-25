@@ -63,6 +63,10 @@ export async function RouteApp(opts: {
   const possibleSemVerPathVersionInfo =
     possibleSemVerPathAfterAppVersionInfo || possibleSemVerPathNextDataVersionInfo;
   if (possibleSemVerPathVersionInfo) {
+    //
+    // If this is an iframe app then it's a startup request
+    // If this is a direct app then it's a regular request to send to the app
+    //
     // This is a version, and it's in the path already, route the request to it
     // without creating iframe
     return {

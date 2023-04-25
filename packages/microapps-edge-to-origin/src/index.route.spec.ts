@@ -391,30 +391,26 @@ describe('edge-to-origin - routing - without prefix', () => {
 
   describe('/_next/data/ requests with no basePath', () => {
     const testCases = [
-      [
-        {
-          AppName: 'BatDirectNoBaseNextData',
-          LambdaURL1: 'https://abc123.lambda-url.us-east-1.on.aws/',
-          SemVer1: '1.2.1-beta.1',
-          LambdaURL2: 'https://abc1234567.lambda-url.us-east-1.on.aws/',
-          SemVer2: '1.2.1-beta.2',
-          SuffixPath: 'batdirectnobasenextdata/route.json',
-        },
-      ],
-      [
-        {
-          AppName: 'BatDirectNoBaseNextDataRootRoute',
-          LambdaURL1: 'https://abc124.lambda-url.us-east-1.on.aws/',
-          SemVer1: '1.2.1-beta.3',
-          LambdaURL2: 'https://abc1234568.lambda-url.us-east-1.on.aws/',
-          SemVer2: '1.2.1-beta.4',
-          SuffixPath: 'batdirectnobasenextdatarootroute.json',
-        },
-      ],
+      {
+        AppName: 'BatDirectNoBaseNextData',
+        LambdaURL1: 'https://abc123.lambda-url.us-east-1.on.aws/',
+        SemVer1: '1.2.1-beta.1',
+        LambdaURL2: 'https://abc1234567.lambda-url.us-east-1.on.aws/',
+        SemVer2: '1.2.1-beta.2',
+        SuffixPath: 'batdirectnobasenextdata/route.json',
+      },
+      {
+        AppName: 'BatDirectNoBaseNextDataRootRoute',
+        LambdaURL1: 'https://abc124.lambda-url.us-east-1.on.aws/',
+        SemVer1: '1.2.1-beta.3',
+        LambdaURL2: 'https://abc1234568.lambda-url.us-east-1.on.aws/',
+        SemVer2: '1.2.1-beta.4',
+        SuffixPath: 'batdirectnobasenextdatarootroute.json',
+      },
     ];
 
     it.each(testCases)(
-      'should route `direct` /_next/data/[${SemVer2}]/[${AppName}] request to [${AppName}] when it exists but ${SemVer1} is the default',
+      'should route `direct` /_next/data/[$SemVer2]/[$AppName] request to [$AppName] when it exists but $SemVer1 is the default',
       async ({ AppName, LambdaURL1, SemVer1, LambdaURL2, SemVer2, SuffixPath }) => {
         theConfig.replaceHostHeader = true;
 
