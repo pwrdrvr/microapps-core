@@ -489,6 +489,102 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
   });
 
+  it('should route `direct` app request with *additional* appName to origin for actual appName', async () => {
+    theConfig.replaceHostHeader = true;
+    const AppName = 'BatDirect';
+    const SemVer = '1.2.1-beta.1';
+    const AppNameExtraRoute = 'BatDirectExtraRoute';
+
+    const app = new Application({
+      AppName,
+      ExtraAppNames: [AppNameExtraRoute],
+      DisplayName: 'Direct Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName,
+      SemVer,
+      Status: 'deployed',
+      Type: 'lambda-url',
+      StartupType: 'direct',
+      URL: 'https://abc123.lambda-url.us-east-1.on.aws/',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName,
+      Version: 0,
+      RuleSet: { default: { SemVer, AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    // @ts-expect-error no callback
+    const response = await handler(
+      {
+        Records: [
+          {
+            cf: {
+              config: {
+                distributionDomainName: 'zyz.cloudfront.net',
+                distributionId: '123',
+                eventType: 'origin-request',
+                requestId: '123',
+              },
+              request: {
+                headers: {
+                  host: [
+                    {
+                      key: 'Host',
+                      value: 'zyz.cloudfront.net',
+                    },
+                  ],
+                },
+                method: 'GET',
+                querystring: '',
+                clientIp: '1.1.1.1',
+                uri: `/${AppNameExtraRoute.toLowerCase()}`,
+                origin: {
+                  custom: {
+                    customHeaders: {},
+                    domainName: 'zyz.cloudfront.net',
+                    keepaliveTimeout: 5,
+                    path: '',
+                    port: 443,
+                    protocol: 'https',
+                    readTimeout: 30,
+                    sslProtocols: ['TLSv1.2'],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      } as lambda.CloudFrontRequestEvent,
+      {} as lambda.Context,
+    );
+
+    const requestResponse = response as lambda.CloudFrontRequest;
+    expect(requestResponse).toBeDefined();
+    expect(requestResponse).not.toHaveProperty('status');
+    expect(requestResponse).not.toHaveProperty('body');
+    expect(requestResponse).toHaveProperty('headers');
+    expect(requestResponse.headers['x-microapps-appname'][0].key).toBe('X-MicroApps-AppName');
+    expect(requestResponse.headers['x-microapps-appname'][0].value).toBe(AppName.toLowerCase());
+    expect(requestResponse.headers).toHaveProperty('x-microapps-semver');
+    expect(requestResponse.headers['x-microapps-semver'][0].key).toBe('X-MicroApps-SemVer');
+    expect(requestResponse.headers['x-microapps-semver'][0].value).toBe(SemVer);
+    expect(requestResponse.headers).toHaveProperty('host');
+    expect(requestResponse.headers.host).toHaveLength(1);
+    expect(requestResponse.headers.host[0].key).toBe('Host');
+    expect(requestResponse.headers.host[0].value).toBe('abc123.lambda-url.us-east-1.on.aws');
+    expect(requestResponse).toHaveProperty('origin');
+    expect(requestResponse.origin).toHaveProperty('custom');
+    expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
+    expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
+  });
+
   describe('/_next/data/ requests with no basePath', () => {
     const testCases = [
       {
