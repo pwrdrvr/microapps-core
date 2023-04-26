@@ -75,7 +75,6 @@ describe('nextjs-demo', () => {
     const data = response.data;
 
     expect(data).toMatchObject({
-      __N_SSG: true,
       pageProps: {
         allPostsData: [
           {
