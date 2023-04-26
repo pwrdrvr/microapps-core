@@ -15,6 +15,7 @@ const theConfig: Writeable<IConfig> = {
   signingMode: 'sign',
   tableName: '',
   rootPathPrefix: '',
+  locales: [],
 };
 
 let dynamoClient: dynamodb.DynamoDBClient;

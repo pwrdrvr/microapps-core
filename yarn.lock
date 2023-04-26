@@ -3457,10 +3457,10 @@
     tiny-glob "^0.2.9"
     tslib "^2.4.0"
 
-"@pwrdrvr/microapps-app-nextjs-demo-cdk@0.6.3":
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.6.3.tgz#2916b8e6cd88b7072d2e25da3e6489c35ae09a38"
-  integrity sha512-EnL3ogfaVuIPQ1Fc0ned5me+UZ9jJA4l8v6NL9XZmoU5d87+r6BATIiOa7GUQAYlcJsXX6rcv3IkhB+WTWUP7A==
+"@pwrdrvr/microapps-app-nextjs-demo-cdk@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@pwrdrvr/microapps-app-nextjs-demo-cdk/-/microapps-app-nextjs-demo-cdk-0.7.0.tgz#642ac90289827104e0e18e5208de82fa915ca074"
+  integrity sha512-7z1K5IGaWbjLETspUNmXoH6xREs6lqgGknCFBg6yYtdq62o2UB22EAnItkVvpdGbSN4PYmNoWO4/H6j4I264Pg==
 
 "@pwrdrvr/microapps-app-release-cdk@0.5.3":
   version "0.5.3"
@@ -3716,6 +3716,13 @@
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
+
+"@types/mock-fs@4.13.1":
+  version "4.13.1"
+  resolved "https://registry.yarnpkg.com/@types/mock-fs/-/mock-fs-4.13.1.tgz#9201554ceb23671badbfa8ac3f1fa9e0706305be"
+  integrity sha512-m6nFAJ3lBSnqbvDZioawRvpLXSaPyn52Srf7OfzjubYbYX8MTUdIgDxQl0wEapm4m/pNYSd9TXocpQ0TvZFlYA==
+  dependencies:
+    "@types/node" "*"
 
 "@types/node-fetch@^2.5.8":
   version "2.6.1"
@@ -8488,6 +8495,11 @@ mnemonist@0.38.3:
   integrity sha512-2K9QYubXx/NAjv4VLq1d1Ly8pWNC5L3BrixtdkyTegXWJIqY+zLNDhhX/A+ZwWt70tB1S8H4BE8FLYEFyNoOBw==
   dependencies:
     obliterator "^1.6.1"
+
+mock-fs@5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/mock-fs/-/mock-fs-5.2.0.tgz#3502a9499c84c0a1218ee4bf92ae5bf2ea9b2b5e"
+  integrity sha512-2dF2R6YMSZbpip1V1WHKGLNjr/k48uQClqMVb5H3MOvwc9qhYis3/IWbj02qIg/Y8MDXKFF4c5v0rxx2o6xTZw==
 
 modify-values@^1.0.0:
   version "1.0.1"

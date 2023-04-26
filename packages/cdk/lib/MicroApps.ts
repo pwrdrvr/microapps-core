@@ -248,6 +248,7 @@ export class MicroAppsStack extends Stack {
       table: table.table,
       tableNameForEdgeToOrigin: tableName ? tableName : `${assetNameRoot}${assetNameSuffix}`,
       allowedFunctionUrlAccounts,
+      allowedLocalePrefixes: ['en', 'sv'],
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,

@@ -302,6 +302,14 @@ export interface MicroAppsProps {
    * @default []
    */
   readonly allowedFunctionUrlAccounts?: string[];
+
+  /**
+   * List of allowed locale prefixes for pages
+   *
+   * @example: ['en', 'fr', 'es']
+   * @default none
+   */
+  readonly allowedLocalePrefixes?: string[];
 }
 
 /**
@@ -459,6 +467,7 @@ export class MicroApps extends Construct implements IMicroApps {
         rootPathPrefix,
         tableRulesArn: tableNameForEdgeToOrigin || this._svcs.table.tableName,
         allowedFunctionUrlAccounts,
+        allowedLocalePrefixes: props.allowedLocalePrefixes,
       });
 
       edgeLambdas.push(...this._edgeToOrigin.edgeToOriginLambdas);

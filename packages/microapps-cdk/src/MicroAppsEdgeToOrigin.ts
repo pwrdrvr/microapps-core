@@ -79,6 +79,14 @@ export interface MicroAppsEdgeToOriginProps {
   readonly rootPathPrefix?: string;
 
   /**
+   * List of allowed locale prefixes for pages
+   *
+   * @example: ['en', 'fr', 'es']
+   * @default none
+   */
+  readonly allowedLocalePrefixes?: string[];
+
+  /**
    * Adds an X-Forwarded-Host-Header when calling API Gateway
    *
    * Can only be trusted if `signingMode` is enabled, which restricts
@@ -157,6 +165,7 @@ export interface GenerateEdgeToOriginConfigOptions {
   readonly replaceHostHeader: boolean;
   readonly tableName?: string;
   readonly rootPathPrefix?: string;
+  readonly locales?: string[];
 }
 
 interface IMicroAppsEdgeToOriginRoleStackProps extends StackProps {
@@ -283,7 +292,12 @@ ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
 replaceHostHeader: ${props.replaceHostHeader}
 ${props.tableName ? `tableName: '${props.tableName}'` : ''}
-${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
+${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}
+${
+  props.locales && props.locales.length > 0
+    ? `locales: [${props.locales.map((locale) => `'${locale}'`).join(', ')}]`
+    : ''
+}`;
   }
 
   private _edgeToOriginFunction: lambda.Function | cf.experimental.EdgeFunction;
@@ -329,6 +343,7 @@ ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}`;
       replaceHostHeader,
       signingMode: signingMode === 'none' ? '' : signingMode,
       rootPathPrefix,
+      locales: props.allowedLocalePrefixes,
       ...(tableRulesArn
         ? {
             tableName: tableRulesArn,

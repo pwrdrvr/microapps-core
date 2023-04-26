@@ -65,10 +65,7 @@ describe('nextjs-demo', () => {
   itSkipBasicPrefix('should return JSON for home page _next/data route', async () => {
     const response = await axios.get(
       new URL(
-        posixPath.join(
-          baseUrl.pathname,
-          `/nextjs-demo/_next/data/${NEXTJS_DEMO_APP_VER}/index.json`,
-        ),
+        posixPath.join(baseUrl.pathname, `/_next/data/${NEXTJS_DEMO_APP_VER}/sv/nextjs-demo.json`),
         baseUrl,
       ).toString(),
       {
@@ -78,7 +75,6 @@ describe('nextjs-demo', () => {
     const data = response.data;
 
     expect(data).toMatchObject({
-      __N_SSG: true,
       pageProps: {
         allPostsData: [
           {
