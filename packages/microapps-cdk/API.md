@@ -683,6 +683,12 @@ const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { .
 
 ---
 
+##### `locales`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.locales"></a>
+
+- *Type:* `string`[]
+
+---
+
 ##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.rootPathPrefix"></a>
 
 - *Type:* `string`
@@ -1064,6 +1070,15 @@ Account IDs allowed for cross-account Function URL invocations.
 
 ---
 
+##### `allowedLocalePrefixes`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.allowedLocalePrefixes"></a>
+
+- *Type:* `string`[]
+- *Default:* none
+
+List of allowed locale prefixes for pages.
+
+---
+
 ##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.assetNameRoot"></a>
 
 - *Type:* `string`
@@ -1206,6 +1221,15 @@ Note: if true, creates OriginRequest Lambda @ Edge function for API Gateway Orig
 - *Default:* []
 
 Account IDs allowed for cross-account Function URL invocations.
+
+---
+
+##### `allowedLocalePrefixes`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.allowedLocalePrefixes"></a>
+
+- *Type:* `string`[]
+- *Default:* none
+
+List of allowed locale prefixes for pages.
 
 ---
 
