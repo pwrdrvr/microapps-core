@@ -51,7 +51,7 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
   assetNameRoot: 'microapps-core-ghchild',
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
   parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
-  edgeToOriginRoleARN: process.env.EDGE_TO_ORIGIN_ROLE_ARN || '',
+  edgeToOriginRoleARN: process.env.EDGE_TO_ORIGIN_ROLE_ARN,
 });
 
 new MicroAppsChildPrivStack(app, 'microapps-core-child-priv', {

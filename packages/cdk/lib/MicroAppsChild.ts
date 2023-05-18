@@ -17,8 +17,10 @@ export interface MicroAppsChildStackProps extends StackProps {
 
   /**
    * ARN of the IAM Role for the Edge to Origin Lambda Function
+   *
+   * For child accounts this can be blank as it is retrieved from the parent Deployer
    */
-  readonly edgeToOriginRoleARN: string;
+  readonly edgeToOriginRoleARN?: string;
 
   /**
    * Automatically destroy all assets when stack is deleted

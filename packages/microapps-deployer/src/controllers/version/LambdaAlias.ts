@@ -377,6 +377,8 @@ async function AddCrossAccountPermissionsToAlias({
     return;
   }
 
+  // TODO: Call the parent Deployer to get the list of Role ARNs that are allowed
+
   //
   // Confirm edge-to-origin is already allowed to execute this alias
   // from the specific route for this version

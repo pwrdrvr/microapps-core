@@ -10,6 +10,7 @@ import type {
   IDeleteVersionRequest,
   ILambdaAliasRequest,
   IGetVersionRequest,
+  IGetConfigRequest,
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
@@ -17,6 +18,7 @@ import { DBManager } from '@pwrdrvr/microapps-datalib';
 import * as lambda from 'aws-lambda';
 import { Config } from './config/Config';
 import AppController from './controllers/AppController';
+import ConfigController from './controllers/ConfigController';
 import {
   DeleteVersion,
   DeployVersion,
@@ -143,6 +145,11 @@ export async function handler(
       case 'getVersion': {
         const request = event as IGetVersionRequest;
         return await GetVersion({ dbManager, request, config });
+      }
+
+      case 'getConfig': {
+        const request = event as IGetConfigRequest;
+        return ConfigController.GetConfig({ request, config });
       }
 
       case 'lambdaAlias': {

@@ -81,7 +81,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       request.origin?.s3?.domainName &&
       request.origin?.s3?.customHeaders['x-microapps-origin']?.[0]?.value === 's3'
     ) {
-      log.info('request is for S3 origin', { request });
+      log.debug('request is for S3 origin', { request });
 
       if (
         request.headers['host']?.[0]?.value &&
