@@ -1,4 +1,5 @@
 import * as lambda from '@aws-sdk/client-lambda';
+import { createHash } from 'crypto';
 import { IConfig } from '../../config/Config';
 import type {
   IDeployerResponse,
@@ -418,73 +419,57 @@ async function AddCrossAccountPermissionsToAlias({
     );
   }
 
-  //
-  // Confirm edge-to-origin is already allowed to execute this alias
-  // from the specific route for this version
-  //
-  const addStatements = true;
-  // 2023-05-19 - We will need to check if all ARNs are present in statements
-  // before deciding to skip adding the permissions
-  // try {
-  //   const existingPolicy = await lambdaClient.send(
-  //     new lambda.GetPolicyCommand({
-  //       FunctionName: lambdaBaseARN,
-  //       Qualifier: lambdaAlias,
-  //     }),
-  //   );
-  //   if (existingPolicy.Policy !== undefined) {
-  //     interface IPolicyDocument {
-  //       Version: string;
-  //       Id: string;
-  //       Statement: { Sid: string }[];
-  //     }
-  //     const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
+  // 1. Loop through statements
+  // 2. Check which role ARNs are already allowed
+  // 3. Create statement ids with a hash of the role ARNs
+  // 4. Add the role ARNs that were missing
 
-  //     // TODO: Check if any of the statements allow the edge to origin Role ARN
-  //     // to invoke the function via function URL
+  try {
+    const existingPolicy = await lambdaClient.send(
+      new lambda.GetPolicyCommand({
+        FunctionName: lambdaBaseARN,
+        Qualifier: lambdaAlias,
+      }),
+    );
+    if (existingPolicy.Policy) {
+      interface IPolicyDocument {
+        Version: string;
+        Id: string;
+        Statement: { Sid: string; Principal: { AWS: string } }[];
+      }
+      const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
 
-  //     if (policyDoc.Statement !== undefined) {
-  //       const foundStatements = policyDoc.Statement.filter(
-  //         (value) => value.Sid === 'microapps-edge-to-origin',
-  //       );
-  //       if (foundStatements.length === 1) {
-  //         addStatements = false;
-  //       }
-  //     }
-  //   }
-  // } catch (error: any) {
-  //   if (error.name !== 'ResourceNotFoundException') {
-  //     throw error;
-  //   }
-  // }
+      if (policyDoc.Statement) {
+        // Loop through statements to check which role ARNs are already allowed
+        const existingRoleArns = policyDoc.Statement.filter((value) =>
+          (value.Sid ?? '').startsWith('microapps-edge-to-origin'),
+        ).map((value) => value.Principal.AWS);
 
-  // Add statements if they do not already exist
-  if (addStatements && originRequestRoleARNs) {
-    // await lambdaClient.send(
-    //   new lambda.AddPermissionCommand({
-    //     Principal: 'apigateway.amazonaws.com',
-    //     StatementId: 'microapps-edge-to-origin',
-    //     Action: 'lambda:InvokeFunctionUrl',
-    //     FunctionName: lambdaBaseARN,
-    //     Qualifier: lambdaAlias,
-    //     SourceArn: config.edgeToOriginRoleARN,
-    //   }),
-    // );
+        // Determine which ARNs need to be added
+        const rolesToAdd = originRequestRoleARNs.filter(
+          (roleArn) => !existingRoleArns.includes(roleArn),
+        );
 
-    let statementNumber = 0;
-    for (const sourceArn of originRequestRoleARNs) {
-      await lambdaClient.send(
-        new lambda.AddPermissionCommand({
-          Principal: sourceArn,
-          StatementId: `microapps-edge-to-origin${
-            statementNumber > 0 ? `-${statementNumber}` : ''
-          }`,
-          Action: 'lambda:InvokeFunctionUrl',
-          FunctionName: lambdaBaseARN,
-          Qualifier: lambdaAlias,
-        }),
-      );
-      statementNumber++;
+        for (const roleToAdd of rolesToAdd) {
+          // Create statement ids with a hash of the role ARNs
+          const roleArnHash = createHash('sha256').update(roleToAdd).digest('hex').substring(0, 8);
+
+          // Add the role ARNs that were missing
+          await lambdaClient.send(
+            new lambda.AddPermissionCommand({
+              Principal: roleToAdd,
+              StatementId: `microapps-edge-to-origin-${roleArnHash}`,
+              Action: 'lambda:InvokeFunctionUrl',
+              FunctionName: lambdaBaseARN,
+              Qualifier: lambdaAlias,
+            }),
+          );
+        }
+      }
+    }
+  } catch (error: any) {
+    if (error.name !== 'ResourceNotFoundException') {
+      throw error;
     }
   }
 }

@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import 'reflect-metadata';
+import { createHash } from 'crypto';
 import 'jest-dynalite/withDb';
 import { Config, IConfig } from '../../config/Config';
 jest.mock('../../config/Config');
@@ -201,10 +202,34 @@ describe('LambdaAlias', () => {
             }),
           ),
         })
+        .on(lambda.GetPolicyCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          Policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              // {
+              //   Action: 'lambda:InvokeFunctionUrl',
+              //   Principal: roleToAdd,
+              // StatementId: `microapps-edge-to-origin-${roleArnHash}`,
+              // FunctionName: lambdaBaseARN,
+              // Qualifier: lambdaAlias,
+              //   Condition: {
+              //     ArnLike: {
+              //       'AWS:SourceArn': 'arn:aws:execute-api:us-east-1:123456789012:123/*',
+            ],
+          }),
+        })
         .on(lambda.AddPermissionCommand, {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           Principal: config.edgeToOriginRoleARN![0],
-          StatementId: `microapps-edge-to-origin`,
+          StatementId: `microapps-edge-to-origin-${createHash('sha256')
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            .update(config.edgeToOriginRoleARN![0])
+            .digest('hex')
+            .substring(0, 8)}`,
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
@@ -215,9 +240,11 @@ describe('LambdaAlias', () => {
           },
         })
         .on(lambda.AddPermissionCommand, {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           Principal: extraOriginRoleARN,
-          StatementId: `microapps-edge-to-origin-1`,
+          StatementId: `microapps-edge-to-origin-${createHash('sha256')
+            .update(extraOriginRoleARN)
+            .digest('hex')
+            .substring(0, 8)}`,
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
@@ -242,7 +269,7 @@ describe('LambdaAlias', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(9);
+      expect(lambdaClient.calls()).toHaveLength(10);
     });
 
     it('handles parent deployer not supporting getConfig request', async () => {
@@ -332,19 +359,30 @@ describe('LambdaAlias', () => {
             }),
           ),
         })
-        .on(lambda.AddPermissionCommand, {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          Principal: config.edgeToOriginRoleARN![0],
-          StatementId: `microapps-edge-to-origin`,
-          Action: 'lambda:InvokeFunctionUrl',
+        .on(lambda.GetPolicyCommand, {
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
         })
         .resolves({
-          $metadata: {
-            httpStatusCode: 200,
-          },
+          Policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              {
+                Action: 'lambda:InvokeFunctionUrl',
+                Principal: {
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  AWS: config.edgeToOriginRoleARN![0],
+                },
+                Sid: `microapps-edge-to-origin-${createHash('sha256')
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  .update(config.edgeToOriginRoleARN![0])
+                  .digest('hex')
+                  .substring(0, 8)}`,
+              },
+            ],
+          }),
         });
+
       const request: ILambdaAliasRequest = {
         appName,
         semVer,
@@ -451,10 +489,34 @@ describe('LambdaAlias', () => {
             }),
           ),
         })
+        .on(lambda.GetPolicyCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          Policy: JSON.stringify({
+            Version: '2012-10-17',
+            Statement: [
+              // {
+              //   Action: 'lambda:InvokeFunctionUrl',
+              //   Principal: roleToAdd,
+              // StatementId: `microapps-edge-to-origin-${roleArnHash}`,
+              // FunctionName: lambdaBaseARN,
+              // Qualifier: lambdaAlias,
+              //   Condition: {
+              //     ArnLike: {
+              //       'AWS:SourceArn': 'arn:aws:execute-api:us-east-1:123456789012:123/*',
+            ],
+          }),
+        })
         .on(lambda.AddPermissionCommand, {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           Principal: config.edgeToOriginRoleARN![0],
-          StatementId: `microapps-edge-to-origin`,
+          StatementId: `microapps-edge-to-origin-${createHash('sha256')
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            .update(config.edgeToOriginRoleARN![0])
+            .digest('hex')
+            .substring(0, 8)}`,
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
@@ -479,7 +541,7 @@ describe('LambdaAlias', () => {
       expect(response.type).toBe('lambdaAlias');
       expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
       expect(response.functionUrl).toBe('https://fakeurl.com');
-      expect(lambdaClient.calls()).toHaveLength(8);
+      expect(lambdaClient.calls()).toHaveLength(9);
     });
   });
 
