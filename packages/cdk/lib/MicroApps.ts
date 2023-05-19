@@ -142,6 +142,11 @@ export interface MicroAppsStackProps extends StackProps {
    * @default []
    */
   readonly allowedFunctionUrlAccounts?: string[];
+
+  /**
+   * Additional IAM Role ARNs that should be allowed to invoke apps in child accounts
+   */
+  readonly edgeToOriginRoleARNs?: string[];
 }
 
 export class MicroAppsStack extends Stack {
@@ -175,6 +180,7 @@ export class MicroAppsStack extends Stack {
       originRegion,
       tableName,
       allowedFunctionUrlAccounts = [],
+      edgeToOriginRoleARNs = [],
     } = props;
 
     let removalPolicy: RemovalPolicy | undefined = undefined;
@@ -249,6 +255,7 @@ export class MicroAppsStack extends Stack {
       tableNameForEdgeToOrigin: tableName ? tableName : `${assetNameRoot}${assetNameSuffix}`,
       allowedFunctionUrlAccounts,
       allowedLocalePrefixes: ['en', 'sv'],
+      edgeToOriginRoleARNs,
       ...optionalAssetNameOpts,
       ...optionals3PolicyOpts,
       ...optionalCustomDomainOpts,

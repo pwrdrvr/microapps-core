@@ -147,7 +147,7 @@ export interface MicroAppsProps {
    *
    * To get the AROA with the AWS CLI:
    *   aws iam get-role --role-name ROLE-NAME
-   *   aws iam get-user -–user-name USER-NAME
+   *   aws iam get-user --user-name USER-NAME
    *
    * @example [ 'AROA1234567890123' ]
    *
@@ -310,6 +310,11 @@ export interface MicroAppsProps {
    * @default none
    */
   readonly allowedLocalePrefixes?: string[];
+
+  /**
+   * Additional IAM Role ARNs that should be allowed to invoke apps in child accounts
+   */
+  readonly edgeToOriginRoleARNs?: string[];
 }
 
 /**
@@ -410,6 +415,7 @@ export class MicroApps extends Construct implements IMicroApps {
       tableNameForEdgeToOrigin,
       originShieldRegion = originRegion,
       allowedFunctionUrlAccounts = [],
+      edgeToOriginRoleARNs = [],
     } = props;
 
     this._s3 = new MicroAppsS3(this, 's3', {
@@ -451,6 +457,7 @@ export class MicroApps extends Construct implements IMicroApps {
       rootPathPrefix,
       requireIAMAuthorization: signingMode !== 'none',
       table,
+      edgeToOriginRoleARN: edgeToOriginRoleARNs,
     });
     const edgeLambdas: cf.EdgeLambda[] = [];
 

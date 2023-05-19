@@ -979,14 +979,6 @@ Application environment, passed as `NODE_ENV` to the Router and Deployer Lambda 
 
 ---
 
-##### `edgeToOriginRoleARN`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.edgeToOriginRoleARN"></a>
-
-- *Type:* `string`
-
-ARN of the IAM Role for the Edge to Origin Lambda Function.
-
----
-
 ##### `parentDeployerLambdaARN`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.parentDeployerLambdaARN"></a>
 
 - *Type:* `string`
@@ -1021,6 +1013,16 @@ Optional asset name suffix.
 Deployer timeout.
 
 For larger applications this needs to be set up to 2-5 minutes for the S3 copy
+
+---
+
+##### `edgeToOriginRoleARN`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsChildDeployerProps.edgeToOriginRoleARN"></a>
+
+- *Type:* `string`
+
+ARN of the IAM Role for the Edge to Origin Lambda Function.
+
+For child accounts this can be blank as it is retrieved from the parent Deployer
 
 ---
 
@@ -1330,6 +1332,14 @@ Additional edge lambda functions.
 
 ---
 
+##### `edgeToOriginRoleARNs`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.edgeToOriginRoleARNs"></a>
+
+- *Type:* `string`[]
+
+Additional IAM Role ARNs that should be allowed to invoke apps in child accounts.
+
+---
+
 ##### `originRegion`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.originRegion"></a>
 
 - *Type:* `string`
@@ -1432,7 +1442,7 @@ of applying the Deny Rule to roles from other accounts.
 
 To get the AROA with the AWS CLI:
    aws iam get-role --role-name ROLE-NAME
-   aws iam get-user -–user-name USER-NAME
+   aws iam get-user --user-name USER-NAME
 
 > s3StrictBucketPolicy
 
@@ -1655,6 +1665,14 @@ For larger applications this needs to be set up to 2-5 minutes for the S3 copy
 
 ---
 
+##### `edgeToOriginRoleARN`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.edgeToOriginRoleARN"></a>
+
+- *Type:* `string`[]
+
+ARN of the IAM Role for the Edge to Origin Lambda Function.
+
+---
+
 ##### `httpApi`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
 
 - *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
@@ -1730,7 +1748,7 @@ of applying the Deny Rule to roles from other accounts.
 
 To get the AROA with the AWS CLI:
    aws iam get-role --role-name ROLE-NAME
-   aws iam get-user -–user-name USER-NAME
+   aws iam get-user --user-name USER-NAME
 
 > s3StrictBucketPolicy
 

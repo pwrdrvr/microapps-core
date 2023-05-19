@@ -18,8 +18,10 @@ export interface MicroAppsChildDeployerProps {
 
   /**
    * ARN of the IAM Role for the Edge to Origin Lambda Function
+   *
+   * For child accounts this can be blank as it is retrieved from the parent Deployer
    */
-  readonly edgeToOriginRoleARN: string;
+  readonly edgeToOriginRoleARN?: string;
 
   /**
    * RemovalPolicy override for child resources
@@ -139,7 +141,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
         NODE_ENV: appEnv,
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
         PARENT_DEPLOYER_LAMBDA_ARN: parentDeployerLambdaARN,
-        EDGE_TO_ORIGIN_ROLE_ARN: edgeToOriginRoleARN,
+        ...(edgeToOriginRoleARN ? { EDGE_TO_ORIGIN_ROLE_ARN: edgeToOriginRoleARN } : {}),
       },
     };
     if (

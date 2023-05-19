@@ -131,7 +131,7 @@ export interface MicroAppsSvcsProps {
    *
    * To get the AROA with the AWS CLI:
    *   aws iam get-role --role-name ROLE-NAME
-   *   aws iam get-user -–user-name USER-NAME
+   *   aws iam get-user --user-name USER-NAME
    *
    * @example [ 'AROA1234567890123' ]
    *
@@ -178,6 +178,11 @@ export interface MicroAppsSvcsProps {
    * @default 2 minutes
    */
   readonly deployerTimeout?: Duration;
+
+  /**
+   * ARN of the IAM Role for the Edge to Origin Lambda Function
+   */
+  readonly edgeToOriginRoleARN?: string[];
 }
 
 /**
@@ -243,6 +248,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       assetNameSuffix,
       rootPathPrefix = '',
       requireIAMAuthorization = true,
+      edgeToOriginRoleARN,
     } = props;
 
     if (s3StrictBucketPolicy === true) {
@@ -315,6 +321,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
         AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
         ROOT_PATH_PREFIX: rootPathPrefix,
         REQUIRE_IAM_AUTHORIZATION: requireIAMAuthorization ? 'true' : 'false',
+        ...(edgeToOriginRoleARN ? { EDGE_TO_ORIGIN_ROLE_ARN: edgeToOriginRoleARN.join(',') } : {}),
       },
     };
     if (
@@ -463,7 +470,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
         //
         // To get the AROA with the AWS CLI:
         //   aws iam get-role --role-name ROLE-NAME
-        //   aws iam get-user -–user-name USER-NAME
+        //   aws iam get-user --user-name USER-NAME
         StringNotLike: { 'aws:userid': [Aws.ACCOUNT_ID, ...s3PolicyBypassAROAMatches] },
       },
     });

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import { App, Environment } from 'aws-cdk-lib';
+import { App, Aws, Environment } from 'aws-cdk-lib';
 import { MicroAppsStack } from '../lib/MicroApps';
 import { MicroAppsChildStack } from '../lib/MicroAppsChild';
 import { MicroAppsChildPrivStack } from '../lib/MicroAppsChildPriv';
@@ -34,6 +34,15 @@ new MicroAppsStack(app, 'microapps-core', {
   deployDemoApp: shared.deployDemoApp,
   deployNextjsDemoApp: shared.deployNextjsDemoApp,
   deployReleaseApp: shared.deployReleaseApp,
+  // Allow the primary deployment to call child apps on PRs
+  // as a demo of providing an additional allowed IAM Role
+  ...(shared.isPR
+    ? {
+        edgeToOriginRoleARNs: [
+          `arn:aws:iam::${Aws.ACCOUNT_ID}:role/microapps-core-ghpublic-edge-role${shared.envSuffix}`,
+        ],
+      }
+    : {}),
   // We need to know the origin region for signing requests
   // Accessing Aws.REGION will end up writing a Token into the config file
   originRegion: shared.region,
@@ -51,7 +60,7 @@ new MicroAppsChildStack(app, 'microapps-core-child', {
   assetNameRoot: 'microapps-core-ghchild',
   assetNameSuffix: `${shared.envSuffix}${shared.prSuffix}`,
   parentDeployerLambdaARN: process.env.PARENT_DEPLOYER_LAMBDA_ARN || '',
-  edgeToOriginRoleARN: process.env.EDGE_TO_ORIGIN_ROLE_ARN || '',
+  edgeToOriginRoleARN: process.env.EDGE_TO_ORIGIN_ROLE_ARN,
 });
 
 new MicroAppsChildPrivStack(app, 'microapps-core-child-priv', {
