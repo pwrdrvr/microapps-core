@@ -398,12 +398,19 @@ async function AddCrossAccountPermissionsToAlias({
     const dResponse = JSON.parse(
       Buffer.from(response.Payload).toString('utf-8'),
     ) as IGetConfigResponse;
-    if (!(dResponse.statusCode === 200)) {
-      throw new Error(`Get config failed: ${JSON.stringify(dResponse)}`);
-    }
+    if (dResponse.statusCode !== 400) {
+      if (!(dResponse.statusCode === 200)) {
+        throw new Error(`Get config failed: ${JSON.stringify(dResponse)}`);
+      }
 
-    if (dResponse.originRequestRoleARNs && dResponse.originRequestRoleARNs.length > 0) {
-      originRequestRoleARNs.push(...dResponse.originRequestRoleARNs);
+      if (dResponse.originRequestRoleARNs && dResponse.originRequestRoleARNs.length > 0) {
+        const filteredRoles = dResponse.originRequestRoleARNs.filter(
+          (value) => value && !originRequestRoleARNs.includes(value),
+        );
+        if (filteredRoles.length > 0) {
+          originRequestRoleARNs.push(...filteredRoles);
+        }
+      }
     }
   } else {
     throw new Error(
