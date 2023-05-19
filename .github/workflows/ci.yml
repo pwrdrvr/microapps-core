@@ -21,6 +21,7 @@ env:
   # Set env to prod so we don't get an env suffix on the DNS names
   NODE_ENV: ${{ secrets.NODE_ENV }}
   DEMO_APP_NAME: demo-app
+  STATIC_APP_NAME: static-app
   NEXTJS_DEMO_APP_NAME: nextjs-demo
   RELEASE_APP_NAME: release
   AWS_REGION: us-east-2
@@ -238,9 +239,11 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Stitch Version and Prefix into Simple Demo App
+      - name: Stitch Version and Prefix into Simple Demo App and Static App
         run: |
           npx replace-in-file "/\/0\.0\.0/g" ${PREFIX}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+          npx replace-in-file "/0\.0\.0/g" ${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+          npx replace-in-file "/0\.0\.0/g" ${PACKAGE_VERSION} --configFile=.static-app-replace.config.js --isRegex
 
       - name: Stitch Prefix into Nextjs Demo App
         run: |
@@ -335,6 +338,17 @@ jobs:
             --new-version ${PACKAGE_VERSION} \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --url https://www.pwrdrvr.com \
+            --overwrite
+
+      - name: Publish Static App to Child MicroApps
+        run: |
+          npx microapps-publish publish-static \
+            --app-name ${STATIC_APP_NAME} \
+            --startup-type iframe \
+            --new-version 0.0.0 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_ARN} \
+            --static-assets-path packages/static-app/src \
+            --default-file index.html \
             --overwrite
 
       - name: Publish Demo App to MicroApps

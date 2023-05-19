@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Demo App</title>
   </head>
 
   <body>
     <div>This is a simple demo app</div>
+    <div>Version: 0.0.0</div>
     <div>
       <button
         onclick="fetch(`serverIncrement?currValue=${document.getElementById('output').innerText}`).then((response) => response.json()).then((data) => {document.getElementById('output').innerText = data.newValue })"
