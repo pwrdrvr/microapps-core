@@ -5,12 +5,12 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**'
       - '!**/README.md'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**'
       - '!**/README.md'
@@ -101,8 +101,8 @@ jobs:
 
       - name: Optionally Build All TypeScript
         if: steps.cache-typescript-build.outputs.cache-hit != 'true'
-        run: yarn build 
-    
+        run: yarn build
+
       - name: Run Lint
         run: yarn lint
 
@@ -230,7 +230,7 @@ jobs:
 
       - name: Build Edge-to-Origin for Local Deploy
         run: yarn esbuild:edge-to-origin
-    
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -240,7 +240,7 @@ jobs:
 
       - name: Stitch Version and Prefix into Simple Demo App
         run: |
-            npx replace-in-file "/\/0\.0\.0/g" ${PREFIX}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+          npx replace-in-file "/\/0\.0\.0/g" ${PREFIX}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
 
       - name: Stitch Prefix into Nextjs Demo App
         run: |
@@ -307,17 +307,17 @@ jobs:
         id: getCDKExports
         run: |
           echo "prefix="${PREFIX} >> $GITHUB_OUTPUT
-          echo "edgeDomain="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_OUTPUT
-          echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "EDGE_TO_ORIGIN_ROLE_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-role-role-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "DEPLOYER_LAMBDA_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "NEXTJS_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "RELEASE_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
+          echo "edgeDomain="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value"  --output text) >> $GITHUB_OUTPUT
+          echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value"  --output text) >> $GITHUB_ENV
+          echo "EDGE_TO_ORIGIN_ROLE_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-role-role-arn\`].Value"  --output text) >> $GITHUB_ENV
+          echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value"  --output text) >> $GITHUB_ENV
+          echo "DEPLOYER_LAMBDA_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-arn\`].Value"  --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value"  --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value"  --output text) >> $GITHUB_ENV
+          echo "NEXTJS_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-func-name\`].Value"  --output text) >> $GITHUB_ENV
+          echo "NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-vers-arn\`].Value"  --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value"  --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-vers-arn\`].Value"  --output text) >> $GITHUB_ENV
 
       - name: Echo Exports
         run: |
@@ -352,7 +352,7 @@ jobs:
 
       - name: Demo App URL
         uses: Sibz/github-status-action@v1
-        with: 
+        with:
           authToken: ${{secrets.GITHUB_TOKEN}}
           context: 'Demo App URL on ${{ matrix.deployName }}'
           description: 'Passed'
@@ -407,7 +407,7 @@ jobs:
 
       - name: Demo App URL - Root App
         uses: Sibz/github-status-action@v1
-        with: 
+        with:
           authToken: ${{secrets.GITHUB_TOKEN}}
           context: 'Demo App (Root App) URL on ${{ matrix.deployName }}'
           description: 'Passed'
@@ -440,7 +440,7 @@ jobs:
 
       - name: Nextjs Demo App URL
         uses: Sibz/github-status-action@v1
-        with: 
+        with:
           authToken: ${{secrets.GITHUB_TOKEN}}
           context: 'Nextjs Demo App URL on ${{ matrix.deployName }}'
           description: 'Passed'
@@ -472,7 +472,7 @@ jobs:
 
       - name: Release App URL
         uses: Sibz/github-status-action@v1
-        with: 
+        with:
           authToken: ${{secrets.GITHUB_TOKEN}}
           context: 'Release App URL on ${{ matrix.deployName }}'
           description: 'Passed'
@@ -516,10 +516,10 @@ jobs:
         if: ${{ matrix.deployName == 'microapps-core' }}
         id: getChildCDKExports
         run: |
-          echo "CHILD_DEPLOYER_LAMBDA_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "CHILD_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-          echo "CHILD_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --no-paginate --output text) >> $GITHUB_ENV
-      
+          echo "CHILD_DEPLOYER_LAMBDA_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-arn\`].Value"  --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value"  --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`${{ matrix.deployName }}-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value"  --output text) >> $GITHUB_ENV
+
       - name: Echo Exports
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
@@ -637,8 +637,8 @@ jobs:
           jq ".compilerOptions += { \"skipLibCheck\": true }" packages/microapps-cdk/tsconfig.jsii.json > packages/microapps-cdk/tsconfig.json
 
       - name: Build All TypeScript
-        run: yarn build 
-    
+        run: yarn build
+
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
         run: yarn install --frozen-lockfile
