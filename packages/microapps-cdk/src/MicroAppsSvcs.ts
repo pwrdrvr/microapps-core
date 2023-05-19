@@ -463,7 +463,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
         //
         // To get the AROA with the AWS CLI:
         //   aws iam get-role --role-name ROLE-NAME
-        //   aws iam get-user -–user-name USER-NAME
+        //   aws iam get-user --user-name USER-NAME
         StringNotLike: { 'aws:userid': [Aws.ACCOUNT_ID, ...s3PolicyBypassAROAMatches] },
       },
     });

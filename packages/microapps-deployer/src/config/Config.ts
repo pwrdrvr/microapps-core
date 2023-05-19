@@ -19,7 +19,7 @@ export interface IConfig {
   readonly awsRegion: string;
 
   readonly parentDeployerLambdaARN?: string;
-  readonly edgeToOriginRoleARN?: string;
+  readonly edgeToOriginRoleARN?: string[];
 
   readonly uploadRoleName: string;
 
@@ -143,5 +143,5 @@ export class Config implements IConfig {
     default: '',
     env: 'EDGE_TO_ORIGIN_ROLE_ARN',
   })
-  public edgeToOriginRoleARN!: string;
+  public edgeToOriginRoleARN!: string[];
 }

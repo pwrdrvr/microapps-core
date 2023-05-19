@@ -2,6 +2,8 @@ import * as lambda from '@aws-sdk/client-lambda';
 import { IConfig } from '../../config/Config';
 import type {
   IDeployerResponse,
+  IGetConfigRequest,
+  IGetConfigResponse,
   ILambdaAliasRequest,
   ILambdaAliasResponse,
 } from '@pwrdrvr/microapps-deployer-lib';
@@ -378,47 +380,75 @@ async function AddCrossAccountPermissionsToAlias({
   }
 
   // TODO: Call the parent Deployer to get the list of Role ARNs that are allowed
+  let originRequestRoleARNs: string[] = [];
+  const request: IGetConfigRequest = {
+    type: 'getConfig',
+  };
+  const response = await lambdaClient.send(
+    new lambda.InvokeCommand({
+      FunctionName: config.parentDeployerLambdaARN,
+      Payload: Buffer.from(JSON.stringify(request)),
+    }),
+  );
+  if (response.$metadata.httpStatusCode === 200 && response.Payload !== undefined) {
+    const dResponse = JSON.parse(
+      Buffer.from(response.Payload).toString('utf-8'),
+    ) as IGetConfigResponse;
+    if (!(dResponse.statusCode === 200)) {
+      throw new Error(`Get config failed: ${JSON.stringify(dResponse)}`);
+    }
+
+    if (dResponse.originRequestRoleARNs && dResponse.originRequestRoleARNs.length > 0) {
+      originRequestRoleARNs = dResponse.originRequestRoleARNs;
+    }
+  } else {
+    throw new Error(
+      `AddCrossAccountPermissions - Lambda Invoke Failed: ${JSON.stringify(response)}`,
+    );
+  }
 
   //
   // Confirm edge-to-origin is already allowed to execute this alias
   // from the specific route for this version
   //
-  let addStatements = true;
-  try {
-    const existingPolicy = await lambdaClient.send(
-      new lambda.GetPolicyCommand({
-        FunctionName: lambdaBaseARN,
-        Qualifier: lambdaAlias,
-      }),
-    );
-    if (existingPolicy.Policy !== undefined) {
-      interface IPolicyDocument {
-        Version: string;
-        Id: string;
-        Statement: { Sid: string }[];
-      }
-      const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
+  const addStatements = true;
+  // 2023-05-19 - We will need to check if all ARNs are present in statements
+  // before deciding to skip adding the permissions
+  // try {
+  //   const existingPolicy = await lambdaClient.send(
+  //     new lambda.GetPolicyCommand({
+  //       FunctionName: lambdaBaseARN,
+  //       Qualifier: lambdaAlias,
+  //     }),
+  //   );
+  //   if (existingPolicy.Policy !== undefined) {
+  //     interface IPolicyDocument {
+  //       Version: string;
+  //       Id: string;
+  //       Statement: { Sid: string }[];
+  //     }
+  //     const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
 
-      // TODO: Check if any of the statements allow the edge to origin Role ARN
-      // to invoke the function via function URL
+  //     // TODO: Check if any of the statements allow the edge to origin Role ARN
+  //     // to invoke the function via function URL
 
-      if (policyDoc.Statement !== undefined) {
-        const foundStatements = policyDoc.Statement.filter(
-          (value) => value.Sid === 'microapps-edge-to-origin',
-        );
-        if (foundStatements.length === 1) {
-          addStatements = false;
-        }
-      }
-    }
-  } catch (error: any) {
-    if (error.name !== 'ResourceNotFoundException') {
-      throw error;
-    }
-  }
+  //     if (policyDoc.Statement !== undefined) {
+  //       const foundStatements = policyDoc.Statement.filter(
+  //         (value) => value.Sid === 'microapps-edge-to-origin',
+  //       );
+  //       if (foundStatements.length === 1) {
+  //         addStatements = false;
+  //       }
+  //     }
+  //   }
+  // } catch (error: any) {
+  //   if (error.name !== 'ResourceNotFoundException') {
+  //     throw error;
+  //   }
+  // }
 
   // Add statements if they do not already exist
-  if (addStatements && config.edgeToOriginRoleARN) {
+  if (addStatements && originRequestRoleARNs) {
     // await lambdaClient.send(
     //   new lambda.AddPermissionCommand({
     //     Principal: 'apigateway.amazonaws.com',
@@ -430,14 +460,20 @@ async function AddCrossAccountPermissionsToAlias({
     //   }),
     // );
 
-    await lambdaClient.send(
-      new lambda.AddPermissionCommand({
-        Principal: config.edgeToOriginRoleARN,
-        StatementId: 'microapps-edge-to-origin',
-        Action: 'lambda:InvokeFunctionUrl',
-        FunctionName: lambdaBaseARN,
-        Qualifier: lambdaAlias,
-      }),
-    );
+    let statementNumber = 0;
+    for (const sourceArn of originRequestRoleARNs) {
+      await lambdaClient.send(
+        new lambda.AddPermissionCommand({
+          Principal: sourceArn,
+          StatementId: `microapps-edge-to-origin${
+            statementNumber > 0 ? `-${statementNumber}` : ''
+          }`,
+          Action: 'lambda:InvokeFunctionUrl',
+          FunctionName: lambdaBaseARN,
+          Qualifier: lambdaAlias,
+        }),
+      );
+      statementNumber++;
+    }
   }
 }

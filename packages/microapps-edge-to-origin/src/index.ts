@@ -129,13 +129,13 @@ export const handler: lambda.CloudFrontRequestHandler = async (
         normalizedPathPrefix,
       });
 
-      log.info('got route info', { route });
+      log.debug('got route info', { route });
 
       // Write the app iframe to start an iframe-based app
       if (route.startupType === 'iframe' && route.iFrameAppVersionPath) {
         const frameHTML = appFrame.replace('{{iframeSrc}}', route.iFrameAppVersionPath);
 
-        log.info('returning app frame', { frameHTML });
+        log.debug('returning app frame', { frameHTML });
 
         return {
           status: '200',
@@ -168,7 +168,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
 
       // Fall through to apigwy handling if type is not url
       if (route.url && (route.type === 'url' || route.type === 'lambda-url')) {
-        log.info('rewriting to url', { url: route.url });
+        log.debug('rewriting to url', { url: route.url });
 
         routeType = route.type;
 
@@ -275,7 +275,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
     // when customized, so we can only rely on the Lambda URL check.
     const signer = originHost.includes('.lambda-url.') ? lambdaSigner : executeApiSigner;
     if (config.signingMode === 'sign') {
-      log.info('signing request');
+      log.debug('signing request');
       const signedRequest = await signRequest(request, context, signer);
       requestToReturn = signedRequest;
     } else if (config.signingMode === 'presign') {
