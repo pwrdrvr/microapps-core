@@ -387,6 +387,7 @@ async function AddCrossAccountPermissionsToAlias({
   const response = await lambdaClient.send(
     new lambda.InvokeCommand({
       FunctionName: config.parentDeployerLambdaARN,
+      Qualifier: 'currentVersion',
       Payload: Buffer.from(JSON.stringify(request)),
     }),
   );
