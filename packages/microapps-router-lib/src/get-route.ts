@@ -3,6 +3,7 @@ import { GetAppInfo } from './get-app-info';
 import { RouteApp } from './route-app';
 import { RedirectToDefaultFile } from './redirect-default-file';
 import { DBManager } from '@pwrdrvr/microapps-datalib';
+import { AppVersionCache } from './app-cache';
 
 const log = Log.Instance;
 
@@ -102,6 +103,8 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
   const { dbManager, normalizedPathPrefix = '', queryStringParameters, locales = [] } = event;
 
   try {
+    const appVersionCache = AppVersionCache.GetInstance({ dbManager });
+
     if (!!normalizedPathPrefix && !event.rawPath.startsWith(normalizedPathPrefix)) {
       // The prefix is required if configured, if missing we cannot serve this app
       return { statusCode: 404, errorMessage: 'Request not routable' };
@@ -187,18 +190,26 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       //   / semVer /
       // ^   ^^^^^^   ^
       // 0        1   2
-      // This is an app and a version only
+      // This may be an app and a version only
       // If the request got here it's likely a static app that has no
-      // Lambda function (thus the API Gateway route fell through to the Router)
-      const response = await RedirectToDefaultFile({
-        dbManager,
-        appName,
-        normalizedPathPrefix,
-        semVer: partsAfterAppName[1],
-        appNameOrRootTrailingSlash,
+      // Lambda function
+
+      // Let's check if the part is a version, if it is, route to the default file
+      const versionInfo = await appVersionCache.GetVersionInfo({
+        key: { AppName: appName, SemVer: partsAfterAppName[1] },
       });
-      if (response) {
-        return response;
+
+      if (versionInfo) {
+        const response = await RedirectToDefaultFile({
+          dbManager,
+          appName,
+          normalizedPathPrefix,
+          semVer: partsAfterAppName[1],
+          appNameOrRootTrailingSlash,
+        });
+        if (response) {
+          return response;
+        }
       }
     }
 

@@ -47,12 +47,62 @@ describe('router - without prefix', () => {
       await rules.Save(dbManager);
 
       // Call the handler
-      const response = await GetRoute({ dbManager, rawPath: '/bat/' });
+      const response = await GetRoute({
+        dbManager,
+        rawPath: '/bat/',
+      });
 
       expect(response).toHaveProperty('statusCode');
       expect(response.statusCode).toBe(200);
       expect(response).toBeDefined();
       expect(response.iFrameAppVersionPath).toBe('/bat/3.2.1-beta.1/bat.html');
+    });
+
+    it('should serve appframe with appver query string and default file substitued', async () => {
+      const AppName = 'BatAppVer';
+      const app = new Application({
+        AppName,
+        DisplayName: 'Bat App',
+      });
+      await app.Save(dbManager);
+
+      const version = new Version({
+        AppName,
+        DefaultFile: 'bat.html',
+        IntegrationID: 'abcd',
+        SemVer: '3.2.1-beta.1',
+        Status: 'deployed',
+        Type: 'lambda',
+      });
+      await version.Save(dbManager);
+      const version2 = new Version({
+        AppName,
+        DefaultFile: 'bat.html',
+        IntegrationID: 'abcd',
+        SemVer: '3.2.1-beta.2',
+        Status: 'deployed',
+        Type: 'lambda',
+      });
+      await version2.Save(dbManager);
+
+      const rules = new Rules({
+        AppName,
+        Version: 0,
+        RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+      });
+      await rules.Save(dbManager);
+
+      // Call the handler
+      const response = await GetRoute({
+        dbManager,
+        rawPath: '/batappver/',
+        queryStringParameters: new URLSearchParams('appver=3.2.1-beta.2'),
+      });
+
+      expect(response).toHaveProperty('statusCode');
+      expect(response.statusCode).toBe(200);
+      expect(response).toBeDefined();
+      expect(response.iFrameAppVersionPath).toBe('/batappver/3.2.1-beta.2/bat.html');
     });
 
     it('static app - request to app/x.y.z should redirect to defaultFile', async () => {
@@ -122,6 +172,40 @@ describe('router - without prefix', () => {
       expect(response.semVer).toBe('3.2.1-beta.2');
     });
 
+    it('static app - request to app/some.html should create iframe with path after version', async () => {
+      const app = new Application({
+        AppName: 'Bat',
+        DisplayName: 'Bat App',
+      });
+      await app.Save(dbManager);
+
+      const version = new Version({
+        AppName: 'Bat',
+        DefaultFile: 'bat.html',
+        IntegrationID: 'abcd',
+        SemVer: '3.2.1-beta.1',
+        Status: 'deployed',
+        Type: 'static',
+        StartupType: 'iframe',
+      });
+      await version.Save(dbManager);
+
+      const rules = new Rules({
+        AppName: 'Bat',
+        Version: 0,
+        RuleSet: { default: { SemVer: '3.2.1-beta.1', AttributeName: '', AttributeValue: '' } },
+      });
+      await rules.Save(dbManager);
+
+      // Call the handler
+      const response = await GetRoute({ dbManager, rawPath: '/bat/some.html' });
+
+      expect(response).toHaveProperty('statusCode');
+      expect(response.statusCode).toBe(200);
+      expect(response.redirectLocation).not.toBeDefined();
+      expect(response.iFrameAppVersionPath).toBe('/bat/3.2.1-beta.1/some.html');
+    });
+
     it('static app - request to app/x.y.z/ should redirect to defaultFile', async () => {
       const app = new Application({
         AppName: 'Bat',
@@ -156,7 +240,7 @@ describe('router - without prefix', () => {
       expect(response.redirectLocation).toBe('/bat/3.2.1-beta.1/bat.html');
     });
 
-    it('static app - request to app/notVersion should load app frame with defaultFile', async () => {
+    it('static app - request to app/notVersion should load app frame with /notVersion suffix', async () => {
       const AppName = 'Bat123';
       const app = new Application({
         AppName,
@@ -188,7 +272,7 @@ describe('router - without prefix', () => {
       expect(response).toHaveProperty('statusCode');
       expect(response.statusCode).toBe(200);
       expect(response).toBeDefined();
-      expect(response.iFrameAppVersionPath).toBe(`/${AppName}/3.2.1-beta.1/bat.html`);
+      expect(response.iFrameAppVersionPath).toBe(`/${AppName}/3.2.1-beta.1/notVersion`);
     });
 
     it('should serve appframe with no default file', async () => {

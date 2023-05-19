@@ -149,10 +149,10 @@ export async function RouteApp(opts: {
     // Prepare the iframe contents
     let appVersionPath: string;
     if (
-      versionInfoToUse?.Type !== 'static' &&
-      (versionInfoToUse?.DefaultFile === undefined ||
-        versionInfoToUse?.DefaultFile === '' ||
-        additionalParts !== '')
+      // versionInfoToUse?.Type !== 'static' &&
+      versionInfoToUse?.DefaultFile === undefined ||
+      versionInfoToUse?.DefaultFile === '' ||
+      additionalParts !== ''
     ) {
       // KLUDGE: We're going to take a missing default file to mean that the
       // app type is Next.js (or similar) and that it wants no trailing slash after the version
