@@ -1552,7 +1552,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     });
   });
 
-  it('static app - request to [root]/notVersion should load app frame with defaultFile', async () => {
+  it('static app - request to [root]/notVersion should load app frame with notVersion suffix', async () => {
     return jest.isolateModulesAsync(async () => {
       const { Config } = await import('./config/config');
 
@@ -1624,7 +1624,7 @@ describe('edge-to-origin - routing - without prefix', () => {
       expect(responseResponse).toHaveProperty('body');
       expect(responseResponse.headers).not.toHaveProperty('location');
       expect(responseResponse.body?.length).toBeGreaterThan(80);
-      expect(responseResponse.body).toContain('<iframe src="/3.2.1-beta.1/bat.html" seamless');
+      expect(responseResponse.body).toContain('<iframe src="/3.2.1-beta.1/notVersion" seamless');
     });
   });
 

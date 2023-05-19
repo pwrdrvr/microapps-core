@@ -1631,7 +1631,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse.headers?.location[0].value).toBe('/bat/3.2.1-beta.3/bat.html');
   });
 
-  it('static app - request to app/notVersion should load app frame with defaultFile', async () => {
+  it('static app - request to app/notVersion should load app frame with notVersion suffix', async () => {
     const AppName = 'BatAppNotVersion';
     const app = new Application({
       AppName,
@@ -1690,7 +1690,7 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(responseResponse.headers).not.toHaveProperty('location');
     expect(responseResponse.body?.length).toBeGreaterThan(80);
     expect(responseResponse.body).toContain(
-      `<iframe src="/${AppName}/3.2.1-beta.1/bat.html" seamless`,
+      `<iframe src="/${AppName}/3.2.1-beta.1/notVersion" seamless`,
     );
   });
 
