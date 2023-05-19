@@ -7,6 +7,14 @@ import { APIGateway, IAPIGateway } from './APIGateway';
 import { Database, IDatabase } from './Database';
 import { FileStore, IFileStore } from './FileStore';
 
+const StringArray = {
+  name: 'StringArray',
+  coerce: (v: string) => v.split(','),
+  validate: () => {
+    // do nothing
+  },
+};
+
 /**
  * Represents a Config
  */
@@ -45,6 +53,7 @@ export interface IConfig {
   formats: {
     url,
     ipaddress,
+    StringArray,
   },
 })
 export class Config implements IConfig {
@@ -142,6 +151,7 @@ export class Config implements IConfig {
     doc: 'ARN of the Role used by the Edge to Origin Lambda function to invoke the app',
     default: '',
     env: 'EDGE_TO_ORIGIN_ROLE_ARN',
+    format: 'StringArray',
   })
   public edgeToOriginRoleARN!: string[];
 }
