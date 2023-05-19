@@ -21,7 +21,7 @@ const theConfig: Writeable<IConfig> = {
   rootPathPrefix: 'dev',
   requireIAMAuthorization: true,
   parentDeployerLambdaARN: '',
-  edgeToOriginRoleARN: '',
+  edgeToOriginRoleARN: [],
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
@@ -107,6 +107,143 @@ describe('LambdaAlias', () => {
     s3Client.restore();
     apigwyClient.restore();
     lambdaClient.restore();
+  });
+
+  describe('lambdaAlias - Child Account', () => {
+    it('should call parent deployer when child account', async () => {
+      // @ts-expect-error We want to overwrite this
+      config.parentDeployerLambdaARN =
+        'arn:aws:lambda:us-east-1:123456789012:function:parent-deployer';
+      // @ts-expect-error We want to overwrite this
+      config.edgeToOriginRoleARN = ['arn:aws:iam::123456789012:role/edge-to-origin'];
+
+      const appName = 'newapp';
+      const semVer = '0.0.0';
+      const fakeLambdaVersion = '31';
+      const fakeLambdaARNWithVersion = `${fakeLambdaARNBase}:${fakeLambdaVersion}`;
+      const fakeLambdaAlias = 'v0_0_0';
+
+      const extraOriginRoleARN = 'arn:aws:iam::123456789012:role/edge-to-origin-parent-extra';
+
+      s3Client.onAnyCommand().rejects();
+      stsClient.onAnyCommand().rejects();
+      lambdaClient
+        .onAnyCommand()
+        .rejects()
+        .on(lambda.GetFunctionCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaVersion,
+        })
+        .resolves({
+          Configuration: {
+            LastUpdateStatus: 'Successful',
+            FunctionArn: `${fakeLambdaARNBase}:${fakeLambdaVersion}`,
+          },
+        })
+        .on(lambda.GetAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+        })
+        .rejects({
+          name: 'ResourceNotFoundException',
+        })
+        .on(lambda.CreateAliasCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Name: fakeLambdaAlias,
+          FunctionVersion: fakeLambdaVersion,
+        })
+        .resolves({
+          AliasArn: `${fakeLambdaARNBase}:${fakeLambdaAlias}`,
+          FunctionVersion: fakeLambdaVersion,
+        })
+        // AddTagToFunction
+        .on(lambda.ListTagsCommand, {
+          Resource: fakeLambdaARNBase,
+        })
+        .resolves({
+          Tags: {
+            'app-name': appName,
+            'sem-ver': semVer,
+          },
+        })
+        .on(lambda.TagResourceCommand, {
+          Resource: fakeLambdaARNBase,
+          Tags: {
+            'microapp-managed': 'true',
+          },
+        })
+        .resolves({})
+        // AddOrUpdateFunctionUrl
+        .on(lambda.GetFunctionUrlConfigCommand, {
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          FunctionUrl: 'https://fakeurl.com',
+        })
+        .on(lambda.InvokeCommand, {
+          FunctionName: config.parentDeployerLambdaARN,
+          Payload: Buffer.from(
+            JSON.stringify({
+              type: 'getConfig',
+            }),
+          ),
+        })
+        .resolves({
+          $metadata: {
+            httpStatusCode: 200,
+          },
+          Payload: Buffer.from(
+            JSON.stringify({
+              statusCode: 200,
+              type: 'getConfig',
+              originRequestRoleARNs: [extraOriginRoleARN],
+            }),
+          ),
+        })
+        .on(lambda.AddPermissionCommand, {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          Principal: config.edgeToOriginRoleARN![0],
+          StatementId: `microapps-edge-to-origin`,
+          Action: 'lambda:InvokeFunctionUrl',
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          $metadata: {
+            httpStatusCode: 200,
+          },
+        })
+        .on(lambda.AddPermissionCommand, {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          Principal: extraOriginRoleARN,
+          StatementId: `microapps-edge-to-origin-1`,
+          Action: 'lambda:InvokeFunctionUrl',
+          FunctionName: fakeLambdaARNBase,
+          Qualifier: fakeLambdaAlias,
+        })
+        .resolves({
+          $metadata: {
+            httpStatusCode: 200,
+          },
+        });
+
+      const request: ILambdaAliasRequest = {
+        appName,
+        semVer,
+        lambdaARN: fakeLambdaARNWithVersion,
+        type: 'lambdaAlias',
+      };
+      const response = (await handler(request, {
+        awsRequestId: '123',
+      } as lambdaTypes.Context)) as ILambdaAliasResponse;
+
+      expect(response.statusCode).toBe(201);
+      expect(response.type).toBe('lambdaAlias');
+      expect(response.lambdaAliasARN).toBe(`${fakeLambdaARNBase}:${fakeLambdaAlias}`);
+      expect(response.functionUrl).toBe('https://fakeurl.com');
+      expect(lambdaClient.calls()).toHaveLength(9);
+    });
   });
 
   describe('lambdaAlias - version ARN passed', () => {

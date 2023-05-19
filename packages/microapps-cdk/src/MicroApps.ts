@@ -147,7 +147,7 @@ export interface MicroAppsProps {
    *
    * To get the AROA with the AWS CLI:
    *   aws iam get-role --role-name ROLE-NAME
-   *   aws iam get-user -–user-name USER-NAME
+   *   aws iam get-user --user-name USER-NAME
    *
    * @example [ 'AROA1234567890123' ]
    *

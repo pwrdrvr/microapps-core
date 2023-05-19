@@ -1432,7 +1432,7 @@ of applying the Deny Rule to roles from other accounts.
 
 To get the AROA with the AWS CLI:
    aws iam get-role --role-name ROLE-NAME
-   aws iam get-user -–user-name USER-NAME
+   aws iam get-user --user-name USER-NAME
 
 > s3StrictBucketPolicy
 
@@ -1730,7 +1730,7 @@ of applying the Deny Rule to roles from other accounts.
 
 To get the AROA with the AWS CLI:
    aws iam get-role --role-name ROLE-NAME
-   aws iam get-user -–user-name USER-NAME
+   aws iam get-user --user-name USER-NAME
 
 > s3StrictBucketPolicy
 

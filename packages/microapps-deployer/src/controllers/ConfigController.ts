@@ -18,7 +18,9 @@ export default class ConfigController {
       type: 'getConfig',
       originRequestRoleARNs: Array.isArray(config.edgeToOriginRoleARN)
         ? (config.edgeToOriginRoleARN as string[])
-        : [config.edgeToOriginRoleARN ?? ''],
+        : config.edgeToOriginRoleARN
+        ? [config.edgeToOriginRoleARN]
+        : [],
     };
   }
 }

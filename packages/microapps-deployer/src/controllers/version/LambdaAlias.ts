@@ -379,8 +379,11 @@ async function AddCrossAccountPermissionsToAlias({
     return;
   }
 
-  // TODO: Call the parent Deployer to get the list of Role ARNs that are allowed
-  let originRequestRoleARNs: string[] = [];
+  // Call the parent Deployer to get the additional list of Role ARNs that are allowed
+  const originRequestRoleARNs: string[] =
+    config.edgeToOriginRoleARN && config.edgeToOriginRoleARN.length > 0
+      ? [...config.edgeToOriginRoleARN]
+      : [];
   const request: IGetConfigRequest = {
     type: 'getConfig',
   };
@@ -400,7 +403,7 @@ async function AddCrossAccountPermissionsToAlias({
     }
 
     if (dResponse.originRequestRoleARNs && dResponse.originRequestRoleARNs.length > 0) {
-      originRequestRoleARNs = dResponse.originRequestRoleARNs;
+      originRequestRoleARNs.push(...dResponse.originRequestRoleARNs);
     }
   } else {
     throw new Error(
