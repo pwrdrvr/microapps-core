@@ -9,7 +9,7 @@ import { FileStore, IFileStore } from './FileStore';
 
 const StringArray = {
   name: 'StringArray',
-  coerce: (v: string) => v.split(','),
+  coerce: (v: string) => (v ?? '').split(','),
   validate: () => {
     // do nothing
   },
