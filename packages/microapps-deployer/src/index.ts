@@ -51,6 +51,8 @@ dbManager = new DBManager({ dynamoClient, tableName: Config.instance.db.tableNam
 
 const config = Config.instance;
 
+Log.Instance.info('Deployer config', config);
+
 export async function handler(
   event: IRequestBase,
   context?: lambda.Context,
