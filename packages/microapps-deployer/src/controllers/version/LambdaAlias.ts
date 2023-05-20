@@ -434,7 +434,10 @@ async function AddCrossAccountPermissionsToAlias({
   interface IPolicyDocument {
     Version: string;
     Id: string;
-    Statement: { Sid: string; Principal: { AWS: string } }[];
+    Statement: {
+      Sid: string;
+      Principal: { AWS: string };
+    }[];
   }
 
   let policyDoc: IPolicyDocument | undefined = undefined;
@@ -487,6 +490,9 @@ async function AddCrossAccountPermissionsToAlias({
         Action: 'lambda:InvokeFunctionUrl',
         FunctionName: lambdaBaseARN,
         Qualifier: lambdaAlias,
+        // Require that the Function URL used IAM auth
+        // This prevents accidentally opening the function up to the world
+        FunctionUrlAuthType: 'AWS_IAM',
       }),
     );
   }
