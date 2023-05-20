@@ -70,7 +70,7 @@
     "prettier": "2.8.4",
     "projen": "0.56.19",
     "replace-in-file": "6.3.5",
-    "rimraf": "4.3.0",
+    "rimraf": "5.0.1",
     "start-server-and-test": "^1.14.0",
     "ts-jest": "29.0.5",
     "ts-node": "10.9.1",
