@@ -380,6 +380,11 @@ async function AddCrossAccountPermissionsToAlias({
     return;
   }
 
+  Log.Instance.info('Adding cross-account permissions to lambda alias', {
+    lambdaBaseARN,
+    lambdaAlias,
+  });
+
   // Call the parent Deployer to get the additional list of Role ARNs that are allowed
   const originRequestRoleARNs: string[] =
     config.edgeToOriginRoleARN && config.edgeToOriginRoleARN.length > 0
@@ -412,6 +417,8 @@ async function AddCrossAccountPermissionsToAlias({
           originRequestRoleARNs.push(...filteredRoles);
         }
       }
+    } else {
+      Log.Instance.info('Get config failed, adding only locally configurd role');
     }
   } else {
     throw new Error(
@@ -424,6 +431,15 @@ async function AddCrossAccountPermissionsToAlias({
   // 3. Create statement ids with a hash of the role ARNs
   // 4. Add the role ARNs that were missing
 
+  interface IPolicyDocument {
+    Version: string;
+    Id: string;
+    Statement: { Sid: string; Principal: { AWS: string } }[];
+  }
+
+  let policyDoc: IPolicyDocument | undefined = undefined;
+
+  // Getting the policy will throw if it does not exist
   try {
     const existingPolicy = await lambdaClient.send(
       new lambda.GetPolicyCommand({
@@ -432,44 +448,46 @@ async function AddCrossAccountPermissionsToAlias({
       }),
     );
     if (existingPolicy.Policy) {
-      interface IPolicyDocument {
-        Version: string;
-        Id: string;
-        Statement: { Sid: string; Principal: { AWS: string } }[];
-      }
-      const policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
-
-      if (policyDoc.Statement) {
-        // Loop through statements to check which role ARNs are already allowed
-        const existingRoleArns = policyDoc.Statement.filter((value) =>
-          (value.Sid ?? '').startsWith('microapps-edge-to-origin'),
-        ).map((value) => value.Principal.AWS);
-
-        // Determine which ARNs need to be added
-        const rolesToAdd = originRequestRoleARNs.filter(
-          (roleArn) => !existingRoleArns.includes(roleArn),
-        );
-
-        for (const roleToAdd of rolesToAdd) {
-          // Create statement ids with a hash of the role ARNs
-          const roleArnHash = createHash('sha256').update(roleToAdd).digest('hex').substring(0, 8);
-
-          // Add the role ARNs that were missing
-          await lambdaClient.send(
-            new lambda.AddPermissionCommand({
-              Principal: roleToAdd,
-              StatementId: `microapps-edge-to-origin-${roleArnHash}`,
-              Action: 'lambda:InvokeFunctionUrl',
-              FunctionName: lambdaBaseARN,
-              Qualifier: lambdaAlias,
-            }),
-          );
-        }
-      }
+      policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
     }
   } catch (error: any) {
     if (error.name !== 'ResourceNotFoundException') {
       throw error;
     }
+
+    // Policy does not exist, create it by falling through
+  }
+
+  // If policyDoc is still undefined after trying to retrieve it, we assume there's no existing policy.
+  if (!policyDoc) {
+    policyDoc = {
+      Version: '2012-10-17',
+      Id: `${lambdaBaseARN}/default`,
+      Statement: [],
+    };
+  }
+
+  // Now proceed with the role ARN processing.
+  const existingRoleArns = policyDoc.Statement.filter((value) =>
+    value.Sid.startsWith('microapps-edge-to-origin'),
+  ).map((value) => value.Principal.AWS);
+
+  // Determine which ARNs need to be added
+  const rolesToAdd = originRequestRoleARNs.filter((roleArn) => !existingRoleArns.includes(roleArn));
+
+  for (const roleToAdd of rolesToAdd) {
+    // Create statement ids with a hash of the role ARNs
+    const roleArnHash = createHash('sha256').update(roleToAdd).digest('hex');
+
+    // Add the role ARNs that were missing
+    await lambdaClient.send(
+      new lambda.AddPermissionCommand({
+        Principal: roleToAdd,
+        StatementId: `microapps-edge-to-origin-${roleArnHash}`,
+        Action: 'lambda:InvokeFunction',
+        FunctionName: lambdaBaseARN,
+        Qualifier: lambdaAlias,
+      }),
+    );
   }
 }
