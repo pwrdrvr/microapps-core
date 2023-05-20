@@ -220,6 +220,7 @@ describe('LambdaAlias', () => {
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
+          FunctionUrlAuthType: 'AWS_IAM',
         })
         .resolves({
           $metadata: {
@@ -235,6 +236,7 @@ describe('LambdaAlias', () => {
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
+          FunctionUrlAuthType: 'AWS_IAM',
         })
         .resolves({
           $metadata: {
@@ -494,6 +496,7 @@ describe('LambdaAlias', () => {
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
+          FunctionUrlAuthType: 'AWS_IAM',
         })
         .resolves({
           $metadata: {
