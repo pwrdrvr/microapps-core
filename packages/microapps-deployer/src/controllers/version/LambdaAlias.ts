@@ -477,14 +477,14 @@ async function AddCrossAccountPermissionsToAlias({
 
   for (const roleToAdd of rolesToAdd) {
     // Create statement ids with a hash of the role ARNs
-    const roleArnHash = createHash('sha256').update(roleToAdd).digest('hex');
+    const roleArnHash = createHash('sha256').update(roleToAdd).digest('hex').substring(0, 8);
 
     // Add the role ARNs that were missing
     await lambdaClient.send(
       new lambda.AddPermissionCommand({
         Principal: roleToAdd,
         StatementId: `microapps-edge-to-origin-${roleArnHash}`,
-        Action: 'lambda:InvokeFunction',
+        Action: 'lambda:InvokeFunctionUrl',
         FunctionName: lambdaBaseARN,
         Qualifier: lambdaAlias,
       }),
