@@ -8,10 +8,10 @@ This document contains instructions, tips, and example commands for those contri
   - `npm run build`
   - `npm link`
 - In the consuming app directory
-  - `npm link --save-dev @pwrdrvr/microapps-publish`
+  - `npm link --save-dev pwrdrvr`
 - Test the version
-  - `npx microapps-publish --help`
+  - `npx pwrdrvr --help`
 - Unlink when done
-  - `npx @pwrdrvr/microapps-publish`
+  - `npx pwrdrvr`
 
 [More Info](https://dev.to/jamesqquick/how-to-test-npm-packages-locally-5elb)

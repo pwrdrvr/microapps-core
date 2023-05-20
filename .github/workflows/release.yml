@@ -19,7 +19,7 @@ jobs:
     outputs:
       latest_commit: ${{ steps.git_remote.outputs.latest_commit }}
     env:
-      CI: "true"
+      CI: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -45,7 +45,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
       - name: Build All TypeScript
-        run: yarn build 
+        run: yarn build
       - name: Run Node Tests
         env:
           NODE_ENV: test
@@ -137,13 +137,20 @@ jobs:
           cat dist/version.txt
           npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
       - name: Build Publish TypeScript
-        run: yarn build:publish 
+        run: yarn build:publish
       - name: Run Lint
         run: yarn lint
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v3
         with:
           name: publish-tool-dist
+          path: |
+            packages/pwrdrvr/
+            !packages/pwrdrvr/node_modules/
+      - name: Upload Publish Tool - Convenience artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-tool-dist-convenience
           path: |
             packages/microapps-publish/
             !packages/microapps-publish/node_modules/
@@ -193,7 +200,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPMJSORG_PUBLISH_TOKEN }} # publib requires NPM_TOKEN as an env var
   release_npm_publish_tool:
     name: Publish to npm - Publish Tool
-    needs: [ release, release_npm, release-publish-tool ]
+    needs: [release, release_npm, release-publish-tool]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -206,6 +213,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: publish-tool-dist
+          path: packages/pwrdrvr
+      - name: Download Publish Tool - Convenience build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: publish-tool-dist-convenience
           path: packages/microapps-publish
       - name: Download Datalib build artifacts
         uses: actions/download-artifact@v3
@@ -223,6 +235,10 @@ jobs:
       - name: NPM registry authentication
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
       - name: Release Publish Tool - NPM
+        working-directory: packages/pwrdrvr/
+        run: |
+          npm publish
+      - name: Release Publish Tool - Convenience - NPM
         working-directory: packages/microapps-publish/
         run: |
           npm publish

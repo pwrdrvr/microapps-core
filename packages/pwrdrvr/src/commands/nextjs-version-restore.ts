@@ -7,7 +7,7 @@ export class NextJSVersionRestoreCommand extends Command {
   static description = 'Restore next.config.js';
 
   static examples = [
-    `$ microapps-publish nextjs-version-restore
+    `$ pwrdrvr nextjs-version-restore
 ✔ Restoring Modified Config Files [0.0s]
 `,
   ];

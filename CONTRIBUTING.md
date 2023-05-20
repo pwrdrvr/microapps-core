@@ -12,7 +12,7 @@ Instructions, tools, and tips for those wishing to contribute.
 - [Bootstrapping Projen Templates](#bootstrapping-projen-templates)
 - [Releasing NPM Packages](#releasing-npm-packages)
   - [Get the Version that Projen Tagged](#get-the-version-that-projen-tagged)
-  - [Apply Version to microapps-publish Package.json](#apply-version-to-microapps-publish-packagejson)
+  - [Apply Version to `pwrdrvr` Package.json](#apply-version-to-pwrdrvr-packagejson)
 - [Cleaning Git History](#cleaning-git-history)
   - [Example `filter.txt`](#example-filtertxt)
 
@@ -58,9 +58,9 @@ npx projen new awscdk-construct --no-git --name @pwrdrvr/microapps-cdk --author 
 
 # Releasing NPM Packages
 
-Challenge: `projen` does not support monorepos well, so it can build, tag, version, and release the CDK Construct library in `packages/microapps-cdk` but it cannot be invoked to release `packages/microapps-publish` and, because it doesn't support monorepos well, it cannot build and publish both in one invocation.
+Challenge: `projen` does not support monorepos well, so it can build, tag, version, and release the CDK Construct library in `packages/microapps-cdk` but it cannot be invoked to release `packages/pwrdrvr` and, because it doesn't support monorepos well, it cannot build and publish both in one invocation.
 
-Below are tips, tricks, and commands used to build and release `microapps-publish` to NPM after `microapps-cdk` is done being published by `projen`.
+Below are tips, tricks, and commands used to build and release `pwrdrvr` to NPM after `microapps-cdk` is done being published by `projen`.
 
 ## Get the Version that Projen Tagged
 
@@ -72,7 +72,7 @@ Note: this _has_ to be done with `npm 7.18.1` in `node 16` as a fix from April, 
 
 Example output: `v0.9.3`
 
-## Apply Version to microapps-publish Package.json
+## Apply Version to `pwrdrvr` Package.json
 
 Note: this can accept the `v`-prefixed version (e.g. `v0.9.3`) retrieved from `npm version from-git --allow-same-version --no-git-tag-version`
 

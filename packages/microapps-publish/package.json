@@ -1,14 +1,11 @@
 {
   "name": "@pwrdrvr/microapps-publish",
   "version": "0.0.0",
-  "description": "Publish tool for deploying apps and updates",
+  "description": "Convenience package: renamed to `pwrdrvr`",
   "main": "dist/index.js",
   "source": "src/index.ts",
   "publishConfig": {
     "access": "public"
-  },
-  "bin": {
-    "microapps-publish": "./bin/run"
   },
   "engineStrict": true,
   "engine": {
@@ -18,8 +15,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
-    "dist",
-    "src",
     "package.json",
     "LICENSE",
     "README.md"
@@ -34,49 +29,9 @@
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "dependencies": {
-    "@aws-sdk/client-lambda": "^3.78.0",
-    "@aws-sdk/client-s3": "^3.78.0",
-    "@aws-sdk/client-sts": "^3.78.0",
-    "@aws-sdk/lib-storage": "^3.78.0",
-    "@oclif/command": "^1.8.4",
-    "@oclif/config": "^1.17.1",
-    "@oclif/core": "^1.0.4",
-    "@oclif/errors": "^1.3.5",
-    "@oclif/plugin-help": "^3.2.7",
-    "chalk": "^4.1.2",
-    "convict": "^6.1.0",
-    "convict-format-with-validator": "^6.0.1",
-    "fs-extra": "^9.1.0",
-    "js-yaml": "^4.1.0",
-    "listr2": "^3.13.5",
-    "mime-types": "^2.1.30",
-    "p-map": "^4.0.0",
-    "reflect-metadata": "^0.1.13",
-    "source-map-support": "0.5.21",
-    "ts-convict": "^1.1.0",
-    "tslib": "^2.1.0"
-  },
-  "peerDependencies": {
-    "@aws-sdk/client-lambda": "^3.78.0",
-    "@aws-sdk/client-s3": "^3.78.0",
-    "@aws-sdk/client-sts": "^3.78.0",
-    "@aws-sdk/lib-storage": "^3.78.0"
-  },
+  "dependencies": {},
+  "peerDependencies": {},
   "devDependencies": {
-    "@types/convict": "^6.0.2",
-    "@types/convict-format-with-validator": "^6.0.2",
-    "@types/fs-extra": "^9.0.11",
-    "@types/js-yaml": "^4.0.1",
-    "@types/mime-types": "^2.1.0",
-    "@types/source-map-support": "0.5.6",
-    "type-fest": "^0.20.2"
-  },
-  "oclif": {
-    "commands": "./dist/commands/",
-    "bin": "microapps-publish",
-    "plugins": [
-      "@oclif/plugin-help"
-    ]
+    "pwrdrvr": "*"
   }
 }

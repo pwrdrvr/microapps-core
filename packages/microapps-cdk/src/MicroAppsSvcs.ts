@@ -365,7 +365,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     //
     // Deployer upload temp role
     // Deployer assumes this role with a limited policy to generate
-    // an STS temp token to return to microapps-publish for the upload.
+    // an STS temp token to return to the `pwrdrvr` CLI for the upload.
     //
     const iamRoleUpload = new iam.Role(this, 'deployer-upload-role', {
       roleName: iamRoleUploadName,
