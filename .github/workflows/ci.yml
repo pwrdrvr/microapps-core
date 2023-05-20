@@ -332,7 +332,7 @@ jobs:
 
       - name: Publish URL App to MicroApps
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name blog \
             --type url \
             --new-version ${PACKAGE_VERSION} \
@@ -342,7 +342,7 @@ jobs:
 
       - name: Publish Static App to Child MicroApps
         run: |
-          npx microapps-publish publish-static \
+          npx pwrdrvr publish-static \
             --app-name ${STATIC_APP_NAME} \
             --new-version 0.0.0 \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_ARN} \
@@ -352,7 +352,7 @@ jobs:
 
       - name: Publish Demo App to MicroApps
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name ${DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
@@ -386,7 +386,7 @@ jobs:
 
       - name: Publish Demo App to MicroApps - To Delete
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name ${DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
@@ -400,14 +400,14 @@ jobs:
 
       - name: Delete Demo App - To Delete
         run: |
-          npx microapps-publish delete \
+          npx pwrdrvr delete \
             --app-name ${DEMO_APP_NAME} \
             --new-version 0.0.0-delete.1  \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME}
 
       - name: Publish Demo App to MicroApps - Root App
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name '[root]' \
             --type lambda-url \
             --startup-type direct \
@@ -441,7 +441,7 @@ jobs:
 
       - name: Publish Nextjs Demo App to MicroApps
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name ${NEXTJS_DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
@@ -473,7 +473,7 @@ jobs:
 
       - name: Publish Release App to MicroApps
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name ${RELEASE_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
@@ -566,7 +566,7 @@ jobs:
       - name: Publish Demo App to Child MicroApps - To Delete
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name ${DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \
@@ -580,7 +580,7 @@ jobs:
       - name: Delete Demo App from Child MicroApps - To Delete
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
-          npx microapps-publish delete \
+          npx pwrdrvr delete \
             --app-name ${DEMO_APP_NAME} \
             --new-version 0.0.0-childDelete.1  \
             --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN}
@@ -588,7 +588,7 @@ jobs:
       - name: Publish Demo App to Child MicroApps
         if: ${{ matrix.deployName == 'microapps-core' }}
         run: |
-          npx microapps-publish publish \
+          npx pwrdrvr publish \
             --app-name ${DEMO_APP_NAME} \
             --type lambda-url \
             --startup-type direct \

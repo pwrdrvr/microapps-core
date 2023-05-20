@@ -8,7 +8,7 @@ export class NextJSVersionCommand extends Command {
   static description = 'Apply version to next.config.js overtop of 0.0.0 placeholder';
 
   static examples = [
-    `$ microapps-publish nextjs-version -n 0.0.13
+    `$ pwrdrvr nextjs-version -n 0.0.13
 ✔ Modifying Config Files [0.0s]
 `,
   ];

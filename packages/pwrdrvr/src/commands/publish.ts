@@ -52,7 +52,7 @@ export class PublishCommand extends Command {
     'Publish arbitrary framework app - deploy static assets to S3, alias the $LATEST Lambda function, and add integration/route to API Gateway.';
 
   static examples = [
-    `$ microapps-publish publish -d microapps-deployer-dev -l microapps-app-release-dev -a release -n 0.0.21
+    `$ pwrdrvr publish -d microapps-deployer-dev -l microapps-app-release-dev -a release -n 0.0.21
 ✔ Get S3 Temp Credentials [1s]
 ✔ Deploy to Lambda [0.6s]
 ✔ Confirm Static Assets Folder Exists [0.0s]

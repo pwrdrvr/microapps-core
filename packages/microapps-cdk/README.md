@@ -86,7 +86,7 @@ Note: requests can also be dispatched into the same account, but this model is m
   - Deploys the CDK Stack
   - Essentially runs two commands along with extraction of outputs:
     - `npx cdk deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic`
-    - `npx microapps-publish publish --app-name release --new-version ${RELEASE_APP_PACKAGE_VERSION} --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} --app-lambda-name ${RELEASE_APP_LAMBDA_NAME} --static-assets-path node_modules/@pwrdrvr/microapps-app-release-cdk/lib/static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --no-cache`
+    - `npx pwrdrvr publish --app-name release --new-version ${RELEASE_APP_PACKAGE_VERSION} --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} --app-lambda-name ${RELEASE_APP_LAMBDA_NAME} --static-assets-path node_modules/@pwrdrvr/microapps-app-release-cdk/lib/static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --no-cache`
   - URL will be printed as last output
 
 # Limitations / Future Development
@@ -95,14 +95,6 @@ Note: requests can also be dispatched into the same account, but this model is m
   - For the time being this has only been implemented for AWS technologies and APIs
   - It is possible that Azure and GCP have sufficient support to enable porting the framework
   - CDK would have to be replaced as well (unless it's made available for Azure and GCP in the near future)
-- `microapps-publish` only supports Lambda function apps
-  - There is no technical reason for the apps to only run as Lambda functions
-  - Web apps could just as easily run on EC2, Kubernetes, EKS, ECS, etc
-  - Anything that API Gateway can route to can work for serving a MicroApp
-  - The publish tool needs to provide additional options for setting up the API Gateway route to the app
-- Authentication
-  - Authentication requires rolling your own API Gateway and CloudFront deployment at the moment
-  - The "turn key" CDK Construct should provide options to show an example of how authentication can be integrated
 - Release Rules
   - Currently only a Default rule is supported
   - Need to evaluate if a generic implementation can be made, possibly allowing plugins or webhooks to support arbitrary rules
@@ -181,13 +173,13 @@ With Lambda@Edge (even with Origin Requests) the cost is 3x higher per GB-second
 - [packages/microapps-datalib](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-datalib)
   - Installed from `npm`:
     - `npm i -g @pwrdrvr/microapps-datalib`
-  - APIs for access to the DynamoDB Table used by `microapps-publish`, `microapps-deployer`, and `@pwrdrvr/microapps-app-release-cdk`
+  - APIs for access to the DynamoDB Table used by the `pwrdrvr` CLI, `microapps-deployer`, and `@pwrdrvr/microapps-app-release-cdk`
 - [packages/microapps-deployer](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-deployer)
-  - Lambda service invoked by `microapps-publish` to record new app/version in the DynamoDB table, create API Gateway integrations, copy S3 assets from staging to prod bucket, etc.
+  - Lambda service invoked by the `pwrdrvr` CLI to record new app/version in the DynamoDB table, create API Gateway integrations, copy S3 assets from staging to prod bucket, etc.
   - Returns a temporary S3 token with restricted access to the staging S3 bucket for upload of the static files for one app/semver
-- [packages/microapps-publish](https://github.com/pwrdrvr/microapps-core/tree/main/packages/microapps-publish)
+- [packages/pwrdrvr](https://github.com/pwrdrvr/microapps-core/tree/main/packages/pwrdrvr)
   - Installed from `npm`:
-    - `npm i -g @pwrdrvr/microapps-publish`
+    - `npm i -g pwrdrvr`
   - Node executable that updates versions in config files, deploys static assets to the S3 staging bucket, optionally compiles and deploys a new Lambda function version, and invokes `microapps-deployer`
   - AWS IAM permissions required:
     - `lambda:InvokeFunction`
@@ -200,20 +192,20 @@ With Lambda@Edge (even with Origin Requests) the cost is 3x higher per GB-second
 
 # Creating a MicroApp Using Docker Lambda Functions
 
-Note: semi-deprecated as of 2022-01-27. Zip Lambda functions are better supported.
+Docker Lambdas are great for large applications.  These used to be slower to cold start but as of early 2023 that appears to no longer be an issue.
 
 ## Next.js Apps
 
-Create a Next.js app then follow the steps in this section to set it up for publishing to AWS Lambda @ Origin as a MicroApp. To publish new versions of the app use `npx microapps-publish --new-version x.y.z` when logged in to the target AWS account.
+Create a Next.js app then follow the steps in this section to set it up for publishing to AWS Lambda @ Origin as a MicroApp. To publish new versions of the app use `npx pwrdrvr --new-version x.y.z` when logged in to the target AWS account.
 
 ### Modify package.json
 
-Replace the version with `0.0.0` so it can be modified by the `microapps-publish` tool.
+Replace the version with `0.0.0` so it can be modified by the `pwrdrvr` CLI.
 
 ### Install Dependencies
 
 ```
-npm i --save-dev @pwrdrvr/microapps-publish
+npm i --save-dev pwrdrvr
 ```
 
 ### Dockerfile

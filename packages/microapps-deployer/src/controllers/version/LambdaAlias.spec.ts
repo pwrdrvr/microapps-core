@@ -206,21 +206,8 @@ describe('LambdaAlias', () => {
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
         })
-        .resolves({
-          Policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              // {
-              //   Action: 'lambda:InvokeFunctionUrl',
-              //   Principal: roleToAdd,
-              // StatementId: `microapps-edge-to-origin-${roleArnHash}`,
-              // FunctionName: lambdaBaseARN,
-              // Qualifier: lambdaAlias,
-              //   Condition: {
-              //     ArnLike: {
-              //       'AWS:SourceArn': 'arn:aws:execute-api:us-east-1:123456789012:123/*',
-            ],
-          }),
+        .rejects({
+          name: 'ResourceNotFoundException',
         })
         .on(lambda.AddPermissionCommand, {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -233,6 +220,7 @@ describe('LambdaAlias', () => {
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
+          FunctionUrlAuthType: 'AWS_IAM',
         })
         .resolves({
           $metadata: {
@@ -248,6 +236,7 @@ describe('LambdaAlias', () => {
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
+          FunctionUrlAuthType: 'AWS_IAM',
         })
         .resolves({
           $metadata: {
@@ -493,21 +482,8 @@ describe('LambdaAlias', () => {
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
         })
-        .resolves({
-          Policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
-              // {
-              //   Action: 'lambda:InvokeFunctionUrl',
-              //   Principal: roleToAdd,
-              // StatementId: `microapps-edge-to-origin-${roleArnHash}`,
-              // FunctionName: lambdaBaseARN,
-              // Qualifier: lambdaAlias,
-              //   Condition: {
-              //     ArnLike: {
-              //       'AWS:SourceArn': 'arn:aws:execute-api:us-east-1:123456789012:123/*',
-            ],
-          }),
+        .rejects({
+          name: 'ResourceNotFoundException',
         })
         .on(lambda.AddPermissionCommand, {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -520,6 +496,7 @@ describe('LambdaAlias', () => {
           Action: 'lambda:InvokeFunctionUrl',
           FunctionName: fakeLambdaARNBase,
           Qualifier: fakeLambdaAlias,
+          FunctionUrlAuthType: 'AWS_IAM',
         })
         .resolves({
           $metadata: {

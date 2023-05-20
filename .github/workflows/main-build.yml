@@ -24,7 +24,7 @@ jobs:
     outputs:
       self_mutation_happened: ${{ steps.self_mutation.outputs.self_mutation_happened }}
     env:
-      CI: "true"
+      CI: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -47,7 +47,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
       - name: Build All TypeScript
-        run: yarn build 
+        run: yarn build
       - name: Run Node Tests
         env:
           NODE_ENV: test
@@ -142,13 +142,20 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
       - name: Build Publish TypeScript
-        run: yarn build:publish 
+        run: yarn build:publish
       - name: Run Lint
         run: yarn lint
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v3
         with:
           name: publish-tool-dist
+          path: |
+            packages/pwrdrvr/
+            !packages/pwrdrvr/node_modules/
+      - name: Upload Publish Tool - Convenience artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-tool-dist-convenience
           path: |
             packages/microapps-publish/
             !packages/microapps-publish/node_modules/
@@ -170,15 +177,20 @@ jobs:
   # Release Assets - Dry Run Only
   #
   package-js-publish-tool:
-    needs: [ build, build-publish-tool ]
+    needs: [build, build-publish-tool]
     runs-on: ubuntu-latest
     permissions: {}
-    if: "! needs.build.outputs.self_mutation_happened"
+    if: '! needs.build.outputs.self_mutation_happened'
     steps:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
       - name: Download Publish Tool build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: publish-tool-dist
+          path: packages/pwrdrvr
+      - name: Download Publish Tool - Convenience build artifacts
         uses: actions/download-artifact@v3
         with:
           name: publish-tool-dist
@@ -196,6 +208,10 @@ jobs:
       - name: NPM registry authentication
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
       - name: Release Publish Tool - NPM - Dry Run
+        working-directory: packages/pwrdrvr
+        run: |
+          npm publish --dry-run
+      - name: Release Publish Tool Convenience - NPM - Dry Run
         working-directory: packages/microapps-publish
         run: |
           npm publish --dry-run
@@ -209,10 +225,10 @@ jobs:
           npm publish --dry-run
 
   package-js:
-    needs: [ build ]
+    needs: [build]
     runs-on: ubuntu-latest
     permissions: {}
-    if: "! needs.build.outputs.self_mutation_happened"
+    if: '! needs.build.outputs.self_mutation_happened'
     steps:
       - uses: actions/setup-node@v3
         with:
@@ -234,7 +250,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: "! needs.build.outputs.self_mutation_happened"
+    if: '! needs.build.outputs.self_mutation_happened'
     steps:
       - uses: actions/setup-java@v2
         with:
@@ -260,7 +276,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: "! needs.build.outputs.self_mutation_happened"
+    if: '! needs.build.outputs.self_mutation_happened'
     steps:
       - uses: actions/setup-node@v3
         with:
@@ -285,7 +301,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: "! needs.build.outputs.self_mutation_happened"
+    if: '! needs.build.outputs.self_mutation_happened'
     steps:
       - uses: actions/setup-node@v3
         with:

@@ -9,7 +9,7 @@ export class PreflightCommand extends Command {
   static description = 'Check if app/version are available';
 
   static examples = [
-    `$ microapps-publish preflight -d microapps-deployer-dev -a release -n 0.0.13
+    `$ pwrdrvr preflight -d microapps-deployer-dev -a release -n 0.0.13
 ✔ Preflight Version Check [0.2s]
 `,
   ];
