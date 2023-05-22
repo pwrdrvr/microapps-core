@@ -102,7 +102,10 @@ export async function handler(
           : { statusCode: 500 };
         Log.Instance.info('response from parent deployer', {
           ...response,
-          Payload: responsePayload,
+          Payload: {
+            ...responsePayload,
+            awsCredentials: 'redacted',
+          },
         });
 
         return responsePayload;
