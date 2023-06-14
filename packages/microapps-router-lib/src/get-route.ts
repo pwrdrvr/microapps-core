@@ -61,6 +61,11 @@ export interface IGetRouteResult {
    * URL to the app if resolved
    */
   readonly url?: string;
+
+  /**
+   * Does the extra app path start with /api/
+   */
+  readonly isAPIPath?: boolean;
 }
 
 export interface IGetRouteEvent {
