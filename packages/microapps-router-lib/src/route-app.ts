@@ -73,6 +73,7 @@ export async function RouteApp(opts: {
       statusCode: 200,
       appName,
       semVer: possibleSemVerPathVersionInfo.SemVer,
+      isAPIPath: additionalParts.startsWith('api/'),
       ...(possibleSemVerPathVersionInfo?.URL ? { url: possibleSemVerPathVersionInfo?.URL } : {}),
       ...(possibleSemVerPathVersionInfo?.Type
         ? {
@@ -172,6 +173,7 @@ export async function RouteApp(opts: {
       appName,
       semVer: versionInfoToUse.SemVer,
       startupType: 'iframe',
+      isAPIPath: additionalParts.startsWith('api/'),
       ...(versionInfoToUse?.URL ? { url: versionInfoToUse?.URL } : {}),
       ...(versionInfoToUse?.Type
         ? { type: versionInfoToUse?.Type === 'lambda' ? 'apigwy' : versionInfoToUse?.Type }
@@ -192,6 +194,7 @@ export async function RouteApp(opts: {
       appName,
       semVer: versionInfoToUse.SemVer,
       startupType: 'direct',
+      isAPIPath: additionalParts.startsWith('api/'),
       ...(versionInfoToUse?.URL ? { url: versionInfoToUse?.URL } : {}),
       ...(versionInfoToUse?.Type ? { type: versionInfoToUse?.Type } : {}),
     };

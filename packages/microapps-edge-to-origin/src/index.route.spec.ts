@@ -292,6 +292,99 @@ describe('edge-to-origin - routing - without prefix', () => {
     expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
   });
 
+  it('should route `iframe` app request with appName and sub-path and query string without modifying path', async () => {
+    theConfig.replaceHostHeader = true;
+
+    const AppName = 'BatIFramePathQuery';
+
+    const app = new Application({
+      AppName,
+      DisplayName: 'IFrame Bat App',
+    });
+    await app.Save(dbManager);
+
+    const version = new Version({
+      AppName,
+      SemVer: '0.0.0',
+      Status: 'deployed',
+      Type: 'lambda-url',
+      StartupType: 'iframe',
+      URL: 'https://abc123.lambda-url.us-east-1.on.aws/',
+    });
+    await version.Save(dbManager);
+
+    const rules = new Rules({
+      AppName,
+      Version: 0,
+      RuleSet: { default: { SemVer: '0.0.0', AttributeName: '', AttributeValue: '' } },
+    });
+    await rules.Save(dbManager);
+
+    // Call the handler
+    // @ts-expect-error no callback
+    const response = await handler(
+      {
+        Records: [
+          {
+            cf: {
+              config: {
+                distributionDomainName: 'zyz.cloudfront.net',
+                distributionId: '123',
+                eventType: 'origin-request',
+                requestId: '123',
+              },
+              request: {
+                headers: {
+                  host: [
+                    {
+                      key: 'Host',
+                      value: 'zyz.cloudfront.net',
+                    },
+                  ],
+                },
+                method: 'GET',
+                querystring: 'param1=value1&param2=value2',
+                clientIp: '1.1.1.1',
+                uri: `/${AppName.toLowerCase()}/api/apiCall`,
+                origin: {
+                  custom: {
+                    customHeaders: {},
+                    domainName: 'zyz.cloudfront.net',
+                    keepaliveTimeout: 5,
+                    path: '',
+                    port: 443,
+                    protocol: 'https',
+                    readTimeout: 30,
+                    sslProtocols: ['TLSv1.2'],
+                  },
+                },
+              },
+            },
+          },
+        ],
+      } as lambda.CloudFrontRequestEvent,
+      {} as lambda.Context,
+    );
+
+    const requestResponse = response as lambda.CloudFrontRequest;
+    expect(requestResponse).toBeDefined();
+    expect(requestResponse).not.toHaveProperty('status');
+    expect(requestResponse).not.toHaveProperty('body');
+    expect(requestResponse).toHaveProperty('headers');
+    expect(requestResponse.headers).toHaveProperty('host');
+    expect(requestResponse.headers.host).toHaveLength(1);
+    expect(requestResponse.headers.host[0].key).toBe('Host');
+    expect(requestResponse.headers.host[0].value).toBe('abc123.lambda-url.us-east-1.on.aws');
+    expect(requestResponse).toHaveProperty('origin');
+    // Query string should be preserved
+    expect(requestResponse.querystring).toBe('param1=value1&param2=value2');
+    // Path should be preserved
+    expect(requestResponse.uri).toBe(`/${AppName.toLowerCase()}/api/apiCall`);
+    expect(requestResponse.origin).toHaveProperty('custom');
+    expect(requestResponse?.origin?.custom).toHaveProperty('domainName');
+    expect(requestResponse?.origin?.custom?.domainName).toBe('abc123.lambda-url.us-east-1.on.aws');
+  });
+
   it('should route `direct` app request with *locale* to origin for appName', async () => {
     theConfig.replaceHostHeader = true;
     theConfig.locales = ['en', 'sv'];

@@ -10,20 +10,20 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@aws-cdk/aws-apigatewayv2-alpha@^2.24.1-alpha.0":
-  version "2.24.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-alpha/-/aws-apigatewayv2-alpha-2.24.1-alpha.0.tgz"
-  integrity sha512-U7qi+mvGCJaUm8753yLs43L4PVPVaKJKU3RZ65iCj/uRB3dT2gDa7bdRQc6ptnvfZriLwDq6Au6NMbDAuNDluw==
+"@aws-cdk/aws-apigatewayv2-alpha@^2.28.0-alpha.0":
+  version "2.28.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-alpha/-/aws-apigatewayv2-alpha-2.28.0-alpha.0.tgz#1eb7eed14a0a3b54fe64e2c9aee3bdeac964ffb0"
+  integrity sha512-dYze4hixfJvQiVDy6FPjpSKMQKjh1Y9pX16Q5mdjrVJpNiX5j4vRoBcrOXYCpATDzD0XMBQ6Zpr9MSjDLlGuOw==
 
-"@aws-cdk/aws-apigatewayv2-authorizers-alpha@^2.24.1-alpha.0":
-  version "2.24.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-authorizers-alpha/-/aws-apigatewayv2-authorizers-alpha-2.24.1-alpha.0.tgz#4db817ba3ade0af252cfc6ec75768bce7fa68e8c"
-  integrity sha512-/G7xe13xtFRwYxom/Ya3d/voRS9M2jIvPNYfhljxsE7L5bz4ldK5y3xY/5Lg9Okk4FjSInuWpCgQE5vb7+COOA==
+"@aws-cdk/aws-apigatewayv2-authorizers-alpha@^2.28.0-alpha.0":
+  version "2.28.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-authorizers-alpha/-/aws-apigatewayv2-authorizers-alpha-2.28.0-alpha.0.tgz#53d526cefa1327f87641ecc96bc352e2e4be95d2"
+  integrity sha512-ZggtktYQi7r2zGVh00jGyphveMqUZgkwrushNX7qjRQ6jbGdJdoOlFyzfsjcpw+55iDkc2xKuJtkqSC73Ho9nw==
 
-"@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.24.1-alpha.0":
-  version "2.24.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-integrations-alpha/-/aws-apigatewayv2-integrations-alpha-2.24.1-alpha.0.tgz"
-  integrity sha512-/Nu2DH9suome5w7306T3tzqPMoQB3fve4xzX5VpTC798F7cQUlMqcxzyZD3s55nuRXnhRZoLdAQlwLbEUxUIxA==
+"@aws-cdk/aws-apigatewayv2-integrations-alpha@^2.28.0-alpha.0":
+  version "2.28.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/aws-apigatewayv2-integrations-alpha/-/aws-apigatewayv2-integrations-alpha-2.28.0-alpha.0.tgz#5a4408a4119a940802b3306fae94217590343772"
+  integrity sha512-vuWQvNv7QCtQMnEnsw4DZcjETezvw3PdzbxtS6jeLriJVrCqKey73YjGYX0TkB/KTM2D7BMbPow9QvQ5FmEnVg==
 
 "@aws-crypto/crc32@2.0.0":
   version "2.0.0"
@@ -4304,25 +4304,25 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-cdk-lib@2.24.1:
-  version "2.24.1"
-  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.24.1.tgz"
-  integrity sha512-xGeEX+9wPGppSiIUdf/JTLMmqMikGhlSi7bjijl3lwncZtySkdjX0j+W2A1fuKp0S8Yd2axkwVkltIMxzNH/gw==
+aws-cdk-lib@2.28.0:
+  version "2.28.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.28.0.tgz#bf01b0233d41ba7c211c4a039258850c42459604"
+  integrity sha512-ZAhIQ+mX2JYx8st6enan8qBzts7o+PXFJxLABIUYZSSus/ScWx9POLIVsV28LXorM4Y2su23VfWM7iVmCNxYAQ==
   dependencies:
     "@balena/dockerignore" "^1.0.2"
     case "1.6.3"
     fs-extra "^9.1.0"
     ignore "^5.2.0"
-    jsonschema "^1.4.0"
+    jsonschema "^1.4.1"
     minimatch "^3.1.2"
     punycode "^2.1.1"
     semver "^7.3.7"
     yaml "1.10.2"
 
-aws-cdk@^2.24.1:
-  version "2.24.1"
-  resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.24.1.tgz"
-  integrity sha512-fDcJW7tLbqsCvWB3eZY6glRrjRE45VqLT+JuKz3C2jIe6qXkwV8dBwYXElwY/tTCh/hDlpWtCNMRdhmrdE25GQ==
+aws-cdk@^2.28.0:
+  version "2.83.1"
+  resolved "https://registry.yarnpkg.com/aws-cdk/-/aws-cdk-2.83.1.tgz#a71c226f806b2e2ccfff0a5b3c1037759b1c15ee"
+  integrity sha512-hM2fsHl2TXk3B0MTq7zRU/KqJiVrnTQ3SXbAfleQCfCf/Jpy6yD6nGqrEADFAYNLSPoA9iC3SLnO73SPqqjjRQ==
   optionalDependencies:
     fsevents "2.3.2"
 
@@ -7961,9 +7961,9 @@ jsonparse@^1.2.0, jsonparse@^1.3.1:
   resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.3.1.tgz"
   integrity sha1-P02uSpH6wxX3EGL4UhzCOfE2YoA=
 
-jsonschema@^1.4.0:
+jsonschema@^1.4.0, jsonschema@^1.4.1:
   version "1.4.1"
-  resolved "https://registry.yarnpkg.com/jsonschema/-/jsonschema-1.4.1.tgz"
+  resolved "https://registry.yarnpkg.com/jsonschema/-/jsonschema-1.4.1.tgz#cc4c3f0077fb4542982973d8a083b6b34f482dab"
   integrity sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==
 
 just-extend@^4.0.2:
