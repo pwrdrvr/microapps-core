@@ -7,7 +7,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorOrganization: true,
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '2.24.1',
+  cdkVersion: '2.28.0',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
