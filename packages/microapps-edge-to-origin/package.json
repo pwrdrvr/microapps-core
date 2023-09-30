@@ -1,7 +1,7 @@
 {
   "name": "@pwrdrvr/microapps-edge-to-origin",
   "description": "Edge function for MicroApps Edge to Origin (API Gateway) requests",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "license": "MIT",
   "main": "dist/index.js",
