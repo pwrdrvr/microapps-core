@@ -161,6 +161,12 @@ exports[`MicroAppsAPIGwy works with params 1`] = `
             "ValidationDomain": "pwrdrvr.com",
           },
         ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "stack/cert",
+          },
+        ],
         "ValidationMethod": "EMAIL",
       },
       "Type": "AWS::CertificateManager::Certificate",

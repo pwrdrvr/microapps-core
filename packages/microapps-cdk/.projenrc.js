@@ -7,7 +7,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorOrganization: true,
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '2.28.0',
+  cdkVersion: '2.95.0',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -16,7 +16,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.YARN,
-  minNodeVersion: '12.0.0',
+  minNodeVersion: '18.0.0',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
   // running `npx projen` - It's just not worth the trouble to try to

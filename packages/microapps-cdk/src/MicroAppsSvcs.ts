@@ -310,7 +310,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
       role: iamRoleDeployer,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       timeout: deployerTimeout,
       environment: {
         NODE_ENV: appEnv,
@@ -608,7 +608,7 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
         functionName: assetNameRoot ? `${assetNameRoot}-router${assetNameSuffix}` : undefined,
         memorySize: 1769,
         logRetention: logs.RetentionDays.ONE_MONTH,
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         timeout: Duration.seconds(15),
         environment: {
           NODE_ENV: appEnv,
