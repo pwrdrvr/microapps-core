@@ -17,13 +17,9 @@ describe('MicroAppsCF', () => {
       },
     });
 
-    const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
-      apiName: 'some-api',
-    });
     const bucket = new s3.Bucket(stack, 'bucket-apps', {});
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
-      httpApi,
       bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',

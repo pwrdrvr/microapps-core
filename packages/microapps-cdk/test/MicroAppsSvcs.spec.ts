@@ -18,13 +18,12 @@ describe('MicroAppsSvcs', () => {
       bucketApps,
       bucketAppsOAI,
       bucketAppsStaging,
-      httpApi,
     });
 
     expect(construct).toBeDefined();
     expect(construct.table).toBeDefined();
 
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 3);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 2);
   });
 });
