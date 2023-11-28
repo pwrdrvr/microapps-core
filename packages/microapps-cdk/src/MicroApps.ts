@@ -282,7 +282,7 @@ export interface MicroAppsProps {
    *
    * @default created by construct
    */
-  readonly table?: dynamodb.ITable;
+  readonly table?: dynamodb.ITable | dynamodb.ITableV2;
 
   /**
    * Pre-set table name for apps/versions/rules
