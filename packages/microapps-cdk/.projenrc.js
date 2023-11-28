@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { awscdk, javascript } = require('projen');
-const { NodePackageManager } = require('projen/lib/javascript');
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'PwrDrvr LLC',
   authorAddress: 'harold@pwrdrvr.com',
@@ -29,7 +28,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
   jest: false,
   keywords: ['awscdk', 'microapps'],
   docgen: true,
-  typescriptVersion: '3.9.10',
 
   // Can't do this because it's automatically invoked
   // when running `npm ci` at the top-level when there is no
@@ -40,8 +38,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
   // cdkTestDependencies: undefined,    /* AWS CDK modules required for testing. */
   // deps: [],                          /* Runtime dependencies of this module. */
-  deps: [
-  ],
+  deps: [],
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],                       /* Build dependencies for this module. */
@@ -52,8 +49,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     '@types/jest@^26.0.24', // This is a dummy to prevent jsii from failing
     // 'patch-package@^6.4.7',
   ],
-  peerDeps: [
-  ],
+  peerDeps: [],
 
   // packageName: undefined,            /* The "name" in package.json. */
   // projectType: ProjectType.UNKNOWN,  /* Which type of project this is (library/app). */
