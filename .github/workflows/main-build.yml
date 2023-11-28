@@ -34,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Cache Node Modules
         id: cache-node-modules
         uses: actions/cache@v3
@@ -123,10 +123,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Use Node.js 16
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Check for new commits
         id: git_remote
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
@@ -184,7 +184,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -232,7 +232,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -258,7 +258,7 @@ jobs:
           java-version: 11.x
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -280,7 +280,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
@@ -305,7 +305,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.x
