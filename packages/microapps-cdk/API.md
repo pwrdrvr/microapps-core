@@ -72,72 +72,11 @@ new MicroApps(scope: Construct, id: string, props?: MicroAppsProps)
 
 ---
 
-##### `apigwy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.apigwy"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
-
-{@inheritdoc IMicroAppsAPIGwy}.
-
----
-
 ##### `edgeToOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroApps.edgeToOrigin"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
 
 {@inheritdoc IMicroAppsEdgeToOrigin}.
-
----
-
-
-### MicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy"></a>
-
-- *Implements:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
-
-Create a new MicroApps API Gateway HTTP API endpoint, optionally requiring IAM authorization.
-
-#### Initializer <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.Initializer"></a>
-
-```typescript
-import { MicroAppsAPIGwy } from '@pwrdrvr/microapps-cdk'
-
-new MicroAppsAPIGwy(scope: Construct, id: string, props: MicroAppsAPIGwyProps)
-```
-
-##### `scope`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.scope"></a>
-
-- *Type:* [`constructs.Construct`](#constructs.Construct)
-
----
-
-##### `id`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.id"></a>
-
-- *Type:* `string`
-
----
-
-##### `props`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.props"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps)
-
----
-
-
-
-#### Properties <a name="Properties"></a>
-
-##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.httpApi"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
-
-API Gateway.
-
----
-
-##### `dnAppsOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwy.dnAppsOrigin"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.IDomainName`](#@aws-cdk/aws-apigatewayv2-alpha.IDomainName)
-
-Domain Name applied to API Gateway origin.
 
 ---
 
@@ -701,100 +640,6 @@ const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { .
 
 ---
 
-### MicroAppsAPIGwyProps <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps"></a>
-
-Properties to initialize an instance of `MicroAppsAPIGwy`.
-
-#### Initializer <a name="[object Object].Initializer"></a>
-
-```typescript
-import { MicroAppsAPIGwyProps } from '@pwrdrvr/microapps-cdk'
-
-const microAppsAPIGwyProps: MicroAppsAPIGwyProps = { ... }
-```
-
-##### `assetNameRoot`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.assetNameRoot"></a>
-
-- *Type:* `string`
-- *Default:* resource names auto assigned
-
-Optional asset name root.
-
----
-
-##### `assetNameSuffix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.assetNameSuffix"></a>
-
-- *Type:* `string`
-- *Default:* none
-
-Optional asset name suffix.
-
----
-
-##### `certOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.certOrigin"></a>
-
-- *Type:* [`aws-cdk-lib.aws_certificatemanager.ICertificate`](#aws-cdk-lib.aws_certificatemanager.ICertificate)
-- *Default:* none
-
-Optional local region ACM certificate to use for API Gateway Note: required when using a custom domain.
-
----
-
-##### `domainNameEdge`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.domainNameEdge"></a>
-
-- *Type:* `string`
-- *Default:* auto-assigned
-
-CloudFront edge domain name.
-
----
-
-##### `domainNameOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.domainNameOrigin"></a>
-
-- *Type:* `string`
-- *Default:* auto-assigned
-
-API Gateway origin domain name.
-
----
-
-##### `r53Zone`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.r53Zone"></a>
-
-- *Type:* [`aws-cdk-lib.aws_route53.IHostedZone`](#aws-cdk-lib.aws_route53.IHostedZone)
-
-Route53 zone in which to create optional `domainNameEdge` record.
-
----
-
-##### `removalPolicy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.removalPolicy"></a>
-
-- *Type:* [`aws-cdk-lib.RemovalPolicy`](#aws-cdk-lib.RemovalPolicy)
-- *Default:* per resource default
-
-RemovalPolicy override for child resources.
-
-Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
-
----
-
-##### `requireIAMAuthorization`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.requireIAMAuthorization"></a>
-
-- *Type:* `boolean`
-- *Default:* true
-
-Require IAM auth on API Gateway.
-
----
-
-##### `rootPathPrefix`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsAPIGwyProps.rootPathPrefix"></a>
-
-- *Type:* `string`
-- *Default:* none
-
-Path prefix on the root of the API Gateway Stage.
-
----
-
 ### MicroAppsCFProps <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps"></a>
 
 Properties to initialize an instance of `MicroAppsCF`.
@@ -909,14 +754,6 @@ API Gateway custom origin domain name.
 - *Default:* no edge to API Gateway origin functions added
 
 Configuration of the edge to origin lambda functions.
-
----
-
-##### `httpApi`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsCFProps.httpApi"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
-
-API Gateway v2 HTTP API for apps.
 
 ---
 
@@ -1495,7 +1332,7 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 
 ##### `table`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.table"></a>
 
-- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITableV2`](#aws-cdk-lib.aws_dynamodb.ITableV2) | [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
 - *Default:* created by construct
 
 Existing table for apps/versions/rules.
@@ -1670,14 +1507,6 @@ For larger applications this needs to be set up to 2-5 minutes for the S3 copy
 - *Type:* `string`[]
 
 ARN of the IAM Role for the Edge to Origin Lambda Function.
-
----
-
-##### `httpApi`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsSvcsProps.httpApi"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
-
-API Gateway v2 HTTP for Router and app.
 
 ---
 
@@ -1869,44 +1698,11 @@ Represents a MicroApps.
 
 ---
 
-##### `apigwy`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.apigwy"></a>
-
-- *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
-
-{@inheritdoc IMicroAppsAPIGwy}.
-
----
-
 ##### `edgeToOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroApps.edgeToOrigin"></a>
 
 - *Type:* [`@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin`](#@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin)
 
 {@inheritdoc IMicroAppsEdgeToOrigin}.
-
----
-
-### IMicroAppsAPIGwy <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy"></a>
-
-- *Implemented By:* [`@pwrdrvr/microapps-cdk.MicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.MicroAppsAPIGwy), [`@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy`](#@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy)
-
-Represents a MicroApps API Gateway.
-
-
-#### Properties <a name="Properties"></a>
-
-##### `httpApi`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy.httpApi"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.HttpApi`](#@aws-cdk/aws-apigatewayv2-alpha.HttpApi)
-
-API Gateway.
-
----
-
-##### `dnAppsOrigin`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsAPIGwy.dnAppsOrigin"></a>
-
-- *Type:* [`@aws-cdk/aws-apigatewayv2-alpha.IDomainName`](#@aws-cdk/aws-apigatewayv2-alpha.IDomainName)
-
-Domain Name applied to API Gateway origin.
 
 ---
 

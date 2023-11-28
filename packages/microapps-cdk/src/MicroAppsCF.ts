@@ -1,6 +1,5 @@
 import { posix as posixPath } from 'path';
-import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-import { Aws, RemovalPolicy } from 'aws-cdk-lib';
+import { RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -65,11 +64,6 @@ export interface MicroAppsCFProps {
    * @default - retrieved from httpApi, if possible
    */
   readonly domainNameOrigin?: string;
-
-  /**
-   * API Gateway v2 HTTP API for apps
-   */
-  readonly httpApi?: apigwy.HttpApi;
 
   /**
    * Optional asset name root
@@ -369,8 +363,6 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     const {
       domainNameEdge,
-      domainNameOrigin,
-      httpApi,
       removalPolicy,
       certEdge,
       assetNameRoot,
@@ -381,7 +373,6 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       bucketAppsOriginApp,
       rootPathPrefix,
       edgeLambdas,
-      originShieldRegion,
     } = props;
 
     const appOriginRequestPolicy = MicroAppsCF.createAPIOriginPolicy(this, {
@@ -391,25 +382,9 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     });
 
     //
-    // Determine URL of the origin FQDN
-    //
-    let httpOriginFQDN: string = 'invalid.pwrdrvr.com';
-    if (domainNameOrigin !== undefined) {
-      httpOriginFQDN = domainNameOrigin;
-    } else if (httpApi) {
-      httpOriginFQDN = `${httpApi.apiId}.execute-api.${Aws.REGION}.amazonaws.com`;
-    }
-
-    //
     // Create fallback to S3 origin group
     //
-    const appOrigin = httpApi
-      ? new cforigins.HttpOrigin(httpOriginFQDN, {
-        protocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
-        originSslProtocols: [cf.OriginSslPolicy.TLS_V1_2],
-        originShieldRegion,
-      })
-      : bucketAppsOriginApp ?? bucketAppsOriginS3;
+    const appOrigin = bucketAppsOriginApp ?? bucketAppsOriginS3;
     const bucketOriginFallbackToApp = new cforigins.OriginGroup({
       primaryOrigin: bucketAppsOriginS3,
       fallbackOrigin: appOrigin,

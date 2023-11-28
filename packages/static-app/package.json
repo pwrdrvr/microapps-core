@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.110",
-    "@types/node": "16.9.2"
+    "@types/node": "^18.0.0"
   },
   "files": [
     "src",

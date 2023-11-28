@@ -1,6 +1,4 @@
 /// <reference types="jest" />
-import * as apigwy from '@aws-cdk/aws-apigatewayv2-alpha';
-// import * as apigwycfn from 'aws-cdk-lib/aws-apigatewayv2';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
@@ -19,13 +17,9 @@ describe('MicroAppsCF', () => {
       },
     });
 
-    const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
-      apiName: 'some-api',
-    });
     const bucket = new s3.Bucket(stack, 'bucket-apps', {});
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
-      httpApi,
       bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',
@@ -54,9 +48,6 @@ describe('MicroAppsCF', () => {
         region: 'us-east-1',
       },
     });
-    const httpApi = new apigwy.HttpApi(stack, 'httpapi', {
-      apiName: 'some-api',
-    });
     const r53Zone = new r53.HostedZone(stack, 'zone', {
       zoneName: 'test.pwrdrvr.com',
     });
@@ -66,7 +57,6 @@ describe('MicroAppsCF', () => {
     const bucket = new s3.Bucket(stack, 'bucket-apps', {});
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
-      httpApi,
       bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',
