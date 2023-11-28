@@ -15,7 +15,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   name: '@pwrdrvr/microapps-cdk',
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
-  packageManager: javascript.NodePackageManager.YARN,
+  packageManager: javascript.NodePackageManager.YARN_CLASSIC,
   minNodeVersion: '18.0.0',
   jsiiVersion: '~5.0.0',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
