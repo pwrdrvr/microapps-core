@@ -8,6 +8,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
   cdkVersion: '2.95.0',
+  cdkVersionPinning: true,
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -16,7 +17,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.YARN,
-  minNodeVersion: '18.0.0',
+  minNodeVersion: '16.0.0',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
   // running `npx projen` - It's just not worth the trouble to try to
@@ -28,6 +29,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   jest: false,
   keywords: ['awscdk', 'microapps'],
   docgen: true,
+  typescriptVersion: '3.9.10',
 
   // Can't do this because it's automatically invoked
   // when running `npm ci` at the top-level when there is no
@@ -39,9 +41,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
   // cdkTestDependencies: undefined,    /* AWS CDK modules required for testing. */
   // deps: [],                          /* Runtime dependencies of this module. */
   deps: [
-    '@aws-cdk/aws-apigatewayv2-alpha',
-    '@aws-cdk/aws-apigatewayv2-authorizers-alpha',
-    '@aws-cdk/aws-apigatewayv2-integrations-alpha',
   ],
 
   // description: undefined,            /* The description is just a string that helps people understand the purpose of the package. */
@@ -51,14 +50,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'esbuild',
     '@types/yargs@^16.0.0', // This is a dummy to prevent jsii from failing
     '@types/jest@^26.0.24', // This is a dummy to prevent jsii from failing
-    // '@aws-cdk/aws-apigatewayv2-alpha@2.24.1-alpha.0',
-    // '@aws-cdk/aws-apigatewayv2-integrations-alpha@2.24.1-alpha.0',
     // 'patch-package@^6.4.7',
   ],
   peerDeps: [
-    '@aws-cdk/aws-apigatewayv2-alpha',
-    '@aws-cdk/aws-apigatewayv2-authorizers-alpha',
-    '@aws-cdk/aws-apigatewayv2-integrations-alpha',
   ],
 
   // packageName: undefined,            /* The "name" in package.json. */

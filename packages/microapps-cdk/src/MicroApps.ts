@@ -4,7 +4,6 @@ import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as r53 from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
-import { IMicroAppsAPIGwy, MicroAppsAPIGwy } from './MicroAppsAPIGwy';
 import { IMicroAppsCF, MicroAppsCF } from './MicroAppsCF';
 import { IMicroAppsEdgeToOrigin, MicroAppsEdgeToOrigin } from './MicroAppsEdgeToOrigin';
 import { IMicroAppsS3, MicroAppsS3 } from './MicroAppsS3';
@@ -332,9 +331,6 @@ export interface IMicroApps {
 
   /** {@inheritdoc IMicroAppsSvcs} */
   readonly svcs: IMicroAppsSvcs;
-
-  /** {@inheritdoc IMicroAppsAPIGwy} */
-  readonly apigwy?: IMicroAppsAPIGwy;
 }
 
 /**
@@ -373,11 +369,6 @@ export class MicroApps extends Construct implements IMicroApps {
     return this._s3;
   }
 
-  private _apigwy?: MicroAppsAPIGwy;
-  public get apigwy(): IMicroAppsAPIGwy | undefined {
-    return this._apigwy;
-  }
-
   private _svcs: MicroAppsSvcs;
   public get svcs(): IMicroAppsSvcs {
     return this._svcs;
@@ -398,7 +389,6 @@ export class MicroApps extends Construct implements IMicroApps {
       r53Zone,
       certEdge,
       appEnv = 'dev',
-      certOrigin,
       removalPolicy,
       s3PolicyBypassAROAs,
       s3PolicyBypassPrincipalARNs,
@@ -429,21 +419,7 @@ export class MicroApps extends Construct implements IMicroApps {
       assetNameSuffix,
       originShieldRegion,
     });
-    if (createAPIGateway) {
-      this._apigwy = new MicroAppsAPIGwy(this, 'api', {
-        removalPolicy,
-        assetNameRoot,
-        assetNameSuffix,
-        domainNameEdge,
-        domainNameOrigin,
-        r53Zone,
-        certOrigin,
-        rootPathPrefix,
-        requireIAMAuthorization: signingMode !== 'none',
-      });
-    }
     this._svcs = new MicroAppsSvcs(this, 'svcs', {
-      ...(this._apigwy ? { httpApi: this._apigwy.httpApi } : {}),
       removalPolicy,
       bucketApps: this._s3.bucketApps,
       bucketAppsOAI: this._s3.bucketAppsOAI,
@@ -489,7 +465,6 @@ export class MicroApps extends Construct implements IMicroApps {
       assetNameSuffix,
       domainNameEdge,
       domainNameOrigin,
-      ...(this._apigwy ? { httpApi: this._apigwy.httpApi } : {}),
       r53Zone,
       certEdge,
       bucketAppsOriginS3: this._s3.bucketAppsOriginS3,

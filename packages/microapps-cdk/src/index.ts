@@ -1,5 +1,4 @@
 export * from './MicroApps';
-export * from './MicroAppsAPIGwy';
 export * from './MicroAppsCF';
 export * from './MicroAppsChildDeployer';
 export * from './MicroAppsEdgeToOrigin';
