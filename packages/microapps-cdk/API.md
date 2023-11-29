@@ -16,7 +16,7 @@ to all features of the AWS Resources are needed (e.g. to
 add additional Behaviors to the CloudFront distribution, set authorizors
 on API Gateway, etc.).
 
-> {@link https://github.com/pwrdrvr/microapps-core/blob/main/packages/cdk/lib/MicroApps.ts | example usage in a CDK Stack }
+> {@link https://github.com/pwrdrvr/microapps-core/blob/main/packages/cdk/lib/MicroApps.ts example usage in a CDK Stack }
 
 #### Initializer <a name="@pwrdrvr/microapps-cdk.MicroApps.Initializer"></a>
 
@@ -265,7 +265,7 @@ MicroAppsEdgeToOrigin.generateEdgeToOriginConfig(props: GenerateEdgeToOriginConf
 
 ##### `edgeToOriginFunction`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.edgeToOriginFunction"></a>
 
-- *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
+- *Type:* [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function) | [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction)
 
 The edge to origin function for API Gateway Request Origin Edge Lambda.
 
@@ -1264,22 +1264,22 @@ any session that has assumed the role since notPrincipals does not allow
 wildcard matches and does not do wildcard matches implicitly either.
 
 The AROA must be used because there are only 3 Principal variables available:
-  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
-  aws:username, aws:userid, aws:PrincipalTag
+ https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+ aws:username, aws:userid, aws:PrincipalTag
 
 For an assumed role, aws:username is blank, aws:userid is:
-  [unique id AKA AROA for Role]:[session name]
+ [unique id AKA AROA for Role]:[session name]
 
 Table of unique ID prefixes such as AROA:
-  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
+ https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
 
 The name of the role is simply not available for an assumed role and, if it was,
 a complicated comparison would be requierd to prevent exclusion
 of applying the Deny Rule to roles from other accounts.
 
 To get the AROA with the AWS CLI:
-   aws iam get-role --role-name ROLE-NAME
-   aws iam get-user --user-name USER-NAME
+  aws iam get-role --role-name ROLE-NAME
+  aws iam get-user --user-name USER-NAME
 
 > s3StrictBucketPolicy
 
@@ -1332,7 +1332,7 @@ Note: if 'sign' or 'presign', creates OriginRequest Lambda @ Edge function for A
 
 ##### `table`<sup>Optional</sup> <a name="@pwrdrvr/microapps-cdk.MicroAppsProps.table"></a>
 
-- *Type:* [`aws-cdk-lib.aws_dynamodb.ITableV2`](#aws-cdk-lib.aws_dynamodb.ITableV2) | [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable)
+- *Type:* [`aws-cdk-lib.aws_dynamodb.ITable`](#aws-cdk-lib.aws_dynamodb.ITable) | [`aws-cdk-lib.aws_dynamodb.ITableV2`](#aws-cdk-lib.aws_dynamodb.ITableV2)
 - *Default:* created by construct
 
 Existing table for apps/versions/rules.
@@ -1562,22 +1562,22 @@ any session that has assumed the role since notPrincipals does not allow
 wildcard matches and does not do wildcard matches implicitly either.
 
 The AROA must be used because there are only 3 Principal variables available:
-  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
-  aws:username, aws:userid, aws:PrincipalTag
+ https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+ aws:username, aws:userid, aws:PrincipalTag
 
 For an assumed role, aws:username is blank, aws:userid is:
-  [unique id AKA AROA for Role]:[session name]
+ [unique id AKA AROA for Role]:[session name]
 
 Table of unique ID prefixes such as AROA:
-  https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
+ https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-prefixes
 
 The name of the role is simply not available for an assumed role and, if it was,
 a complicated comparison would be requierd to prevent exclusion
 of applying the Deny Rule to roles from other accounts.
 
 To get the AROA with the AWS CLI:
-   aws iam get-role --role-name ROLE-NAME
-   aws iam get-user --user-name USER-NAME
+  aws iam get-role --role-name ROLE-NAME
+  aws iam get-user --user-name USER-NAME
 
 > s3StrictBucketPolicy
 
@@ -1751,7 +1751,7 @@ Represents a MicroApps Edge to Origin Function.
 
 ##### `edgeToOriginFunction`<sup>Required</sup> <a name="@pwrdrvr/microapps-cdk.IMicroAppsEdgeToOrigin.edgeToOriginFunction"></a>
 
-- *Type:* [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction) | [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function)
+- *Type:* [`aws-cdk-lib.aws_lambda.Function`](#aws-cdk-lib.aws_lambda.Function) | [`aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction`](#aws-cdk-lib.aws_cloudfront.experimental.EdgeFunction)
 
 The edge to origin function for API Gateway Request Origin Edge Lambda.
 
