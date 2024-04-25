@@ -35,7 +35,7 @@ jobs:
       releaseAppPackageVersion: ${{ steps.appVersions.outputs.releaseAppPackageVersion }}
       nextjsDemoAppPackageVersion: ${{ steps.appVersions.outputs.nextjsDemoAppPackageVersion }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Compute PR Suffix
         id: prSuffix
@@ -51,13 +51,13 @@ jobs:
           fi
 
       - name: Use Node.js 18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -93,7 +93,7 @@ jobs:
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             packages/**/dist
@@ -117,16 +117,16 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -135,7 +135,7 @@ jobs:
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             packages/**/dist
@@ -178,7 +178,7 @@ jobs:
       statuses: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Extract Current NPM Version
         run: |
@@ -199,13 +199,13 @@ jobs:
           fi
 
       - name: Use Node.js 18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18.16.1
 
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -218,7 +218,7 @@ jobs:
 
       # - name: Cache TypeScript Build Output
       #   id: cache-typescript-build
-      #   uses: actions/cache@v3
+      #   uses: actions/cache@v4
       #   with:
       #     path: |
       #       packages/**/dist
@@ -624,16 +624,16 @@ jobs:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Cache Node Modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
