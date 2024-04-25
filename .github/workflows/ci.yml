@@ -27,7 +27,16 @@ env:
   AWS_REGION: us-east-2
 
 jobs:
+  install-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/configure-nodejs
+        with:
+          lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
+
   build:
+    needs: [install-deps]
     runs-on: ubuntu-latest
     outputs:
       prSuffix: ${{ steps.prSuffix.outputs.prSuffix }}
@@ -577,7 +586,8 @@ jobs:
           npm run test:integration
 
   build-jsii:
-    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII')) || (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]')
+    # if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII')) || (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]')
+    needs: [install-deps]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
