@@ -29,21 +29,7 @@ jobs:
         run: |-
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile
+      - uses: ./.github/actions/configure-nodejs
       - name: Build All TypeScript
         run: yarn build
       - name: Run Node Tests
