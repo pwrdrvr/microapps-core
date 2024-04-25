@@ -189,7 +189,7 @@ jobs:
         run: yarn esbuild:edge-to-origin
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
@@ -466,7 +466,7 @@ jobs:
       # Change to Child Account Creds
       - name: Change to Child Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
@@ -496,7 +496,7 @@ jobs:
 
       - name: Change Back to Parent AWS Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
@@ -513,7 +513,7 @@ jobs:
 
       - name: Change Back to Child Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
