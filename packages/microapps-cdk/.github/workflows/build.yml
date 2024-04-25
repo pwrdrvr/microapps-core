@@ -12,17 +12,17 @@ jobs:
     outputs:
       self_mutation_happened: ${{ steps.self_mutation.outputs.self_mutation_happened }}
     env:
-      CI: 'true'
+      CI: "true"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Install dependencies
         run: yarn install --check-files
       - name: build
@@ -60,7 +60,7 @@ jobs:
     if: always() && needs.build.outputs.self_mutation_happened && !(github.event.pull_request.head.repo.full_name != github.repository)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
           ref: ${{ github.event.pull_request.head.ref }}
@@ -87,11 +87,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: '! needs.build.outputs.self_mutation_happened'
+    if: "! needs.build.outputs.self_mutation_happened"
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -112,15 +112,15 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: '! needs.build.outputs.self_mutation_happened'
+    if: "! needs.build.outputs.self_mutation_happened"
     steps:
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11.x
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -141,11 +141,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: '! needs.build.outputs.self_mutation_happened'
+    if: "! needs.build.outputs.self_mutation_happened"
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
@@ -169,11 +169,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions: {}
-    if: '! needs.build.outputs.self_mutation_happened'
+    if: "! needs.build.outputs.self_mutation_happened"
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 3.x

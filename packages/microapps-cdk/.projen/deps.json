@@ -7,7 +7,7 @@
     },
     {
       "name": "@types/node",
-      "version": "^16",
+      "version": "^18",
       "type": "build"
     },
     {
@@ -56,12 +56,12 @@
     },
     {
       "name": "jsii-rosetta",
-      "version": "1.x",
+      "version": "^5.4",
       "type": "build"
     },
     {
       "name": "jsii",
-      "version": "1.x",
+      "version": "^5.4",
       "type": "build"
     },
     {
@@ -76,16 +76,6 @@
     {
       "name": "typescript",
       "type": "build"
-    },
-    {
-      "name": "@types/babel__traverse",
-      "version": "7.18.2",
-      "type": "override"
-    },
-    {
-      "name": "@types/prettier",
-      "version": "2.6.0",
-      "type": "override"
     },
     {
       "name": "aws-cdk-lib",

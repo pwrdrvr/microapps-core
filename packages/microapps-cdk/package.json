@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
-    "@types/node": "^16",
+    "@types/node": "^18",
     "@types/yargs": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6",
@@ -48,11 +48,11 @@
     "eslint": "^8",
     "eslint-import-resolver-typescript": "^2.7.1",
     "eslint-plugin-import": "^2.29.0",
-    "jsii": "1.x",
+    "jsii": "^5.4",
     "jsii-diff": "^1.92.0",
     "jsii-docgen": "^2.0.7",
     "jsii-pacmak": "^1.92.0",
-    "jsii-rosetta": "1.x",
+    "jsii-rosetta": "^5.4",
     "projen": "0.77.4",
     "standard-version": "^9",
     "typescript": "^5.3.2"
@@ -61,17 +61,13 @@
     "aws-cdk-lib": "2.95.0",
     "constructs": "^10.0.5"
   },
-  "resolutions": {
-    "@types/babel__traverse": "7.18.2",
-    "@types/prettier": "2.6.0"
-  },
   "keywords": [
     "awscdk",
     "cdk",
     "microapps"
   ],
   "engines": {
-    "node": ">= 16.0.0"
+    "node": ">= 18.0.0"
   },
   "main": "lib/index.js",
   "license": "MIT",

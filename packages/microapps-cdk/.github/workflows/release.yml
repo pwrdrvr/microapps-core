@@ -14,10 +14,10 @@ jobs:
     outputs:
       latest_commit: ${{ steps.git_remote.outputs.latest_commit }}
     env:
-      CI: 'true'
+      CI: "true"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set git identity
@@ -25,9 +25,9 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Install dependencies
         run: yarn install --check-files --frozen-lockfile
       - name: release
@@ -53,9 +53,9 @@ jobs:
       contents: write
     if: needs.release.outputs.latest_commit == github.sha
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -82,9 +82,9 @@ jobs:
       contents: read
     if: needs.release.outputs.latest_commit == github.sha
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -119,9 +119,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 11.x
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
@@ -154,9 +154,9 @@ jobs:
       contents: read
     if: needs.release.outputs.latest_commit == github.sha
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
@@ -189,9 +189,9 @@ jobs:
       contents: read
     if: needs.release.outputs.latest_commit == github.sha
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.0.0
+          node-version: 18.0.0
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 3.x
