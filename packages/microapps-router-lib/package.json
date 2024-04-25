@@ -17,8 +17,8 @@
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "peerDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.0.0",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.78.0",
     "@pwrdrvr/microapps-datalib": "*",
     "fs-extra": "^9.0.0",
     "lambda-log": "^3.0.0",
