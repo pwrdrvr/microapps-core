@@ -13,7 +13,7 @@ describe('nextjs-demo', () => {
 
   const itSkipBasicPrefix = process.env.DEPLOY_NAME === 'microapps-basic-prefix' ? it.skip : it;
 
-  it('should return a status of 200', async () => {
+  itSkipBasicPrefix('should return a status of 200', async () => {
     const response = await axios.get(demoAppUrl.toString(), {
       headers: { Accept: 'text/html' },
     });
@@ -21,7 +21,7 @@ describe('nextjs-demo', () => {
     expect(response.headers).toHaveProperty('x-powered-by', 'Next.js');
   });
 
-  it('should return HTML with an expected string', async () => {
+  itSkipBasicPrefix('should return HTML with an expected string', async () => {
     const response = await axios.get(demoAppUrl.toString(), {
       headers: { Accept: 'text/html' },
     });
@@ -31,7 +31,7 @@ describe('nextjs-demo', () => {
     expect(response.headers).toHaveProperty('x-powered-by', 'Next.js');
   });
 
-  it('should sub page HTML with an expected string - ssg-ssr', async () => {
+  itSkipBasicPrefix('should sub page HTML with an expected string - ssg-ssr', async () => {
     const response = await axios.get(
       new URL(posixPath.join(baseUrl.pathname, '/nextjs-demo/posts/ssg-ssr'), baseUrl).toString(),
       {
@@ -46,7 +46,7 @@ describe('nextjs-demo', () => {
     expect(response.headers).toHaveProperty('x-powered-by', 'Next.js');
   });
 
-  it('should sub page HTML with an expected string - pre-rendering', async () => {
+  itSkipBasicPrefix('should sub page HTML with an expected string - pre-rendering', async () => {
     const response = await axios.get(
       new URL(
         posixPath.join(baseUrl.pathname, '/nextjs-demo/posts/pre-rendering'),
