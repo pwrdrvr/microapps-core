@@ -257,11 +257,26 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       statusCode: 599,
       errorMessage: `Router - Could not route: ${event.rawPath}, no matching route`,
     };
-  } catch (error: any) {
+  } catch (error) {
     log.error('unexpected exception - returning 599', { statusCode: 599, error });
-    return {
-      statusCode: 599,
-      errorMessage: `Router - Could not route: ${event.rawPath}, ${error.message}`,
-    };
+    if (error instanceof Error) {
+      log.error('unexpected exception - returning 599', { statusCode: 599, error });
+      return {
+        statusCode: 599,
+        errorMessage: `Router - Could not route: ${event.rawPath}, ${error.message}`,
+      };
+    } else if (typeof error === 'string') {
+      log.error('unexpected exception - returning 599', { statusCode: 599, error });
+      return {
+        statusCode: 599,
+        errorMessage: `Router - Could not route: ${event.rawPath}, ${error}`,
+      };
+    } else {
+      log.error('unexpected exception - returning 599', { statusCode: 599, error });
+      return {
+        statusCode: 599,
+        errorMessage: `Router - Could not route: ${event.rawPath}, unknown error`,
+      };
+    }
   }
 }

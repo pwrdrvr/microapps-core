@@ -80,8 +80,8 @@ export async function DeleteVersion(opts: {
                 RouteId: routeId,
               }),
             );
-          } catch (err: any) {
-            if (err.name === 'AccessDeniedException') {
+          } catch (err) {
+            if (err instanceof Error && err.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException removing route from API Gateway', {
                 error: err,
                 apiId,
@@ -110,8 +110,8 @@ export async function DeleteVersion(opts: {
                 IntegrationId: record.IntegrationID,
               }),
             );
-          } catch (error: any) {
-            if (error.name === 'AccessDeniedException') {
+          } catch (error) {
+            if (error instanceof Error && error.name === 'AccessDeniedException') {
               Log.Instance.error('AccessDeniedException removing integration from API Gateway', {
                 error,
                 apiId,
@@ -208,17 +208,17 @@ export async function DeleteVersion(opts: {
               Qualifier: aliasInfo.FunctionVersion,
             }),
           );
-        } catch (error: any) {
-          if (error.name !== 'ResourceConflictException') {
+        } catch (error) {
+          if (!(error instanceof Error && error.name === 'ResourceConflictException')) {
             throw error;
           }
 
           Log.Instance.info('Version is still in use by another alias, not deleting');
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       // It's ok if the Alias or Version is already gone
-      if (error.name !== 'ResourceNotFoundException') {
+      if (!(error instanceof Error && error.name === 'ResourceNotFoundException')) {
         throw error;
       }
     }

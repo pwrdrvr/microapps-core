@@ -37,9 +37,6 @@ let dynamoClient = new DynamoDBClient({
   maxAttempts: 8,
 });
 
-const buildTrigger = '2023-01-31-01';
-Log.Instance.info('Deployer build trigger', { buildTrigger });
-
 export function overrideDBManager(opts: {
   dbManager: DBManager;
   dynamoClient: DynamoDBClient;
@@ -167,9 +164,13 @@ export async function handler(
       default:
         return { statusCode: 400 };
     }
-  } catch (err: any) {
+  } catch (err) {
     Log.Instance.error('Caught unexpected exception in handler');
-    Log.Instance.error(err);
+    if (typeof err === 'string' || err instanceof Error) {
+      Log.Instance.error(err);
+    } else {
+      Log.Instance.error('An unknown error occurred');
+    }
     return { statusCode: 500 };
   }
 }

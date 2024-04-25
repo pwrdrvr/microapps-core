@@ -492,7 +492,6 @@ describe('edge-to-origin - routing - without prefix', () => {
         SemVer2: '1.2.1-beta.2',
         Locales: [],
         RawPath: '/_next/data/1.2.1-beta.2/batdirectnobasenextdata/route.json',
-        SuffixPath: 'batdirectnobasenextdata/route.json',
       },
       {
         AppName: 'BatDirectNoBaseNextDataRootRoute',
@@ -502,7 +501,6 @@ describe('edge-to-origin - routing - without prefix', () => {
         SemVer2: '1.2.1-beta.4',
         Locales: [],
         RawPath: '/_next/data/1.2.1-beta.4/batdirectnobasenextdatarootroute.json',
-        SuffixPath: 'batdirectnobasenextdatarootroute.json',
       },
       {
         AppName: 'BatDirectNoBaseNextDataRootRouteLocale',
@@ -512,22 +510,12 @@ describe('edge-to-origin - routing - without prefix', () => {
         SemVer2: '1.2.1-beta.4',
         Locales: ['en', 'sv'],
         RawPath: '/_next/data/1.2.1-beta.4/sv/batdirectnobasenextdatarootroutelocale.json',
-        SuffixPath: 'batdirectnobasenextdatarootroutelocale.json',
       },
     ];
 
     it.each(testCases)(
       'should route `direct` /_next/data/[$SemVer2]/[$AppName] request to [$AppName] when it exists but $SemVer1 is the default',
-      async ({
-        AppName,
-        LambdaURL1,
-        SemVer1,
-        LambdaURL2,
-        SemVer2,
-        RawPath,
-        Locales,
-        SuffixPath,
-      }) => {
+      async ({ AppName, LambdaURL1, SemVer1, LambdaURL2, SemVer2, RawPath, Locales }) => {
         theConfig.replaceHostHeader = true;
         theConfig.locales = Locales;
 
