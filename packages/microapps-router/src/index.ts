@@ -104,12 +104,18 @@ export async function handler(
     } else {
       throw new Error('Unmatched route');
     }
-  } catch (error: any) {
+  } catch (error) {
     log.error('unexpected exception - returning 599', { statusCode: 599, error });
     response.statusCode = 599;
     response.headers = {};
     response.headers['Content-Type'] = 'text/plain';
-    response.body = `Router - Could not route: ${event.rawPath}, ${error.message}`;
+    if (error instanceof Error) {
+      response.body = `Router - Could not route: ${event.rawPath}, ${error.message}`;
+    } else if (typeof error === 'string') {
+      response.body = `Router - Could not route: ${event.rawPath}, ${error}`;
+    } else {
+      response.body = `Router - Could not route: ${event.rawPath}, unknown error`;
+    }
   }
 
   return response;

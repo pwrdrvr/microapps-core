@@ -152,8 +152,8 @@ export async function DeployVersion(opts: {
             }
           }
         }
-      } catch (error: any) {
-        if (error.name !== 'ResourceNotFoundException') {
+      } catch (error) {
+        if (!(error instanceof Error && error.name === 'ResourceNotFoundException')) {
           throw error;
         }
       }
@@ -207,8 +207,8 @@ export async function DeployVersion(opts: {
           );
 
           integrationId = integration.IntegrationId as string;
-        } catch (error: any) {
-          if (error.name === 'AccessDeniedException') {
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AccessDeniedException') {
             Log.Instance.error('AccessDeniedException adding integration to API Gateway', {
               error,
             });
@@ -245,8 +245,8 @@ export async function DeployVersion(opts: {
           );
           Log.Instance.info('created RouteIDAppVersion', { result });
           record.RouteIDAppVersion = `${result.RouteId}`;
-        } catch (err: any) {
-          if (err.name === 'AccessDeniedException') {
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AccessDeniedException') {
             Log.Instance.error('AccessDeniedException adding route to API Gateway', {
               error: err,
             });
@@ -255,7 +255,11 @@ export async function DeployVersion(opts: {
 
           // Don't care
           Log.Instance.error('Caught unexpected error on app/ver route add');
-          Log.Instance.error(err);
+          if (typeof err === 'string' || err instanceof Error) {
+            Log.Instance.error(err);
+          } else {
+            Log.Instance.error('An unknown error occurred');
+          }
         }
       }
       // Add the route to API Gateway for appName/version/{proxy+}
@@ -279,8 +283,8 @@ export async function DeployVersion(opts: {
           );
           Log.Instance.info('created RouteIDAppVersionSplat', { result });
           record.RouteIDAppVersionSplat = `${result.RouteId}`;
-        } catch (err: any) {
-          if (err.name === 'AccessDeniedException') {
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AccessDeniedException') {
             Log.Instance.error('AccessDeniedException adding route to API Gateway', {
               error: err,
             });
@@ -289,7 +293,11 @@ export async function DeployVersion(opts: {
 
           // Don't care
           Log.Instance.error('Caught unexpected error on {proxy+} route add');
-          Log.Instance.error(err);
+          if (typeof err === 'string' || err instanceof Error) {
+            Log.Instance.error(err);
+          } else {
+            Log.Instance.error('An unknown error occurred');
+          }
         }
       }
 
@@ -345,8 +353,8 @@ export async function DeployVersion(opts: {
         if (functionUrl.FunctionUrl) {
           url = functionUrl.FunctionUrl;
         }
-      } catch (error: any) {
-        if (error.name !== 'ResourceNotFoundException') {
+      } catch (error) {
+        if (!(error instanceof Error && error.name === 'ResourceNotFoundException')) {
           throw error;
         }
       }

@@ -21,7 +21,7 @@ const theConfig: Writeable<IConfig> = {
   rootPathPrefix: 'dev',
   requireIAMAuthorization: true,
   parentDeployerLambdaARN: '',
-  edgeToOriginRoleARN: '',
+  edgeToOriginRoleARN: [],
 };
 const origConfig = { ...theConfig };
 Object.defineProperty(Config, 'instance', {
@@ -31,10 +31,7 @@ Object.defineProperty(Config, 'instance', {
     return theConfig;
   }),
 });
-import * as apigwy from '@aws-sdk/client-apigatewayv2';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
-import * as lambda from '@aws-sdk/client-lambda';
-import * as s3 from '@aws-sdk/client-s3';
 
 import type {
   ICreateApplicationRequest,
@@ -43,7 +40,6 @@ import type {
 } from '@pwrdrvr/microapps-deployer-lib';
 import { DBManager, Version } from '@pwrdrvr/microapps-datalib';
 import type * as lambdaTypes from 'aws-lambda';
-import { mockClient, AwsClientStub } from 'aws-sdk-client-mock';
 import sinon from 'sinon';
 import { handler, overrideDBManager } from '../../index';
 
@@ -53,9 +49,7 @@ let dbManager: DBManager;
 const TEST_TABLE_NAME = 'microapps';
 
 describe('GetVersion', () => {
-  const config = Config.instance;
   let sandbox: sinon.SinonSandbox;
-  const pathPrefix = `${config.rootPathPrefix}/`;
 
   beforeAll(() => {
     dynamoClient = new dynamodb.DynamoDBClient({

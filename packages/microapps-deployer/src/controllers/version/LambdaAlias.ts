@@ -148,13 +148,20 @@ export async function LambdaAlias(opts: {
         errorMessage: `Lambda version not found: ${lambdaVersion}, for lambda: ${lambdaARN}`,
       };
     }
-  } catch (error: any) {
-    Log.Instance.error('Error getting Lambda version', error);
-
-    if (error.name === 'ResourceNotFoundException') {
+  } catch (error) {
+    if (error instanceof Error && error.name === 'ResourceNotFoundException') {
       return { statusCode: 404, errorMessage: error.message };
     } else {
-      return { statusCode: 500, errorMessage: error.message };
+      if (error instanceof Error) {
+        Log.Instance.error('Error getting Lambda version', error);
+        return { statusCode: 500, errorMessage: error.message };
+      } else if (typeof error === 'string') {
+        Log.Instance.error(`Error getting Lambda version: ${error}`);
+        return { statusCode: 500, errorMessage: error };
+      } else {
+        Log.Instance.error('Error getting Lambda version: unknown error');
+        return { statusCode: 500, errorMessage: 'An unknown error occurred' };
+      }
     }
   }
 
@@ -230,8 +237,8 @@ async function AddOrUpdateFunctionUrl({
     if (functionUrl.FunctionUrl) {
       url = functionUrl.FunctionUrl;
     }
-  } catch (error: any) {
-    if (error.name !== 'ResourceNotFoundException') {
+  } catch (error) {
+    if (!(error instanceof Error && error.name === 'ResourceNotFoundException')) {
       throw error;
     }
   }
@@ -321,8 +328,8 @@ async function CreateOrUpdateLambdaAlias(opts: {
       lambdaAliasARN: resultLambdaAlias.AliasArn,
       actionTaken: 'updated',
     };
-  } catch (error: any) {
-    if (error.name !== 'ResourceNotFoundException') {
+  } catch (error) {
+    if (!(error instanceof Error && error.name == 'ResourceNotFoundException')) {
       throw error;
     }
 
@@ -453,8 +460,8 @@ async function AddCrossAccountPermissionsToAlias({
     if (existingPolicy.Policy) {
       policyDoc = JSON.parse(existingPolicy.Policy) as IPolicyDocument;
     }
-  } catch (error: any) {
-    if (error.name !== 'ResourceNotFoundException') {
+  } catch (error) {
+    if (!(error instanceof Error && error.name === 'ResourceNotFoundException')) {
       throw error;
     }
 

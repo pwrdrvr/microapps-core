@@ -20,9 +20,6 @@ const appFrame = loadAppFrame({ basePath: __dirname });
 
 log.info('loaded config', { config });
 
-const buildTrigger = '2023-02-01-01';
-log.info('Edge-to-origin build trigger', { buildTrigger });
-
 let dbManager: DBManager | undefined;
 let dynamoClient = new DynamoDBClient({
   maxAttempts: 8,

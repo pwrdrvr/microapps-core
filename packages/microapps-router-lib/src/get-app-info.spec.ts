@@ -57,7 +57,7 @@ describe('GetAppInfo', () => {
       expected: '[root]',
     },
   ];
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   it.each(testCases)('$caseName', async ({ caseName, appName, mockRules, expected }) => {
     getAppVersionCacheSpy.mockImplementation(() => {
       return {
