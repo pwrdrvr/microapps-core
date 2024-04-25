@@ -16,8 +16,17 @@ on:
   #     - main
 
 jobs:
+  install-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/configure-nodejs
+        with:
+          lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
+
   build:
     name: Build CDK Construct
+    needs: [install-deps]
     runs-on: ubuntu-latest
     permissions:
       contents: write
