@@ -577,7 +577,7 @@ jobs:
           npm run test:integration
 
   build-jsii:
-    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII')) || (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]')
+    # if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-JSII')) || (github.event_name == 'pull_request' && github.actor == 'dependabot[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
