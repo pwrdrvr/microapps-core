@@ -42,7 +42,7 @@ jobs:
       #
       - name: Change to Parent Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
@@ -59,7 +59,7 @@ jobs:
       #
       - name: Change to Child Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
@@ -76,7 +76,7 @@ jobs:
       # to invoke the Parent Deployer, when applicable
       #
       - name: Change to Parent Account
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
@@ -84,8 +84,22 @@ jobs:
 
       - name: Destroy Parent CDK Stack
         run: |
+          set +e
           aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
           aws cloudformation wait stack-delete-complete  --output text --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+          if [ $? -ne 0 ]; then
+            echo "Stack deletion failed. Checking if it's due to non-empty S3 bucket..."
+            STACK_STATUS=$(aws cloudformation describe-stacks --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}" --query "Stacks[0].StackStatus" --output text)
+            if [ "$STACK_STATUS" = "DELETE_FAILED" ]; then
+              BUCKET_NAME=$(aws cloudformation describe-stack-resource --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}" --logical-resource-id microappss3logsC4FFF4AE --query "StackResourceDetail.PhysicalResourceId" --output text)
+              echo "Emptying S3 bucket $BUCKET_NAME..."
+              aws s3 rm s3://$BUCKET_NAME --recursive
+              echo "Retrying stack deletion..."
+              aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+              aws cloudformation wait stack-delete-complete --output text --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+            fi
+          fi
+          set -e
 
       # TODO - Need to get the stack name from the parent stack export
       # - name: Destroy Parent Edge to Origin Stack
