@@ -3,6 +3,22 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
+    "paths": {
+      "@pwrdrvr/microapps-datalib": [
+        "../microapps-datalib/*"
+      ],
+      "@pwrdrvr/microapps-router-lib": [
+        "../microapps-router-lib/*"
+      ]
+    },
   },
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "references": [
+    {
+      "path": "../microapps-datalib"
+    },
+    {
+      "path": "../microapps-router-lib"
+    }
+  ]
 }
