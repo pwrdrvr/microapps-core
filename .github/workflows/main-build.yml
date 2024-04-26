@@ -43,6 +43,8 @@ jobs:
       - uses: ./.github/actions/configure-nodejs
       - name: Build All TypeScript
         run: yarn build
+      - name: Run Lint
+        run: yarn lint
       - name: Run Node Tests
         env:
           NODE_ENV: test
@@ -124,8 +126,6 @@ jobs:
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
       - name: Build Publish TypeScript
         run: yarn build:publish
-      - name: Run Lint
-        run: yarn lint
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v3
         with:

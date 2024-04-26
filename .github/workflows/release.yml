@@ -62,6 +62,8 @@ jobs:
       - uses: ./.github/actions/configure-nodejs
       - name: Build All TypeScript
         run: yarn build
+      - name: Run Lint
+        run: yarn lint
       - name: Run Node Tests
         env:
           NODE_ENV: test
@@ -131,8 +133,6 @@ jobs:
           node scripts/version.js ${{needs.version.outputs.version }}
       - name: Build Publish TypeScript
         run: yarn build:publish
-      - name: Run Lint
-        run: yarn lint
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v3
         with:
