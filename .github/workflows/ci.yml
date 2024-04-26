@@ -240,7 +240,7 @@ jobs:
         run: zip -r cdk-out.zip cdk.out
       - name: Upload Zip
         if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cdk_out_${{ matrix.deployName }}
           path: cdk-out.zip

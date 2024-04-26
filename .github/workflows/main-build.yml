@@ -65,7 +65,7 @@ jobs:
           git diff --staged --patch --exit-code > .repo.patch || echo "self_mutation_happened=true" >> $GITHUB_OUTPUT
       - if: steps.self_mutation.outputs.self_mutation_happened
         name: Upload patch
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: .repo.patch
           path: .repo.patch
@@ -76,7 +76,7 @@ jobs:
           cat .repo.patch
           exit 1
       - name: Upload CDK Construct artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifact
           path: packages/microapps-cdk/dist
@@ -94,7 +94,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Download patch
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: .repo.patch
           path: ${{ runner.temp }}
@@ -127,28 +127,28 @@ jobs:
       - name: Build Publish TypeScript
         run: yarn build:publish
       - name: Upload Publish Tool artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: publish-tool-dist
           path: |
             packages/pwrdrvr/
             !packages/pwrdrvr/node_modules/
       - name: Upload Publish Tool - Convenience artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: publish-tool-dist-convenience
           path: |
             packages/microapps-publish/
             !packages/microapps-publish/node_modules/
       - name: Upload Datalib artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: datalib-dist
           path: |
             packages/microapps-datalib/
             !packages/microapps-datalib/node_modules/
       - name: Upload Router Lib artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: router-lib-dist
           path: |
@@ -167,22 +167,22 @@ jobs:
         with:
           node-version: 18
       - name: Download Publish Tool build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: publish-tool-dist
           path: packages/pwrdrvr
       - name: Download Publish Tool - Convenience build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: publish-tool-dist
           path: packages/microapps-publish
       - name: Download Datalib build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: datalib-dist
           path: packages/microapps-datalib
       - name: Download Router Lib build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: router-lib-dist
           path: packages/microapps-router-lib
@@ -215,7 +215,7 @@ jobs:
         with:
           node-version: 18
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
@@ -233,7 +233,7 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 11.x
@@ -241,7 +241,7 @@ jobs:
         with:
           node-version: 18
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
@@ -262,11 +262,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
@@ -287,11 +287,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
