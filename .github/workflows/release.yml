@@ -28,12 +28,6 @@ jobs:
         id: get_version
         run: echo "version=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
 
-      - name: Upload version.txt
-        uses: actions/upload-artifact@v3
-        with:
-          name: version-txt
-          path: version.txt
-
       - name: Output version
         run: echo "The version is ${{ steps.get_version.outputs.version }}"
 

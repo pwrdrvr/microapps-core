@@ -35,9 +35,11 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
+    "@aws-sdk/abort-controller": "^3.78.0",
     "@aws-sdk/client-lambda": "^3.78.0",
     "@aws-sdk/client-s3": "^3.78.0",
     "@aws-sdk/client-sts": "^3.78.0",
+    "@aws-sdk/credential-provider-node": "^3.78.0",
     "@aws-sdk/lib-storage": "^3.78.0",
     "@oclif/command": "^1.8.4",
     "@oclif/config": "^1.17.1",
@@ -57,13 +59,13 @@
     "ts-convict": "^1.1.0",
     "tslib": "^2.1.0"
   },
-  "peerDependencies": {
-    "@aws-sdk/client-lambda": "^3.78.0",
-    "@aws-sdk/client-s3": "^3.78.0",
-    "@aws-sdk/client-sts": "^3.78.0",
-    "@aws-sdk/lib-storage": "^3.78.0"
-  },
   "devDependencies": {
+    "@aws-sdk/abort-controller": "3.78.0",
+    "@aws-sdk/client-lambda": "3.78.0",
+    "@aws-sdk/client-s3": "3.78.0",
+    "@aws-sdk/client-sts": "3.78.0",
+    "@aws-sdk/credential-provider-node": "3.78.0",
+    "@aws-sdk/lib-storage": "3.78.0",
     "@types/convict": "^6.0.2",
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/fs-extra": "^9.0.11",

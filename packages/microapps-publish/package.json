@@ -30,9 +30,9 @@
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "dependencies": {},
-  "peerDependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "pwrdrvr": "*"
-  }
+  },
+  "peerDependencies": {},
+  "devDependencies": {}
 }
