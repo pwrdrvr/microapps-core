@@ -8,7 +8,6 @@
     "access": "public"
   },
   "bin": {
-    "microapps-publish": "./bin/run",
     "pwrdrvr": "./bin/run"
   },
   "engineStrict": true,
