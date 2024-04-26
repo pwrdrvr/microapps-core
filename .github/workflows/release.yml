@@ -16,12 +16,33 @@ jobs:
         with:
           lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
 
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from git tag
+        id: get_version
+        run: echo "version=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+
+      - name: Upload version.txt
+        uses: actions/upload-artifact@v3
+        with:
+          name: version-txt
+          path: version.txt
+
+      - name: Output version
+        run: echo "The version is ${{ steps.get_version.outputs.version }}"
+
   #
   # CDK Construct
   #
   release:
     name: Build CDK Construct
-    needs: [install-deps]
+    needs: [install-deps, version]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -52,16 +73,12 @@ jobs:
         working-directory: packages/microapps-cdk/
         run: npx projen release
       - name: Apply Version to Everything (Deployer / Datalib)
-        run: npm version v$(cat packages/microapps-cdk/dist/version.txt) --no-git-tag-version --workspaces
+        run: |
+          echo "Version is ${{needs.version.outputs.version }}"
+          node scripts/version.js ${{needs.version.outputs.version }}
       - name: Check for new commits
         id: git_remote
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
-      - name: Upload version.txt
-        if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: version-txt
-          path: packages/microapps-cdk/dist/version.txt
       - name: Upload CDK Construct Artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha }}
         uses: actions/upload-artifact@v3
@@ -98,39 +115,20 @@ jobs:
   # Publish Tool
   #
   release-publish-tool:
-    needs: release
+    needs: [release, version]
     name: Build Publish Tool
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+      - uses: ./.github/actions/configure-nodejs
       - name: Check for new commits
         id: git_remote
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
-      - name: Download version.txt
-        uses: actions/download-artifact@v3
-        with:
-          name: version-txt
-          path: dist
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            packages/**/node_modules
-          key: node-modules-${{ hashFiles('package.json', 'yarn.lock', '**/yarn.lock') }}
-      - name: Optionally Install Node Modules
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile
-      - name: Apply Version to Everything
+      - name: Apply Version to Everything (Deployer / Datalib)
         run: |
-          cat dist/version.txt
-          npm version v$(cat dist/version.txt) --no-git-tag-version --workspaces
+          echo "Version is ${{needs.version.outputs.version }}"
+          node scripts/version.js ${{needs.version.outputs.version }}
       - name: Build Publish TypeScript
         run: yarn build:publish
       - name: Run Lint
