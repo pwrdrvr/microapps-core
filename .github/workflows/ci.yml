@@ -370,14 +370,20 @@ jobs:
             --overwrite
 
       - name: Demo IFrame App URL
-        uses: Sibz/github-status-action@v1
+        uses: actions/github-script@v7
         with:
-          authToken: ${{secrets.GITHUB_TOKEN}}
-          context: 'Demo IFrame App URL on ${{ matrix.deployName }}'
-          description: 'Passed'
-          state: 'success'
-          sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_IFRAME_APP_NAME }}/?appver=0.0.0
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              sha: '${{github.event.pull_request.head.sha || github.sha}}',
+              context: 'Demo IFrame App URL on ${{ matrix.deployName }}',
+              state: 'success',
+              description: 'Passed',
+              target_url: `https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_IFRAME_APP_NAME }}?appver=${{ env.PACKAGE_VERSION }}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test Demo IFrame App
         run: |
