@@ -90,13 +90,13 @@
           "exec": "jsii --silence-warnings=reserved-word"
         },
         {
-          "exec": "esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js"
+          "exec": "esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js"
         },
         {
-          "exec": "esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-deployer/index.js"
+          "exec": "esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=lib/microapps-deployer/index.js"
         },
         {
-          "exec": "esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-router/index.js"
+          "exec": "esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=lib/microapps-router/index.js"
         },
         {
           "exec": "cp -R ../microapps-router/templates lib/microapps-router/"
