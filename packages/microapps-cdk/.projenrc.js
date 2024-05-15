@@ -84,10 +84,12 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
 // 114                 ? K | `${K}.${PathImpl<T[K], Exclude<keyof T[K], keyof any[]>>}`
 //
-project.preCompileTask.exec(
-  'rm -rf  ../../node_modules/@types/prettier/  ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
-  // 'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
-);
+
+// 2024-05-15 - This is no longer needed now that JSII has been upgrade from v1 to v5.4
+// project.preCompileTask.exec(
+//   'rm -rf  ../../node_modules/@types/prettier/  ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
+//   // 'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
+// );
 
 // Move the parent node_modules back into place now that jsii is done
 // project.compileTask.exec(
