@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/configure-nodejs
         with:
-          lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
+          lookup-only: "true" # We only want to lookup from the cache - if a hit, this job does nothing
 
   version:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
     outputs:
       latest_commit: ${{ steps.git_remote.outputs.latest_commit }}
     env:
-      CI: 'true'
+      CI: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -165,7 +165,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -195,7 +195,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -251,7 +251,7 @@ jobs:
           java-version: 11.x
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -284,7 +284,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -316,7 +316,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x

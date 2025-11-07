@@ -21,7 +21,7 @@
     "constructs": "10.0.5"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^22.0.0",
     "tslib": "2.5.0"
   }
 }

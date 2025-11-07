@@ -1,16 +1,16 @@
-name: "Configure Node.js"
-description: "Install Node.js and install Node.js modules or restore cache"
+name: 'Configure Node.js'
+description: 'Install Node.js and install Node.js modules or restore cache'
 
 inputs:
   node-version:
-    description: "NodeJS Version"
-    default: "18"
+    description: 'NodeJS Version'
+    default: '22'
   lookup-only:
-    description: "If true, only checks if cache entry exists and skips download. Does not change save cache behavior"
-    default: "false"
+    description: 'If true, only checks if cache entry exists and skips download. Does not change save cache behavior'
+    default: 'false'
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - uses: actions/setup-node@v4
       with:
