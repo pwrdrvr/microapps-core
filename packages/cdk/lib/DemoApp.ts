@@ -71,7 +71,7 @@ export class DemoApp extends Construct implements IDemoApp {
     //
     this._lambdaFunction = new lambdaNodejs.NodejsFunction(this, 'app-lambda', {
       entry: './packages/demo-app/src/index.ts',
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       handler: 'handler',
       functionName: assetNameRoot ? `${assetNameRoot}-app-${appName}${assetNameSuffix}` : undefined,
       logRetention: logs.RetentionDays.ONE_WEEK,

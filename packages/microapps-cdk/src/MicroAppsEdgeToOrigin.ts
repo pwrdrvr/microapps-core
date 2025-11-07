@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/indent */
 import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
@@ -378,7 +377,7 @@ ${
       role: this._edgeToOriginRole,
       memorySize: 1769,
       logRetention: logs.RetentionDays.ONE_MONTH,
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_LATEST,
       timeout: Duration.seconds(5),
       ...(removalPolicy ? { removalPolicy } : {}),
     };
