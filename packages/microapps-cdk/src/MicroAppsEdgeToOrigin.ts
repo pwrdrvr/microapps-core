@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/indent */
 import * as crypto from 'crypto';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import * as os from 'os';
