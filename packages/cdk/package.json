@@ -17,7 +17,7 @@
     "@pwrdrvr/microapps-app-nextjs-demo-cdk": "0.7.0",
     "@pwrdrvr/microapps-app-release-cdk": "0.5.3",
     "source-map-support": "0.5.21",
-    "aws-cdk-lib": "2.117.0",
+    "aws-cdk-lib": "2.168.0",
     "constructs": "10.0.5"
   },
   "devDependencies": {
