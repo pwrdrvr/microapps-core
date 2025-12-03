@@ -38,13 +38,13 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
-    "@types/node": "^18",
+    "@types/node": "^22",
     "@types/yargs": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6",
-    "aws-cdk-lib": "2.117.0",
+    "aws-cdk-lib": "2.168.0",
     "constructs": "10.0.5",
-    "esbuild": "^0.20.2",
+    "esbuild": "^0.24.0",
     "eslint": "^8",
     "eslint-import-resolver-typescript": "^2.7.1",
     "eslint-plugin-import": "^2.29.1",
@@ -58,7 +58,7 @@
     "typescript": "^5.4.5"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.117.0",
+    "aws-cdk-lib": "^2.168.0",
     "constructs": "^10.0.5"
   },
   "keywords": [
@@ -67,7 +67,7 @@
     "microapps"
   ],
   "engines": {
-    "node": ">= 18.0.0"
+    "node": ">= 22.0.0"
   },
   "main": "lib/index.js",
   "license": "MIT",

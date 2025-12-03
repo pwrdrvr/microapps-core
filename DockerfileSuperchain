@@ -1,4 +1,4 @@
-FROM jsii/superchain:1-buster-slim-node16 as base
+FROM jsii/superchain:1-buster-slim-node22 as base
 
 # RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 
@@ -6,10 +6,10 @@ FROM jsii/superchain:1-buster-slim-node16 as base
 # RUN echo "export NVM_DIR=\"\$HOME/.nvm\"" >> /root/.bashrc
 # RUN echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \. \"\$NVM_DIR/nvm.sh\"" >> /root/.bashrc
 
-# Setup NVM in Docker build and install node 16
+# Setup NVM in Docker build and install node 22
 # RUN export NVM_DIR="$HOME/.nvm" && \
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-# nvm install v16
+# nvm install v22
 
 # Make sure nvm gets setup on container init
 ENTRYPOINT [ "/bin/bash", "-l"]

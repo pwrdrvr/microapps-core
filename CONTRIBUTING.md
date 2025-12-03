@@ -19,7 +19,7 @@ Instructions, tools, and tips for those wishing to contribute.
 # Prerequisites
 
 - `nvm`
-- `node 16` installed with `nvm`
+- `node 22` installed with `nvm`
 - `npm i -g aws-cdk`
 
 # TIP: Installing npm Modules
@@ -66,7 +66,7 @@ Below are tips, tricks, and commands used to build and release `pwrdrvr` to NPM 
 
 Note: this _has_ to be run in the root of the project on a clean tree (no changed files).
 
-Note: this _has_ to be done with `npm 7.18.1` in `node 16` as a fix from April, 2021 is required in some cases: https://github.com/npm/libnpmversion/pull/12
+Note: this _has_ to be done with `npm 7.18.1` in `node 22` as a fix from April, 2021 is required in some cases: https://github.com/npm/libnpmversion/pull/12
 
 `npm version from-git --allow-same-version --no-git-tag-version`
 

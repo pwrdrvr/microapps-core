@@ -17,7 +17,7 @@
     "@types/convict": "^6.0.2",
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/lambda-log": "^2.2.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^22.0.0",
     "aws-sdk-client-mock": "2.1.0"
   },
   "dependencies": {

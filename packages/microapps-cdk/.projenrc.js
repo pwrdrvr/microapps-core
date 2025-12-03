@@ -6,7 +6,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorOrganization: true,
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '2.117.0',
+  cdkVersion: '2.168.0',
   cdkVersionPinning: false,
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
@@ -16,7 +16,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.YARN_CLASSIC,
-  minNodeVersion: '18.0.0',
+  minNodeVersion: '22.0.0',
   jsiiVersion: '^5.4',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
@@ -95,13 +95,13 @@ project.preCompileTask.exec(
 // );
 
 project.compileTask.exec(
-  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
+  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node22 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
+  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node22 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-router/index.js',
+  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node22 --external:aws-sdk --outfile=lib/microapps-router/index.js',
 );
 project.compileTask.exec('cp -R ../microapps-router/templates lib/microapps-router/');
 project.compileTask.exec('cp ../microapps-router/templates/* lib/microapps-edge-to-origin/');

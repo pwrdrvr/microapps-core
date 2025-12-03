@@ -165,7 +165,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -213,7 +213,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -239,7 +239,7 @@ jobs:
           java-version: 11.x
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -261,7 +261,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -286,7 +286,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
