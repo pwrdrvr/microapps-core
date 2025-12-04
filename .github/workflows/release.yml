@@ -8,7 +8,7 @@ on:
   release:
     types: [published]
   pull_request:
-    types: [labeled]
+    types: [labeled, opened, synchronize]
 jobs:
   install-deps:
     runs-on: ubuntu-latest
