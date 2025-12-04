@@ -118,7 +118,7 @@ jobs:
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create js artifact
-        run: cd .repo && npx projen package:js
+        run: cd .repo && yarn projen package:js
       - name: Collect js artifact
         run: mv .repo/dist dist
       - name: Release
@@ -162,7 +162,7 @@ jobs:
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create java artifact
-        run: cd .repo && npx projen package:java
+        run: cd .repo && yarn projen package:java
       - name: Collect java artifact
         run: mv .repo/dist dist
       - name: Release
@@ -206,7 +206,7 @@ jobs:
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create python artifact
-        run: cd .repo && npx projen package:python
+        run: cd .repo && yarn projen package:python
       - name: Collect python artifact
         run: mv .repo/dist dist
       - name: Release
@@ -247,7 +247,7 @@ jobs:
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create dotnet artifact
-        run: cd .repo && npx projen package:dotnet
+        run: cd .repo && yarn projen package:dotnet
       - name: Collect dotnet artifact
         run: mv .repo/dist dist
       - name: Release
