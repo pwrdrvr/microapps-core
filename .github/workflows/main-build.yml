@@ -11,9 +11,9 @@ on:
       - '**'
       - '!**/README.md'
   # When testing changes to workflow
-  # pull_request:
-  #   branches:
-  #     - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   install-deps:
