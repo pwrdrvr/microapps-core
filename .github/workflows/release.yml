@@ -85,7 +85,13 @@ jobs:
           node scripts/version.js ${{needs.version.outputs.version }}
       - name: Check for new commits
         id: git_remote
-        run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
+          else
+            # For PR testing, use the PR head SHA
+            echo latest_commit="${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          fi
       - name: Upload CDK Construct Artifact
         if: ${{ steps.git_remote.outputs.latest_commit == github.sha || github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4
@@ -178,7 +184,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: (needs.release.outputs.latest_commit == github.sha) && github.event_name == 'release'
+    if: |
+      (github.event_name == 'release' && needs.release.outputs.latest_commit == github.sha) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE') && needs.release.outputs.latest_commit == github.event.pull_request.head.sha)
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -197,7 +205,13 @@ jobs:
       - name: Collect js Artifact
         run: mv .repo/dist dist
       - name: Release
-        run: npx -p publib@latest publib-npm
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "PR test mode: Running npm publish --dry-run instead of actual publish"
+            cd dist && npm publish --dry-run || true
+          else
+            npx -p publib@latest publib-npm
+          fi
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: registry.npmjs.org
@@ -208,7 +222,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: (needs.release.outputs.latest_commit == github.sha) && github.event_name == 'release'
+    if: |
+      (github.event_name == 'release' && needs.release.outputs.latest_commit == github.sha) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE') && needs.release.outputs.latest_commit == github.event.pull_request.head.sha)
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -237,23 +253,40 @@ jobs:
       # Publish other non-JSII Artifacts to NPM
       #
       - name: NPM registry authentication
+        if: github.event_name == 'release'
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
       - name: Release Publish Tool - NPM
         working-directory: packages/pwrdrvr/
         run: |
-          npm publish
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            npm publish --dry-run
+          else
+            npm publish
+          fi
       - name: Release Publish Tool - Convenience - NPM
         working-directory: packages/microapps-publish/
         run: |
-          npm publish
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            npm publish --dry-run
+          else
+            npm publish
+          fi
       - name: Release DataLib - NPM
         working-directory: packages/microapps-datalib/
         run: |
-          npm publish
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            npm publish --dry-run
+          else
+            npm publish
+          fi
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
         run: |
-          npm publish --access public
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            npm publish --dry-run --access public
+          else
+            npm publish --access public
+          fi
   release_maven:
     name: Publish to Maven Central
     needs: release
