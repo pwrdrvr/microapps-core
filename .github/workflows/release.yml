@@ -186,7 +186,7 @@ jobs:
       contents: read
     if: |
       (github.event_name == 'release' && needs.release.outputs.latest_commit == github.sha) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE') && needs.release.outputs.latest_commit == github.event.pull_request.head.sha)
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE'))
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -224,7 +224,7 @@ jobs:
       contents: read
     if: |
       (github.event_name == 'release' && needs.release.outputs.latest_commit == github.sha) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE') && needs.release.outputs.latest_commit == github.event.pull_request.head.sha)
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE'))
     steps:
       - uses: actions/setup-node@v4
         with:
