@@ -108,7 +108,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.0.0
+          node-version: 22.x
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -190,7 +190,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.0.0
+          node-version: 22.x
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -209,13 +209,36 @@ jobs:
       - name: Create js artifact
         working-directory: .repo/packages/microapps-cdk
         run: npx projen package:js
+      - name: Validate js artifact was created
+        working-directory: .repo/packages/microapps-cdk
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "ERROR: dist directory was not created"
+            exit 1
+          fi
+          if [ ! -d "dist/js" ]; then
+            echo "ERROR: dist/js directory was not created"
+            exit 1
+          fi
+          if [ -z "$(ls -A dist/js/*.tgz 2>/dev/null)" ]; then
+            echo "ERROR: No .tgz files found in dist/js"
+            exit 1
+          fi
+          echo "✓ JS artifact validated successfully"
+          ls -lh dist/js/
       - name: Collect js Artifact
         run: mv .repo/packages/microapps-cdk/dist dist
       - name: Release
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "PR test mode: Running npm publish --dry-run instead of actual publish"
-            cd dist && npm publish --dry-run || true
+            # npm publish can accept a tarball file directly
+            TARBALL=$(ls dist/js/*.tgz | head -1)
+            if [ -z "$TARBALL" ]; then
+              echo "ERROR: No tarball found in dist/js/"
+              exit 1
+            fi
+            npm publish --dry-run "$TARBALL" || true
           else
             npx -p publib@latest publib-npm
           fi
@@ -235,7 +258,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.0.0
+          node-version: 22.x
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -308,7 +331,7 @@ jobs:
           java-version: 11.x
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.0.0
+          node-version: 22.x
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -348,7 +371,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.0.0
+          node-version: 22.x
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -387,7 +410,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.0.0
+          node-version: 22.x
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x

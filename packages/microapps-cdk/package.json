@@ -68,7 +68,7 @@
     "microapps"
   ],
   "engines": {
-    "node": ">= 22.0.0"
+    "node": ">= 22.x"
   },
   "main": "lib/index.js",
   "license": "MIT",
