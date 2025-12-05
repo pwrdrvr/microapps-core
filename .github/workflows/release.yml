@@ -410,7 +410,7 @@ jobs:
         working-directory: .repo/packages/microapps-cdk
         run: npx projen package:dotnet
       - name: Collect dotnet Artifact
-        run: mv .repo/packages/microapps-cdk/dist dist
+        run: mv .repo/dist dist
       - name: Release
         run: npx -p publib@latest publib-nuget
         env:
