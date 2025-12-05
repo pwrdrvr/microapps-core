@@ -203,13 +203,14 @@ jobs:
       - name: Install Dependencies
         run: cd .repo && yarn install --check-files --frozen-lockfile
       - name: Extract build artifact
-        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create js artifact
-        run: cd .repo && npx projen package:js
+        working-directory: .repo/packages/microapps-cdk
+        run: npx projen package:js
       - name: Collect js Artifact
-        run: mv .repo/dist dist
+        run: mv .repo/packages/microapps-cdk/dist dist
       - name: Release
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
@@ -320,13 +321,14 @@ jobs:
       - name: Install Dependencies
         run: cd .repo && yarn install --check-files --frozen-lockfile
       - name: Extract build artifact
-        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create java artifact
-        run: cd .repo && npx projen package:java
+        working-directory: .repo/packages/microapps-cdk
+        run: npx projen package:java
       - name: Collect java Artifact
-        run: mv .repo/dist dist
+        run: mv .repo/packages/microapps-cdk/dist dist
       - name: Release
         run: npx -p publib@latest publib-maven
         env:
@@ -362,13 +364,14 @@ jobs:
       - name: Install Dependencies
         run: cd .repo && yarn install --check-files --frozen-lockfile
       - name: Extract build artifact
-        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create python artifact
-        run: cd .repo && npx projen package:python
+        working-directory: .repo/packages/microapps-cdk
+        run: npx projen package:python
       - name: Collect python Artifact
-        run: mv .repo/dist dist
+        run: mv .repo/packages/microapps-cdk/dist dist
       - name: Release
         run: npx -p publib@latest publib-pypi
         env:
@@ -400,13 +403,14 @@ jobs:
       - name: Install Dependencies
         run: cd .repo && yarn install --check-files --frozen-lockfile
       - name: Extract build artifact
-        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
         run: mv dist dist.old
       - name: Create dotnet artifact
-        run: cd .repo && npx projen package:dotnet
+        working-directory: .repo/packages/microapps-cdk
+        run: npx projen package:dotnet
       - name: Collect dotnet Artifact
-        run: mv .repo/dist dist
+        run: mv .repo/packages/microapps-cdk/dist dist
       - name: Release
         run: npx -p publib@latest publib-nuget
         env:
