@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { awscdk, javascript } = require('projen');
 const project = new awscdk.AwsCdkConstructLibrary({
+  name: '@pwrdrvr/microapps-cdk',
+  license: 'MIT',
   author: 'PwrDrvr LLC',
   authorAddress: 'harold@pwrdrvr.com',
   authorOrganization: true,
@@ -11,8 +13,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
-  license: 'MIT',
-  name: '@pwrdrvr/microapps-cdk',
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.YARN_CLASSIC,
@@ -84,10 +84,12 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
 // 114                 ? K | `${K}.${PathImpl<T[K], Exclude<keyof T[K], keyof any[]>>}`
 //
-project.preCompileTask.exec(
-  'rm -rf  ../../node_modules/@types/prettier/  ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
-  // 'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
-);
+
+// 2024-05-15 - This is no longer needed now that JSII has been upgrade from v1 to v5.4
+// project.preCompileTask.exec(
+//   'rm -rf  ../../node_modules/@types/prettier/  ../../node_modules/@types/convict/ ../../node_modules/@types/convict-format-with-validator/',
+//   // 'patch-package && if [ -d ../../node_modules ] ; then mv ../../node_modules ../../node_modules_hide; fi',
+// );
 
 // Move the parent node_modules back into place now that jsii is done
 // project.compileTask.exec(
@@ -95,13 +97,13 @@ project.preCompileTask.exec(
 // );
 
 project.compileTask.exec(
-  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
+  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
+  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-router/index.js',
+  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=lib/microapps-router/index.js',
 );
 project.compileTask.exec('cp -R ../microapps-router/templates lib/microapps-router/');
 project.compileTask.exec('cp ../microapps-router/templates/* lib/microapps-edge-to-origin/');
