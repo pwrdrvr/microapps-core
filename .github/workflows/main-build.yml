@@ -186,8 +186,6 @@ jobs:
         with:
           name: router-lib-dist
           path: packages/microapps-router-lib
-      - name: NPM registry authentication
-        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
       - name: Release Publish Tool - NPM - Dry Run
         working-directory: packages/pwrdrvr
         run: |
