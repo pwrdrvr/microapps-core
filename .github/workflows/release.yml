@@ -184,6 +184,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # required for OIDC trusted publish
     if: |
       (github.event_name == 'release' && needs.release.outputs.latest_commit == github.sha) ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE'))
@@ -245,13 +246,13 @@ jobs:
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: registry.npmjs.org
-          NPM_TOKEN: ${{ secrets.NPMJSORG_PUBLISH_TOKEN }} # publib requires NPM_TOKEN as an env var
   release_npm_publish_tool:
     name: Publish to npm - Publish Tool
     needs: [release, release_npm, release-publish-tool]
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # required for OIDC trusted publish
     if: |
       (github.event_name == 'release' && needs.release.outputs.latest_commit == github.sha) ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE'))
@@ -282,9 +283,6 @@ jobs:
       #
       # Publish other non-JSII Artifacts to NPM
       #
-      - name: NPM registry authentication
-        if: github.event_name == 'release'
-        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPMJSORG_PUBLISH_TOKEN }}
       - name: Release Publish Tool - NPM
         working-directory: packages/pwrdrvr/
         run: |
