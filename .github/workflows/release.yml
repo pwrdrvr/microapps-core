@@ -249,6 +249,7 @@ jobs:
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: registry.npmjs.org
+          NPM_TRUSTED_PUBLISHER: "true"
   release_npm_publish_tool:
     name: Publish to npm - Publish Tool
     needs: [release, release_npm, release-publish-tool]
@@ -297,6 +298,8 @@ jobs:
           else
             npm publish
           fi
+        env:
+          NPM_TRUSTED_PUBLISHER: "true"
       - name: Release Publish Tool - Convenience - NPM
         working-directory: packages/microapps-publish/
         run: |
@@ -305,6 +308,8 @@ jobs:
           else
             npm publish
           fi
+        env:
+          NPM_TRUSTED_PUBLISHER: "true"
       - name: Release DataLib - NPM
         working-directory: packages/microapps-datalib/
         run: |
@@ -313,6 +318,8 @@ jobs:
           else
             npm publish
           fi
+        env:
+          NPM_TRUSTED_PUBLISHER: "true"
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
         run: |
@@ -321,6 +328,8 @@ jobs:
           else
             npm publish --access public
           fi
+        env:
+          NPM_TRUSTED_PUBLISHER: "true"
   release_maven:
     name: Publish to Maven Central
     needs: release
