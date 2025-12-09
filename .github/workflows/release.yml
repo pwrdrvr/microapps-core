@@ -229,6 +229,9 @@ jobs:
           ls -lh dist/js/
       - name: Collect js Artifact
         run: mv .repo/packages/microapps-cdk/dist dist
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
+        run: npm install -g npm@latest
       - name: Release
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
@@ -280,6 +283,9 @@ jobs:
         with:
           name: router-lib-dist
           path: packages/microapps-router-lib
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
+        run: npm install -g npm@latest
       #
       # Publish other non-JSII Artifacts to NPM
       #
