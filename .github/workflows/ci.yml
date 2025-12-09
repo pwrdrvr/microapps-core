@@ -30,7 +30,7 @@ jobs:
   install-deps:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/configure-nodejs
         with:
           lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
@@ -44,7 +44,7 @@ jobs:
       releaseAppPackageVersion: ${{ steps.appVersions.outputs.releaseAppPackageVersion }}
       nextjsDemoAppPackageVersion: ${{ steps.appVersions.outputs.nextjsDemoAppPackageVersion }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Compute PR Suffix
         id: prSuffix
@@ -110,7 +110,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: ./.github/actions/configure-nodejs
 
@@ -159,7 +159,7 @@ jobs:
       statuses: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Extract Current NPM Version
         run: |
@@ -614,7 +614,7 @@ jobs:
     needs: [install-deps]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: ./.github/actions/configure-nodejs
 

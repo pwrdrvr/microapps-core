@@ -13,7 +13,7 @@ jobs:
   install-deps:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/configure-nodejs
         with:
           lookup-only: "true" # We only want to lookup from the cache - if a hit, this job does nothing
@@ -25,7 +25,7 @@ jobs:
     if: github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE'))
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get version from git tag (release) or package.json (PR test)
         id: get_version
@@ -57,7 +57,7 @@ jobs:
       CI: "true"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set git identity
@@ -134,7 +134,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: ./.github/actions/configure-nodejs
       - name: Check for new commits
         id: git_remote
@@ -198,7 +198,7 @@ jobs:
           name: build-artifact
           path: dist
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: .repo
       - name: Install Dependencies
@@ -336,7 +336,7 @@ jobs:
           name: build-artifact
           path: dist
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: .repo
       - name: Install Dependencies
@@ -379,7 +379,7 @@ jobs:
           name: build-artifact
           path: dist
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: .repo
       - name: Install Dependencies
@@ -418,7 +418,7 @@ jobs:
           name: build-artifact
           path: dist
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: .repo
       - name: Install Dependencies
