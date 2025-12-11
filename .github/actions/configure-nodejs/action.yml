@@ -4,7 +4,7 @@ description: "Install Node.js and install Node.js modules or restore cache"
 inputs:
   node-version:
     description: "NodeJS Version"
-    default: "22"
+    default: "22.x"
   lookup-only:
     description: "If true, only checks if cache entry exists and skips download. Does not change save cache behavior"
     default: "false"
@@ -12,7 +12,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: ${{ inputs.node-version }}
 

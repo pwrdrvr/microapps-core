@@ -163,9 +163,9 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22.x
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -209,9 +209,9 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22.x
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -235,9 +235,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 11.x
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22.x
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -257,9 +257,9 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22.x
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
@@ -282,9 +282,9 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 22.x
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
