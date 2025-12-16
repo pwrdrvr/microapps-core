@@ -21,6 +21,7 @@ env:
   # Set env to prod so we don't get an env suffix on the DNS names
   NODE_ENV: ${{ secrets.NODE_ENV }}
   DEMO_APP_NAME: demo-app
+  DEMO_IFRAME_APP_NAME: demo-iframe
   STATIC_APP_NAME: static-app
   NEXTJS_DEMO_APP_NAME: nextjs-demo
   RELEASE_APP_NAME: release
@@ -354,6 +355,46 @@ jobs:
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0/serverIncrement?currValue=1"
           echo Testing App Method Invocation on _next/data Route
           curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0/serverIncrement?currValue=1"
+
+      - name: Publish Demo App to MicroApps as iFrame App + API
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${DEMO_IFRAME_APP_NAME} \
+            --type lambda-url \
+            --startup-type iframe \
+            --new-version 0.0.0 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
+
+      - name: Demo IFrame App URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              sha: '${{github.event.pull_request.head.sha || github.sha}}',
+              context: 'Demo IFrame App URL on ${{ matrix.deployName }}',
+              state: 'success',
+              description: 'Passed',
+              target_url: `https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.DEMO_IFRAME_APP_NAME }}?appver=${{ env.PACKAGE_VERSION }}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Demo IFrame App
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_IFRAME_APP_NAME}/
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_IFRAME_APP_NAME}/0.0.0/index.html
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_IFRAME_APP_NAME}/0.0.0/serverIncrement?currValue=1"
+          echo Testing App Method Invocation on _next/data Route
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_IFRAME_APP_NAME}/api/serverIncrement?currValue=1"
 
       - name: Publish Demo App to MicroApps - To Delete
         run: |
