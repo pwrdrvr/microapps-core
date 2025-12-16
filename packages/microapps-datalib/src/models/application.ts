@@ -21,6 +21,7 @@ interface IApplicationRecord {
   SK: string;
   AppName: string;
   DisplayName: string;
+  ExtraAppNames: string[];
 }
 
 export class Application implements IApplicationRecord {
@@ -96,6 +97,7 @@ export class Application implements IApplicationRecord {
   private _keyBy: SaveBy;
   private _appName: string | undefined;
   private _displayName: string | undefined;
+  private _extraAppNames: string[] | undefined;
 
   public constructor(init?: Partial<IApplicationRecord>) {
     Object.assign(this, init);
@@ -108,6 +110,7 @@ export class Application implements IApplicationRecord {
       SK: this.SK,
       AppName: this.AppName,
       DisplayName: this.DisplayName,
+      ExtraAppNames: this._extraAppNames ?? [],
     };
   }
 
@@ -169,5 +172,12 @@ export class Application implements IApplicationRecord {
   }
   public set DisplayName(value: string) {
     this._displayName = value;
+  }
+
+  public get ExtraAppNames(): string[] {
+    return this._extraAppNames as string[];
+  }
+  public set ExtraAppNames(value: string[]) {
+    this._extraAppNames = value;
   }
 }
