@@ -78,6 +78,9 @@ importers:
       projen:
         specifier: 0.98.10
         version: 0.98.10(constructs@10.0.5)
+      pwrdrvr:
+        specifier: workspace:*
+        version: link:packages/pwrdrvr
       replace-in-file:
         specifier: 6.3.5
         version: 6.3.5

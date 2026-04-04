@@ -60,6 +60,7 @@
     "jest-dynalite": "3.6.1",
     "lint-staged": "15.2.2",
     "patch-package": "8.0.0",
+    "pwrdrvr": "workspace:*",
     "prettier": "2.8.4",
     "projen": "0.98.10",
     "replace-in-file": "6.3.5",
