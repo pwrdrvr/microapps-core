@@ -660,9 +660,21 @@ jobs:
 
       - uses: ./.github/actions/configure-nodejs
 
+      - name: Compute Tarball Baseline Cache Key
+        id: tarball_baseline_key
+        run: |
+          echo "key=$(node scripts/package-manager/check-tarball-population.mjs --print-baseline-cache-key)" >> $GITHUB_OUTPUT
+
+      - name: Restore Published Tarball Baselines
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/tarball-population-baselines
+          key: tarball-population-baselines-${{ runner.os }}-${{ steps.tarball_baseline_key.outputs.key }}
+
       - name: Run Tarball Population Check
         id: tarball_population
         env:
+          TARBALL_POPULATION_BASELINE_DIR: ${{ runner.temp }}/tarball-population-baselines
           TARBALL_POPULATION_JSON: ${{ runner.temp }}/tarball-population.json
           TARBALL_POPULATION_MARKDOWN: ${{ runner.temp }}/tarball-population.md
         run: |

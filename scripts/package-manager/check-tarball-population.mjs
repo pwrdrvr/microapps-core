@@ -9,6 +9,7 @@ import {
   rmSync,
   writeFileSync,
   copyFileSync,
+  existsSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -24,6 +25,7 @@ const outputJson =
   process.env.TARBALL_POPULATION_JSON ?? path.join(rootDir, 'tarball-population.json');
 const outputMarkdown =
   process.env.TARBALL_POPULATION_MARKDOWN ?? path.join(rootDir, 'tarball-population.md');
+const baselineDir = process.env.TARBALL_POPULATION_BASELINE_DIR ?? null;
 
 const packages = [
   {
@@ -78,6 +80,20 @@ const packages = [
 
 const prepared = new Set();
 
+if (baselineDir) {
+  mkdirSync(baselineDir, { recursive: true });
+}
+
+if (process.argv.includes('--print-baseline-cache-key')) {
+  console.log(
+    packages
+      .map((pkg) => `${pkg.id}-${getPublishedVersion(pkg.npmSpec)}`)
+      .join('__')
+      .replaceAll(/[^A-Za-z0-9._-]+/g, '_'),
+  );
+  process.exit(0);
+}
+
 try {
   const results = [];
 
@@ -129,16 +145,16 @@ function comparePackage(pkg) {
     };
   }
 
-  publishedTarballPath = packPublished(pkg, publishedVersion);
+  const publishedBaseline = preparePublishedBaseline(pkg, publishedVersion);
+  publishedTarballPath = publishedBaseline.tarballPath;
   localTarballPath = pkg.prepareLocalTarball();
 
-  const publishedFiles = listTarballFiles(publishedTarballPath);
   const localFiles = listTarballFiles(localTarballPath);
-  const publishedSet = new Set(publishedFiles);
+  const publishedSet = new Set(publishedBaseline.files);
   const localSet = new Set(localFiles);
   const addedPaths = localFiles.filter((filePath) => !publishedSet.has(filePath));
-  const removedPaths = publishedFiles.filter((filePath) => !localSet.has(filePath));
-  const publishedSymlinkCount = countTarballSymlinks(publishedTarballPath);
+  const removedPaths = publishedBaseline.files.filter((filePath) => !localSet.has(filePath));
+  const publishedSymlinkCount = publishedBaseline.symlinkCount;
   const localSymlinkCount = countTarballSymlinks(localTarballPath);
 
   const changedPaths = [...addedPaths, ...removedPaths];
@@ -156,7 +172,7 @@ function comparePackage(pkg) {
     publishedVersion,
     publishedTarballPath,
     localTarballPath,
-    publishedFileCount: publishedFiles.length,
+    publishedFileCount: publishedBaseline.files.length,
     localFileCount: localFiles.length,
     publishedSymlinkCount,
     localSymlinkCount,
@@ -170,8 +186,7 @@ function getPublishedVersion(npmSpec) {
   return result.stdout.trim();
 }
 
-function packPublished(pkg, version) {
-  const targetDir = path.join(publishedDir, pkg.id);
+function packPublished(pkg, version, targetDir = path.join(publishedDir, pkg.id)) {
   mkdirSync(targetDir, { recursive: true });
   const result = run(
     'npm',
@@ -180,6 +195,47 @@ function packPublished(pkg, version) {
   );
   const fileName = result.stdout.trim().split('\n').filter(Boolean).at(-1);
   return path.join(targetDir, fileName);
+}
+
+function preparePublishedBaseline(pkg, version) {
+  if (!baselineDir) {
+    const tarballPath = packPublished(pkg, version);
+    return {
+      tarballPath,
+      files: listTarballFiles(tarballPath),
+      symlinkCount: countTarballSymlinks(tarballPath),
+    };
+  }
+
+  const versionDir = path.join(baselineDir, pkg.id, version);
+  const inventoryPath = path.join(versionDir, 'inventory.json');
+  mkdirSync(versionDir, { recursive: true });
+
+  let tarballPath = firstTarballInIfExists(versionDir);
+  if (!tarballPath) {
+    tarballPath = packPublished(pkg, version, versionDir);
+  }
+
+  if (existsSync(inventoryPath)) {
+    const inventory = JSON.parse(readFileSync(inventoryPath, 'utf8'));
+    return {
+      tarballPath,
+      files: inventory.files,
+      symlinkCount: inventory.symlinkCount,
+    };
+  }
+
+  const inventory = {
+    files: listTarballFiles(tarballPath),
+    symlinkCount: countTarballSymlinks(tarballPath),
+  };
+  writeFileSync(inventoryPath, `${JSON.stringify(inventory, null, 2)}\n`);
+
+  return {
+    tarballPath,
+    files: inventory.files,
+    symlinkCount: inventory.symlinkCount,
+  };
 }
 
 function packLocalWithPnpm(packageDir, id) {
@@ -409,6 +465,17 @@ function firstTarballIn(directory) {
   }
 
   return path.join(directory, match);
+}
+
+function firstTarballInIfExists(directory) {
+  const matches = readdirSync(directory)
+    .filter((entry) => entry.endsWith('.tgz'))
+    .sort();
+  if (matches.length === 0) {
+    return null;
+  }
+
+  return path.join(directory, matches[0]);
 }
 
 function run(command, args, options = {}) {
