@@ -237,6 +237,7 @@ jobs:
         run: mv .repo/packages/microapps-cdk/dist dist
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
+        if: github.event_name == 'release'
         run: npm install -g npm@latest
       - name: Release
         run: |
@@ -292,6 +293,7 @@ jobs:
           path: packages/microapps-router-lib
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
+        if: github.event_name == 'release'
         run: npm install -g npm@latest
       #
       # Publish other non-JSII Artifacts to NPM
