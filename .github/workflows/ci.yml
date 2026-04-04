@@ -628,15 +628,15 @@ jobs:
 
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
         run: |
-          yarn build
+          pnpm build
 
       - name: Confirm No Doc Changes
         working-directory: packages/microapps-cdk/
         run: |
-          yarn post-compile
+          pnpm post-compile
           git diff --ignore-space-at-eol --exit-code

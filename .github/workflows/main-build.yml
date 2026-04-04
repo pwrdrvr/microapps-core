@@ -51,10 +51,10 @@ jobs:
         run: pnpm test
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
       - name: Build CDK Construct
         working-directory: packages/microapps-cdk/
-        run: yarn build
+        run: pnpm build
       - name: Projen build
         working-directory: packages/microapps-cdk/
         run: npx projen build
@@ -212,6 +212,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -220,7 +223,7 @@ jobs:
       - name: Prepare Repository
         run: mv dist .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Create js artifact
         run: cd .repo && npx projen package:js
       - name: Collect js Artifact
@@ -238,6 +241,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -246,7 +252,7 @@ jobs:
       - name: Prepare Repository
         run: mv dist .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Create java artifact
         run: cd .repo && npx projen package:java
       - name: Collect java Artifact
@@ -263,6 +269,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -271,7 +280,7 @@ jobs:
       - name: Prepare Repository
         run: mv dist .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Create python artifact
         run: cd .repo && npx projen package:python
       - name: Collect python Artifact
@@ -288,6 +297,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -296,7 +308,7 @@ jobs:
       - name: Prepare Repository
         run: mv dist .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Create dotnet artifact
         run: cd .repo && npx projen package:dotnet
       - name: Collect dotnet Artifact

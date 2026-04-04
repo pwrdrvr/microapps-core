@@ -62,6 +62,7 @@
     "aws-cdk-lib": "^2.168.0",
     "constructs": "^10.0.5"
   },
+  "pnpm": {},
   "keywords": [
     "awscdk",
     "cdk",

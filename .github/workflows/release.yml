@@ -75,7 +75,7 @@ jobs:
         run: pnpm test
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
       - name: Prepare the Release
         working-directory: packages/microapps-cdk/
         run: npx projen release
@@ -109,6 +109,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -202,7 +205,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
@@ -345,6 +348,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -355,7 +361,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
@@ -388,6 +394,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -398,7 +407,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
@@ -427,6 +436,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -437,7 +449,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
