@@ -68,7 +68,7 @@ jobs:
       # - name: Optionally Install CDK Construct Deps
       #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
       #   working-directory: packages/microapps-cdk/
-      #   run: yarn install --frozen-lockfile
+      #   run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Extract App NPM Versions
         id: appVersions
@@ -188,7 +188,7 @@ jobs:
       #     path: |
       #       packages/**/dist
       #       packages/microapps-cdk/lib
-      #     key: typescript-build-${{ hashFiles('package.json', 'yarn.lock', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
+      #     key: typescript-build-${{ hashFiles('package.json', 'pnpm-lock.yaml', 'tsconfig.json', 'tsconfig.packages.json', 'packages/**/tsconfig.json', 'packages/**/*.ts') }}
 
       - name: Build All TypeScript
         # if: steps.cache-typescript-build.outputs.cache-hit != 'true'
