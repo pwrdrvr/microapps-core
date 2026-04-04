@@ -34,6 +34,14 @@ The main pieces are:
 - Some published packages still need publish-time care because workspace dependency rewriting and tarball contents matter. The CI tarball audit exists to catch that drift.
 - The repo now has an automated tarball population check in CI. It compares newly produced tarballs against the currently published npm packages and reports `green`, `yellow`, or `red` on the PR.
 
+## Commits
+
+- Use Conventional Commits for this repository.
+- Prefer the shape `type(scope): summary` when a scope helps and `type: summary` when it does not.
+- Keep the subject line short, imperative, and descriptive of the user-visible or maintainer-visible change.
+- Common types here include `feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `build`, `perf`, and `chore`.
+- Keep checkpoint commits reviewable: one main idea per commit whenever practical.
+
 ## Common Commands
 
 ### Build

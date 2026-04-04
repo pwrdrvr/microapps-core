@@ -8,6 +8,7 @@ Instructions, tools, and tips for those wishing to contribute.
 - [Prerequisites](#prerequisites)
 - [Installing Dependencies](#installing-dependencies)
   - [Why pnpm is the default](#why-pnpm-is-the-default)
+- [Commit Messages](#commit-messages)
 - [Bootstrapping Projen Templates](#bootstrapping-projen-templates)
 - [Releasing NPM Packages](#releasing-npm-packages)
   - [Get the Version that Projen Tagged](#get-the-version-that-projen-tagged)
@@ -34,6 +35,28 @@ pnpm install
 ## Why pnpm is the default
 
 Historically, this repo used Yarn because npm workspace installs had a circular `bin` linking problem with the local CLI packages. pnpm handles the workspace layout cleanly while still giving us a committed lockfile and reproducible installs.
+
+# Commit Messages
+
+Use Conventional Commits in this repository.
+
+Preferred shapes:
+
+- `type: summary`
+- `type(scope): summary`
+
+Guidelines:
+
+- Keep the summary imperative and concise.
+- Use a scope when it makes the affected package or area clearer, such as `feat(router): ...` or `fix(release): ...`.
+- Prefer these types unless there is a good reason not to: `feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `build`, `perf`, `chore`.
+- Keep each commit focused on one main idea when practical so review and rollback stay easy.
+
+Examples:
+
+- `feat(release): publish prereleases to npm beta dist-tag`
+- `docs(contributing): document conventional commit format`
+- `fix(router): preserve query string when forwarding assets`
 
 # Bootstrapping Projen Templates
 
