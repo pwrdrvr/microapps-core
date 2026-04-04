@@ -76,7 +76,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroApps.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroApps.isConstruct"></a>
 
 ```typescript
 import { MicroApps } from '@pwrdrvr/microapps-cdk'
@@ -85,20 +85,6 @@ MicroApps.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroApps.isConstruct.parameter.x"></a>
 
@@ -247,7 +233,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsCF.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsCF.isConstruct"></a>
 
 ```typescript
 import { MicroAppsCF } from '@pwrdrvr/microapps-cdk'
@@ -256,20 +242,6 @@ MicroAppsCF.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroAppsCF.isConstruct.parameter.x"></a>
 
@@ -428,7 +400,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.isConstruct"></a>
 
 ```typescript
 import { MicroAppsChildDeployer } from '@pwrdrvr/microapps-cdk'
@@ -437,20 +409,6 @@ MicroAppsChildDeployer.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroAppsChildDeployer.isConstruct.parameter.x"></a>
 
@@ -559,7 +517,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.isConstruct"></a>
 
 ```typescript
 import { MicroAppsEdgeToOrigin } from '@pwrdrvr/microapps-cdk'
@@ -568,20 +526,6 @@ MicroAppsEdgeToOrigin.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOrigin.isConstruct.parameter.x"></a>
 
@@ -736,7 +680,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsS3.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsS3.isConstruct"></a>
 
 ```typescript
 import { MicroAppsS3 } from '@pwrdrvr/microapps-cdk'
@@ -745,20 +689,6 @@ MicroAppsS3.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroAppsS3.isConstruct.parameter.x"></a>
 
@@ -931,7 +861,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsSvcs.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsSvcs.isConstruct"></a>
 
 ```typescript
 import { MicroAppsSvcs } from '@pwrdrvr/microapps-cdk'
@@ -940,20 +870,6 @@ MicroAppsSvcs.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroAppsSvcs.isConstruct.parameter.x"></a>
 
@@ -1087,7 +1003,7 @@ Returns a string representation of this construct.
 
 ---
 
-##### `isConstruct` <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsTable.isConstruct"></a>
+##### ~~`isConstruct`~~ <a name="isConstruct" id="@pwrdrvr/microapps-cdk.MicroAppsTable.isConstruct"></a>
 
 ```typescript
 import { MicroAppsTable } from '@pwrdrvr/microapps-cdk'
@@ -1096,20 +1012,6 @@ MicroAppsTable.isConstruct(x: any)
 ```
 
 Checks if `x` is a construct.
-
-Use this method instead of `instanceof` to properly detect `Construct`
-instances, even when the construct library is symlinked.
-
-Explanation: in JavaScript, multiple copies of the `constructs` library on
-disk are seen as independent, completely different libraries. As a
-consequence, the class `Construct` in each copy of the `constructs` library
-is seen as a different class, and an instance of one class will not test as
-`instanceof` the other class. `npm install` will not create installations
-like this, but users may manually symlink construct libraries together or
-use a monorepo tool: in those cases, multiple copies of the `constructs`
-library can be accidentally installed, and `instanceof` will behave
-unpredictably. It is safest to avoid using `instanceof`, and using
-this type-testing method instead.
 
 ###### `x`<sup>Required</sup> <a name="x" id="@pwrdrvr/microapps-cdk.MicroAppsTable.isConstruct.parameter.x"></a>
 
