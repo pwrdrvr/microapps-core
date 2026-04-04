@@ -12,7 +12,7 @@
   },
   "engineStrict": true,
   "engine": {
-    "node": ">= 16.0.0"
+    "node": ">= 22.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -66,6 +66,7 @@
     "@aws-sdk/client-sts": "3.78.0",
     "@aws-sdk/credential-provider-node": "3.78.0",
     "@aws-sdk/lib-storage": "3.78.0",
+    "@pwrdrvr/microapps-deployer-lib": "workspace:*",
     "@types/convict": "^6.0.2",
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/fs-extra": "^9.0.11",

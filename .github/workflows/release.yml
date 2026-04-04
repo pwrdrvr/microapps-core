@@ -66,16 +66,16 @@ jobs:
           git config user.email "github-actions@github.com"
       - uses: ./.github/actions/configure-nodejs
       - name: Build All TypeScript
-        run: yarn build
+        run: pnpm build
       - name: Run Lint
-        run: yarn lint
+        run: pnpm lint
       - name: Run Node Tests
         env:
           NODE_ENV: test
-        run: yarn test
+        run: pnpm test
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
       - name: Prepare the Release
         working-directory: packages/microapps-cdk/
         run: npx projen release
@@ -109,6 +109,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -149,7 +152,7 @@ jobs:
           echo "Version is ${{needs.version.outputs.version }}"
           node scripts/version.js ${{needs.version.outputs.version }}
       - name: Build Publish TypeScript
-        run: yarn build:publish
+        run: pnpm build:publish
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v4
         with:
@@ -192,6 +195,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -202,7 +208,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
@@ -231,6 +237,7 @@ jobs:
         run: mv .repo/packages/microapps-cdk/dist dist
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
+        if: github.event_name == 'release'
         run: npm install -g npm@latest
       - name: Release
         run: |
@@ -264,6 +271,13 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -286,6 +300,7 @@ jobs:
           path: packages/microapps-router-lib
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
+        if: github.event_name == 'release'
         run: npm install -g npm@latest
       #
       # Publish other non-JSII Artifacts to NPM
@@ -293,20 +308,30 @@ jobs:
       - name: Release Publish Tool - NPM
         working-directory: packages/pwrdrvr/
         run: |
+          PACK_DIR=../../dist/npm-packages/pwrdrvr
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run
+            npm publish --dry-run --tag pr "$TARBALL"
           else
-            npm publish
+            npm publish "$TARBALL"
           fi
         env:
           NPM_TRUSTED_PUBLISHER: "true"
       - name: Release Publish Tool - Convenience - NPM
         working-directory: packages/microapps-publish/
         run: |
+          PACK_DIR=../../dist/npm-packages/microapps-publish
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run
+            npm publish --dry-run --tag pr "$TARBALL"
           else
-            npm publish
+            npm publish "$TARBALL"
           fi
         env:
           NPM_TRUSTED_PUBLISHER: "true"
@@ -323,10 +348,15 @@ jobs:
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
         run: |
+          PACK_DIR=../../dist/npm-packages/microapps-router-lib
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run --access public
+            npm publish --dry-run --tag pr --access public "$TARBALL"
           else
-            npm publish --access public
+            npm publish --access public "$TARBALL"
           fi
         env:
           NPM_TRUSTED_PUBLISHER: "true"
@@ -345,6 +375,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -355,7 +388,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
@@ -388,6 +421,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -398,7 +434,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way
@@ -427,6 +463,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -437,7 +476,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && pnpm install --frozen-lockfile
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Move build artifact out of the way

@@ -15,7 +15,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
   name: '@pwrdrvr/microapps-cdk',
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
-  packageManager: javascript.NodePackageManager.YARN_CLASSIC,
+  packageManager: javascript.NodePackageManager.PNPM,
+  pnpmVersion: '10',
   minNodeVersion: '22.0.0',
   jsiiVersion: '^5.4',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
@@ -105,5 +106,8 @@ project.compileTask.exec(
 );
 project.compileTask.exec('cp -R ../microapps-router/templates lib/microapps-router/');
 project.compileTask.exec('cp ../microapps-router/templates/* lib/microapps-edge-to-origin/');
+
+// Internal agent guidance should stay in the repo, not in published jsii tarballs.
+project.npmignore?.exclude('/AGENTS.md', '/CLAUDE.md');
 
 project.synth();

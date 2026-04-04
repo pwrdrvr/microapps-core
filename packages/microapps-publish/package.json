@@ -10,7 +10,7 @@
   },
   "engineStrict": true,
   "engine": {
-    "node": ">= 16.0.0"
+    "node": ">= 22.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
-    "pwrdrvr": "*"
+    "pwrdrvr": "workspace:*"
   },
   "peerDependencies": {},
   "devDependencies": {}
