@@ -1,7 +1,7 @@
 ---
 title: Refactor package management to pnpm with multi-manager CI support
 type: refactor
-status: active
+status: completed
 date: 2026-04-04
 deepened: 2026-04-04
 ---
@@ -127,7 +127,7 @@ flowchart TB
     U4 --> U5
 ```
 
-- [ ] **Unit 1: Establish pnpm as the root workspace manager**
+- [x] **Unit 1: Establish pnpm as the root workspace manager**
 
 **Goal:** Convert the root repo metadata and lockfile to pnpm so installs, script execution, and workspace resolution are rooted in pnpm rather than Yarn Classic.
 
@@ -165,7 +165,7 @@ flowchart TB
 **Verification:**
 - The repo has a single committed root lockfile (`pnpm-lock.yaml`), the root scripts no longer require Yarn, and contributor docs identify pnpm as the standard development workflow.
 
-- [ ] **Unit 2: Introduce a tested package-manager resolution layer for CI bootstrap**
+- [x] **Unit 2: Introduce a tested package-manager resolution layer for CI bootstrap**
 
 **Goal:** Make `.github/actions/configure-nodejs/action.yml` package-manager aware so it can set up `npm`, `yarn`, or `pnpm`, hash the right lockfile, and run the correct install command.
 
@@ -201,7 +201,7 @@ flowchart TB
 **Verification:**
 - The composite action can be reviewed as a thin wrapper over a tested manager-resolution contract instead of embedding all manager-selection logic in YAML.
 
-- [ ] **Unit 3: Migrate repo workflows and cache keys to the new manager contract**
+- [x] **Unit 3: Migrate repo workflows and cache keys to the new manager contract**
 
 **Goal:** Update CI and release workflows to use the generic action and pnpm-rooted commands/lockfiles without breaking build, test, deploy, or release flows.
 
@@ -236,7 +236,7 @@ flowchart TB
 **Verification:**
 - Top-level workflows no longer assume `yarn.lock` or `yarn install`, and the package-manager bootstrap path is centralized through the generic action or a consciously retained equivalent.
 
-- [ ] **Unit 4: Convert projen-managed `microapps-cdk` automation to pnpm and regenerate**
+- [x] **Unit 4: Convert projen-managed `microapps-cdk` automation to pnpm and regenerate**
 
 **Goal:** Align the projen-managed CDK package with the repo-wide pnpm decision so generated package metadata and release workflows stop reintroducing Yarn-specific behavior.
 
@@ -274,7 +274,7 @@ flowchart TB
 **Verification:**
 - Running the repo's regeneration flow for `packages/microapps-cdk` no longer produces Yarn-specific workflow/package-manager artifacts.
 
-- [ ] **Unit 5: Finish migration cleanup and blast-radius checks**
+- [x] **Unit 5: Finish migration cleanup and blast-radius checks**
 
 **Goal:** Remove remaining Yarn-first repo guidance and confirm the migration did not accidentally change publishing or runtime behavior.
 

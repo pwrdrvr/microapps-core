@@ -60,7 +60,7 @@ npx cdk deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basi
 
 ### Monorepo Structure
 
-This is a Yarn workspace monorepo with TypeScript project references. Key packages:
+This is a pnpm workspace monorepo with TypeScript project references. Key packages:
 
 - **microapps-cdk**: Turn-key CDK construct (published via jsii for multi-language support)
 - **microapps-deployer**: Lambda function that handles app deployments (invoked by pwrdrvr CLI)
