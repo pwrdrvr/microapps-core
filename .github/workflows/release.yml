@@ -271,6 +271,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -301,20 +306,30 @@ jobs:
       - name: Release Publish Tool - NPM
         working-directory: packages/pwrdrvr/
         run: |
+          PACK_DIR=../../dist/npm-packages/pwrdrvr
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run
+            npm publish --dry-run "$TARBALL"
           else
-            npm publish
+            npm publish "$TARBALL"
           fi
         env:
           NPM_TRUSTED_PUBLISHER: "true"
       - name: Release Publish Tool - Convenience - NPM
         working-directory: packages/microapps-publish/
         run: |
+          PACK_DIR=../../dist/npm-packages/microapps-publish
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run
+            npm publish --dry-run "$TARBALL"
           else
-            npm publish
+            npm publish "$TARBALL"
           fi
         env:
           NPM_TRUSTED_PUBLISHER: "true"
@@ -331,10 +346,15 @@ jobs:
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
         run: |
+          PACK_DIR=../../dist/npm-packages/microapps-router-lib
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run --access public
+            npm publish --dry-run --access public "$TARBALL"
           else
-            npm publish --access public
+            npm publish --access public "$TARBALL"
           fi
         env:
           NPM_TRUSTED_PUBLISHER: "true"

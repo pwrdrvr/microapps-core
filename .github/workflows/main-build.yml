@@ -166,6 +166,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -189,11 +194,19 @@ jobs:
       - name: Release Publish Tool - NPM - Dry Run
         working-directory: packages/pwrdrvr
         run: |
-          npm publish --dry-run
+          PACK_DIR=../../dist/npm-packages/pwrdrvr
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          npm publish --dry-run "$PACK_DIR"/*.tgz
       - name: Release Publish Tool Convenience - NPM - Dry Run
         working-directory: packages/microapps-publish
         run: |
-          npm publish --dry-run
+          PACK_DIR=../../dist/npm-packages/microapps-publish
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          npm publish --dry-run "$PACK_DIR"/*.tgz
       - name: Release DataLib - NPM - Dry Run
         working-directory: packages/microapps-datalib
         run: |
@@ -201,7 +214,11 @@ jobs:
       - name: Release Router Lib - NPM - Dry Run
         working-directory: packages/microapps-router-lib
         run: |
-          npm publish --dry-run
+          PACK_DIR=../../dist/npm-packages/microapps-router-lib
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          npm publish --dry-run "$PACK_DIR"/*.tgz
 
   package-js:
     needs: [build]

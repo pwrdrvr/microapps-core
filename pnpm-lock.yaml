@@ -551,9 +551,6 @@ importers:
       '@oclif/plugin-help':
         specifier: ^3.2.7
         version: 3.3.1
-      '@pwrdrvr/microapps-deployer-lib':
-        specifier: workspace:*
-        version: link:../microapps-deployer-lib
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -591,6 +588,9 @@ importers:
         specifier: ^2.1.0
         version: 2.6.2
     devDependencies:
+      '@pwrdrvr/microapps-deployer-lib':
+        specifier: workspace:*
+        version: link:../microapps-deployer-lib
       '@types/convict':
         specifier: ^6.0.2
         version: 6.1.1
