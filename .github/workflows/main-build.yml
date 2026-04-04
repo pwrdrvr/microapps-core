@@ -181,7 +181,7 @@ jobs:
       - name: Download Publish Tool - Convenience build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: publish-tool-dist
+          name: publish-tool-dist-convenience
           path: packages/microapps-publish
       - name: Download Datalib build artifacts
         uses: actions/download-artifact@v4
@@ -234,19 +234,23 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
-      - name: Prepare Repository
-        run: mv dist .repo
       - name: Install Dependencies
         run: cd .repo && pnpm install --frozen-lockfile
+      - name: Extract build artifact
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Create js artifact
-        run: cd .repo && npx projen package:js
+        run: cd .repo/packages/microapps-cdk && npx projen package:js
       - name: Collect js Artifact
-        run: mv .repo/dist dist
+        run: rm -rf dist && mv .repo/packages/microapps-cdk/dist dist
   package-java:
     needs: build
     runs-on: ubuntu-latest
@@ -263,19 +267,23 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
-      - name: Prepare Repository
-        run: mv dist .repo
       - name: Install Dependencies
         run: cd .repo && pnpm install --frozen-lockfile
+      - name: Extract build artifact
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Create java artifact
-        run: cd .repo && npx projen package:java
+        run: cd .repo/packages/microapps-cdk && npx projen package:java
       - name: Collect java Artifact
-        run: mv .repo/dist dist
+        run: rm -rf dist && mv .repo/packages/microapps-cdk/dist dist
   package-python:
     needs: build
     runs-on: ubuntu-latest
@@ -291,19 +299,23 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
-      - name: Prepare Repository
-        run: mv dist .repo
       - name: Install Dependencies
         run: cd .repo && pnpm install --frozen-lockfile
+      - name: Extract build artifact
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Create python artifact
-        run: cd .repo && npx projen package:python
+        run: cd .repo/packages/microapps-cdk && npx projen package:python
       - name: Collect python Artifact
-        run: mv .repo/dist dist
+        run: rm -rf dist && mv .repo/packages/microapps-cdk/dist dist
   package-dotnet:
     needs: build
     runs-on: ubuntu-latest
@@ -319,16 +331,20 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist
-      - name: Prepare Repository
-        run: mv dist .repo
       - name: Install Dependencies
         run: cd .repo && pnpm install --frozen-lockfile
+      - name: Extract build artifact
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo/packages/microapps-cdk
       - name: Create dotnet artifact
-        run: cd .repo && npx projen package:dotnet
+        run: cd .repo/packages/microapps-cdk && npx projen package:dotnet
       - name: Collect dotnet Artifact
-        run: mv .repo/dist dist
+        run: rm -rf dist && mv .repo/packages/microapps-cdk/dist dist
