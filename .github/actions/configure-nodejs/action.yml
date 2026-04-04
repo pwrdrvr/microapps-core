@@ -18,6 +18,7 @@ runs:
     - uses: actions/setup-node@v5
       with:
         node-version: ${{ inputs.node-version }}
+        package-manager-cache: false
 
     - name: Resolve package manager
       id: resolve-package-manager
