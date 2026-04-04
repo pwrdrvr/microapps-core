@@ -22,24 +22,44 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+      is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
+      npm_dist_tag: ${{ steps.get_version.outputs.npm_dist_tag }}
     if: github.event_name == 'release' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'TEST-RELEASE'))
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
 
-      - name: Get version from git tag (release) or package.json (PR test)
+      - name: Get version from release tag or package.json
         id: get_version
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
-            echo "version=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+            node scripts/release-metadata.mjs "${{ github.event.release.tag_name }}"
           else
             # For PR testing, use a test version based on package.json
             VERSION=$(node -p "require('./package.json').version")
             echo "version=${VERSION}-test-pr${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "npm_dist_tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate GitHub prerelease flag
+        if: github.event_name == 'release'
+        env:
+          EXPECTED_PRERELEASE: ${{ steps.get_version.outputs.is_prerelease }}
+          ACTUAL_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          if [ "$EXPECTED_PRERELEASE" != "$ACTUAL_PRERELEASE" ]; then
+            echo "Release tag prerelease state ($EXPECTED_PRERELEASE) does not match GitHub release.prerelease ($ACTUAL_PRERELEASE)." >&2
+            exit 1
           fi
 
       - name: Output version
-        run: echo "The version is ${{ steps.get_version.outputs.version }}"
+        run: |
+          echo "The version is ${{ steps.get_version.outputs.version }}"
+          echo "npm dist-tag is ${{ steps.get_version.outputs.npm_dist_tag }}"
 
   #
   # CDK Construct
@@ -183,7 +203,7 @@ jobs:
             !packages/microapps-router-lib/node_modules/
   release_npm:
     name: Publish to npm
-    needs: release
+    needs: [release, version]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -254,12 +274,12 @@ jobs:
             npx -p publib@latest publib-npm
           fi
         env:
-          NPM_DIST_TAG: latest
+          NPM_DIST_TAG: ${{ needs.version.outputs.npm_dist_tag }}
           NPM_REGISTRY: registry.npmjs.org
           NPM_TRUSTED_PUBLISHER: "true"
   release_npm_publish_tool:
     name: Publish to npm - Publish Tool
-    needs: [release, release_npm, release-publish-tool]
+    needs: [release, version, release_npm, release-publish-tool]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -307,6 +327,9 @@ jobs:
       #
       - name: Release Publish Tool - NPM
         working-directory: packages/pwrdrvr/
+        env:
+          NPM_DIST_TAG: ${{ needs.version.outputs.npm_dist_tag }}
+          NPM_TRUSTED_PUBLISHER: "true"
         run: |
           PACK_DIR=../../dist/npm-packages/pwrdrvr
           rm -rf "$PACK_DIR"
@@ -316,12 +339,13 @@ jobs:
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             npm publish --dry-run --tag pr "$TARBALL"
           else
-            npm publish "$TARBALL"
+            npm publish --tag "$NPM_DIST_TAG" "$TARBALL"
           fi
-        env:
-          NPM_TRUSTED_PUBLISHER: "true"
       - name: Release Publish Tool - Convenience - NPM
         working-directory: packages/microapps-publish/
+        env:
+          NPM_DIST_TAG: ${{ needs.version.outputs.npm_dist_tag }}
+          NPM_TRUSTED_PUBLISHER: "true"
         run: |
           PACK_DIR=../../dist/npm-packages/microapps-publish
           rm -rf "$PACK_DIR"
@@ -331,22 +355,24 @@ jobs:
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             npm publish --dry-run --tag pr "$TARBALL"
           else
-            npm publish "$TARBALL"
+            npm publish --tag "$NPM_DIST_TAG" "$TARBALL"
           fi
-        env:
-          NPM_TRUSTED_PUBLISHER: "true"
       - name: Release DataLib - NPM
         working-directory: packages/microapps-datalib/
+        env:
+          NPM_DIST_TAG: ${{ needs.version.outputs.npm_dist_tag }}
+          NPM_TRUSTED_PUBLISHER: "true"
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             npm publish --dry-run
           else
-            npm publish
+            npm publish --tag "$NPM_DIST_TAG"
           fi
-        env:
-          NPM_TRUSTED_PUBLISHER: "true"
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
+        env:
+          NPM_DIST_TAG: ${{ needs.version.outputs.npm_dist_tag }}
+          NPM_TRUSTED_PUBLISHER: "true"
         run: |
           PACK_DIR=../../dist/npm-packages/microapps-router-lib
           rm -rf "$PACK_DIR"
@@ -356,10 +382,8 @@ jobs:
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             npm publish --dry-run --tag pr --access public "$TARBALL"
           else
-            npm publish --access public "$TARBALL"
+            npm publish --access public --tag "$NPM_DIST_TAG" "$TARBALL"
           fi
-        env:
-          NPM_TRUSTED_PUBLISHER: "true"
   release_maven:
     name: Publish to Maven Central
     needs: release
