@@ -125,7 +125,7 @@ module.exports = {
   // roots: [
   //   "<rootDir>"
   // ],
-  roots: ['<rootDir>packages/'],
+  roots: ['<rootDir>packages/', '<rootDir>tests/package-manager/'],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",

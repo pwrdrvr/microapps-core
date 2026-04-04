@@ -178,7 +178,7 @@ The `MicroApps` construct (packages/microapps-cdk/src/MicroApps.ts) is the turn-
 
 ## Important Notes
 
-- This repo uses **Yarn**, not npm (npm has dependency resolution issues with jest)
+- This repo uses **pnpm** for workspace installs and script execution
 - Lambda functions target **Node 18** runtime
 - All Lambda function code is bundled with **esbuild** (not webpack)
 - TypeScript uses **project references** (tsconfig.json references packages)

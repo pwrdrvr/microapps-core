@@ -19,6 +19,9 @@
     "url": "https://github.com/pwrdrvr/microapps-core/issues"
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
+  "dependencies": {
+    "tslib": "^2.1.0"
+  },
   "devDependencies": {
     "@types/node": "^18.0.0"
   }

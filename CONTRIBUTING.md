@@ -6,9 +6,8 @@ Instructions, tools, and tips for those wishing to contribute.
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
-- [TIP: Installing npm Modules](#tip-installing-npm-modules)
-  - [Creating a Dummy `.js` file for `npm i`](#creating-a-dummy-js-file-for-npm-i)
-  - [Log Output from Circular Dependency Failure](#log-output-from-circular-dependency-failure)
+- [Installing Dependencies](#installing-dependencies)
+  - [Why pnpm is the default](#why-pnpm-is-the-default)
 - [Bootstrapping Projen Templates](#bootstrapping-projen-templates)
 - [Releasing NPM Packages](#releasing-npm-packages)
   - [Get the Version that Projen Tagged](#get-the-version-that-projen-tagged)
@@ -19,36 +18,26 @@ Instructions, tools, and tips for those wishing to contribute.
 # Prerequisites
 
 - `nvm`
-- `node 16` installed with `nvm`
+- `node 22` installed with `nvm`
+- `corepack` enabled so `pnpm` is available
 - `npm i -g aws-cdk`
 
-# TIP: Installing npm Modules
+# Installing Dependencies
 
-Attempting to run `npm i` will fail because of a chicken and egg problem with npm 7 workspaces, TypeScript transpiled .js output files, and `bin` in `package.json`. npm wants the files pointed to by `bin` to exist when linking to workspaces, but the `.js` files can't exist until `npm i` and `npm run build` build, which is a circular dependency. npm also, unfortunately, [gives no way to run a script before installing dependencies](https://stackoverflow.com/questions/46725374/how-to-run-a-script-before-installing-any-npm-module) thus we must manually run our script before running `npm i`.
-
-## Creating a Dummy `.js` file for `npm i`
-
-To create the dummy files that will allow `npm i` or `npm ci` to proceed, simply run:
+Install dependencies from the repo root with:
 
 ```sh
-npm run preinstall
+corepack enable pnpm
+pnpm install
 ```
 
-## Log Output from Circular Dependency Failure
+## Why pnpm is the default
 
-```log
-npm ERR! code ENOENT
-npm ERR! syscall chmod
-npm ERR! path /Users/myusername/pwrdrvr/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/index.js
-npm ERR! errno -2
-npm ERR! enoent ENOENT: no such file or directory, chmod '/Users/myusername/pwrdrvr/microapps-core/node_modules/@pwrdrvr/microapps-publish/dist/index.js'
-npm ERR! enoent This is related to npm not being able to find a file.
-npm ERR! enoent
-```
+Historically, this repo used Yarn because npm workspace installs had a circular `bin` linking problem with the local CLI packages. pnpm handles the workspace layout cleanly while still giving us a committed lockfile and reproducible installs.
 
 # Bootstrapping Projen Templates
 
-Note: `npm` has a problem with `jest` as CDK wants version 26 and `projen` installs version 27. This works with `yarn` but causes `npm` to complain.
+Note: prefer pnpm for repo development. The command below is historical context for the original construct bootstrap and is not the current workspace package manager recommendation.
 
 ```
 npm i -g projen

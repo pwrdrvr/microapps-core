@@ -1,9 +1,5 @@
 {
   "name": "@pwrdrvr/microapps-core",
-  "resolutions": {
-    "constructs": "10.0.5",
-    "terser": "^5.14.2"
-  },
   "version": "0.0.0",
   "repository": {
     "type": "git",
@@ -12,27 +8,26 @@
   "author": "PwrDrvr LLC",
   "license": "MIT",
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
-  "workspaces": {
-    "packages": [
-      "./packages/*/"
-    ],
-    "nohoist": [
-      "**/@types/convict-format-with-validator",
-      "**/@types/convict-format-with-validator/**",
-      "packages/microapps-cdk/aws-cdk-lib/**",
-      "packages/microapps-cdk/constructs/**"
-    ]
+  "packageManager": "pnpm@10.29.3",
+  "workspaces": [
+    "packages/*"
+  ],
+  "pnpm": {
+    "overrides": {
+      "constructs": "10.0.5",
+      "terser": "^5.14.2"
+    }
   },
   "private": true,
   "scripts": {
-    "clean": "npm run clean:dist && npm run clean:tsbuildinfo",
-    "clean:super": "npm run clean:dist && npm run clean:tsbuildinfo && npm run clean:modules",
-    "clean:dist": "npm exec --workspaces -- npx rimraf dist && npx rimraf dist",
-    "clean:modules": "npm exec --workspaces -- npx rimraf node_modules && npx rimraf node_modules",
-    "clean:tsbuildinfo": "npm exec --workspaces -- npx rimraf tsconfig.tsbuildinfo",
+    "clean": "pnpm clean:dist && pnpm clean:tsbuildinfo",
+    "clean:super": "pnpm clean:dist && pnpm clean:tsbuildinfo && pnpm clean:modules",
+    "clean:dist": "pnpm -r exec rimraf dist && rimraf dist",
+    "clean:modules": "pnpm -r exec rimraf node_modules && rimraf node_modules",
+    "clean:tsbuildinfo": "pnpm -r exec rimraf tsconfig.tsbuildinfo && rimraf tsconfig.tsbuildinfo",
     "cloc": "cloc --exclude-dir=node_modules,dist,distb,cdk.out --exclude-ext=json .",
     "format": "prettier --write \"packages/**/*.{js,ts}\"",
-    "build:all": "yarn build && yarn build:publish && yarn esbuild:deployer && yarn esbuild:router && yarn esbuild:edge-to-origin",
+    "build:all": "pnpm build && pnpm build:publish && pnpm esbuild:deployer && pnpm esbuild:router && pnpm esbuild:edge-to-origin",
     "build": "tsc --build tsconfig.json",
     "build:publish": "tsc --build tsconfig.publish.json",
     "esbuild:deployer": "esbuild packages/microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=packages/cdk/dist/microapps-deployer/index.js",
@@ -41,7 +36,7 @@
     "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local jest",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
-    "postinstall": "npx patch-package",
+    "postinstall": "patch-package",
     "test:integration": "jest --config ./jest.int.config.js"
   },
   "devDependencies": {
