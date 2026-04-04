@@ -312,7 +312,7 @@ jobs:
           pnpm pack --pack-destination "$PACK_DIR" > /dev/null
           TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run "$TARBALL"
+            npm publish --dry-run --tag pr "$TARBALL"
           else
             npm publish "$TARBALL"
           fi
@@ -327,7 +327,7 @@ jobs:
           pnpm pack --pack-destination "$PACK_DIR" > /dev/null
           TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run "$TARBALL"
+            npm publish --dry-run --tag pr "$TARBALL"
           else
             npm publish "$TARBALL"
           fi
@@ -352,7 +352,7 @@ jobs:
           pnpm pack --pack-destination "$PACK_DIR" > /dev/null
           TARBALL=$(echo "$PACK_DIR"/*.tgz)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run --access public "$TARBALL"
+            npm publish --dry-run --tag pr --access public "$TARBALL"
           else
             npm publish --access public "$TARBALL"
           fi

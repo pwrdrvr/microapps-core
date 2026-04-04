@@ -198,7 +198,7 @@ jobs:
           rm -rf "$PACK_DIR"
           mkdir -p "$PACK_DIR"
           pnpm pack --pack-destination "$PACK_DIR" > /dev/null
-          npm publish --dry-run "$PACK_DIR"/*.tgz
+          npm publish --dry-run --tag dry-run "$PACK_DIR"/*.tgz
       - name: Release Publish Tool Convenience - NPM - Dry Run
         working-directory: packages/microapps-publish
         run: |
@@ -206,7 +206,7 @@ jobs:
           rm -rf "$PACK_DIR"
           mkdir -p "$PACK_DIR"
           pnpm pack --pack-destination "$PACK_DIR" > /dev/null
-          npm publish --dry-run "$PACK_DIR"/*.tgz
+          npm publish --dry-run --tag dry-run "$PACK_DIR"/*.tgz
       - name: Release DataLib - NPM - Dry Run
         working-directory: packages/microapps-datalib
         run: |
@@ -218,7 +218,7 @@ jobs:
           rm -rf "$PACK_DIR"
           mkdir -p "$PACK_DIR"
           pnpm pack --pack-destination "$PACK_DIR" > /dev/null
-          npm publish --dry-run "$PACK_DIR"/*.tgz
+          npm publish --dry-run --tag dry-run "$PACK_DIR"/*.tgz
 
   package-js:
     needs: [build]
