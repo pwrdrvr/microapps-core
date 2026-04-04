@@ -276,6 +276,8 @@ jobs:
           version: '10'
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v4
         with:
