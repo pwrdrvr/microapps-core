@@ -42,13 +42,13 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - uses: ./.github/actions/configure-nodejs
       - name: Build All TypeScript
-        run: yarn build
+        run: pnpm build
       - name: Run Lint
-        run: yarn lint
+        run: pnpm lint
       - name: Run Node Tests
         env:
           NODE_ENV: test
-        run: yarn test
+        run: pnpm test
       - name: Install CDK Construct Deps
         working-directory: packages/microapps-cdk/
         run: yarn install --frozen-lockfile
@@ -125,7 +125,7 @@ jobs:
         id: git_remote
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
       - name: Build Publish TypeScript
-        run: yarn build:publish
+        run: pnpm build:publish
       - name: Upload Publish Tool artifact
         uses: actions/upload-artifact@v4
         with:
