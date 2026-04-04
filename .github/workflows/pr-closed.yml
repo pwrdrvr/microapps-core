@@ -23,7 +23,7 @@ jobs:
   cleanup-pr:
     if: github.actor != 'dependabot[bot]'
     environment:
-      name: ghpublic
+      name: ghpublic-pr
     strategy:
       matrix:
         deployName:
@@ -33,6 +33,7 @@ jobs:
     name: deploy-${{ matrix.deployName }}
     permissions:
       contents: read
+      deployments: write
       id-token: write
     runs-on: ubuntu-latest
     steps:
@@ -100,6 +101,48 @@ jobs:
             fi
           fi
           set -e
+
+      - name: Mark Transient PR Preview Deployment Inactive
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_NAME: ${{ matrix.deployName }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const headSha = context.payload.pull_request.head.sha;
+            const deployName = process.env.DEPLOY_NAME;
+            const logUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            const deployments = await github.paginate(github.rest.repos.listDeployments, {
+              owner,
+              repo,
+              environment: 'ghpublic-pr',
+              per_page: 100,
+            });
+            const deployment = deployments.find((candidate) => {
+              return (
+                candidate.task === 'preview-transient' &&
+                candidate.sha === headSha &&
+                candidate.payload?.deployName === deployName
+              );
+            });
+
+            if (!deployment) {
+              core.info(`No transient preview deployment found for ${deployName} at ${headSha}.`);
+              return;
+            }
+
+            await github.rest.repos.createDeploymentStatus({
+              owner,
+              repo,
+              deployment_id: deployment.id,
+              state: 'inactive',
+              description: 'PR preview torn down after close/merge.',
+              log_url: logUrl,
+              auto_inactive: false,
+            });
 
       # TODO - Need to get the stack name from the parent stack export
       # - name: Destroy Parent Edge to Origin Stack
