@@ -8,12 +8,16 @@ on:
     branches: [main]
     paths:
       - '**'
+      - '.github/actions/**'
+      - '.github/workflows/**'
       - '!**/README.md'
       - 'packages/**/README.md'
   pull_request:
     branches: [main]
     paths:
       - '**'
+      - '.github/actions/**'
+      - '.github/workflows/**'
       - '!**/README.md'
       - 'packages/**/README.md'
 
