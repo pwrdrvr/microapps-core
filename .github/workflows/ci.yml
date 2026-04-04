@@ -638,5 +638,6 @@ jobs:
       - name: Confirm No Doc Changes
         working-directory: packages/microapps-cdk/
         run: |
+          mv -f tsconfig.jsii.json tsconfig.json
           pnpm post-compile
           git diff --ignore-space-at-eol --exit-code
