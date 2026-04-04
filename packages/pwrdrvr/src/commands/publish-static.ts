@@ -37,7 +37,7 @@ export class PublishCommand extends Command {
 `,
   ];
 
-  static flags: flagsParser.Input<any> = {
+  static flags = {
     version: flagsParser.version({
       char: 'v',
     }),
