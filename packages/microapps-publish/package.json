@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
-    "pwrdrvr": "workspace:*"
+    "pwrdrvr": "*"
   },
   "peerDependencies": {},
   "devDependencies": {}
