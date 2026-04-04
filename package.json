@@ -33,6 +33,7 @@
     "esbuild:deployer": "esbuild packages/microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=packages/cdk/dist/microapps-deployer/index.js",
     "esbuild:router": "esbuild packages/microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=packages/cdk/dist/microapps-router/index.js",
     "esbuild:edge-to-origin": "esbuild packages/microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=packages/microapps-cdk/lib/microapps-edge-to-origin/index.js",
+    "release:metadata": "node scripts/release-metadata.mjs",
     "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local jest",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
