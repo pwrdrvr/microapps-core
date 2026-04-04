@@ -157,7 +157,7 @@ jobs:
     needs:
       - build
     environment:
-      name: ghpublic
+      name: ${{ github.event_name == 'pull_request' && 'ghpublic-pr' || 'ghpublic' }}
       url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}/
     permissions:
       contents: read
