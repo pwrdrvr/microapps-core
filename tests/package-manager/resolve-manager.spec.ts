@@ -103,8 +103,8 @@ describe('resolve-manager', () => {
       'scripts/package-manager/resolve-manager.mjs',
     );
 
-    expect(() =>
-      execFileSync('node', [scriptPath, '--cwd', cwd], { encoding: 'utf8' }),
-    ).toThrow(/Could not determine package manager/);
+    expect(() => execFileSync('node', [scriptPath, '--cwd', cwd], { encoding: 'utf8' })).toThrow(
+      /Could not determine package manager/,
+    );
   });
 });

@@ -17,12 +17,12 @@ describe('microapps-cdk package manager configuration', () => {
   });
 
   it('commits pnpm-based standalone build artifacts', () => {
-    expect(
-      fs.existsSync(path.join(repoRoot, 'packages', 'microapps-cdk', 'pnpm-lock.yaml')),
-    ).toBe(true);
-    expect(
-      fs.existsSync(path.join(repoRoot, 'packages', 'microapps-cdk', 'yarn.lock')),
-    ).toBe(false);
+    expect(fs.existsSync(path.join(repoRoot, 'packages', 'microapps-cdk', 'pnpm-lock.yaml'))).toBe(
+      true,
+    );
+    expect(fs.existsSync(path.join(repoRoot, 'packages', 'microapps-cdk', 'yarn.lock'))).toBe(
+      false,
+    );
 
     const buildWorkflow = readRepoFile(
       'packages',
