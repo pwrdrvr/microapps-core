@@ -20,4 +20,10 @@ describe('pnpm workspace contract', () => {
     expect(workspaceConfig).toContain('packages:');
     expect(workspaceConfig).toContain('- "packages/*"');
   });
+
+  it('does not force the workspace into a hoisted linker layout', () => {
+    const npmrc = readFileSync(path.join(repoRoot, '.npmrc'), 'utf8');
+
+    expect(npmrc).not.toMatch(/^\s*node-linker\s*=\s*hoisted\s*$/im);
+  });
 });
