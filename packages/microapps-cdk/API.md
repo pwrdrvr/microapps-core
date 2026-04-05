@@ -1077,6 +1077,8 @@ const addRoutesOptions: AddRoutesOptions = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.appOriginRequestPolicy">appOriginRequestPolicy</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOriginRequestPolicy</code> | Origin Request policy for API Gateway Origin. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.bucketOriginFallbackToApp">bucketOriginFallbackToApp</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.OriginGroup</code> | Origin Group with Primary of S3 bucket with `x-microapps-origin: s3` custom header and Fallback of `appOnlyOrigin`. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.distro">distro</a></code> | <code>aws-cdk-lib.aws_cloudfront.Distribution</code> | CloudFront Distribution to add the Behaviors (Routes) to. |
+| <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createAPIPathRoute">createAPIPathRoute</a></code> | <code>boolean</code> | When true, routes that contain `/api/` get sent to the app origin even when other path segments contain periods. |
+| <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createNextDataPathRoute">createNextDataPathRoute</a></code> | <code>boolean</code> | When true, routes that contain `/_next/data/` get sent to the app origin even when the request path ends in `.json`. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.edgeLambdas">edgeLambdas</a></code> | <code>aws-cdk-lib.aws_cloudfront.EdgeLambda[]</code> | Edge lambdas to associate with the API Gateway routes. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.rootPathPrefix">rootPathPrefix</a></code> | <code>string</code> | Path prefix on the root of the CloudFront distribution. |
 
@@ -1131,6 +1133,30 @@ public readonly distro: Distribution;
 - *Type:* aws-cdk-lib.aws_cloudfront.Distribution
 
 CloudFront Distribution to add the Behaviors (Routes) to.
+
+---
+
+##### `createAPIPathRoute`<sup>Optional</sup> <a name="createAPIPathRoute" id="@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createAPIPathRoute"></a>
+
+```typescript
+public readonly createAPIPathRoute: boolean;
+```
+
+- *Type:* boolean
+
+When true, routes that contain `/api/` get sent to the app origin even when other path segments contain periods.
+
+---
+
+##### `createNextDataPathRoute`<sup>Optional</sup> <a name="createNextDataPathRoute" id="@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createNextDataPathRoute"></a>
+
+```typescript
+public readonly createNextDataPathRoute: boolean;
+```
+
+- *Type:* boolean
+
+When true, routes that contain `/_next/data/` get sent to the app origin even when the request path ends in `.json`.
 
 ---
 

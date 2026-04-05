@@ -70,10 +70,12 @@ describe('demo-app', () => {
         undefined,
         {
           headers: { Accept: 'application/json' },
+          validateStatus: () => true,
         },
       );
       const data = response.data;
 
+      expect(response.status).toEqual(200);
       expect(data).toMatchObject({
         newValue: 2,
         source: 'demo-app',
