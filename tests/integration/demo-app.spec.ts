@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import axios from 'axios';
 import posixPath from 'path/posix';
+import { get, post } from './http';
 
 jest.setTimeout(10000);
 jest.retryTimes(2);
@@ -16,7 +16,7 @@ describe('demo-app', () => {
 
   describe('single account - non-root app', () => {
     it('should return a status of 200', async () => {
-      const response = await axios.get(demoAppUrl.toString(), {
+      const response = await get(demoAppUrl.toString(), {
         headers: { Accept: 'text/html' },
       });
       expect(response.status).toEqual(200);
@@ -26,7 +26,7 @@ describe('demo-app', () => {
     });
 
     it('should return HTML with an expected string', async () => {
-      const response = await axios.get(demoAppUrl.toString(), {
+      const response = await get(demoAppUrl.toString(), {
         headers: { Accept: 'text/html' },
       });
       const data = response.data;
@@ -38,7 +38,7 @@ describe('demo-app', () => {
     });
 
     it('should return JSON with an expected value', async () => {
-      const response = await axios.get(
+      const response = await get(
         new URL(
           posixPath.join(baseUrl.pathname, '/demo-app/serverIncrement?currValue=1'),
           baseUrl,
@@ -59,7 +59,7 @@ describe('demo-app', () => {
     });
 
     it('should allow POST on the versioned app path', async () => {
-      const response = await axios.post(
+      const response = await post(
         new URL(
           posixPath.join(
             baseUrl.pathname,
@@ -67,10 +67,8 @@ describe('demo-app', () => {
           ),
           baseUrl,
         ).toString(),
-        undefined,
         {
           headers: { Accept: 'application/json' },
-          validateStatus: () => true,
         },
       );
       const data = response.data;
@@ -88,7 +86,7 @@ describe('demo-app', () => {
 
   describe('single account - root app', () => {
     it('should return a status of 200', async () => {
-      const response = await axios.get(
+      const response = await get(
         new URL(
           posixPath.join(baseUrl.pathname, `/?appver=${DEMO_AND_ROOT_APP_VER}`),
           baseUrl,
@@ -104,7 +102,7 @@ describe('demo-app', () => {
     });
 
     it('should return HTML with an expected string', async () => {
-      const response = await axios.get(
+      const response = await get(
         new URL(
           posixPath.join(baseUrl.pathname, `/?appver=${DEMO_AND_ROOT_APP_VER}`),
           baseUrl,
@@ -122,7 +120,7 @@ describe('demo-app', () => {
     });
 
     it('should return JSON with an expected value', async () => {
-      const response = await axios.get(
+      const response = await get(
         new URL(
           posixPath.join(
             baseUrl.pathname,
@@ -150,12 +148,9 @@ describe('demo-app', () => {
     const childVer = '0.0.0-child.1';
 
     it('should return a status of 200', async () => {
-      const response = await axios.get(
-        new URL(`/demo-app?appver=${childVer}`, baseUrl).toString(),
-        {
-          headers: { Accept: 'text/html' },
-        },
-      );
+      const response = await get(new URL(`/demo-app?appver=${childVer}`, baseUrl).toString(), {
+        headers: { Accept: 'text/html' },
+      });
       expect(response.status).toEqual(200);
       expect(response.headers).toHaveProperty('powered-by', 'demo-app');
       expect(response.headers).toHaveProperty('x-microapps-appname', 'demo-app');
@@ -163,12 +158,9 @@ describe('demo-app', () => {
     });
 
     it('should return HTML with an expected string', async () => {
-      const response = await axios.get(
-        new URL(`/demo-app?appver=${childVer}`, baseUrl).toString(),
-        {
-          headers: { Accept: 'text/html' },
-        },
-      );
+      const response = await get(new URL(`/demo-app?appver=${childVer}`, baseUrl).toString(), {
+        headers: { Accept: 'text/html' },
+      });
       const data = response.data;
 
       expect(data).toContain('<div>This is a simple demo app</div>');
@@ -178,7 +170,7 @@ describe('demo-app', () => {
     });
 
     it('should return JSON with an expected value', async () => {
-      const response = await axios.get(
+      const response = await get(
         new URL(`/demo-app/serverIncrement?currValue=1&appver=${childVer}`, baseUrl).toString(),
         {
           headers: { Accept: 'application/json' },

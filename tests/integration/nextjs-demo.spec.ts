@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import axios from 'axios';
 import posixPath from 'path/posix';
+import { get } from './http';
 
 jest.setTimeout(10000);
 jest.retryTimes(2);
@@ -14,7 +14,7 @@ describe('nextjs-demo', () => {
   const itSkipBasicPrefix = process.env.DEPLOY_NAME === 'microapps-basic-prefix' ? it.skip : it;
 
   itSkipBasicPrefix('should return a status of 200', async () => {
-    const response = await axios.get(demoAppUrl.toString(), {
+    const response = await get(demoAppUrl.toString(), {
       headers: { Accept: 'text/html' },
     });
     expect(response.status).toEqual(200);
@@ -22,7 +22,7 @@ describe('nextjs-demo', () => {
   });
 
   itSkipBasicPrefix('should return HTML with an expected string', async () => {
-    const response = await axios.get(demoAppUrl.toString(), {
+    const response = await get(demoAppUrl.toString(), {
       headers: { Accept: 'text/html' },
     });
     const data = response.data;
@@ -32,7 +32,7 @@ describe('nextjs-demo', () => {
   });
 
   itSkipBasicPrefix('should sub page HTML with an expected string - ssg-ssr', async () => {
-    const response = await axios.get(
+    const response = await get(
       new URL(posixPath.join(baseUrl.pathname, '/nextjs-demo/posts/ssg-ssr'), baseUrl).toString(),
       {
         headers: { Accept: 'text/html' },
@@ -47,7 +47,7 @@ describe('nextjs-demo', () => {
   });
 
   itSkipBasicPrefix('should sub page HTML with an expected string - pre-rendering', async () => {
-    const response = await axios.get(
+    const response = await get(
       new URL(
         posixPath.join(baseUrl.pathname, '/nextjs-demo/posts/pre-rendering'),
         baseUrl,
@@ -63,7 +63,7 @@ describe('nextjs-demo', () => {
   });
 
   itSkipBasicPrefix('should return JSON for home page _next/data route', async () => {
-    const response = await axios.get(
+    const response = await get(
       new URL(
         posixPath.join(baseUrl.pathname, `/_next/data/${NEXTJS_DEMO_APP_VER}/sv/nextjs-demo.json`),
         baseUrl,
