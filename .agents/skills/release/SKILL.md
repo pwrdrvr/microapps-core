@@ -37,6 +37,12 @@ Use the bundled planner to gather release facts and raw note inputs:
 python3 .agents/skills/release/scripts/release_plan.py --output-dir .local/release
 ```
 
+If the user wants a beta or other prerelease, ask the planner for a prerelease suggestion too:
+
+```bash
+python3 .agents/skills/release/scripts/release_plan.py --output-dir .local/release --prerelease-channel beta
+```
+
 It writes:
 
 - `.local/release/release-plan.json`
@@ -51,7 +57,7 @@ The planner:
 - groups PR-backed changes separately from direct commits on `main`
 - captures contributor mentions for PR-backed items
 
-The planner suggests the next stable tag. If the user wants a beta release, use that stable target as the base and convert it to `<stable-tag>-beta.N`.
+The planner suggests the next stable tag. If the user wants a beta release, rerun it with `--prerelease-channel beta` so it also suggests the next `<stable-tag>-beta.N`.
 
 ## Approval Prompt
 
@@ -98,7 +104,7 @@ Use the planner's suggestion unless the user overrides it.
 - Do not jump from `v0.9.0` to `v1.0.0` unless the user explicitly asks.
 - For a beta release, start from the planner's suggested stable target and use `-beta.N`.
 - If there is no existing beta for that target, start at `-beta.1`.
-- If betas already exist for that target, increment the highest existing beta number before creating the GitHub prerelease.
+- If betas already exist for that target, use the planner's prerelease suggestion so you increment the highest existing beta number before creating the GitHub prerelease.
 
 The bundled planner treats a patch release as the default only when all of these are true:
 
@@ -121,6 +127,8 @@ python3 .agents/skills/release/scripts/release_plan.py --output-dir .local/relea
 ```
 
 2. Read `.local/release/release-plan.md` and summarize the proposed release for approval.
+
+If this is a prerelease, run the planner with `--prerelease-channel beta` before summarizing so the approval prompt includes the exact prerelease tag.
 
 3. After approval, write:
 

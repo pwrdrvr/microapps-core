@@ -16,6 +16,7 @@ from typing import Any
 
 
 SEMVER_TAG_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
+PRERELEASE_TAG_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)-(?P<channel>[A-Za-z][0-9A-Za-z-]*)\.(?P<number>\d+)$")
 CONVENTIONAL_RE = re.compile(r"^(?P<type>[a-z]+)(?:\([^)]+\))?(?P<breaking>!)?: (?P<summary>.+)$")
 TRAILING_PR_RE = re.compile(r"\s+\(#\d+\)$")
 HOUSEKEEPING_SUBJECT_RES = (
@@ -78,6 +79,10 @@ def parse_args() -> argparse.Namespace:
         default=".local/release",
         help="Directory for release-plan.json and release-plan.md (default: .local/release)",
     )
+    parser.add_argument(
+        "--prerelease-channel",
+        help="Optional prerelease channel to suggest from the stable target, for example beta",
+    )
     return parser.parse_args()
 
 
@@ -101,6 +106,33 @@ def parse_semver(tag: str) -> tuple[int, int, int]:
 def format_tag(parts: tuple[int, int, int]) -> str:
     major, minor, patch = parts
     return f"v{major}.{minor}.{patch}"
+
+
+def normalize_prerelease_channel(channel: str | None) -> str | None:
+    if channel is None:
+        return None
+    normalized = channel.strip().lower()
+    if not normalized:
+        return None
+    if not re.match(r"^[a-z][0-9a-z-]*$", normalized):
+        raise ValueError(f"Unsupported prerelease channel: {channel}")
+    return normalized
+
+
+def parse_prerelease_tag(tag: str) -> dict[str, Any] | None:
+    match = PRERELEASE_TAG_RE.match(tag)
+    if not match:
+        return None
+
+    major, minor, patch = match.groups()[:3]
+    channel = match.group("channel").lower()
+    number = int(match.group("number"))
+    return {
+        "tag": tag,
+        "baseTag": format_tag((int(major), int(minor), int(patch))),
+        "channel": channel,
+        "number": number,
+    }
 
 
 def strip_conventional(subject: str) -> tuple[str, str]:
@@ -287,6 +319,37 @@ def suggest_version(last_release: ReleaseInfo | None, meaningful_commits: list[d
     }
 
 
+def suggest_prerelease_version(repo_root: str, stable_tag: str, channel: str) -> dict[str, Any]:
+    pattern = f"{stable_tag}-{channel}.*"
+    tag_output = git("tag", "--list", pattern, cwd=repo_root)
+    existing_tags = [tag for tag in tag_output.splitlines() if tag.strip()]
+
+    matching_numbers: list[int] = []
+    for tag in existing_tags:
+        parsed = parse_prerelease_tag(tag)
+        if parsed and parsed["baseTag"] == stable_tag and parsed["channel"] == channel:
+            matching_numbers.append(parsed["number"])
+
+    next_number = max(matching_numbers, default=0) + 1
+    prerelease_tag = f"{stable_tag}-{channel}.{next_number}"
+    if matching_numbers:
+        reason = (
+            f"Existing {channel} prereleases for {stable_tag} already go up to "
+            f"`{stable_tag}-{channel}.{max(matching_numbers)}`, so increment to `{prerelease_tag}`."
+        )
+    else:
+        reason = f"No existing {channel} prereleases were found for {stable_tag}, so start at `{prerelease_tag}`."
+
+    return {
+        "tag": prerelease_tag,
+        "channel": channel,
+        "baseTag": stable_tag,
+        "number": next_number,
+        "existingTags": sorted(existing_tags),
+        "reason": reason,
+    }
+
+
 def build_release_items(repo_root: str, repo_name: str, commits: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: "OrderedDict[str, dict[str, Any]]" = OrderedDict()
     direct_count = 0
@@ -370,6 +433,13 @@ def render_markdown(plan: dict[str, Any]) -> str:
     lines.append(f"- Meaningful commits after filtering housekeeping: `{plan['counts']['meaningfulCommitCount']}`")
     lines.append(f"- Suggested tag: `{plan['suggestedVersion']['tag']}` ({plan['suggestedVersion']['kind']})")
     lines.append(f"- Version rationale: {plan['suggestedVersion']['reason']}")
+    prerelease_suggestion = plan.get("prereleaseSuggestion")
+    if prerelease_suggestion:
+        lines.append(
+            f"- Suggested prerelease tag: `{prerelease_suggestion['tag']}` "
+            f"({prerelease_suggestion['channel']}; based on `{prerelease_suggestion['baseTag']}`)"
+        )
+        lines.append(f"- Prerelease rationale: {prerelease_suggestion['reason']}")
     if plan["warnings"]:
         lines.append("")
         lines.append("## Warnings")
@@ -410,7 +480,8 @@ def render_markdown(plan: dict[str, Any]) -> str:
 
     lines.append("## Changelog Heading")
     lines.append("")
-    lines.append(f"Use this heading in `CHANGELOG.md`: `## {plan['suggestedVersion']['tag']} - {plan['generatedAtDate']}`")
+    heading_tag = prerelease_suggestion["tag"] if prerelease_suggestion else plan["suggestedVersion"]["tag"]
+    lines.append(f"Use this heading in `CHANGELOG.md`: `## {heading_tag} - {plan['generatedAtDate']}`")
     lines.append("")
     lines.append("Do not copy the raw titles verbatim into the release notes; rewrite them.")
     return "\n".join(lines).rstrip() + "\n"
@@ -461,6 +532,12 @@ def main() -> int:
 
     items = build_release_items(repo_root, repo_name, meaningful_commits)
     suggested_version = suggest_version(last_release, meaningful_commits)
+    prerelease_channel = normalize_prerelease_channel(args.prerelease_channel)
+    prerelease_suggestion = (
+        suggest_prerelease_version(repo_root, suggested_version["tag"], prerelease_channel)
+        if prerelease_channel
+        else None
+    )
 
     warnings: list[str] = []
     if not is_clean:
@@ -512,6 +589,7 @@ def main() -> int:
             "releaseItemCount": len(items),
         },
         "suggestedVersion": suggested_version,
+        "prereleaseSuggestion": prerelease_suggestion,
         "warnings": warnings,
         "ignoredCommits": ignored_commits,
         "rawCommits": raw_commits,
@@ -527,6 +605,8 @@ def main() -> int:
     print(f"Wrote {json_path}")
     print(f"Wrote {markdown_path}")
     print(f"Suggested tag: {suggested_version['tag']}")
+    if prerelease_suggestion is not None:
+        print(f"Suggested prerelease tag: {prerelease_suggestion['tag']}")
     print(f"Meaningful commits since last release: {len(meaningful_commits)}")
     return 0
 
