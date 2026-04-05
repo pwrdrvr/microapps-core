@@ -28,9 +28,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22.x
+      - uses: ./.github/actions/configure-nodejs
 
       - name: Get version from release tag or package.json
         id: get_version
@@ -126,12 +124,6 @@ jobs:
       contents: write
     if: (needs.release.outputs.latest_commit == github.sha) && github.event_name == 'release'
     steps:
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22.x
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
