@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.2.0-beta.5 - 2026-04-05
+
+### Fixes
+
+- Stopped the release workflow from attempting to publish `@pwrdrvr/microapps-deployer-lib`, keeping beta publishes scoped to the maintained npm package set so the remaining prerelease packages can complete cleanly. @huntharo
+
+### Internal
+
+- Added a release workflow smoke assertion that keeps the maintained npm publish surface pinned in CI. @huntharo
+
 ## v1.2.0-beta.4 - 2026-04-05
 
 ### Highlights
