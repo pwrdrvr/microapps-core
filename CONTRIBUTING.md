@@ -9,6 +9,7 @@ Instructions, tools, and tips for those wishing to contribute.
 - [Installing Dependencies](#installing-dependencies)
   - [Why pnpm is the default](#why-pnpm-is-the-default)
 - [Commit Messages](#commit-messages)
+- [PR Preview Labels](#pr-preview-labels)
 - [Bootstrapping Projen Templates](#bootstrapping-projen-templates)
 - [Releasing NPM Packages](#releasing-npm-packages)
   - [Get the Version that Projen Tagged](#get-the-version-that-projen-tagged)
@@ -70,6 +71,23 @@ Examples:
 - `feat(release): publish prereleases to npm beta dist-tag`
 - `docs(contributing): document conventional commit format`
 - `fix(router): preserve query string when forwarding assets`
+
+# PR Preview Labels
+
+PR preview deploys now default to off. A PR only deploys preview environments when the corresponding deploy labels are present.
+
+- `DEPLOY-CORE` runs the main `microapps-core` preview deploy.
+- `DEPLOY-BASIC` runs the `microapps-basic` preview deploy.
+- `DEPLOY-BASIC-PREFIX` runs the `microapps-basic-prefix` preview deploy.
+
+The `PR Scope Labeler` workflow adds these labels conservatively based on changed files. It is additive-only and does not remove labels that a maintainer already applied.
+
+Maintainer notes:
+
+- Add labels manually when you want to force a preview deploy for an open PR.
+- The required `deploy-microapps-core` check always reports a result on PRs. Without `DEPLOY-CORE`, it succeeds through an explicit no-op path; with `DEPLOY-CORE`, it only succeeds if the real core preview deploy succeeds.
+- Removing a deploy label prevents future preview deploy runs for that environment, but does not tear down an already-created preview. Cleanup still happens when the PR closes.
+- Check the `PR Scope Labeler` job summary first when you want to understand why a PR did or did not get preview deploy labels.
 
 # Bootstrapping Projen Templates
 

@@ -1,0 +1,164 @@
+name: PR Scope Labeler
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  classify-preview-scope:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Gather Changed Files
+        id: changed_files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            return JSON.stringify(files.map((file) => file.filename));
+
+      - name: Read Existing PR Labels
+        id: existing_labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            return JSON.stringify(labels.map((label) => label.name));
+
+      - name: Classify Preview Deploy Scope
+        id: classify
+        env:
+          FILES_JSON: ${{ steps.changed_files.outputs.result }}
+          EXISTING_LABELS_JSON: ${{ steps.existing_labels.outputs.result }}
+        run: |
+          node scripts/github/preview-deploy-scope.mjs \
+            --files-json "$FILES_JSON" \
+            --existing-labels-json "$EXISTING_LABELS_JSON" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Ensure Repository Labels and Apply Missing Labels
+        if: steps.classify.outputs.labels_to_add_csv != ''
+        uses: actions/github-script@v7
+        env:
+          LABELS_TO_ADD_JSON: ${{ steps.classify.outputs.labels_to_add_json }}
+        with:
+          script: |
+            const labelDefinitions = {
+              'DEPLOY-CORE': {
+                color: '0e8a16',
+                description: 'Run the main PR preview deployment.',
+              },
+              'DEPLOY-BASIC': {
+                color: '1d76db',
+                description: 'Run the microapps-basic PR preview deployment.',
+              },
+              'DEPLOY-BASIC-PREFIX': {
+                color: '5319e7',
+                description: 'Run the microapps-basic-prefix PR preview deployment.',
+              },
+            };
+
+            const labelsToAdd = JSON.parse(process.env.LABELS_TO_ADD_JSON);
+            for (const labelName of labelsToAdd) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: labelName,
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+
+                const definition = labelDefinitions[labelName];
+                if (!definition) {
+                  throw new Error(`Missing repository label definition for ${labelName}.`);
+                }
+
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: labelName,
+                  color: definition.color,
+                  description: definition.description,
+                });
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: labelsToAdd,
+            });
+
+      - name: Write Summary
+        env:
+          MATCHED_GROUPS_JSON: ${{ steps.classify.outputs.matched_groups_json }}
+          LABELS_TO_ADD_JSON: ${{ steps.classify.outputs.labels_to_add_json }}
+          UNMATCHED_FILES_JSON: ${{ steps.classify.outputs.unmatched_files_json }}
+          HAS_DEPLOY_IMPACT: ${{ steps.classify.outputs.has_deploy_impact }}
+        run: |
+          node -e '
+            const matchedGroups = JSON.parse(process.env.MATCHED_GROUPS_JSON || "[]");
+            const labelsToAdd = JSON.parse(process.env.LABELS_TO_ADD_JSON || "[]");
+            const unmatchedFiles = JSON.parse(process.env.UNMATCHED_FILES_JSON || "[]");
+            const lines = [];
+
+            lines.push("## Preview deploy scope classifier");
+            lines.push("");
+
+            if (process.env.HAS_DEPLOY_IMPACT === "true") {
+              lines.push(`Labels added: ${labelsToAdd.length > 0 ? labelsToAdd.join(", ") : "none (already present)"}`);
+            } else {
+              lines.push("No preview deploy labels added.");
+            }
+
+            lines.push("");
+
+            if (matchedGroups.length > 0) {
+              lines.push("### Matched groups");
+              lines.push("");
+              for (const group of matchedGroups) {
+                lines.push(`- \`${group.name}\` -> ${group.labels.join(", ")} (${group.files.join(", ")})`);
+              }
+              lines.push("");
+            }
+
+            if (unmatchedFiles.length > 0) {
+              lines.push("### Unmatched files");
+              lines.push("");
+              for (const file of unmatchedFiles) {
+                lines.push(`- \`${file}\``);
+              }
+            }
+
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`);
+          '
