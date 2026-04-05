@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0-beta.2 - 2026-04-04
+
+### Fixes
+
+- Fixed the GitHub release workflow to use the shared Node setup path when reading release metadata, so beta releases can reach package publishing instead of failing during version setup. @huntharo
+
 ## v1.2.0-beta.1 - 2026-04-04
 
 ### Highlights
