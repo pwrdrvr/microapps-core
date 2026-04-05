@@ -770,7 +770,7 @@ jobs:
             const name = 'Tarball Population Report';
             const conclusionByStatus = {
               green: 'success',
-              yellow: 'neutral',
+              yellow: 'success',
               red: 'failure',
             };
             const summaryTitleByStatus = {
