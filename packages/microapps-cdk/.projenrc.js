@@ -17,13 +17,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.PNPM,
   pnpmVersion: '10',
-  devEngines: {
-    packageManager: {
-      name: 'pnpm',
-      version: '>=10.0.0',
-      onFail: 'ignore',
-    },
-  },
+  addPackageManagerToDevEngines: false,
   minNodeVersion: '22.0.0',
   jsiiVersion: '^5.9.36',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
