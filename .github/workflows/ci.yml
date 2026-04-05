@@ -847,12 +847,15 @@ jobs:
           fi
 
   deploy-optional-preview:
-    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || (matrix.deployName == 'microapps-basic' && needs.decide-preview-scope.outputs.should_deploy_basic == 'true') || (matrix.deployName == 'microapps-basic-prefix' && needs.decide-preview-scope.outputs.should_deploy_basic_prefix == 'true'))
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || needs.decide-preview-scope.outputs.should_deploy_basic == 'true' || needs.decide-preview-scope.outputs.should_deploy_basic_prefix == 'true')
     strategy:
       matrix:
         deployName:
           - microapps-basic
           - microapps-basic-prefix
+        exclude:
+          - deployName: ${{ (github.event_name != 'pull_request' || needs.decide-preview-scope.outputs.should_deploy_basic == 'true') && 'dummy' || 'microapps-basic' }}
+          - deployName: ${{ (github.event_name != 'pull_request' || needs.decide-preview-scope.outputs.should_deploy_basic_prefix == 'true') && 'dummy' || 'microapps-basic-prefix' }}
     name: deploy-${{ matrix.deployName }}
     concurrency:
       group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
