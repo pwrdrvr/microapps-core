@@ -58,6 +58,16 @@ const packages = [
     },
   },
   {
+    id: 'microapps-deployer-lib',
+    npmSpec: '@pwrdrvr/microapps-deployer-lib',
+    packageDir: path.join(rootDir, 'packages', 'microapps-deployer-lib'),
+    localTarballName: 'microapps-deployer-lib',
+    prepareLocalTarball() {
+      ensurePublishBuild();
+      return packLocalWithPnpm(this.packageDir, this.localTarballName);
+    },
+  },
+  {
     id: 'microapps-router-lib',
     npmSpec: '@pwrdrvr/microapps-router-lib',
     packageDir: path.join(rootDir, 'packages', 'microapps-router-lib'),
@@ -87,7 +97,7 @@ if (baselineDir) {
 if (process.argv.includes('--print-baseline-cache-key')) {
   console.log(
     packages
-      .map((pkg) => `${pkg.id}-${getPublishedVersion(pkg.npmSpec)}`)
+      .map((pkg) => `${pkg.id}-${getPublishedVersionOrPlaceholder(pkg.npmSpec)}`)
       .join('__')
       .replaceAll(/[^A-Za-z0-9._-]+/g, '_'),
   );
@@ -132,7 +142,8 @@ function comparePackage(pkg) {
       id: pkg.id,
       npmSpec: pkg.npmSpec,
       status: 'yellow',
-      reason: `No published baseline available: ${error.message}`,
+      reason: summarizeMissingBaseline(error),
+      baselineError: error.message,
       publishedVersion: null,
       publishedTarballPath: null,
       localTarballPath: null,
@@ -184,6 +195,14 @@ function comparePackage(pkg) {
 function getPublishedVersion(npmSpec) {
   const result = run('npm', ['view', '--loglevel=error', npmSpec, 'version'], { capture: true });
   return result.stdout.trim();
+}
+
+function getPublishedVersionOrPlaceholder(npmSpec) {
+  try {
+    return getPublishedVersion(npmSpec);
+  } catch {
+    return 'unpublished';
+  }
 }
 
 function packPublished(pkg, version, targetDir = path.join(publishedDir, pkg.id)) {
@@ -409,6 +428,14 @@ function renderMarkdown(report) {
       lines.push('');
     }
 
+    if (pkg.baselineError) {
+      lines.push('Published baseline lookup error:');
+      lines.push('```text');
+      lines.push(pkg.baselineError);
+      lines.push('```');
+      lines.push('');
+    }
+
     lines.push('</details>');
     lines.push('');
   }
@@ -452,7 +479,17 @@ function statusIcon(status) {
 }
 
 function escapePipes(value) {
-  return value.replaceAll('|', '\\|');
+  return value.replaceAll('|', '\\|').replaceAll('\n', ' ');
+}
+
+function summarizeMissingBaseline(error) {
+  const message = error.message ?? String(error);
+
+  if (message.includes('E404')) {
+    return 'No published baseline available yet';
+  }
+
+  return 'Published baseline lookup failed';
 }
 
 function firstTarballIn(directory) {

@@ -8,6 +8,9 @@
   "references": [
     {
       "path": "../microapps-datalib/"
+    },
+    {
+      "path": "../microapps-router-lib/"
     }
   ],
   "exclude": ["**/*.spec.ts", "dist"]

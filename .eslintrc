@@ -18,6 +18,16 @@
     "plugin:import/typescript",
     "prettier"
   ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts", ".tsx"]
+      },
+      "typescript": {
+        "project": "./tsconfig.eslint.json"
+      }
+    }
+  },
   "ignorePatterns": [
     "*.js",
     "!.projenrc.js",
@@ -38,6 +48,22 @@
     // note you must disable the base rule as it can report incorrect errors
     "no-return-await": "off",
     "@typescript-eslint/return-await": ["error"],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*.spec.ts",
+          "**/*.test.ts",
+          "scripts/**",
+          "**/.projenrc.js",
+          "**/.projenrc.ts",
+          "**/build-tools/**"
+        ],
+        "includeTypes": true,
+        "optionalDependencies": false,
+        "peerDependencies": true
+      }
+    ],
     // Don't allow awaiting non-Promises
     "@typescript-eslint/await-thenable": "error"
   },

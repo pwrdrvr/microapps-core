@@ -1,0 +1,7 @@
+{
+  "name": "@tests/import-boundaries-valid-package",
+  "private": true,
+  "dependencies": {
+    "yaml": "^2.8.3"
+  }
+}

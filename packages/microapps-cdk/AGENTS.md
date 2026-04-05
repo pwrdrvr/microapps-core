@@ -41,6 +41,7 @@ pnpm exec projen
 - Treat this package as a standalone subproject when working on `projen` or `jsii` concerns.
 - The `--ignore-workspace` install matters here because this package has its own lockfile and its own generated project shape.
 - The rest of the monorepo may be using workspace-oriented flows, but this package still behaves like a special island.
+- The repo root now intentionally relies on pnpm's isolated workspace layout for boundary enforcement. If `microapps-cdk` ever needs a package-manager exception, keep it local to this package or its generated config rather than widening the whole repo back to a hoisted layout.
 
 ## Verified Behavior
 

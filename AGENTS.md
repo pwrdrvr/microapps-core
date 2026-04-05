@@ -30,9 +30,17 @@ The main pieces are:
 
 - Use `pnpm install` at the repo root for normal workspace installs.
 - Use `pnpm build`, `pnpm test`, `pnpm lint`, and other root scripts from the repo root.
+- The root repo intentionally uses pnpm's default isolated layout; do not reintroduce repo-wide `node-linker=hoisted`, `shamefully-hoist`, or blanket `public-hoist-pattern=*` settings without a narrow, documented reason.
 - Do not casually introduce `npm install`, `npm pack`, or `npm publish` flows for workspace-managed packages unless the package is intentionally standalone.
 - Some published packages still need publish-time care because workspace dependency rewriting and tarball contents matter. The CI tarball audit exists to catch that drift.
 - The repo now has an automated tarball population check in CI. It compares newly produced tarballs against the currently published npm packages and reports `green`, `yellow`, or `red` on the PR.
+
+## Import Boundaries
+
+- Package manifests are the source of truth for whether one package may import another.
+- Root linting enforces `import/no-extraneous-dependencies`, including type-only imports, across normal workspace packages.
+- If a package-local test imports a helper like `jest-dynalite`, declare it in that package's `devDependencies`; do not assume root-only test dependencies are visible.
+- If a package is published, treat shipped `.d.ts` files as part of the public contract. Do not leave them pointing at private workspace packages.
 
 ## Commits
 

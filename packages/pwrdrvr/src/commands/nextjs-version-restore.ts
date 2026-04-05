@@ -12,7 +12,8 @@ export class NextJSVersionRestoreCommand extends Command {
 `,
   ];
 
-  static flags = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static flags: flagsParser.Input<any> = {
     version: flagsParser.version({
       char: 'v',
     }),

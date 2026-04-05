@@ -33,6 +33,7 @@
     "@aws-sdk/client-dynamodb": "3.78.0",
     "@aws-sdk/lib-dynamodb": "3.78.0",
     "@types/node-fetch": "^2.5.8",
+    "jest-dynalite": "3.6.1",
     "node-fetch": "^2.6.1"
   },
   "files": [

@@ -1,11 +1,13 @@
 {
   "name": "@pwrdrvr/microapps-deployer-lib",
   "version": "0.0.0",
-  "private": true,
   "description": "Deployer svc interface for the microapps framework",
   "source": "src/index.ts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,5 +26,11 @@
   },
   "devDependencies": {
     "@types/node": "^18.0.0"
-  }
+  },
+  "files": [
+    "dist",
+    "src",
+    "package.json",
+    "LICENSE"
+  ]
 }

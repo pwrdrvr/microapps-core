@@ -225,6 +225,9 @@ importers:
       '@types/node-fetch':
         specifier: ^2.5.8
         version: 2.6.1
+      jest-dynalite:
+        specifier: 3.6.1
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.556.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@18.18.13)(ts-node@10.9.1(@types/node@18.18.13)(typescript@4.9.5)))
       node-fetch:
         specifier: ^2.6.1
         version: 2.6.7
@@ -319,6 +322,9 @@ importers:
       aws-sdk-client-mock:
         specifier: 2.1.0
         version: 2.1.0
+      jest-dynalite:
+        specifier: 3.6.1
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.556.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@18.18.13)(ts-node@10.9.1(@types/node@18.18.13)(typescript@4.9.5)))
       sinon:
         specifier: ^10.0.0
         version: 10.0.1
@@ -338,6 +344,9 @@ importers:
       '@aws-crypto/sha256-browser':
         specifier: ^4.0.0
         version: 4.0.0
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.78.0
+        version: 3.556.0
       '@aws-sdk/client-secrets-manager':
         specifier: ^3.78.0
         version: 3.556.0
@@ -399,6 +408,12 @@ importers:
       '@types/convict-format-with-validator':
         specifier: ^6.0.2
         version: 6.0.2
+      '@types/fs-extra':
+        specifier: ^9.0.13
+        version: 9.0.13
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
       '@types/lambda-log':
         specifier: ^2.2.0
         version: 2.2.1
@@ -408,6 +423,9 @@ importers:
       aws-sdk-client-mock:
         specifier: 2.1.0
         version: 2.1.0
+      jest-dynalite:
+        specifier: 3.6.1
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.556.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@18.18.13)(ts-node@10.9.1(@types/node@18.18.13)(typescript@4.9.5)))
 
   packages/microapps-publish:
     dependencies:
@@ -478,6 +496,9 @@ importers:
       '@types/source-map-support':
         specifier: 0.5.6
         version: 0.5.6
+      jest-dynalite:
+        specifier: 3.6.1
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.556.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@18.18.13)(ts-node@10.9.1(@types/node@18.18.13)(typescript@4.9.5)))
 
   packages/microapps-router-lib:
     dependencies:
@@ -503,6 +524,9 @@ importers:
       '@types/aws-lambda':
         specifier: 8.10.110
         version: 8.10.110
+      '@types/fs-extra':
+        specifier: ^9.0.13
+        version: 9.0.13
       '@types/lambda-log':
         specifier: ^2.2.0
         version: 2.2.1
@@ -515,6 +539,9 @@ importers:
       '@types/source-map-support':
         specifier: 0.5.6
         version: 0.5.6
+      jest-dynalite:
+        specifier: 3.6.1
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.556.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@18.18.13)(ts-node@10.9.1(@types/node@18.18.13)(typescript@4.9.5)))
       mock-fs:
         specifier: 5.5.0
         version: 5.5.0
@@ -554,6 +581,9 @@ importers:
       '@oclif/plugin-help':
         specifier: ^3.2.7
         version: 3.3.1
+      '@pwrdrvr/microapps-deployer-lib':
+        specifier: workspace:*
+        version: link:../microapps-deployer-lib
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -591,9 +621,6 @@ importers:
         specifier: ^2.1.0
         version: 2.6.2
     devDependencies:
-      '@pwrdrvr/microapps-deployer-lib':
-        specifier: workspace:*
-        version: link:../microapps-deployer-lib
       '@types/convict':
         specifier: ^6.0.2
         version: 6.1.1
@@ -2243,6 +2270,9 @@ packages:
 
   '@types/js-yaml@4.0.5':
     resolution: {integrity: sha512-FhpRzf927MNQdRZP0J5DLIdTXhjLYzeUTmLAu69mnVksLH9CJY3IuSeEgbKUki7GQZm0WqDkGzyxju2EZGD2wA==}
+
+  '@types/js-yaml@4.0.9':
+    resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -8428,6 +8458,8 @@ snapshots:
       pretty-format: 29.5.0
 
   '@types/js-yaml@4.0.5': {}
+
+  '@types/js-yaml@4.0.9': {}
 
   '@types/json-schema@7.0.15': {}
 
