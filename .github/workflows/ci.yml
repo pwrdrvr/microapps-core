@@ -205,6 +205,26 @@ jobs:
 
       - uses: ./.github/actions/configure-nodejs
 
+      - name: Resolve Packaged App Static Asset Paths
+        shell: bash
+        run: |
+          node <<'NODE' >> "$GITHUB_ENV"
+          const path = require('path');
+
+          const assetPackages = [
+            ['NEXTJS_DEMO_STATIC_ASSETS_PATH', '@pwrdrvr/microapps-app-nextjs-demo-cdk', 'lib/microapps-app-nextjs-demo/static_files'],
+            ['RELEASE_APP_STATIC_ASSETS_PATH', '@pwrdrvr/microapps-app-release-cdk', 'lib/microapps-app-release/static_files'],
+          ];
+
+          for (const [envName, pkgName, relativePath] of assetPackages) {
+            const packageJsonPath = require.resolve(`${pkgName}/package.json`, {
+              paths: [path.resolve('packages/cdk')],
+            });
+
+            console.log(`${envName}=${path.join(path.dirname(packageJsonPath), relativePath)}`);
+          }
+          NODE
+
       - name: Build All TypeScript
         run: pnpm build
 
@@ -438,7 +458,7 @@ jobs:
             --new-version ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
-            --static-assets-path node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
+            --static-assets-path ${NEXTJS_DEMO_STATIC_ASSETS_PATH} \
             --overwrite
 
       - name: Nextjs Demo App URL
@@ -475,7 +495,7 @@ jobs:
             --new-version ${{ needs.build.outputs.releaseAppPackageVersion }} \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${RELEASE_APP_LAMBDA_VERSION_ARN} \
-            --static-assets-path node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
+            --static-assets-path ${RELEASE_APP_STATIC_ASSETS_PATH} \
             --overwrite
 
       - name: Release App URL
@@ -774,6 +794,26 @@ jobs:
 
       - uses: ./.github/actions/configure-nodejs
 
+      - name: Resolve Packaged App Static Asset Paths
+        shell: bash
+        run: |
+          node <<'NODE' >> "$GITHUB_ENV"
+          const path = require('path');
+
+          const assetPackages = [
+            ['NEXTJS_DEMO_STATIC_ASSETS_PATH', '@pwrdrvr/microapps-app-nextjs-demo-cdk', 'lib/microapps-app-nextjs-demo/static_files'],
+            ['RELEASE_APP_STATIC_ASSETS_PATH', '@pwrdrvr/microapps-app-release-cdk', 'lib/microapps-app-release/static_files'],
+          ];
+
+          for (const [envName, pkgName, relativePath] of assetPackages) {
+            const packageJsonPath = require.resolve(`${pkgName}/package.json`, {
+              paths: [path.resolve('packages/cdk')],
+            });
+
+            console.log(`${envName}=${path.join(path.dirname(packageJsonPath), relativePath)}`);
+          }
+          NODE
+
       # - name: Cache TypeScript Build Output
       #   id: cache-typescript-build
       #   uses: actions/cache@v5
@@ -1018,7 +1058,7 @@ jobs:
             --new-version ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
-            --static-assets-path packages/cdk/node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
+            --static-assets-path ${NEXTJS_DEMO_STATIC_ASSETS_PATH} \
             --overwrite
 
       - name: Nextjs Demo App URL
@@ -1056,7 +1096,7 @@ jobs:
             --new-version ${{ needs.build.outputs.releaseAppPackageVersion }} \
             --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
             --app-lambda-name ${RELEASE_APP_LAMBDA_VERSION_ARN} \
-            --static-assets-path packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
+            --static-assets-path ${RELEASE_APP_STATIC_ASSETS_PATH} \
             --overwrite
 
       - name: Release App URL
