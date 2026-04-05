@@ -147,6 +147,13 @@ jobs:
           path: |
             packages/microapps-datalib/
             !packages/microapps-datalib/node_modules/
+      - name: Upload Deployer Lib artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployer-lib-dist
+          path: |
+            packages/microapps-deployer-lib/
+            !packages/microapps-deployer-lib/node_modules/
       - name: Upload Router Lib artifact
         uses: actions/upload-artifact@v6
         with:
@@ -188,6 +195,11 @@ jobs:
         with:
           name: datalib-dist
           path: packages/microapps-datalib
+      - name: Download Deployer Lib build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deployer-lib-dist
+          path: packages/microapps-deployer-lib
       - name: Download Router Lib build artifacts
         uses: actions/download-artifact@v5
         with:
@@ -213,6 +225,14 @@ jobs:
         working-directory: packages/microapps-datalib
         run: |
           npm publish --dry-run
+      - name: Release Deployer Lib - NPM - Dry Run
+        working-directory: packages/microapps-deployer-lib
+        run: |
+          PACK_DIR=../../dist/npm-packages/microapps-deployer-lib
+          rm -rf "$PACK_DIR"
+          mkdir -p "$PACK_DIR"
+          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
+          npm publish --dry-run --tag dry-run "$PACK_DIR"/*.tgz
       - name: Release Router Lib - NPM - Dry Run
         working-directory: packages/microapps-router-lib
         run: |

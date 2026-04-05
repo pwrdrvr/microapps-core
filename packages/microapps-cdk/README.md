@@ -18,6 +18,7 @@ For development / testing purposes only, each version of an applicaton can be ac
 - [Request Dispatch Model for Multi-Account Deployments](#request-dispatch-model-for-multi-account-deployments)
 - [Video Preview of the Deploying CDK Construct](#video-preview-of-the-deploying-cdk-construct)
 - [Installation / CDK Constructs](#installation--cdk-constructs)
+- [Monorepo Boundary Enforcement](#monorepo-boundary-enforcement)
 - [Tutorial - Bootstrapping a Deploy](#tutorial---bootstrapping-a-deploy)
 - [Limitations / Future Development](#limitations--future-development)
 - [Related Projects / Components](#related-projects--components)
@@ -67,6 +68,15 @@ Note: requests can also be dispatched into the same account, but this model is m
 - [Construct Hub](https://constructs.dev/packages/@pwrdrvr/microapps-cdk/)
   - CDK API docs
   - Python, DotNet, Java, JS/TS installation instructions
+
+# Monorepo Boundary Enforcement
+
+This repo now relies on two complementary guardrails for workspace boundaries:
+
+- `pnpm` uses its default isolated workspace layout at the repo root, so undeclared dependencies are much less likely to appear accidentally through a flattened install.
+- ESLint enforces `import/no-extraneous-dependencies`, including type-only imports, so invalid package-to-package imports fail with a file-level diagnostic during normal lint runs and in CI.
+
+In practice, if a package imports another workspace package, declare that dependency in the importing package's `package.json`. Test-only helpers such as `jest-dynalite` should also be declared in the specific package that uses them instead of relying on a root-only dev dependency.
 
 # Tutorial - Bootstrapping a Deploy
 

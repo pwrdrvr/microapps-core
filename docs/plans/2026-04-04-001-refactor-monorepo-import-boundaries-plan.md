@@ -1,7 +1,7 @@
 ---
 title: refactor: enforce monorepo import boundaries under pnpm isolation
 type: refactor
-status: active
+status: completed
 date: 2026-04-04
 origin: docs/brainstorms/2026-04-04-monorepo-import-boundary-enforcement-requirements.md
 deepened: 2026-04-04
@@ -136,7 +136,7 @@ flowchart TB
     U4 --> U5["Unit 5: Document the steady-state policy"]
 ```
 
-- [ ] **Unit 1: Restore root pnpm isolation**
+- [x] **Unit 1: Restore root pnpm isolation**
 
 **Goal:** Remove the repo-wide flat pnpm layout so the root workspace once again uses pnpm's normal isolated installation model.
 
@@ -167,7 +167,7 @@ flowchart TB
 **Verification:**
 - The repo no longer encodes a global flat install layout as part of its default pnpm configuration.
 
-- [ ] **Unit 2: Validate the repo under isolated layout and capture only proven exceptions**
+- [x] **Unit 2: Validate the repo under isolated layout and capture only proven exceptions**
 
 **Goal:** Exercise the real pnpm-era workflows under isolated installs and encode the minimum surviving exceptions, if any.
 
@@ -219,7 +219,7 @@ flowchart TB
 **Verification:**
 - The repo either runs cleanly under isolated pnpm layout or carries only narrowly-scoped, documented exceptions that correspond to real observed failures.
 
-- [ ] **Unit 3: Add explicit ESLint boundary enforcement**
+- [x] **Unit 3: Add explicit ESLint boundary enforcement**
 
 **Goal:** Add a repo-wide lint rule that checks source imports against the owning package's manifest for clear, file-level diagnostics.
 
@@ -261,7 +261,7 @@ flowchart TB
 **Verification:**
 - Contributors get deterministic lint failures for undeclared source imports instead of relying only on package-manager layout side effects.
 
-- [ ] **Unit 4: Resolve remaining contract mismatches surfaced by isolation and lint**
+- [x] **Unit 4: Resolve remaining contract mismatches surfaced by isolation and lint**
 
 **Goal:** Clean up the remaining import contracts that are still semantically questionable once global hoisting is gone and lint enforcement is active.
 
@@ -309,7 +309,7 @@ flowchart TB
 **Verification:**
 - The remaining cross-package edges are not only declared but semantically correct for their package type (private service, shared library, or published package).
 
-- [ ] **Unit 5: Document the steady-state boundary policy**
+- [x] **Unit 5: Document the steady-state boundary policy**
 
 **Goal:** Update contributor-facing and maintainer-facing docs so the repo's actual boundary model matches what the code and package manager now enforce.
 

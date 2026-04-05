@@ -36,6 +36,19 @@ pnpm install
 
 Historically, this repo used Yarn because npm workspace installs had a circular `bin` linking problem with the local CLI packages. pnpm handles the workspace layout cleanly while still giving us a committed lockfile and reproducible installs.
 
+## Boundary enforcement
+
+The repo now enforces package boundaries in two layers:
+
+- `pnpm install` at the repo root uses the default isolated workspace layout, so undeclared dependencies are less likely to leak across the tree through a flat `node_modules`.
+- `pnpm lint` runs `import/no-extraneous-dependencies`, including type-only imports, so package source files must declare the workspace and external packages they import.
+
+When adding a new import:
+
+- Add runtime and type-only package imports to the importing package's `dependencies` when shipped source or declarations rely on them.
+- Add test-only helpers such as `jest-dynalite` to the specific package's `devDependencies` instead of relying on the repo root.
+- Treat `packages/microapps-cdk` as the exception path for package-manager behavior; if it ever needs special handling, keep that handling local to the package rather than reintroducing repo-wide hoisting.
+
 # Commit Messages
 
 Use Conventional Commits in this repository.

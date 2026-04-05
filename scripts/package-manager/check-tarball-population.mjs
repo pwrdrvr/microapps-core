@@ -58,6 +58,16 @@ const packages = [
     },
   },
   {
+    id: 'microapps-deployer-lib',
+    npmSpec: '@pwrdrvr/microapps-deployer-lib',
+    packageDir: path.join(rootDir, 'packages', 'microapps-deployer-lib'),
+    localTarballName: 'microapps-deployer-lib',
+    prepareLocalTarball() {
+      ensurePublishBuild();
+      return packLocalWithPnpm(this.packageDir, this.localTarballName);
+    },
+  },
+  {
     id: 'microapps-router-lib',
     npmSpec: '@pwrdrvr/microapps-router-lib',
     packageDir: path.join(rootDir, 'packages', 'microapps-router-lib'),
@@ -87,7 +97,7 @@ if (baselineDir) {
 if (process.argv.includes('--print-baseline-cache-key')) {
   console.log(
     packages
-      .map((pkg) => `${pkg.id}-${getPublishedVersion(pkg.npmSpec)}`)
+      .map((pkg) => `${pkg.id}-${getPublishedVersionOrPlaceholder(pkg.npmSpec)}`)
       .join('__')
       .replaceAll(/[^A-Za-z0-9._-]+/g, '_'),
   );
@@ -184,6 +194,14 @@ function comparePackage(pkg) {
 function getPublishedVersion(npmSpec) {
   const result = run('npm', ['view', '--loglevel=error', npmSpec, 'version'], { capture: true });
   return result.stdout.trim();
+}
+
+function getPublishedVersionOrPlaceholder(npmSpec) {
+  try {
+    return getPublishedVersion(npmSpec);
+  } catch {
+    return 'unpublished';
+  }
 }
 
 function packPublished(pkg, version, targetDir = path.join(publishedDir, pkg.id)) {
