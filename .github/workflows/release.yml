@@ -232,7 +232,7 @@ jobs:
               echo "ERROR: No tarball found in dist/js/"
               exit 1
             fi
-            npx --yes -p npm@11.5.1 npm publish --dry-run "$TARBALL" || true
+            npx --yes -p npm@11.5.1 npm publish --dry-run --tag pr "$TARBALL"
           else
             npx --yes -p npm@11.5.1 -p publib@latest publib-npm
           fi
@@ -321,7 +321,7 @@ jobs:
           NPM_TRUSTED_PUBLISHER: "true"
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npx --yes -p npm@11.5.1 npm publish --dry-run
+            npx --yes -p npm@11.5.1 npm publish --dry-run --tag pr
           else
             npx --yes -p npm@11.5.1 npm publish --tag "$NPM_DIST_TAG"
           fi
