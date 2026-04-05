@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.2.0-beta.6 - 2026-04-05
+
+### Fixes
+
+- Stopped shipping `@pwrdrvr/microapps-deployer-lib` as a runtime dependency of `pwrdrvr`, so the published beta CLI and `@pwrdrvr/microapps-publish` can install cleanly without requiring an unpublished package. @huntharo
+
+### Internal
+
+- Added a package-contract regression test that keeps the type-only deployer library out of `pwrdrvr` runtime dependencies while preserving it for local type-checking. @huntharo
+
 ## v1.2.0-beta.5 - 2026-04-05
 
 ### Fixes
