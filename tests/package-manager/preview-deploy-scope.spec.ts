@@ -107,7 +107,9 @@ describe('preview-deploy-scope', () => {
 
   it('accepts one accidental extra JSON encoding layer', () => {
     const result = classifyScopeFromRawJson({
-      filesJson: JSON.stringify(JSON.stringify(['package.json', 'tests/integration/demo-app.spec.ts'])),
+      filesJson: JSON.stringify(
+        JSON.stringify(['package.json', 'tests/integration/demo-app.spec.ts']),
+      ),
       existingLabelsJson: JSON.stringify(JSON.stringify([])),
     });
 
