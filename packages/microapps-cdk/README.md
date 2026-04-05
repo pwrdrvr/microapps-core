@@ -96,7 +96,7 @@ In practice, if a package imports another workspace package, declare that depend
   - Deploys the CDK Stack
   - Essentially runs two commands along with extraction of outputs:
     - `npx cdk deploy --context @pwrdrvr/microapps:deployReleaseApp=true microapps-basic`
-    - `npx pwrdrvr publish --app-name release --new-version ${RELEASE_APP_PACKAGE_VERSION} --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} --app-lambda-name ${RELEASE_APP_LAMBDA_NAME} --static-assets-path node_modules/@pwrdrvr/microapps-app-release-cdk/lib/static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --no-cache`
+    - `npx pwrdrvr publish --app-name release --new-version ${RELEASE_APP_PACKAGE_VERSION} --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} --app-lambda-name ${RELEASE_APP_LAMBDA_NAME} --static-assets-path packages/cdk/node_modules/@pwrdrvr/microapps-app-release-cdk/lib/static_files/release/${RELEASE_APP_PACKAGE_VERSION}/ --overwrite --no-cache`
   - URL will be printed as last output
 
 # Limitations / Future Development
