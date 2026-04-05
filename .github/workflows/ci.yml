@@ -92,7 +92,7 @@ jobs:
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             packages/**/dist
@@ -122,7 +122,7 @@ jobs:
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             packages/**/dist
@@ -190,7 +190,7 @@ jobs:
 
       # - name: Cache TypeScript Build Output
       #   id: cache-typescript-build
-      #   uses: actions/cache@v4
+      #   uses: actions/cache@v5
       #   with:
       #     path: |
       #       packages/**/dist
@@ -205,7 +205,7 @@ jobs:
         run: pnpm esbuild:edge-to-origin
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
@@ -247,7 +247,7 @@ jobs:
         run: zip -r cdk-out.zip cdk.out
       - name: Upload Zip
         if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cdk_out_${{ matrix.deployName }}
           path: cdk-out.zip
@@ -336,7 +336,7 @@ jobs:
             --overwrite
 
       - name: Demo App URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createCommitStatus({
@@ -397,7 +397,7 @@ jobs:
             --overwrite
 
       - name: Demo App URL - Root App
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createCommitStatus({
@@ -436,7 +436,7 @@ jobs:
             --overwrite
 
       - name: Nextjs Demo App URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createCommitStatus({
@@ -474,7 +474,7 @@ jobs:
             --overwrite
 
       - name: Release App URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createCommitStatus({
@@ -506,7 +506,7 @@ jobs:
       # Change to Child Account Creds
       - name: Change to Child Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
@@ -536,7 +536,7 @@ jobs:
 
       - name: Change Back to Parent AWS Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
@@ -553,7 +553,7 @@ jobs:
 
       - name: Change Back to Child Account
         if: ${{ matrix.deployName == 'microapps-core' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-session-name: microapps-ghpublic-build
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
@@ -618,7 +618,7 @@ jobs:
 
       - name: Publish Transient PR Preview Deployment
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           DEPLOY_NAME: ${{ matrix.deployName }}
           PREVIEW_URL: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}/
@@ -729,7 +729,7 @@ jobs:
           echo "key=$(node scripts/package-manager/check-tarball-population.mjs --print-baseline-cache-key)" >> $GITHUB_OUTPUT
 
       - name: Restore Published Tarball Baselines
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/tarball-population-baselines
           key: tarball-population-baselines-${{ runner.os }}-${{ steps.tarball_baseline_key.outputs.key }}
@@ -752,7 +752,7 @@ jobs:
 
       - name: Upload Tarball Population Report
         if: always() && steps.tarball_population.outputs.report_json != '' && steps.tarball_population.outputs.report_markdown != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tarball-population-report
           path: |
@@ -761,7 +761,7 @@ jobs:
 
       - name: Publish Tarball Population Report Check
         if: github.event_name == 'pull_request' && steps.tarball_population.outputs.report_markdown != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
