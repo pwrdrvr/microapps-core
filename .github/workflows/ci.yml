@@ -146,7 +146,7 @@ jobs:
         run: pnpm test
 
   deploy:
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'DEPLOY-CORE') || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC') || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))
     strategy:
       matrix:
         deployName:
