@@ -68,7 +68,6 @@
     "@aws-sdk/lib-storage": "3.78.0",
     "@types/convict": "^6.0.2",
     "@types/convict-format-with-validator": "^6.0.2",
-    "@pwrdrvr/microapps-deployer-lib": "workspace:*",
     "@types/fs-extra": "^9.0.11",
     "@types/js-yaml": "^4.0.1",
     "@types/mime-types": "^2.1.0",

@@ -11,10 +11,7 @@ describe('pwrdrvr package contract', () => {
     expect(packageJson.dependencies).not.toHaveProperty('@pwrdrvr/microapps-deployer-lib');
   });
 
-  it('keeps microapps-deployer-lib available for local type-checking', () => {
-    expect(packageJson.devDependencies).toHaveProperty(
-      '@pwrdrvr/microapps-deployer-lib',
-      'workspace:*',
-    );
+  it('does not retain microapps-deployer-lib as a local package dependency either', () => {
+    expect(packageJson.devDependencies).not.toHaveProperty('@pwrdrvr/microapps-deployer-lib');
   });
 });

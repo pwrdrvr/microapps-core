@@ -8,7 +8,7 @@ import type {
   IDeleteVersionRequest,
   ILambdaAliasRequest,
   ILambdaAliasResponse,
-} from '@pwrdrvr/microapps-deployer-lib';
+} from './deployer-types';
 import { IConfig } from '../config/Config';
 
 /**
