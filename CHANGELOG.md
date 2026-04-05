@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0-beta.3 - 2026-04-04
+
+### Fixes
+
+- Scoped release publishing to the maintained npm path, removed the redundant GitHub release publish job, and switched npm publish steps to a pinned npm 11.5.1 toolchain without mutating the runner. @huntharo
+
 ## v1.2.0-beta.2 - 2026-04-04
 
 ### Fixes
