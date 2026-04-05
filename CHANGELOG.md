@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.2.0-beta.4 - 2026-04-05
+
+### Highlights
+
+- Added deterministic prerelease planning for the `v1.2.0` beta train and taught CI to classify preview deploy scope before deciding which preview work to run. @huntharo
+- Enforced pnpm workspace import boundaries while preserving the repo's isolated dependency layout so packages only depend on what they actually declare. @huntharo
+
+### Fixes
+
+- Restored the main build packaging jobs and the `microapps-cdk` versioned API route behavior so beta packaging checks and versioned endpoints work correctly again. @huntharo
+- Fixed preview deploy automation so workflow JSON inputs parse correctly, the PR scope labeler can write labels, and preview deploys derive from the classified scope. @huntharo
+
+### Internal
+
+- Updated GitHub Actions for the current Node 24 toolchain, refreshed checkout and Node setup actions, and added pnpm-aware Dependabot workspace configuration for the monorepo. @huntharo
+- Hardened prerelease packaging by tagging npm dry-runs correctly, keeping non-blocking tarball drift out of failing status paths, and loading `nvm` before `pnpm install` in environment setup. @huntharo
+- Replaced `axios` with `fetch` in integration coverage and added shared HTTP helpers to keep the beta test path closer to the runtime stack. @huntharo
+- Refreshed the release planning automation and Codex environment configuration used by the repository maintenance workflows. @huntharo
+- Bumped the root `cross-env` development dependency. @dependabot[bot]
+
 ## v1.2.0-beta.3 - 2026-04-04
 
 ### Fixes
