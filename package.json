@@ -46,7 +46,7 @@
     "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "5.54.0",
     "@typescript-eslint/parser": "5.54.0",
-    "aws-cdk": "^2.1000.0",
+    "aws-cdk": "^2.1117.0",
     "axios": "1.6.0",
     "constructs": "10.0.5",
     "cross-env": "7.0.3",
