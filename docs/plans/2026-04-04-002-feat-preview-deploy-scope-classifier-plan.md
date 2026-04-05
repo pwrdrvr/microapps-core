@@ -1,7 +1,7 @@
 ---
 title: feat: Add preview deploy scope classifier
 type: feat
-status: active
+status: completed
 date: 2026-04-04
 origin: docs/brainstorms/2026-04-04-preview-deploy-auto-labeling-requirements.md
 ---
@@ -132,7 +132,7 @@ flowchart TB
 
 ## Implementation Units
 
-- [ ] **Unit 1: Add a fork-safe PR scope classifier workflow**
+- [x] **Unit 1: Add a fork-safe PR scope classifier workflow**
 
 **Goal:** Introduce an early workflow that classifies PR file scope, ensures the needed labels exist, additively applies missing deploy labels, and records why it acted.
 
@@ -175,7 +175,7 @@ flowchart TB
 - A fork-branch PR targeting this repository can still be labeled by the classifier without running PR head code.
 - A docs-only PR shows a classifier summary explaining that no preview labels were added.
 
-- [ ] **Unit 2: Make PR preview deploys label-gated in CI**
+- [x] **Unit 2: Make PR preview deploys label-gated in CI**
 
 **Goal:** Reshape the PR deploy path so preview environments only deploy when their labels are present, while preserving the current push-to-main behavior.
 
@@ -210,7 +210,7 @@ flowchart TB
 - A label-added rerun visibly includes only the matrix rows implied by the label set.
 - Pushes to `main` still deploy all environments exactly as before.
 
-- [ ] **Unit 3: Make PR-close cleanup resilient for partially or never-deployed previews**
+- [x] **Unit 3: Make PR-close cleanup resilient for partially or never-deployed previews**
 
 **Goal:** Ensure the PR cleanup workflow no-ops cleanly when some preview environments were never created, while still tearing down whatever was actually deployed.
 
@@ -242,7 +242,7 @@ flowchart TB
 - Cleanup jobs for non-deployed environments end in a clean no-op rather than a best-effort failure path.
 - Closing a partially labeled PR does not leave orphaned deployed stacks behind.
 
-- [ ] **Unit 4: Document maintainer-facing preview deploy controls**
+- [x] **Unit 4: Document maintainer-facing preview deploy controls**
 
 **Goal:** Record the new label semantics and manual override path so maintainers do not need to reverse-engineer workflow behavior from YAML.
 

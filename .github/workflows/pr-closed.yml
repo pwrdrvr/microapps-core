@@ -49,8 +49,20 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Destroy Parent Privilege CDK Stack for Child Deploy
+      - name: Check Parent Privilege CDK Stack
         if: ${{ matrix.deployName == 'microapps-core' }}
+        id: parent_privilege_stack
+        run: |
+          STACK_NAME="${{ matrix.deployName }}-ghchild-priv-${NODE_ENV}-pr-${PR_NUMBER}"
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No parent privilege stack found for $STACK_NAME."
+          fi
+
+      - name: Destroy Parent Privilege CDK Stack for Child Deploy
+        if: ${{ matrix.deployName == 'microapps-core' && steps.parent_privilege_stack.outputs.exists == 'true' }}
         run: |
           aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghchild-priv-${NODE_ENV}-pr-${PR_NUMBER}"
           aws cloudformation wait stack-delete-complete  --output text --stack-name "${{ matrix.deployName }}-ghchild-priv-${NODE_ENV}-pr-${PR_NUMBER}"
@@ -66,8 +78,20 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Destroy Child CDK Stack
+      - name: Check Child CDK Stack
         if: ${{ matrix.deployName == 'microapps-core' }}
+        id: child_stack
+        run: |
+          STACK_NAME="${{ matrix.deployName }}-ghchild-${NODE_ENV}-pr-${PR_NUMBER}"
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No child stack found for $STACK_NAME."
+          fi
+
+      - name: Destroy Child CDK Stack
+        if: ${{ matrix.deployName == 'microapps-core' && steps.child_stack.outputs.exists == 'true' }}
         run: |
           aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghchild-${NODE_ENV}-pr-${PR_NUMBER}"
           aws cloudformation wait stack-delete-complete  --output text --stack-name "${{ matrix.deployName }}-ghchild-${NODE_ENV}-pr-${PR_NUMBER}"
@@ -83,7 +107,19 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Check Parent CDK Stack
+        id: parent_stack
+        run: |
+          STACK_NAME="${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No parent stack found for $STACK_NAME."
+          fi
+
       - name: Destroy Parent CDK Stack
+        if: steps.parent_stack.outputs.exists == 'true'
         run: |
           set +e
           aws cloudformation delete-stack --stack-name "${{ matrix.deployName }}-ghpublic-${NODE_ENV}-pr-${PR_NUMBER}"
