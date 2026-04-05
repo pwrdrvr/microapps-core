@@ -14,7 +14,7 @@
   ],
   "pnpm": {
     "overrides": {
-      "constructs": "10.0.5",
+      "constructs": "10.6.0",
       "terser": "^5.14.2"
     }
   },
@@ -48,7 +48,7 @@
     "@typescript-eslint/parser": "5.54.0",
     "aws-cdk": "^2.1000.0",
     "axios": "1.6.0",
-    "constructs": "10.0.5",
+    "constructs": "10.6.0",
     "cross-env": "7.0.3",
     "esbuild": "0.20.2",
     "eslint": "8.35.0",
