@@ -35,7 +35,7 @@
     "esbuild:edge-to-origin": "esbuild packages/microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node18 --external:aws-sdk --outfile=packages/microapps-cdk/lib/microapps-edge-to-origin/index.js",
     "project:sync": "node ./.agents/skills/project-manager/scripts/sync-work-items.mjs",
     "release:metadata": "node scripts/release-metadata.mjs",
-    "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local jest",
+    "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local NODE_OPTIONS=--experimental-vm-modules jest",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
     "postinstall": "patch-package",
