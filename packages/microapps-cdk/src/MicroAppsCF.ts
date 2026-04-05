@@ -331,8 +331,11 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
 
     //
     // If a route specifically contains `/api/`, send it to the app origin.
-    // This keeps versioned API routes like `/release/0.0.0-pr.106/api/default-version`
-    // from falling into the dot-based static-file behavior below.
+    // Without this behavior, versioned API routes like
+    // `/release/0.0.0-pr.106/api/default-version` match the dot-based
+    // `*/*.*` static-file behavior below because the version segment contains periods.
+    // CloudFront then treats the request as cacheable-only traffic and rejects
+    // POST requests before they ever reach the app origin.
     //
     if (createAPIPathRoute) {
       distro.addBehavior(
@@ -345,7 +348,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // If a route specifically contains `/_next/data/`, send it to the app origin.
     // These requests can end in `.json`, so they also need to bypass the
-    // dot-based static-file behavior below.
+    // dot-based static-file behavior below instead of being mistaken for
+    // static assets.
     //
     if (createNextDataPathRoute) {
       distro.addBehavior(
