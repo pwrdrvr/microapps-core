@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.0-beta.7 - 2026-04-05
+
+### Fixes
+
+- Localized the deployer request and response types inside `pwrdrvr`, so the published beta CLI and `@pwrdrvr/microapps-publish` install cleanly without depending on an unpublished package. @huntharo
+- Declared `reflect-metadata` in `@pwrdrvr/microapps-router-lib` test dependencies so the release workflow lint gate passes again on the beta train. @huntharo
+
+### Internal
+
+- Added a package-contract regression test that keeps the unpublished deployer library out of the `pwrdrvr` package surface. @huntharo
+
 ## v1.2.0-beta.6 - 2026-04-05
 
 ### Fixes
