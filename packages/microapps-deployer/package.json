@@ -21,7 +21,7 @@
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
     "@aws-sdk/client-apigatewayv2": "^3.78.0",
-    "@aws-sdk/client-dynamodb": "^3.78.0",
+    "@aws-sdk/client-dynamodb": "^3.1024.0",
     "@aws-sdk/client-iam": "^3.78.0",
     "@aws-sdk/client-lambda": "^3.78.0",
     "@aws-sdk/client-s3": "^3.78.0",
@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-apigatewayv2": "3.78.0",
-    "@aws-sdk/client-dynamodb": "3.78.0",
+    "@aws-sdk/client-dynamodb": "3.1024.0",
     "@aws-sdk/client-iam": "3.78.0",
     "@aws-sdk/client-lambda": "3.78.0",
     "@aws-sdk/client-s3": "3.78.0",
