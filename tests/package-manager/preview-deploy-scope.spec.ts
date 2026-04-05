@@ -19,6 +19,24 @@ function classifyScope(params: { files: string[]; existingLabels?: string[] }) {
   );
 }
 
+function classifyScopeFromRawJson(params: { filesJson: string; existingLabelsJson?: string }) {
+  const scriptPath = path.resolve(__dirname, '..', '..', 'scripts/github/preview-deploy-scope.mjs');
+
+  return JSON.parse(
+    execFileSync(
+      'node',
+      [
+        scriptPath,
+        '--files-json',
+        params.filesJson,
+        '--existing-labels-json',
+        params.existingLabelsJson ?? '[]',
+      ],
+      { encoding: 'utf8' },
+    ),
+  );
+}
+
 describe('preview-deploy-scope', () => {
   it('adds only DEPLOY-CORE for workflow changes', () => {
     const result = classifyScope({
@@ -85,5 +103,17 @@ describe('preview-deploy-scope', () => {
     expect(result.recommendedLabels).toEqual(['DEPLOY-CORE']);
     expect(result.labelsToAdd).toEqual(['DEPLOY-CORE']);
     expect(result.unmatchedFiles).toEqual(['.nvmrc']);
+  });
+
+  it('accepts one accidental extra JSON encoding layer', () => {
+    const result = classifyScopeFromRawJson({
+      filesJson: JSON.stringify(
+        JSON.stringify(['package.json', 'tests/integration/demo-app.spec.ts']),
+      ),
+      existingLabelsJson: JSON.stringify(JSON.stringify([])),
+    });
+
+    expect(result.recommendedLabels).toEqual(['DEPLOY-CORE']);
+    expect(result.labelsToAdd).toEqual(['DEPLOY-CORE']);
   });
 });

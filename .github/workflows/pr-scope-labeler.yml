@@ -35,7 +35,7 @@ jobs:
               per_page: 100,
             });
 
-            return JSON.stringify(files.map((file) => file.filename));
+            return files.map((file) => file.filename);
 
       - name: Read Existing PR Labels
         id: existing_labels
@@ -49,7 +49,7 @@ jobs:
               per_page: 100,
             });
 
-            return JSON.stringify(labels.map((label) => label.name));
+            return labels.map((label) => label.name);
 
       - name: Classify Preview Deploy Scope
         id: classify

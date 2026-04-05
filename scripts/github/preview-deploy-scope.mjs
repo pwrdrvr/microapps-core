@@ -108,6 +108,15 @@ function parseStringArray(rawValue, label) {
     throw new Error(`Could not parse ${label} as JSON: ${error.message}`);
   }
 
+  // Tolerate one accidental extra JSON encoding layer from workflow outputs.
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch (error) {
+      throw new Error(`Could not parse nested ${label} JSON: ${error.message}`);
+    }
+  }
+
   if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string')) {
     throw new Error(`${label} must be a JSON array of strings.`);
   }
