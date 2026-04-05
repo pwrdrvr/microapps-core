@@ -145,36 +145,136 @@ jobs:
           NODE_ENV: test
         run: pnpm test
 
-  decide-deploy-core:
+  decide-preview-scope:
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     outputs:
       should_deploy_core: ${{ steps.decide.outputs.should_deploy_core }}
-      decision_reason: ${{ steps.decide.outputs.decision_reason }}
+      should_deploy_basic: ${{ steps.decide.outputs.should_deploy_basic }}
+      should_deploy_basic_prefix: ${{ steps.decide.outputs.should_deploy_basic_prefix }}
+      decision_reason_core: ${{ steps.decide.outputs.decision_reason_core }}
+      decision_reason_basic: ${{ steps.decide.outputs.decision_reason_basic }}
+      decision_reason_basic_prefix: ${{ steps.decide.outputs.decision_reason_basic_prefix }}
     steps:
-      - name: Decide Whether Core Preview Deploy Should Run
-        id: decide
+      - uses: actions/checkout@v5
+        if: github.event_name == 'pull_request'
+
+      - name: Gather Changed Files
+        if: github.event_name == 'pull_request'
+        id: changed_files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            return files.map((file) => file.filename);
+
+      - name: Read Existing PR Labels
+        if: github.event_name == 'pull_request'
+        id: existing_labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            return labels.map((label) => label.name);
+
+      - name: Classify Preview Deploy Scope
+        if: github.event_name == 'pull_request'
+        id: classify
+        env:
+          FILES_JSON: ${{ steps.changed_files.outputs.result }}
+          EXISTING_LABELS_JSON: ${{ steps.existing_labels.outputs.result }}
         run: |
-          if [ "${{ github.actor }}" = "dependabot[bot]" ]; then
-            echo "should_deploy_core=false" >> "$GITHUB_OUTPUT"
-            echo "decision_reason=dependabot-pr-no-core-preview" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "should_deploy_core=true" >> "$GITHUB_OUTPUT"
-            echo "decision_reason=non-pr-event" >> "$GITHUB_OUTPUT"
-          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'DEPLOY-CORE') }}" = "true" ]; then
-            echo "should_deploy_core=true" >> "$GITHUB_OUTPUT"
-            echo "decision_reason=deploy-core-label-present" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_deploy_core=false" >> "$GITHUB_OUTPUT"
-            echo "decision_reason=no-deploy-core-label" >> "$GITHUB_OUTPUT"
-          fi
+          node scripts/github/preview-deploy-scope.mjs \
+            --files-json "$FILES_JSON" \
+            --existing-labels-json "$EXISTING_LABELS_JSON" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Decide Whether Preview Deploys Should Run
+        id: decide
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          EXISTING_LABELS_JSON: ${{ steps.existing_labels.outputs.result || '[]' }}
+          RECOMMENDED_LABELS_JSON: ${{ steps.classify.outputs.recommended_labels_json || '[]' }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          function parseStringArray(rawValue) {
+            if (!rawValue) {
+              return [];
+            }
+
+            const value = JSON.parse(rawValue);
+            return Array.isArray(value) ? value : [];
+          }
+
+          const actor = process.env.GITHUB_ACTOR;
+          const eventName = process.env.GITHUB_EVENT_NAME;
+          const existingLabels = new Set(parseStringArray(process.env.EXISTING_LABELS_JSON));
+          const recommendedLabels = new Set(parseStringArray(process.env.RECOMMENDED_LABELS_JSON));
+
+          function decide(labelName) {
+            const normalizedLabel = labelName.toLowerCase();
+
+            if (actor === 'dependabot[bot]') {
+              return { shouldDeploy: false, reason: `dependabot-no-${normalizedLabel}` };
+            }
+
+            if (eventName !== 'pull_request') {
+              return { shouldDeploy: true, reason: 'non-pr-event' };
+            }
+
+            if (recommendedLabels.has(labelName)) {
+              return { shouldDeploy: true, reason: `${normalizedLabel}-matched-files` };
+            }
+
+            if (existingLabels.has(labelName)) {
+              return { shouldDeploy: true, reason: `${normalizedLabel}-label-present` };
+            }
+
+            return { shouldDeploy: false, reason: `${normalizedLabel}-not-requested` };
+          }
+
+          const decisions = {
+            core: decide('DEPLOY-CORE'),
+            basic: decide('DEPLOY-BASIC'),
+            basicPrefix: decide('DEPLOY-BASIC-PREFIX'),
+          };
+
+          const lines = [
+            `should_deploy_core=${decisions.core.shouldDeploy ? 'true' : 'false'}`,
+            `should_deploy_basic=${decisions.basic.shouldDeploy ? 'true' : 'false'}`,
+            `should_deploy_basic_prefix=${decisions.basicPrefix.shouldDeploy ? 'true' : 'false'}`,
+            `decision_reason_core=${decisions.core.reason}`,
+            `decision_reason_basic=${decisions.basic.reason}`,
+            `decision_reason_basic_prefix=${decisions.basicPrefix.reason}`,
+          ];
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `${lines.join('\n')}\n`);
+          NODE
 
   deploy-microapps-core-run:
     name: deploy-microapps-core-run
     needs:
       - build
-      - decide-deploy-core
-    if: needs.decide-deploy-core.outputs.should_deploy_core == 'true'
+      - decide-preview-scope
+    if: needs.decide-preview-scope.outputs.should_deploy_core == 'true'
     concurrency:
       group: deploy-microapps-core-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
       cancel-in-progress: false
@@ -689,20 +789,20 @@ jobs:
   deploy-microapps-core-noop:
     name: deploy-microapps-core-noop
     needs:
-      - decide-deploy-core
-    if: needs.decide-deploy-core.outputs.should_deploy_core != 'true'
+      - decide-preview-scope
+    if: needs.decide-preview-scope.outputs.should_deploy_core != 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
       - name: No Core Preview Deploy Required
         run: |
           echo "Skipping microapps-core preview deploy."
-          echo "Reason: ${{ needs.decide-deploy-core.outputs.decision_reason }}"
+          echo "Reason: ${{ needs.decide-preview-scope.outputs.decision_reason_core }}"
 
   deploy-microapps-core:
     name: deploy-microapps-core
     needs:
-      - decide-deploy-core
+      - decide-preview-scope
       - deploy-microapps-core-run
       - deploy-microapps-core-noop
     if: always()
@@ -711,8 +811,8 @@ jobs:
     steps:
       - name: Validate Core Deploy Outcome
         run: |
-          SHOULD_DEPLOY='${{ needs.decide-deploy-core.outputs.should_deploy_core }}'
-          DECIDE_RESULT='${{ needs.decide-deploy-core.result }}'
+          SHOULD_DEPLOY='${{ needs.decide-preview-scope.outputs.should_deploy_core }}'
+          DECIDE_RESULT='${{ needs.decide-preview-scope.result }}'
           RUN_RESULT='${{ needs.deploy-microapps-core-run.result }}'
           NOOP_RESULT='${{ needs.deploy-microapps-core-noop.result }}'
 
@@ -747,21 +847,22 @@ jobs:
           fi
 
   deploy-optional-preview:
-    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC') || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || needs.decide-preview-scope.outputs.should_deploy_basic == 'true' || needs.decide-preview-scope.outputs.should_deploy_basic_prefix == 'true')
     strategy:
       matrix:
         deployName:
           - microapps-basic
           - microapps-basic-prefix
         exclude:
-          - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC'))) && 'dummy' || 'microapps-basic' }}
-          - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))) && 'dummy' || 'microapps-basic-prefix' }}
+          - deployName: ${{ (github.event_name != 'pull_request' || needs.decide-preview-scope.outputs.should_deploy_basic == 'true') && 'dummy' || 'microapps-basic' }}
+          - deployName: ${{ (github.event_name != 'pull_request' || needs.decide-preview-scope.outputs.should_deploy_basic_prefix == 'true') && 'dummy' || 'microapps-basic-prefix' }}
     name: deploy-${{ matrix.deployName }}
     concurrency:
       group: deploy-${{ matrix.deployName }}-${{ github.workflow }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     needs:
       - build
+      - decide-preview-scope
     environment:
       name: ${{ github.event_name == 'pull_request' && 'ghpublic-pr' || 'ghpublic' }}
       url: https://${{ steps.getCDKExports.outputs.edgeDomain }}${{ steps.getCDKExports.outputs.prefix }}/${{ env.RELEASE_APP_NAME }}/
