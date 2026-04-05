@@ -147,6 +147,7 @@ jobs:
 
   decide-deploy-core:
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       should_deploy_core: ${{ steps.decide.outputs.should_deploy_core }}
       decision_reason: ${{ steps.decide.outputs.decision_reason }}
@@ -671,6 +672,7 @@ jobs:
       - decide-deploy-core
     if: needs.decide-deploy-core.outputs.should_deploy_core != 'true'
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: No Core Preview Deploy Required
         run: |
@@ -685,6 +687,7 @@ jobs:
       - deploy-microapps-core-noop
     if: always()
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Validate Core Deploy Outcome
         run: |
