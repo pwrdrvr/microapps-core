@@ -1,0 +1,15 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/packages/microapps-cdk"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      workspace-dependencies:
+        patterns:
+          - "*"
+        group-by: "dependency-name"
