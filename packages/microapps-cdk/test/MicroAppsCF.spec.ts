@@ -8,6 +8,15 @@ import * as r53 from 'aws-cdk-lib/aws-route53';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { MicroAppsCF } from '../src/MicroAppsCF';
 
+type DistributionResource = {
+  Type: string;
+  Properties?: {
+    DistributionConfig?: {
+      CacheBehaviors?: Array<{ PathPattern?: string }>;
+    };
+  };
+};
+
 describe('MicroAppsCF', () => {
   it('works with no params', () => {
     const app = new App({});
@@ -160,7 +169,7 @@ describe('MicroAppsCF', () => {
 
     const templateJson = Template.fromStack(stack).toJSON();
     const distributions = Object.values(
-      templateJson.Resources as Record<string, { Type: string; Properties?: { DistributionConfig?: { CacheBehaviors?: Array<{ PathPattern?: string }> } } }>
+      templateJson.Resources as Record<string, DistributionResource>,
     ).filter((resource) => resource.Type === 'AWS::CloudFront::Distribution');
 
     expect(distributions).toHaveLength(1);
