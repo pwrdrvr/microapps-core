@@ -92,7 +92,7 @@ jobs:
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             packages/**/dist
@@ -122,7 +122,7 @@ jobs:
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             packages/**/dist
@@ -190,7 +190,7 @@ jobs:
 
       # - name: Cache TypeScript Build Output
       #   id: cache-typescript-build
-      #   uses: actions/cache@v4
+      #   uses: actions/cache@v5
       #   with:
       #     path: |
       #       packages/**/dist
@@ -247,7 +247,7 @@ jobs:
         run: zip -r cdk-out.zip cdk.out
       - name: Upload Zip
         if: github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: cdk_out_${{ matrix.deployName }}
           path: cdk-out.zip
@@ -729,7 +729,7 @@ jobs:
           echo "key=$(node scripts/package-manager/check-tarball-population.mjs --print-baseline-cache-key)" >> $GITHUB_OUTPUT
 
       - name: Restore Published Tarball Baselines
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/tarball-population-baselines
           key: tarball-population-baselines-${{ runner.os }}-${{ steps.tarball_baseline_key.outputs.key }}
@@ -752,7 +752,7 @@ jobs:
 
       - name: Upload Tarball Population Report
         if: always() && steps.tarball_population.outputs.report_json != '' && steps.tarball_population.outputs.report_markdown != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tarball-population-report
           path: |
