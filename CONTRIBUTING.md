@@ -85,6 +85,7 @@ The `PR Scope Labeler` workflow adds these labels conservatively based on change
 Maintainer notes:
 
 - Add labels manually when you want to force a preview deploy for an open PR.
+- The required `deploy-microapps-core` check always reports a result on PRs. Without `DEPLOY-CORE`, it succeeds through an explicit no-op path; with `DEPLOY-CORE`, it only succeeds if the real core preview deploy succeeds.
 - Removing a deploy label prevents future preview deploy runs for that environment, but does not tear down an already-created preview. Cleanup still happens when the PR closes.
 - Check the `PR Scope Labeler` job summary first when you want to understand why a PR did or did not get preview deploy labels.
 

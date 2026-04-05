@@ -145,16 +145,592 @@ jobs:
           NODE_ENV: test
         run: pnpm test
 
-  deploy:
-    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'DEPLOY-CORE') || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC') || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))
+  decide-deploy-core:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy_core: ${{ steps.decide.outputs.should_deploy_core }}
+      decision_reason: ${{ steps.decide.outputs.decision_reason }}
+    steps:
+      - name: Decide Whether Core Preview Deploy Should Run
+        id: decide
+        run: |
+          if [ "${{ github.actor }}" = "dependabot[bot]" ]; then
+            echo "should_deploy_core=false" >> "$GITHUB_OUTPUT"
+            echo "decision_reason=dependabot-pr-no-core-preview" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "should_deploy_core=true" >> "$GITHUB_OUTPUT"
+            echo "decision_reason=non-pr-event" >> "$GITHUB_OUTPUT"
+          elif [ "${{ contains(github.event.pull_request.labels.*.name, 'DEPLOY-CORE') }}" = "true" ]; then
+            echo "should_deploy_core=true" >> "$GITHUB_OUTPUT"
+            echo "decision_reason=deploy-core-label-present" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_deploy_core=false" >> "$GITHUB_OUTPUT"
+            echo "decision_reason=no-deploy-core-label" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-microapps-core-run:
+    name: deploy-microapps-core-run
+    needs:
+      - build
+      - decide-deploy-core
+    if: needs.decide-deploy-core.outputs.should_deploy_core == 'true'
+    concurrency:
+      group: deploy-microapps-core-${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+      cancel-in-progress: false
+    environment:
+      name: ${{ github.event_name == 'pull_request' && 'ghpublic-pr' || 'ghpublic' }}
+      url: https://${{ steps.getCDKExports.outputs.edgeDomain }}/${{ env.RELEASE_APP_NAME }}/
+    permissions:
+      contents: read
+      deployments: write
+      id-token: write
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Extract Current NPM Version
+        run: |
+          echo 'PACKAGE_VERSION_ORIG='$(node -p -e "require('./package.json').version") >> $GITHUB_ENV
+
+      - name: Compute NPM Version and App Lambda Name
+        run: |
+          echo 'PACKAGE_VERSION='${PACKAGE_VERSION_ORIG}${{ needs.build.outputs.prSuffixPackageVersion }} >> $GITHUB_ENV
+
+      - name: Set Prefix Path
+        run: |
+          echo 'PREFIX=' >> $GITHUB_ENV
+          echo 'PREFIX_U=' >> $GITHUB_ENV
+
+      - uses: ./.github/actions/configure-nodejs
+
+      - name: Build All TypeScript
+        run: pnpm build
+
+      - name: Build Edge-to-Origin for Local Deploy
+        run: pnpm esbuild:edge-to-origin
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Stitch Version and Prefix into Simple Demo App and Static App
+        run: |
+          npx replace-in-file "/\/0\.0\.0/g" ${PREFIX}/${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+          npx replace-in-file "/0\.0\.0/g" ${PACKAGE_VERSION} --configFile=.demo-app-replace.config.js --isRegex
+          npx replace-in-file "/0\.0\.0/g" ${PACKAGE_VERSION} --configFile=.static-app-replace.config.js --isRegex
+
+      - name: Stitch Prefix into Nextjs Demo App
+        run: |
+          if [ -n "${PREFIX}" ] ; then
+            npx replace-in-file "/\/${NEXTJS_DEMO_APP_NAME}/g" ${PREFIX}/${NEXTJS_DEMO_APP_NAME} --configFile=.nextjs-demo-replace.config.js --isRegex
+            npx replace-in-file "/\/u002F${NEXTJS_DEMO_APP_NAME}/g" ${PREFIX_U}/u002F${NEXTJS_DEMO_APP_NAME} --configFile=.nextjs-demo-replace.config.js --isRegex
+          fi
+
+      - name: Stitch Prefix into Release App
+        run: |
+          if [ -n "${PREFIX}" ] ; then
+            npx replace-in-file "/\/${RELEASE_APP_NAME}/g" ${PREFIX}/${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
+            npx replace-in-file "/\/u002F${RELEASE_APP_NAME}/g" ${PREFIX_U}/u002F${RELEASE_APP_NAME} --configFile=.release-replace.config.js --isRegex
+          fi
+
+      - name: Synth CDK Stack
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
+        run: |
+          npx cdk synth --context @pwrdrvr/microapps:deployDemoApp=true \
+            --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
+            --context @pwrdrvr/microapps:deployReleaseApp=true \
+            --require-approval never microapps-core
+
+      - name: Zip Package
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
+        working-directory: .
+        run: zip -r cdk-out.zip cdk.out
+
+      - name: Upload Zip
+        if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'BUILD-CDK-ZIP')
+        uses: actions/upload-artifact@v6
+        with:
+          name: cdk_out_microapps-core
+          path: cdk-out.zip
+
+      - name: Diff CDK Stack
+        run: |
+          npx cdk diff --context @pwrdrvr/microapps:deployDemoApp=true \
+            --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
+            --context @pwrdrvr/microapps:deployReleaseApp=true \
+            --require-approval never microapps-core
+
+      - name: Set Hotswap Flag on PRs
+        run: |
+          if [ -n "${PR_NUMBER}" ]; then
+            echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
+          else
+            echo "HOTSWAP_FLAG=" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy CDK Stack
+        env:
+          AWS_ACCOUNT_ID_CHILD: ${{ secrets.AWS_ACCOUNT_ID_CHILD }}
+        run: |
+          npx cdk deploy \
+            ${HOTSWAP_FLAG} \
+            --context @pwrdrvr/microapps:deployDemoApp=true \
+            --context @pwrdrvr/microapps:deployNexjsDemoApp=true \
+            --context @pwrdrvr/microapps:deployReleaseApp=true \
+            --require-approval never microapps-core
+
+      - name: Get CDK Exports
+        id: getCDKExports
+        run: |
+          echo "prefix=${PREFIX}" >> $GITHUB_OUTPUT
+          echo "edgeDomain="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --output text) >> $GITHUB_OUTPUT
+          echo "EDGE_DOMAIN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-domain-name\`].Value" --output text) >> $GITHUB_ENV
+          echo "EDGE_TO_ORIGIN_ROLE_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-edge-role-role-arn\`].Value" --output text) >> $GITHUB_ENV
+          echo "DEPLOYER_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-name\`].Value" --output text) >> $GITHUB_ENV
+          echo "DEPLOYER_LAMBDA_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-arn\`].Value" --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --output text) >> $GITHUB_ENV
+          echo "DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --output text) >> $GITHUB_ENV
+          echo "NEXTJS_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-func-name\`].Value" --output text) >> $GITHUB_ENV
+          echo "NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-nextjs-demo-app-vers-arn\`].Value" --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-func-name\`].Value" --output text) >> $GITHUB_ENV
+          echo "RELEASE_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghpublic-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-release-app-vers-arn\`].Value" --output text) >> $GITHUB_ENV
+
+      - name: Echo Exports
+        run: |
+          env | grep EDGE_
+          env | grep DEPLOYER_
+          env | grep DEMO_APP_
+          env | grep NEXTJS_DEMO_APP_
+          env | grep RELEASE_APP_
+
+      - name: Publish URL App to MicroApps
+        run: |
+          npx pwrdrvr publish \
+            --app-name blog \
+            --type url \
+            --new-version ${PACKAGE_VERSION} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --url https://www.pwrdrvr.com \
+            --overwrite
+
+      - name: Publish Static App to Child MicroApps
+        run: |
+          npx pwrdrvr publish-static \
+            --app-name ${STATIC_APP_NAME} \
+            --new-version 0.0.0 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_ARN} \
+            --static-assets-path packages/static-app/src \
+            --default-file index.html \
+            --overwrite
+
+      - name: Publish Demo App to MicroApps
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version 0.0.0 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
+
+      - name: Demo App URL
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              sha: '${{github.event.pull_request.head.sha || github.sha}}',
+              context: 'Demo App URL on microapps-core',
+              state: 'success',
+              description: 'Passed',
+              target_url: `https://${{ steps.getCDKExports.outputs.edgeDomain }}/${{ env.DEMO_APP_NAME }}/?appver=0.0.0`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Demo App
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0/index.html
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0/serverIncrement?currValue=1"
+          echo Testing App Method Invocation on _next/data Route
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0/serverIncrement?currValue=1"
+
+      - name: Publish Demo App to MicroApps - To Delete
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version 0.0.0-delete.1 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite \
+            --no-cache
+
+      - name: Delete Demo App - To Delete
+        run: |
+          npx pwrdrvr delete \
+            --app-name ${DEMO_APP_NAME} \
+            --new-version 0.0.0-delete.1  \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME}
+
+      - name: Publish Demo App to MicroApps - Root App
+        run: |
+          npx pwrdrvr publish \
+            --app-name '[root]' \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version 0.0.0 \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
+
+      - name: Demo App URL - Root App
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              sha: '${{github.event.pull_request.head.sha || github.sha}}',
+              context: 'Demo App (Root App) URL on microapps-core',
+              state: 'success',
+              description: 'Passed',
+              target_url: `https://${{ steps.getCDKExports.outputs.edgeDomain }}/?appver=${{ env.PACKAGE_VERSION }}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Demo App - Root App
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/0.0.0/index.html
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/0.0.0/serverIncrement?currValue=1"
+          echo Testing App Method Invocation on _next/data Route
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/_next/data/0.0.0/serverIncrement?currValue=1"
+
+      - name: Publish Nextjs Demo App to MicroApps
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${NEXTJS_DEMO_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version ${{ needs.build.outputs.nextjsDemoAppPackageVersion }} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${NEXTJS_DEMO_APP_LAMBDA_VERSION_ARN} \
+            --static-assets-path node_modules/@pwrdrvr/microapps-app-nextjs-demo-cdk/lib/microapps-app-nextjs-demo/static_files/ \
+            --overwrite
+
+      - name: Nextjs Demo App URL
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              sha: '${{github.event.pull_request.head.sha || github.sha}}',
+              context: 'Nextjs Demo App URL on microapps-core',
+              state: 'success',
+              description: 'Passed',
+              target_url: `https://${{ steps.getCDKExports.outputs.edgeDomain }}/${{ env.NEXTJS_DEMO_APP_NAME }}?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Nextjs Demo App
+        run: |
+          echo Testing App Page Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+          echo Testing Post Page Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${NEXTJS_DEMO_APP_NAME}/posts/pre-rendering?appver=${{ needs.build.outputs.nextjsDemoAppPackageVersion }}
+
+      - name: Publish Release App to MicroApps
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${RELEASE_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version ${{ needs.build.outputs.releaseAppPackageVersion }} \
+            --deployer-lambda-name ${DEPLOYER_LAMBDA_NAME} \
+            --app-lambda-name ${RELEASE_APP_LAMBDA_VERSION_ARN} \
+            --static-assets-path node_modules/@pwrdrvr/microapps-app-release-cdk/lib/microapps-app-release/static_files/ \
+            --overwrite
+
+      - name: Release App URL
+        uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: '${{ github.repository_owner }}',
+              repo: '${{ github.event.repository.name }}',
+              sha: '${{github.event.pull_request.head.sha || github.sha}}',
+              context: 'Release App URL on microapps-core',
+              state: 'success',
+              description: 'Passed',
+              target_url: `https://${{ steps.getCDKExports.outputs.edgeDomain }}/${{ env.RELEASE_APP_NAME }}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Release App
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
+
+      - name: Change to Child Account
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Child CDK Stack
+        env:
+          PARENT_DEPLOYER_LAMBDA_ARN: ${{ env.DEPLOYER_LAMBDA_ARN }}
+        run: |
+          npx cdk deploy \
+            ${HOTSWAP_FLAG} \
+            --require-approval never microapps-core-child
+
+      - name: Get Child CDK Exports
+        id: getChildCDKExports
+        run: |
+          echo "CHILD_DEPLOYER_LAMBDA_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-deployer-func-arn\`].Value" --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_NAME="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-func-name\`].Value" --output text) >> $GITHUB_ENV
+          echo "CHILD_DEMO_APP_LAMBDA_VERSION_ARN="$(aws cloudformation list-exports --query "Exports[?Name==\`microapps-core-ghchild-${NODE_ENV}${{ needs.build.outputs.prSuffix }}-demo-app-vers-arn\`].Value" --output text) >> $GITHUB_ENV
+
+      - name: Echo Exports
+        run: |
+          env | grep CHILD_
+
+      - name: Change Back to Parent AWS Account
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Allow Child Deployer to Invoke Parent Deployer
+        env:
+          PARENT_DEPLOYER_LAMBDA_ARN: ${{ env.DEPLOYER_LAMBDA_ARN }}
+          AWS_ACCOUNT_ID_CHILD: ${{ secrets.AWS_ACCOUNT_ID_CHILD }}
+        run: |
+          npx cdk deploy \
+            --require-approval never microapps-core-child-priv
+
+      - name: Change Back to Child Account
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-session-name: microapps-ghpublic-build
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID_CHILD }}:role/builder-writeRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish Demo App to Child MicroApps - To Delete
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version 0.0.0-childDelete.1 \
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN} \
+            --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
+
+      - name: Delete Demo App from Child MicroApps - To Delete
+        run: |
+          npx pwrdrvr delete \
+            --app-name ${DEMO_APP_NAME} \
+            --new-version 0.0.0-childDelete.1  \
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN}
+
+      - name: Publish Demo App to Child MicroApps
+        run: |
+          npx pwrdrvr publish \
+            --app-name ${DEMO_APP_NAME} \
+            --type lambda-url \
+            --startup-type direct \
+            --new-version 0.0.0-child.1 \
+            --deployer-lambda-name ${CHILD_DEPLOYER_LAMBDA_ARN} \
+            --app-lambda-name ${CHILD_DEMO_APP_LAMBDA_NAME} \
+            --static-assets-path packages/demo-app/static_files \
+            --default-file index.html \
+            --overwrite
+
+      - name: Test Demo App - Child
+        run: |
+          echo Testing App Frame Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/
+          echo Testing App HTML Loading
+          curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0-child.1/index.html
+          echo Testing App Method Invocation
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/0.0.0-child.1/serverIncrement?currValue=1"
+          echo Testing App Method Invocation on _next/data Route
+          curl -H"accept: application/json" --fail "https://${EDGE_DOMAIN}${PREFIX}/${DEMO_APP_NAME}/_next/data/0.0.0-child.1/serverIncrement?currValue=1"
+
+      - name: Run Integration Tests
+        env:
+          BASE_URL: https://${{ env.EDGE_DOMAIN }}${{ env.PREFIX }}/
+          DEMO_AND_ROOT_APP_VER: '0.0.0'
+          NEXTJS_DEMO_APP_VER: '${{ needs.build.outputs.nextjsDemoAppPackageVersion }}'
+          DEPLOY_NAME: microapps-core
+        run: |
+          pnpm test:integration
+
+      - name: Publish Transient PR Preview Deployment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v8
+        env:
+          DEPLOY_NAME: microapps-core
+          PREVIEW_URL: https://${{ steps.getCDKExports.outputs.edgeDomain }}/${{ env.RELEASE_APP_NAME }}/
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const headSha = context.payload.pull_request.head.sha;
+            const prNumber = context.payload.pull_request.number;
+            const deployName = process.env.DEPLOY_NAME;
+            const previewUrl = process.env.PREVIEW_URL;
+            const logUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            const deployments = await github.paginate(github.rest.repos.listDeployments, {
+              owner,
+              repo,
+              environment: 'ghpublic-pr',
+              per_page: 100,
+            });
+            const existing = deployments.find((deployment) => {
+              return (
+                deployment.task === 'preview-transient' &&
+                deployment.sha === headSha &&
+                deployment.payload?.deployName === deployName
+              );
+            });
+
+            const deployment =
+              existing ??
+              (
+                await github.rest.repos.createDeployment({
+                  owner,
+                  repo,
+                  ref: headSha,
+                  task: 'preview-transient',
+                  environment: 'ghpublic-pr',
+                  description: `Transient preview deployment for PR #${prNumber} (${deployName})`,
+                  auto_merge: false,
+                  required_contexts: [],
+                  production_environment: false,
+                  transient_environment: true,
+                  payload: {
+                    deployName,
+                    prNumber,
+                  },
+                })
+              ).data;
+
+            await github.rest.repos.createDeploymentStatus({
+              owner,
+              repo,
+              deployment_id: deployment.id,
+              state: 'success',
+              description: 'PR preview deployed successfully.',
+              log_url: logUrl,
+              environment_url: previewUrl,
+              auto_inactive: false,
+            });
+
+  deploy-microapps-core-noop:
+    name: deploy-microapps-core-noop
+    needs:
+      - decide-deploy-core
+    if: needs.decide-deploy-core.outputs.should_deploy_core != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: No Core Preview Deploy Required
+        run: |
+          echo "Skipping microapps-core preview deploy."
+          echo "Reason: ${{ needs.decide-deploy-core.outputs.decision_reason }}"
+
+  deploy-microapps-core:
+    name: deploy-microapps-core
+    needs:
+      - decide-deploy-core
+      - deploy-microapps-core-run
+      - deploy-microapps-core-noop
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Core Deploy Outcome
+        run: |
+          SHOULD_DEPLOY='${{ needs.decide-deploy-core.outputs.should_deploy_core }}'
+          DECIDE_RESULT='${{ needs.decide-deploy-core.result }}'
+          RUN_RESULT='${{ needs.deploy-microapps-core-run.result }}'
+          NOOP_RESULT='${{ needs.deploy-microapps-core-noop.result }}'
+
+          echo "should_deploy_core=$SHOULD_DEPLOY"
+          echo "decide_result=$DECIDE_RESULT"
+          echo "run_result=$RUN_RESULT"
+          echo "noop_result=$NOOP_RESULT"
+
+          if [ "$DECIDE_RESULT" != "success" ]; then
+            echo "Core deploy decision job did not succeed."
+            exit 1
+          fi
+
+          if [ "$SHOULD_DEPLOY" = "true" ]; then
+            if [ "$RUN_RESULT" != "success" ]; then
+              echo "Core deploy was required but did not succeed."
+              exit 1
+            fi
+            if [ "$NOOP_RESULT" != "skipped" ]; then
+              echo "No-op branch should have been skipped when deploy was required."
+              exit 1
+            fi
+          else
+            if [ "$NOOP_RESULT" != "success" ]; then
+              echo "Core deploy no-op branch did not succeed."
+              exit 1
+            fi
+            if [ "$RUN_RESULT" != "skipped" ]; then
+              echo "Real core deploy branch should have been skipped when deploy was not required."
+              exit 1
+            fi
+          fi
+
+  deploy-optional-preview:
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC') || contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))
     strategy:
       matrix:
         deployName:
-          - microapps-core
           - microapps-basic
           - microapps-basic-prefix
         exclude:
-          - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'DEPLOY-CORE'))) && 'dummy' || 'microapps-core' }}
           - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC'))) && 'dummy' || 'microapps-basic' }}
           - deployName: ${{ (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'DEPLOY-BASIC-PREFIX'))) && 'dummy' || 'microapps-basic-prefix' }}
     name: deploy-${{ matrix.deployName }}
