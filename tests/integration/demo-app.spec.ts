@@ -63,7 +63,7 @@ describe('demo-app', () => {
         new URL(
           posixPath.join(
             baseUrl.pathname,
-            `/demo-app/${DEMO_AND_ROOT_APP_VER}/serverIncrement?currValue=1`,
+            `/demo-app/${DEMO_AND_ROOT_APP_VER}/api/serverIncrement?currValue=1`,
           ),
           baseUrl,
         ).toString(),
