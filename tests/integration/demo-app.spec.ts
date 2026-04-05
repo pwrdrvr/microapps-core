@@ -57,6 +57,33 @@ describe('demo-app', () => {
       expect(response.headers).toHaveProperty('x-microapps-appname', 'demo-app');
       expect(response.headers).toHaveProperty('x-microapps-semver', '0.0.0');
     });
+
+    it('should allow POST on the versioned app path', async () => {
+      const response = await axios.post(
+        new URL(
+          posixPath.join(
+            baseUrl.pathname,
+            `/demo-app/${DEMO_AND_ROOT_APP_VER}/api/serverIncrement?currValue=1`,
+          ),
+          baseUrl,
+        ).toString(),
+        undefined,
+        {
+          headers: { Accept: 'application/json' },
+          validateStatus: () => true,
+        },
+      );
+      const data = response.data;
+
+      expect(response.status).toEqual(200);
+      expect(data).toMatchObject({
+        newValue: 2,
+        source: 'demo-app',
+      });
+      expect(response.headers).toHaveProperty('powered-by', 'demo-app');
+      expect(response.headers).toHaveProperty('x-microapps-appname', 'demo-app');
+      expect(response.headers).toHaveProperty('x-microapps-semver', DEMO_AND_ROOT_APP_VER);
+    });
   });
 
   describe('single account - root app', () => {
