@@ -14,4 +14,7 @@ test("release workflow validates prerelease state and propagates npm dist-tags",
   assert.match(workflow, /EXPECTED_PRERELEASE:\s+\$\{\{\s*steps\.get_version\.outputs\.is_prerelease\s*\}\}/);
   assert.match(workflow, /ACTUAL_PRERELEASE:\s+\$\{\{\s*github\.event\.release\.prerelease\s*\}\}/);
   assert.match(workflow, /NPM_DIST_TAG:\s+\$\{\{\s*needs\.version\.outputs\.npm_dist_tag\s*\}\}/);
+  assert.doesNotMatch(workflow, /Release Deployer Lib - NPM/);
+  assert.doesNotMatch(workflow, /deployer-lib-dist/);
+  assert.match(workflow, /Release Router Lib - NPM/);
 });

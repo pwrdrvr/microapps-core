@@ -163,13 +163,6 @@ jobs:
           path: |
             packages/microapps-datalib/
             !packages/microapps-datalib/node_modules/
-      - name: Upload Deployer Lib artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: deployer-lib-dist
-          path: |
-            packages/microapps-deployer-lib/
-            !packages/microapps-deployer-lib/node_modules/
       - name: Upload Router Lib artifact
         uses: actions/upload-artifact@v6
         with:
@@ -269,11 +262,6 @@ jobs:
         with:
           name: datalib-dist
           path: packages/microapps-datalib
-      - name: Download Deployer Lib build artifacts
-        uses: actions/download-artifact@v6
-        with:
-          name: deployer-lib-dist
-          path: packages/microapps-deployer-lib
       - name: Download Router Lib build artifacts
         uses: actions/download-artifact@v6
         with:
@@ -324,22 +312,6 @@ jobs:
             npx --yes -p npm@11.5.1 npm publish --dry-run --tag pr
           else
             npx --yes -p npm@11.5.1 npm publish --tag "$NPM_DIST_TAG"
-          fi
-      - name: Release Deployer Lib - NPM
-        working-directory: packages/microapps-deployer-lib/
-        env:
-          NPM_DIST_TAG: ${{ needs.version.outputs.npm_dist_tag }}
-          NPM_TRUSTED_PUBLISHER: "true"
-        run: |
-          PACK_DIR=../../dist/npm-packages/microapps-deployer-lib
-          rm -rf "$PACK_DIR"
-          mkdir -p "$PACK_DIR"
-          pnpm pack --pack-destination "$PACK_DIR" > /dev/null
-          TARBALL=$(echo "$PACK_DIR"/*.tgz)
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            npm publish --dry-run --tag pr --access public "$TARBALL"
-          else
-            npm publish --access public --tag "$NPM_DIST_TAG" "$TARBALL"
           fi
       - name: Release Router Lib - NPM
         working-directory: packages/microapps-router-lib/
