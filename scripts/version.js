@@ -1,7 +1,5 @@
-const glob = require('glob');
 const fs = require('fs');
 const path = require('path');
-const semver = require('semver');
 
 // Get the new version from the command-line arguments
 let newVersion = process.argv[2];
@@ -15,7 +13,7 @@ if (!newVersion) {
 newVersion = newVersion.replace(/.*\//, '').replace(/^v/, '');
 
 // Validate the new version
-if (!semver.valid(newVersion)) {
+if (!isSemverLike(newVersion)) {
   console.error(
     'Invalid version. Please provide a version in the format x.y.z as the first argument.',
   );
@@ -23,19 +21,36 @@ if (!semver.valid(newVersion)) {
   process.exit(1);
 }
 
-glob(
-  '**/package.json',
-  { ignore: ['node_modules/**', 'dist/**', 'cdk.out/**', 'coverage/**'] },
-  (err, files) => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
+for (const file of findPackageJsonFiles(process.cwd())) {
+  const pkg = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  pkg.version = newVersion;
+  fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+}
+
+function isSemverLike(version) {
+  return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(version);
+}
+
+function findPackageJsonFiles(rootDir) {
+  const packageJsonFiles = [];
+  const ignoredDirectories = new Set(['node_modules', 'dist', 'cdk.out', 'coverage', '.git']);
+
+  walk(rootDir, packageJsonFiles, ignoredDirectories);
+
+  return packageJsonFiles;
+}
+
+function walk(currentDir, packageJsonFiles, ignoredDirectories) {
+  for (const entry of fs.readdirSync(currentDir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!ignoredDirectories.has(entry.name)) {
+        walk(path.join(currentDir, entry.name), packageJsonFiles, ignoredDirectories);
+      }
+      continue;
     }
 
-    files.forEach((file) => {
-      const pkg = JSON.parse(fs.readFileSync(file, 'utf-8'));
-      pkg.version = newVersion;
-      fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
-    });
-  },
-);
+    if (entry.isFile() && entry.name === 'package.json') {
+      packageJsonFiles.push(path.join(currentDir, entry.name));
+    }
+  }
+}
