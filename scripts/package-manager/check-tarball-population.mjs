@@ -142,7 +142,8 @@ function comparePackage(pkg) {
       id: pkg.id,
       npmSpec: pkg.npmSpec,
       status: 'yellow',
-      reason: `No published baseline available: ${error.message}`,
+      reason: summarizeMissingBaseline(error),
+      baselineError: error.message,
       publishedVersion: null,
       publishedTarballPath: null,
       localTarballPath: null,
@@ -427,6 +428,14 @@ function renderMarkdown(report) {
       lines.push('');
     }
 
+    if (pkg.baselineError) {
+      lines.push('Published baseline lookup error:');
+      lines.push('```text');
+      lines.push(pkg.baselineError);
+      lines.push('```');
+      lines.push('');
+    }
+
     lines.push('</details>');
     lines.push('');
   }
@@ -470,7 +479,17 @@ function statusIcon(status) {
 }
 
 function escapePipes(value) {
-  return value.replaceAll('|', '\\|');
+  return value.replaceAll('|', '\\|').replaceAll('\n', ' ');
+}
+
+function summarizeMissingBaseline(error) {
+  const message = error.message ?? String(error);
+
+  if (message.includes('E404')) {
+    return 'No published baseline available yet';
+  }
+
+  return 'Published baseline lookup failed';
 }
 
 function firstTarballIn(directory) {
