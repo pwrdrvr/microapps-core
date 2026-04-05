@@ -9,7 +9,7 @@ describe('pnpm workspace contract', () => {
 
     expect(packageJson.packageManager).toMatch(/^pnpm@/);
     expect(packageJson.pnpm?.overrides).toMatchObject({
-      constructs: '10.0.5',
+      constructs: '10.5.1',
       terser: '^5.14.2',
     });
   });

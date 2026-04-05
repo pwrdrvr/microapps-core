@@ -14,7 +14,7 @@
   ],
   "pnpm": {
     "overrides": {
-      "constructs": "10.0.5",
+      "constructs": "10.5.1",
       "terser": "^5.14.2"
     }
   },
@@ -46,8 +46,8 @@
     "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "5.54.0",
     "@typescript-eslint/parser": "5.54.0",
-    "aws-cdk": "^2.1000.0",
-    "constructs": "10.0.5",
+    "aws-cdk": "^2.1117.0",
+    "constructs": "10.5.1",
     "cross-env": "10.1.0",
     "esbuild": "0.20.2",
     "eslint": "8.35.0",
@@ -63,7 +63,7 @@
     "patch-package": "8.0.0",
     "pwrdrvr": "workspace:*",
     "prettier": "2.8.4",
-    "projen": "0.98.10",
+    "projen": "0.99.34",
     "replace-in-file": "6.3.5",
     "rimraf": "5.0.1",
     "ts-jest": "29.0.5",
