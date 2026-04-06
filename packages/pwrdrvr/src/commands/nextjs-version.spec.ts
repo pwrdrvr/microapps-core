@@ -18,6 +18,7 @@ describe('NextJSVersionCommand', () => {
   let errorSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    process.exitCode = undefined;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pwrdrvr-nextjs-version-'));
     process.chdir(tempDir);
     resetConfigSingleton();
@@ -37,6 +38,7 @@ describe('NextJSVersionCommand', () => {
   });
 
   afterEach(() => {
+    process.exitCode = undefined;
     process.chdir(originalCwd);
     resetConfigSingleton();
     logSpy.mockRestore();

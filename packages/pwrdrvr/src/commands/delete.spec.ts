@@ -20,22 +20,22 @@ jest.mock('@aws-sdk/client-sts', () => {
 jest.mock('../lib/DeployClient', () => ({
   __esModule: true,
   default: {
-    DeployVersionPreflight: jest.fn(),
+    DeleteVersion: jest.fn(),
   },
 }));
 
 import * as sts from '@aws-sdk/client-sts';
 import DeployClient from '../lib/DeployClient';
-import { PreflightCommand } from './preflight';
+import { DeleteCommand } from './delete';
 
 function resetConfigSingleton(): void {
   (Config as unknown as { _instance?: unknown })._instance = undefined;
 }
 
-describe('PreflightCommand', () => {
+describe('DeleteCommand', () => {
   const originalCwd = process.cwd();
   const mockStsSend = (sts as typeof sts & { __mockSend: jest.Mock }).__mockSend;
-  const mockDeployVersionPreflight = DeployClient.DeployVersionPreflight as jest.Mock;
+  const mockDeleteVersion = DeployClient.DeleteVersion as jest.Mock;
   let tempDir: string;
   let logSpy: jest.SpyInstance;
   let infoSpy: jest.SpyInstance;
@@ -43,14 +43,14 @@ describe('PreflightCommand', () => {
 
   beforeEach(() => {
     process.exitCode = undefined;
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pwrdrvr-preflight-'));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pwrdrvr-delete-'));
     process.chdir(tempDir);
     resetConfigSingleton();
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
     errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockStsSend.mockResolvedValue({ Account: '123456789012' });
-    mockDeployVersionPreflight.mockResolvedValue({ exists: false });
+    mockDeleteVersion.mockResolvedValue({ statusCode: 200 });
   });
 
   afterEach(() => {
@@ -64,8 +64,8 @@ describe('PreflightCommand', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('maps parsed flags into the deploy preflight request', async () => {
-    await PreflightCommand.run([
+  it('passes parsed flags through to delete requests', async () => {
+    await DeleteCommand.run([
       '--app-name',
       'Release-App',
       '--new-version',
@@ -74,10 +74,8 @@ describe('PreflightCommand', () => {
       'microapps-deployer-dev',
     ]);
 
-    expect(mockDeployVersionPreflight).toHaveBeenCalledWith(
+    expect(mockDeleteVersion).toHaveBeenCalledWith(
       expect.objectContaining({
-        needS3Creds: false,
-        overwrite: false,
         config: expect.objectContaining({
           deployer: expect.objectContaining({
             lambdaName: 'microapps-deployer-dev',
@@ -91,37 +89,20 @@ describe('PreflightCommand', () => {
         }),
       }),
     );
-    expect(mockStsSend).toHaveBeenCalledTimes(1);
   });
 
-  it('allows overwrite when the version already exists', async () => {
-    mockDeployVersionPreflight.mockResolvedValue({ exists: true });
+  it('does not fail when the version is already absent', async () => {
+    mockDeleteVersion.mockResolvedValue({ statusCode: 404 });
 
     await expect(
-      PreflightCommand.run([
+      DeleteCommand.run([
         '--app-name',
         'release',
         '--new-version',
         '1.2.3',
         '--deployer-lambda-name',
         'microapps-deployer-dev',
-        '--overwrite',
       ]),
     ).resolves.toBeUndefined();
-  });
-
-  it('fails when the version already exists and overwrite is not set', async () => {
-    mockDeployVersionPreflight.mockResolvedValue({ exists: true });
-
-    await expect(
-      PreflightCommand.run([
-        '--app-name',
-        'release',
-        '--new-version',
-        '1.2.3',
-        '--deployer-lambda-name',
-        'microapps-deployer-dev',
-      ]),
-    ).rejects.toThrow('App/Version already exists: release/1.2.3');
   });
 });

@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Upload } from '@aws-sdk/lib-storage';
-import { Command, flags as flagsParser } from '@oclif/command';
+import { Command, Flags } from '@oclif/core';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pMap = require('p-map');
 import * as path from 'path';
@@ -37,55 +37,54 @@ export class PublishCommand extends Command {
 `,
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static flags: flagsParser.Input<any> = {
-    version: flagsParser.version({
+  static flags = {
+    version: Flags.version({
       char: 'v',
     }),
-    help: flagsParser.help(),
+    help: Flags.help(),
     // Deprecated
-    deployerLambdaName: flagsParser.string({
+    deployerLambdaName: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'deployer-lambda-name': flagsParser.string({
+    'deployer-lambda-name': Flags.string({
       char: 'd',
       multiple: false,
       exactlyOne: ['deployer-lambda-name', 'deployerLambdaName'],
       description: 'Name of the deployer lambda function',
     }),
     // Deprecated
-    newVersion: flagsParser.string({
+    newVersion: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'new-version': flagsParser.string({
+    'new-version': Flags.string({
       char: 'n',
       multiple: false,
       exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
     // Deprecated
-    appName: flagsParser.string({
+    appName: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'app-name': flagsParser.string({
+    'app-name': Flags.string({
       char: 'a',
       multiple: false,
       exactlyOne: ['app-name', 'appName'],
       description: 'MicroApps app name (this becomes the path the app is rooted at)',
     }),
     // Deprecated
-    staticAssetsPath: flagsParser.string({
+    staticAssetsPath: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'static-assets-path': flagsParser.string({
+    'static-assets-path': Flags.string({
       char: 's',
       multiple: false,
       required: false,
@@ -94,20 +93,20 @@ export class PublishCommand extends Command {
         'Path to files to be uploaded to S3 static bucket at app/version/ path.  Do include app/version/ in path if files are already "rooted" under that path locally.',
     }),
     // Deprecated
-    defaultFile: flagsParser.string({
+    defaultFile: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
       exclusive: ['default-file'],
     }),
-    'default-file': flagsParser.string({
+    'default-file': Flags.string({
       char: 'i',
       multiple: false,
       required: false,
       description:
         'Default file to return when the app is loaded via the router without a version (e.g. when app/ is requested).',
     }),
-    overwrite: flagsParser.boolean({
+    overwrite: Flags.boolean({
       char: 'o',
       required: false,
       default: false,
@@ -115,12 +114,12 @@ export class PublishCommand extends Command {
         'Allow overwrite - Warn but do not fail if version exists. Discouraged outside of test envs if cacheable static files have changed.',
     }),
     // Deprecated
-    noCache: flagsParser.boolean({
+    noCache: Flags.boolean({
       required: false,
       default: false,
       hidden: true,
     }),
-    'no-cache': flagsParser.boolean({
+    'no-cache': Flags.boolean({
       required: false,
       default: false,
       description: 'Force revalidation of CloudFront and browser caching of static assets',
@@ -134,7 +133,7 @@ export class PublishCommand extends Command {
     // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
-    const { flags: parsedFlags } = this.parse(PublishCommand);
+    const { flags: parsedFlags } = await this.parse(PublishCommand);
     const appName = parsedFlags.appName ?? parsedFlags['app-name'] ?? config.app.name;
     const deployerLambdaName =
       parsedFlags.deployerLambdaName ??

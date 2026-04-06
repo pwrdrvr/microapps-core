@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import * as sts from '@aws-sdk/client-sts';
-import { Command, flags as flagsParser } from '@oclif/command';
+import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 import { Config } from '../config/Config';
 import DeployClient from '../lib/DeployClient';
@@ -14,43 +14,42 @@ export class DeleteCommand extends Command {
 `,
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static flags: flagsParser.Input<any> = {
-    version: flagsParser.version({
+  static flags = {
+    version: Flags.version({
       char: 'v',
     }),
-    help: flagsParser.help(),
+    help: Flags.help(),
     // Deprecated
-    appName: flagsParser.string({
+    appName: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'app-name': flagsParser.string({
+    'app-name': Flags.string({
       char: 'a',
       multiple: false,
       exactlyOne: ['app-name', 'appName'],
       description: 'MicroApps app name (this becomes the path the app is rooted at)',
     }),
     // Deprecated
-    newVersion: flagsParser.string({
+    newVersion: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'new-version': flagsParser.string({
+    'new-version': Flags.string({
       char: 'n',
       multiple: false,
       exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
     // Deprecated
-    deployerLambdaName: flagsParser.string({
+    deployerLambdaName: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'deployer-lambda-name': flagsParser.string({
+    'deployer-lambda-name': Flags.string({
       char: 'd',
       multiple: false,
       exactlyOne: ['deployer-lambda-name', 'deployerLambdaName'],
@@ -65,7 +64,7 @@ export class DeleteCommand extends Command {
     // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
-    const { flags: parsedFlags } = this.parse(DeleteCommand);
+    const { flags: parsedFlags } = await this.parse(DeleteCommand);
     const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'] ?? config.app.semVer;
     const appName = parsedFlags.appName ?? parsedFlags['app-name'] ?? config.app.name;
     const deployerLambdaName =
