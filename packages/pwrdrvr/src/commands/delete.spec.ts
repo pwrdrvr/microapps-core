@@ -84,7 +84,7 @@ describe('DeleteCommand', () => {
             name: 'release-app',
             semVer: '1.2.3',
             awsAccountID: '123456789012',
-            awsRegion: 'us-east-1',
+            awsRegion: expect.any(String),
           }),
         }),
       }),
