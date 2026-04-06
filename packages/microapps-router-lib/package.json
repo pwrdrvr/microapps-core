@@ -44,6 +44,7 @@
   "files": [
     "dist",
     "src",
+    "!src/**/*.spec.ts",
     "package.json",
     "LICENSE"
   ]

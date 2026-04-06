@@ -336,7 +336,7 @@ function classifyStatus({ changedPaths, publishedSymlinkCount, localSymlinkCount
   if (changedPaths.length === 0) {
     return 'green';
   }
-  if (changedPaths.every(isMetadataOnlyPath)) {
+  if (changedPaths.every(isNonRuntimeOnlyPath)) {
     return 'yellow';
   }
   return 'red';
@@ -350,15 +350,23 @@ function statusReason(status, changedPaths, publishedSymlinkCount, localSymlinkC
     return 'File population matches the published tarball';
   }
   if (status === 'yellow') {
-    return `Only metadata files changed: ${changedPaths.join(', ')}`;
+    return `Only non-runtime files changed: ${changedPaths.join(', ')}`;
   }
   return `Runtime file population changed: ${changedPaths.join(', ')}`;
+}
+
+function isNonRuntimeOnlyPath(filePath) {
+  return isMetadataOnlyPath(filePath) || isTestOnlyPath(filePath);
 }
 
 function isMetadataOnlyPath(filePath) {
   return /^(README(\..+)?|CHANGELOG(\..+)?|LICENSE(\..+)?|LICENCE(\..+)?|NOTICE(\..+)?)$/i.test(
     filePath,
   );
+}
+
+function isTestOnlyPath(filePath) {
+  return /(^|\/)(__tests__\/.*|[^/]+\.(spec|test)\.[^/]+)$/i.test(filePath);
 }
 
 function deriveOverallStatus(statuses) {
@@ -463,7 +471,7 @@ function overallBlurb(status) {
     return 'No file population drift detected between the published npm tarballs and the tarballs this branch would publish.';
   }
   if (status === 'yellow') {
-    return 'Only metadata file population drift was detected. The check stayed non-blocking, but the comment is calling it out.';
+    return 'Only non-runtime file population drift was detected. The check stayed non-blocking, but the comment is calling it out.';
   }
   return 'Runtime tarball file population drift was detected. This check is blocking until the package contents are understood and fixed.';
 }
