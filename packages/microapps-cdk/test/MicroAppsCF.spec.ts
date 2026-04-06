@@ -29,13 +29,13 @@ describe('MicroAppsCF', () => {
     const bucket = new s3.Bucket(stack, 'bucket-apps', {});
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
-      bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginApp: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',
         },
         originAccessIdentity: oai,
       }),
-      bucketAppsOriginS3: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginS3: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 's3',
         },
@@ -66,13 +66,13 @@ describe('MicroAppsCF', () => {
     const bucket = new s3.Bucket(stack, 'bucket-apps', {});
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
     const construct = new MicroAppsCF(stack, 'construct', {
-      bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginApp: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',
         },
         originAccessIdentity: oai,
       }),
-      bucketAppsOriginS3: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginS3: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 's3',
         },
@@ -106,13 +106,13 @@ describe('MicroAppsCF', () => {
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
 
     new MicroAppsCF(stack, 'construct', {
-      bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginApp: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',
         },
         originAccessIdentity: oai,
       }),
-      bucketAppsOriginS3: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginS3: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 's3',
         },
@@ -151,13 +151,13 @@ describe('MicroAppsCF', () => {
     const oai = new cf.OriginAccessIdentity(stack, 'oai', {});
 
     new MicroAppsCF(stack, 'construct', {
-      bucketAppsOriginApp: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginApp: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 'app',
         },
         originAccessIdentity: oai,
       }),
-      bucketAppsOriginS3: new cforigins.S3Origin(bucket, {
+      bucketAppsOriginS3: cforigins.S3BucketOrigin.withOriginAccessIdentity(bucket, {
         customHeaders: {
           'x-microapps-origin': 's3',
         },

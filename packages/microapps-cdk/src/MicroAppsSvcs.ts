@@ -296,11 +296,16 @@ export class MicroAppsSvcs extends Construct implements IMicroAppsSvcs {
     const deployerFuncName = assetNameRoot
       ? `${assetNameRoot}-deployer${assetNameSuffix}`
       : undefined;
+    const deployerLogGroup = new logs.LogGroup(this, 'deployer-log-group', {
+      logGroupName: deployerFuncName ? `/aws/lambda/${deployerFuncName}` : undefined,
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy,
+    });
     const deployerFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       functionName: deployerFuncName,
       role: iamRoleDeployer,
       memorySize: 1769,
-      logRetention: logs.RetentionDays.ONE_MONTH,
+      logGroup: deployerLogGroup,
       runtime: lambda.Runtime.NODEJS_22_X,
       timeout: deployerTimeout,
       environment: {

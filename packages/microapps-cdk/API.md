@@ -885,8 +885,8 @@ Any object.
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketApps">bucketApps</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for deployed applications. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOAI">bucketAppsOAI</a></code> | <code>aws-cdk-lib.aws_cloudfront.OriginAccessIdentity</code> | CloudFront Origin Access Identity for the deployed applications bucket. |
-| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOriginApp">bucketAppsOriginApp</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.S3Origin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application. |
-| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.S3Origin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOriginApp">bucketAppsOriginApp</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsStaging">bucketAppsStaging</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for staged applications (prior to deploy). |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketLogs">bucketLogs</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for CloudFront logs. |
 
@@ -931,10 +931,10 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 ##### `bucketAppsOriginApp`<sup>Required</sup> <a name="bucketAppsOriginApp" id="@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOriginApp"></a>
 
 ```typescript
-public readonly bucketAppsOriginApp: S3Origin;
+public readonly bucketAppsOriginApp: IOrigin;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudfront_origins.S3Origin
+- *Type:* aws-cdk-lib.aws_cloudfront.IOrigin
 
 CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application.
 
@@ -943,10 +943,10 @@ CloudFront Origin for the deployed applications bucket Marked with `x-microapps-
 ##### `bucketAppsOriginS3`<sup>Required</sup> <a name="bucketAppsOriginS3" id="@pwrdrvr/microapps-cdk.MicroAppsS3.property.bucketAppsOriginS3"></a>
 
 ```typescript
-public readonly bucketAppsOriginS3: S3Origin;
+public readonly bucketAppsOriginS3: IOrigin;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudfront_origins.S3Origin
+- *Type:* aws-cdk-lib.aws_cloudfront.IOrigin
 
 CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket.
 
@@ -1627,8 +1627,8 @@ const microAppsCFProps: MicroAppsCFProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginApp">bucketAppsOriginApp</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.S3Origin</code> | S3 bucket origin for deployed applications Marked with `x-microapps-origin: app`. |
-| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.S3Origin</code> | S3 bucket origin for deployed applications Marked with `x-microapps-origin: s3`. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginApp">bucketAppsOriginApp</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | S3 bucket origin for deployed applications Marked with `x-microapps-origin: app`. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | S3 bucket origin for deployed applications Marked with `x-microapps-origin: s3`. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.assetNameRoot">assetNameRoot</a></code> | <code>string</code> | Optional asset name root. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.assetNameSuffix">assetNameSuffix</a></code> | <code>string</code> | Optional asset name suffix. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketLogs">bucketLogs</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for CloudFront logs. |
@@ -1648,10 +1648,10 @@ const microAppsCFProps: MicroAppsCFProps = { ... }
 ##### `bucketAppsOriginApp`<sup>Required</sup> <a name="bucketAppsOriginApp" id="@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginApp"></a>
 
 ```typescript
-public readonly bucketAppsOriginApp: S3Origin;
+public readonly bucketAppsOriginApp: IOrigin;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudfront_origins.S3Origin
+- *Type:* aws-cdk-lib.aws_cloudfront.IOrigin
 
 S3 bucket origin for deployed applications Marked with `x-microapps-origin: app`.
 
@@ -1660,10 +1660,10 @@ S3 bucket origin for deployed applications Marked with `x-microapps-origin: app`
 ##### `bucketAppsOriginS3`<sup>Required</sup> <a name="bucketAppsOriginS3" id="@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginS3"></a>
 
 ```typescript
-public readonly bucketAppsOriginS3: S3Origin;
+public readonly bucketAppsOriginS3: IOrigin;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudfront_origins.S3Origin
+- *Type:* aws-cdk-lib.aws_cloudfront.IOrigin
 
 S3 bucket origin for deployed applications Marked with `x-microapps-origin: s3`.
 
@@ -3499,8 +3499,8 @@ Represents a MicroApps S3.
 | --- | --- | --- |
 | <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketApps">bucketApps</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for deployed applications. |
 | <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOAI">bucketAppsOAI</a></code> | <code>aws-cdk-lib.aws_cloudfront.OriginAccessIdentity</code> | CloudFront Origin Access Identity for the deployed applications bucket. |
-| <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOriginApp">bucketAppsOriginApp</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.S3Origin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application. |
-| <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.S3Origin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket. |
+| <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOriginApp">bucketAppsOriginApp</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application. |
+| <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket. |
 | <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsStaging">bucketAppsStaging</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for staged applications (prior to deploy). |
 | <code><a href="#@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketLogs">bucketLogs</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for CloudFront logs. |
 
@@ -3533,10 +3533,10 @@ CloudFront Origin Access Identity for the deployed applications bucket.
 ##### `bucketAppsOriginApp`<sup>Required</sup> <a name="bucketAppsOriginApp" id="@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOriginApp"></a>
 
 ```typescript
-public readonly bucketAppsOriginApp: S3Origin;
+public readonly bucketAppsOriginApp: IOrigin;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudfront_origins.S3Origin
+- *Type:* aws-cdk-lib.aws_cloudfront.IOrigin
 
 CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: app` so the OriginRequest function knows to send the request to the application origin first, if configured for a particular application.
 
@@ -3545,10 +3545,10 @@ CloudFront Origin for the deployed applications bucket Marked with `x-microapps-
 ##### `bucketAppsOriginS3`<sup>Required</sup> <a name="bucketAppsOriginS3" id="@pwrdrvr/microapps-cdk.IMicroAppsS3.property.bucketAppsOriginS3"></a>
 
 ```typescript
-public readonly bucketAppsOriginS3: S3Origin;
+public readonly bucketAppsOriginS3: IOrigin;
 ```
 
-- *Type:* aws-cdk-lib.aws_cloudfront_origins.S3Origin
+- *Type:* aws-cdk-lib.aws_cloudfront.IOrigin
 
 CloudFront Origin for the deployed applications bucket Marked with `x-microapps-origin: s3` so the OriginRequest function knows to NOT send the request to the application origin and instead let it fall through to the S3 bucket.
 
