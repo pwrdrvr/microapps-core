@@ -60,7 +60,7 @@ export class NextJSVersionCommand extends Command {
 
     const { flags: parsedFlags } = this.parse(NextJSVersionCommand);
     const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'];
-    const leaveFiles = parsedFlags.leaveCopy ?? parsedFlags['leave-copy'];
+    const leaveFiles = parsedFlags.leaveCopy || parsedFlags['leave-copy'];
 
     // Override the config value
     const config = Config.instance;

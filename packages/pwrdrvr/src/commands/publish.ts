@@ -214,7 +214,7 @@ export class PublishCommand extends Command {
     const defaultFile =
       parsedFlags.defaultFile ?? parsedFlags['default-file'] ?? config.app.defaultFile;
     const overwrite = parsedFlags.overwrite;
-    const noCache = parsedFlags.noCache ?? parsedFlags['no-cache'];
+    const noCache = parsedFlags.noCache || parsedFlags['no-cache'];
 
     // Override the config value
     config.deployer.lambdaName = deployerLambdaName;
