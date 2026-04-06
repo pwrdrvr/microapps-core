@@ -24,6 +24,6 @@ describe('MicroAppsSvcs', () => {
     expect(construct.table).toBeDefined();
 
     Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {});
-    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 2);
+    Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 1);
   });
 });

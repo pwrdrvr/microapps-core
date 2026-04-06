@@ -50,8 +50,7 @@ describe('MicroAppsEdgeToOrigin', () => {
       expect(construct.edgeToOriginFunction).toBeDefined();
       expect(construct.edgeToOriginLambdas).toBeDefined();
       expect(construct.node).toBeDefined();
-      // I guess this is 2 for EdgeFunction even though only 1 is created?
-      Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 2);
+      Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 1);
     });
 
     it('works with params', () => {
@@ -70,9 +69,7 @@ describe('MicroAppsEdgeToOrigin', () => {
       expect(construct.edgeToOriginFunction).toBeDefined();
       expect(construct.edgeToOriginLambdas).toBeDefined();
       expect(construct.node).toBeDefined();
-      // I guess this is 2 for EdgeFunction even though only 1 is created?
-      // (probably log retention lambda)
-      Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 2);
+      Template.fromStack(stack).resourceCountIs('AWS::Lambda::Function', 1);
       Template.fromStack(stack).hasResourceProperties('AWS::Lambda::Function', {
         FunctionName: 'my-asset-name-root-edge-to-origin-some-suffix',
       });
