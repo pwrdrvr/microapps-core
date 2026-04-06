@@ -69,12 +69,20 @@ export class DemoApp extends Construct implements IDemoApp {
     //
     // Lambda Function
     //
+    const lambdaFunctionName = assetNameRoot
+      ? `${assetNameRoot}-app-${appName}${assetNameSuffix}`
+      : undefined;
+    const demoAppLogGroup = new logs.LogGroup(this, 'app-lambda-log-group', {
+      logGroupName: lambdaFunctionName ? `/aws/lambda/${lambdaFunctionName}` : undefined,
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy,
+    });
     this._lambdaFunction = new lambdaNodejs.NodejsFunction(this, 'app-lambda', {
       entry: './packages/demo-app/src/index.ts',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'handler',
-      functionName: assetNameRoot ? `${assetNameRoot}-app-${appName}${assetNameSuffix}` : undefined,
-      logRetention: logs.RetentionDays.ONE_WEEK,
+      functionName: lambdaFunctionName,
+      logGroup: demoAppLogGroup,
       memorySize: 512,
       timeout: Duration.seconds(3),
       bundling: {

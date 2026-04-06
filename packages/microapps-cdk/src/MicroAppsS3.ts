@@ -24,7 +24,7 @@ export interface IMicroAppsS3 {
    * knows to send the request to the application origin first, if configured
    * for a particular application.
    */
-  readonly bucketAppsOriginApp: cforigins.S3Origin;
+  readonly bucketAppsOriginApp: cf.IOrigin;
 
   /**
    * CloudFront Origin for the deployed applications bucket
@@ -32,7 +32,7 @@ export interface IMicroAppsS3 {
    * knows to NOT send the request to the application origin and instead
    * let it fall through to the S3 bucket.
    */
-  readonly bucketAppsOriginS3: cforigins.S3Origin;
+  readonly bucketAppsOriginS3: cf.IOrigin;
 
   /**
    * S3 bucket for staged applications (prior to deploy)
@@ -123,13 +123,13 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     return this._bucketAppsOAI;
   }
 
-  private _bucketAppsOriginApp: cforigins.S3Origin;
-  public get bucketAppsOriginApp(): cforigins.S3Origin {
+  private _bucketAppsOriginApp: cf.IOrigin;
+  public get bucketAppsOriginApp(): cf.IOrigin {
     return this._bucketAppsOriginApp;
   }
 
-  private _bucketAppsOriginS3: cforigins.S3Origin;
-  public get bucketAppsOriginS3(): cforigins.S3Origin {
+  private _bucketAppsOriginS3: cf.IOrigin;
+  public get bucketAppsOriginS3(): cf.IOrigin {
     return this._bucketAppsOriginS3;
   }
 
@@ -189,7 +189,7 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
     }
 
     // Add Origin for CloudFront
-    this._bucketAppsOriginS3 = new cforigins.S3Origin(this._bucketApps, {
+    this._bucketAppsOriginS3 = cforigins.S3BucketOrigin.withOriginAccessIdentity(this._bucketApps, {
       originAccessIdentity: this.bucketAppsOAI,
       originShieldRegion,
       customHeaders: {
@@ -197,12 +197,15 @@ export class MicroAppsS3 extends Construct implements IMicroAppsS3 {
       },
     });
 
-    this._bucketAppsOriginApp = new cforigins.S3Origin(this._bucketApps, {
-      originAccessIdentity: this.bucketAppsOAI,
-      originShieldRegion,
-      customHeaders: {
-        'x-microapps-origin': 'app',
+    this._bucketAppsOriginApp = cforigins.S3BucketOrigin.withOriginAccessIdentity(
+      this._bucketApps,
+      {
+        originAccessIdentity: this.bucketAppsOAI,
+        originShieldRegion,
+        customHeaders: {
+          'x-microapps-origin': 'app',
+        },
       },
-    });
+    );
   }
 }

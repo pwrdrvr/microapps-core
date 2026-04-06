@@ -36,13 +36,13 @@ export interface MicroAppsCFProps {
    * S3 bucket origin for deployed applications
    * Marked with `x-microapps-origin: s3`
    */
-  readonly bucketAppsOriginS3: cforigins.S3Origin;
+  readonly bucketAppsOriginS3: cf.IOrigin;
 
   /**
    * S3 bucket origin for deployed applications
    * Marked with `x-microapps-origin: app`
    */
-  readonly bucketAppsOriginApp: cforigins.S3Origin;
+  readonly bucketAppsOriginApp: cf.IOrigin;
 
   /**
    * S3 bucket for CloudFront logs
