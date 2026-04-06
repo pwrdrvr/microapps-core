@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Command, flags as flagsParser } from '@oclif/command';
+import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 import { createVersions, IVersions, restoreFiles } from '../lib/Versions';
 
@@ -12,12 +12,11 @@ export class NextJSVersionRestoreCommand extends Command {
 `,
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static flags: flagsParser.Input<any> = {
-    version: flagsParser.version({
+  static flags = {
+    version: Flags.version({
       char: 'v',
     }),
-    help: flagsParser.help(),
+    help: Flags.help(),
   };
 
   private VersionAndAlias: IVersions;
@@ -32,7 +31,7 @@ export class NextJSVersionRestoreCommand extends Command {
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
     // const { flags: parsedFlags } =
-    this.parse(NextJSVersionRestoreCommand);
+    await this.parse(NextJSVersionRestoreCommand);
 
     this.VersionAndAlias = createVersions('0.0.0');
     const versionOnly = { version: this.VersionAndAlias.version };

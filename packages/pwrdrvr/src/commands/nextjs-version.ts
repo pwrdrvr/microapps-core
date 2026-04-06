@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Command, flags as flagsParser } from '@oclif/command';
+import { Command, Flags } from '@oclif/core';
 import { Listr } from 'listr2';
 import { createVersions, IVersions, restoreFiles, writeNewVersions } from '../lib/Versions';
 import { Config } from '../config/Config';
@@ -13,33 +13,32 @@ export class NextJSVersionCommand extends Command {
 `,
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static flags: flagsParser.Input<any> = {
-    version: flagsParser.version({
+  static flags = {
+    version: Flags.version({
       char: 'v',
     }),
-    help: flagsParser.help(),
+    help: Flags.help(),
     // Deprecated
-    newVersion: flagsParser.string({
+    newVersion: Flags.string({
       multiple: false,
       required: false,
       hidden: true,
     }),
-    'new-version': flagsParser.string({
+    'new-version': Flags.string({
       char: 'n',
       multiple: false,
       exactlyOne: ['new-version', 'newVersion'],
       description: 'New semantic version to apply',
     }),
     // Deprecated
-    leaveCopy: flagsParser.boolean({
+    leaveCopy: Flags.boolean({
       char: 'l',
       default: false,
       required: false,
       hidden: true,
       exclusive: ['leave-copy'],
     }),
-    'leave-copy': flagsParser.boolean({
+    'leave-copy': Flags.boolean({
       char: 'l',
       default: false,
       required: false,
@@ -58,9 +57,9 @@ export class NextJSVersionCommand extends Command {
     // const RUNNING = chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
     const RUNNING = ''; //chalk.reset.inverse.yellow.bold(RUNNING_TEXT) + ' ';
 
-    const { flags: parsedFlags } = this.parse(NextJSVersionCommand);
+    const { flags: parsedFlags } = await this.parse(NextJSVersionCommand);
     const semVer = parsedFlags.newVersion ?? parsedFlags['new-version'];
-    const leaveFiles = parsedFlags.leaveCopy ?? parsedFlags['leave-copy'];
+    const leaveFiles = parsedFlags.leaveCopy || parsedFlags['leave-copy'];
 
     // Override the config value
     const config = Config.instance;

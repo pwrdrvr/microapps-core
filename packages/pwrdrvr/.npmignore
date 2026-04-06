@@ -1,1 +1,5 @@
 *.tsbuildinfo
+dist/lib/deployer-types.d.ts
+dist/lib/deployer-types.d.ts.map
+dist/lib/deployer-types.js
+dist/lib/deployer-types.js.map

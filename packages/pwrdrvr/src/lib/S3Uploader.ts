@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IDeployVersionPreflightResponse } from './deployer-types';
+import type { IDeployVersionPreflightResponse } from './DeployClient';
 import * as fs from 'fs-extra';
 import { IConfig } from '../config/Config';
 import { S3TransferUtility } from './S3TransferUtility';
