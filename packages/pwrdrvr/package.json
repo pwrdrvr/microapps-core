@@ -18,8 +18,14 @@
     "test": "pnpm --dir ../.. exec jest packages/pwrdrvr --runInBand"
   },
   "files": [
+    "bin",
     "dist",
     "src",
+    "!dist/lib/deployer-types.d.ts",
+    "!dist/lib/deployer-types.d.ts.map",
+    "!dist/lib/deployer-types.js",
+    "!dist/lib/deployer-types.js.map",
+    "!src/commands/*.spec.ts",
     "package.json",
     "LICENSE",
     "README.md"

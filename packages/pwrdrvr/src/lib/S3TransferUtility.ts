@@ -6,7 +6,7 @@ import { createReadStream, readdirSync } from 'fs';
 import * as path from 'path';
 import * as s3 from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import type { IDeployVersionPreflightResponse } from './deployer-types';
+import type { IDeployVersionPreflightResponse } from './DeployClient';
 import { contentType } from 'mime-types';
 import pMap from 'p-map';
 
