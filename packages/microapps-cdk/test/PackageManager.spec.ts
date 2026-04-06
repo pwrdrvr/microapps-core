@@ -39,11 +39,11 @@ describe('microapps-cdk package manager configuration', () => {
       'release.yml',
     );
 
-    expect(buildWorkflow).toContain('uses: pnpm/action-setup@v4');
+    expect(buildWorkflow).toContain('uses: pnpm/action-setup@v5');
     expect(buildWorkflow).toContain('run: pnpm i --no-frozen-lockfile');
     expect(buildWorkflow).not.toContain('yarn install');
 
-    expect(releaseWorkflow).toContain('uses: pnpm/action-setup@v4');
+    expect(releaseWorkflow).toContain('uses: pnpm/action-setup@v5');
     expect(releaseWorkflow).toContain('run: pnpm i --frozen-lockfile');
     expect(releaseWorkflow).not.toContain('yarn install');
   });
