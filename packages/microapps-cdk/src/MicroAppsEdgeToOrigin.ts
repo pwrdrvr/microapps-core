@@ -374,12 +374,13 @@ ${
     // Create the Edge to Origin Function
     //
     const edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
-      functionName: assetNameRoot ? `${assetNameRoot}-edge-to-origin${assetNameSuffix}` : undefined,
       role: this._edgeToOriginRole,
       memorySize: 1769,
-      logRetention: logs.RetentionDays.ONE_MONTH,
       runtime: lambda.Runtime.NODEJS_22_X,
       timeout: Duration.seconds(5),
+      ...(assetNameRoot
+        ? { functionName: `${assetNameRoot}-edge-to-origin${assetNameSuffix}` }
+        : {}),
       ...(removalPolicy ? { removalPolicy } : {}),
     };
     const rootDistPath = path.join(__dirname, '..', '..', 'microapps-edge-to-origin', 'dist');
@@ -393,6 +394,7 @@ ${
         rootDistPath,
         edgeToOriginConfigYaml,
         edgeToOriginFuncProps,
+        removalPolicy,
       );
     } else if (localDistExists) {
       // Prefer local dist above root dist if both exist (when building for distribution)
@@ -400,6 +402,7 @@ ${
         localDistPath,
         edgeToOriginConfigYaml,
         edgeToOriginFuncProps,
+        removalPolicy,
       );
     } else if (rootDistExists) {
       // Use local dist if it exists (when deploying from CDK in this repo)
@@ -407,6 +410,7 @@ ${
         rootDistPath,
         edgeToOriginConfigYaml,
         edgeToOriginFuncProps,
+        removalPolicy,
       );
     } else {
       // This is used when bundling the app and building the CDK module
@@ -499,6 +503,7 @@ ${
     distPath: string,
     edgeToOriginConfigYaml: string,
     edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'>,
+    removalPolicy?: RemovalPolicy,
   ) {
     writeFileSync(path.join(distPath, 'config.yml'), edgeToOriginConfigYaml);
 
@@ -520,12 +525,19 @@ ${
 
     // EdgeFunction has a bug where it will generate the same parameter
     // name across multiple stacks in the same region if the id param is constant
+    const effectiveFunctionName =
+      edgeToOriginFuncProps.functionName ?? `microapps-edge-to-origin-${stackHash}`;
     const edge = new cf.experimental.EdgeFunction(this, `edge-to-apigwy-func-${stackHash}`, {
       stackId: `microapps-edge-to-origin-${stackHash}`,
       code,
-      functionName: `microapps-edge-to-origin-${stackHash}`,
+      functionName: effectiveFunctionName,
       handler: 'index.handler',
       ...edgeToOriginFuncProps,
+    });
+    new logs.LogGroup(edge.stack, `edge-to-origin-log-group-${stackHash}`, {
+      logGroupName: `/aws/lambda/${effectiveFunctionName}`,
+      retention: logs.RetentionDays.ONE_MONTH,
+      ...(removalPolicy ? { removalPolicy } : {}),
     });
     Tags.of(edge).add('Name', Stack.of(this).stackName);
 
