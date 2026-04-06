@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.0-beta.8 - 2026-04-06
+
+### Highlights
+
+- Migrated `pwrdrvr` to the modern `@oclif/core` runtime so the CLI beta train is aligned with the current oclif stack without changing the existing command surface. @huntharo
+- Removed deprecated CloudFront origin and log APIs from `microapps-cdk`, keeping the CDK package aligned with current AWS and CDK expectations. @huntharo
+
+### Internal
+
+- Upgraded the shared CDK, Projen, and AWS SDK baselines used across the repository so the 1.2.0 beta train stays on current supported tooling. @huntharo
+
 ## v1.2.0-beta.7 - 2026-04-05
 
 ### Fixes
