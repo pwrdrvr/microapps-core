@@ -27,13 +27,7 @@ describe('NextJSVersionCommand', () => {
     errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     fs.writeFileSync(
       'next.config.js',
-      [
-        'module.exports = {',
-        '  version: "0.0.0",',
-        '  alias: "v0_0_0",',
-        '};',
-        '',
-      ].join('\n'),
+      ['module.exports = {', '  version: "0.0.0",', '  alias: "v0_0_0",', '};', ''].join('\n'),
     );
   });
 
