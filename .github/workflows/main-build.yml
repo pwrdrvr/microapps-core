@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: ./.github/actions/configure-nodejs
+      - uses: pwrdrvr/configure-nodejs@v1
         with:
           lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
 
@@ -40,7 +40,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-      - uses: ./.github/actions/configure-nodejs
+      - uses: pwrdrvr/configure-nodejs@v1
       - name: Build All TypeScript
         run: pnpm build
       - name: Run Lint
@@ -120,7 +120,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - uses: ./.github/actions/configure-nodejs
+      - uses: pwrdrvr/configure-nodejs@v1
       - name: Check for new commits
         id: git_remote
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
