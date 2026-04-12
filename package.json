@@ -52,7 +52,7 @@
     "esbuild": "0.20.2",
     "eslint": "8.35.0",
     "eslint-config-prettier": "8.6.0",
-    "eslint-import-resolver-node": "0.3.7",
+    "eslint-import-resolver-node": "0.3.10",
     "eslint-import-resolver-typescript": "3.5.3",
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-prettier": "4.2.1",
