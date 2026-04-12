@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  constructs: 10.5.1
+  constructs: 10.6.0
   terser: ^5.14.2
 
 importers:
@@ -28,8 +28,8 @@ importers:
         specifier: ^2.1117.0
         version: 2.1117.0
       constructs:
-        specifier: 10.5.1
-        version: 10.5.1
+        specifier: 10.6.0
+        version: 10.6.0
       cross-env:
         specifier: 10.1.0
         version: 10.1.0
@@ -74,7 +74,7 @@ importers:
         version: 2.8.4
       projen:
         specifier: 0.99.34
-        version: 0.99.34(constructs@10.5.1)
+        version: 0.99.34(constructs@10.6.0)
       pwrdrvr:
         specifier: workspace:*
         version: link:packages/pwrdrvr
@@ -101,19 +101,19 @@ importers:
     dependencies:
       '@pwrdrvr/microapps-app-nextjs-demo-cdk':
         specifier: 0.7.0
-        version: 0.7.0(aws-cdk-lib@2.248.0(constructs@10.5.1))(constructs@10.5.1)
+        version: 0.7.0(aws-cdk-lib@2.248.0(constructs@10.6.0))(constructs@10.6.0)
       '@pwrdrvr/microapps-app-release-cdk':
         specifier: 0.5.3
-        version: 0.5.3(aws-cdk-lib@2.248.0(constructs@10.5.1))(constructs@10.5.1)
+        version: 0.5.3(aws-cdk-lib@2.248.0(constructs@10.6.0))(constructs@10.6.0)
       '@pwrdrvr/microapps-cdk':
         specifier: workspace:*
         version: link:../microapps-cdk
       aws-cdk-lib:
         specifier: 2.248.0
-        version: 2.248.0(constructs@10.5.1)
+        version: 2.248.0(constructs@10.6.0)
       constructs:
-        specifier: 10.5.1
-        version: 10.5.1
+        specifier: 10.6.0
+        version: 10.6.0
       source-map-support:
         specifier: 0.5.21
         version: 0.5.21
@@ -163,13 +163,13 @@ importers:
         version: 8.46.3(eslint@9.39.1)(typescript@5.9.3)
       aws-cdk-lib:
         specifier: 2.248.0
-        version: 2.248.0(constructs@10.5.1)
+        version: 2.248.0(constructs@10.6.0)
       commit-and-tag-version:
         specifier: ^12
         version: 12.6.0
       constructs:
-        specifier: 10.5.1
-        version: 10.5.1
+        specifier: 10.6.0
+        version: 10.6.0
       esbuild:
         specifier: ^0.25.12
         version: 0.25.12
@@ -199,7 +199,7 @@ importers:
         version: 5.9.38
       projen:
         specifier: 0.99.34
-        version: 0.99.34(constructs@10.5.1)
+        version: 0.99.34(constructs@10.6.0)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1665,13 +1665,13 @@ packages:
     resolution: {integrity: sha512-7z1K5IGaWbjLETspUNmXoH6xREs6lqgGknCFBg6yYtdq62o2UB22EAnItkVvpdGbSN4PYmNoWO4/H6j4I264Pg==}
     peerDependencies:
       aws-cdk-lib: ^2.24.1
-      constructs: 10.5.1
+      constructs: 10.6.0
 
   '@pwrdrvr/microapps-app-release-cdk@0.5.3':
     resolution: {integrity: sha512-mscP6oFQW4ZaAt6h839fWGdgnvdTOL8d4TDznSVJQWUtm+mAbdWNhtnsOwmYYa9Eth65dGXIgVqC9+iqIwUixw==}
     peerDependencies:
       aws-cdk-lib: ^2.24.0
-      constructs: 10.5.1
+      constructs: 10.6.0
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -2387,7 +2387,7 @@ packages:
     resolution: {integrity: sha512-PGQycx/OdyX+t0o6QUFI1KJAOLoyIVj2WwrN0syrwCi8lYxW2KzldZsW0X+/UN/ALNQwcjSr927ImTpuDOh+bg==}
     engines: {node: '>= 20.0.0'}
     peerDependencies:
-      constructs: 10.5.1
+      constructs: 10.6.0
     bundledDependencies:
       - '@balena/dockerignore'
       - '@aws-cdk/cloud-assembly-api'
@@ -2503,6 +2503,10 @@ packages:
 
   call-bind@1.0.8:
     resolution: {integrity: sha512-oKlSFMcMwpUg2ednkhQ454wfWiU/ul3CkJe/PEHcTKuiX6RpbehUiFMXu13HalGZxfUwCQzZG747YXBn1im9ww==}
+    engines: {node: '>= 0.4'}
+
+  call-bind@1.0.9:
+    resolution: {integrity: sha512-a/hy+pNsFUTR+Iz8TCJvXudKVLAnz/DyeSUo10I5yvFDQJBFU2s9uqQpoSrJlroHUKoKqzg+epxyP9lqFdzfBQ==}
     engines: {node: '>= 0.4'}
 
   call-bound@1.0.4:
@@ -2651,8 +2655,8 @@ packages:
     resolution: {integrity: sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==}
     engines: {'0': node >= 6.0}
 
-  constructs@10.5.1:
-    resolution: {integrity: sha512-f/TfFXiS3G/yVIXDjOQn9oTlyu9Wo7Fxyjj7lb8r92iO81jR2uST+9MstxZTmDGx/CgIbxCXkFXgupnLTNxQZg==}
+  constructs@10.6.0:
+    resolution: {integrity: sha512-TxHOnBO5zMo/G76ykzGF/wMpEHu257TbWiIxP9K0Yv/+t70UzgBQiTqjkAsWOPC6jW91DzJI0+ehQV6xDRNBuQ==}
 
   conventional-changelog-angular@6.0.0:
     resolution: {integrity: sha512-6qLgrBF4gueoC7AFVHu51nHL9pF9FRjXrH+ceVf7WmAfH3gs+gEYOkvxhjMPjZu57I4AGUGoNTY8V7Hrgf1uqg==}
@@ -4640,7 +4644,7 @@ packages:
     engines: {node: '>= 16.0.0'}
     hasBin: true
     peerDependencies:
-      constructs: 10.5.1
+      constructs: 10.6.0
     bundledDependencies:
       - '@iarna/toml'
       - case
@@ -7142,15 +7146,15 @@ snapshots:
       tiny-glob: 0.2.9
       tslib: 2.5.0
 
-  '@pwrdrvr/microapps-app-nextjs-demo-cdk@0.7.0(aws-cdk-lib@2.248.0(constructs@10.5.1))(constructs@10.5.1)':
+  '@pwrdrvr/microapps-app-nextjs-demo-cdk@0.7.0(aws-cdk-lib@2.248.0(constructs@10.6.0))(constructs@10.6.0)':
     dependencies:
-      aws-cdk-lib: 2.248.0(constructs@10.5.1)
-      constructs: 10.5.1
+      aws-cdk-lib: 2.248.0(constructs@10.6.0)
+      constructs: 10.6.0
 
-  '@pwrdrvr/microapps-app-release-cdk@0.5.3(aws-cdk-lib@2.248.0(constructs@10.5.1))(constructs@10.5.1)':
+  '@pwrdrvr/microapps-app-release-cdk@0.5.3(aws-cdk-lib@2.248.0(constructs@10.6.0))(constructs@10.6.0)':
     dependencies:
-      aws-cdk-lib: 2.248.0(constructs@10.5.1)
-      constructs: 10.5.1
+      aws-cdk-lib: 2.248.0(constructs@10.6.0)
+      constructs: 10.6.0
 
   '@rtsao/scc@1.1.0': {}
 
@@ -8090,12 +8094,12 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  aws-cdk-lib@2.248.0(constructs@10.5.1):
+  aws-cdk-lib@2.248.0(constructs@10.6.0):
     dependencies:
       '@aws-cdk/asset-awscli-v1': 2.2.273
       '@aws-cdk/asset-node-proxy-agent-v6': 2.1.1
       '@aws-cdk/cloud-assembly-schema': 53.13.0
-      constructs: 10.5.1
+      constructs: 10.6.0
 
   aws-cdk@2.1117.0: {}
 
@@ -8238,6 +8242,13 @@ snapshots:
       function-bind: 1.1.2
 
   call-bind@1.0.8:
+    dependencies:
+      call-bind-apply-helpers: 1.0.2
+      es-define-property: 1.0.1
+      get-intrinsic: 1.3.0
+      set-function-length: 1.2.2
+
+  call-bind@1.0.9:
     dependencies:
       call-bind-apply-helpers: 1.0.2
       es-define-property: 1.0.1
@@ -8400,7 +8411,7 @@ snapshots:
       readable-stream: 3.6.2
       typedarray: 0.0.6
 
-  constructs@10.5.1: {}
+  constructs@10.6.0: {}
 
   conventional-changelog-angular@6.0.0:
     dependencies:
@@ -10859,9 +10870,9 @@ snapshots:
 
   process-nextick-args@2.0.1: {}
 
-  projen@0.99.34(constructs@10.5.1):
+  projen@0.99.34(constructs@10.6.0):
     dependencies:
-      constructs: 10.5.1
+      constructs: 10.6.0
 
   prompts@2.4.2:
     dependencies:
@@ -11667,7 +11678,7 @@ snapshots:
   which-typed-array@1.1.20:
     dependencies:
       available-typed-arrays: 1.0.7
-      call-bind: 1.0.8
+      call-bind: 1.0.9
       call-bound: 1.0.4
       for-each: 0.3.5
       get-proto: 1.0.1
