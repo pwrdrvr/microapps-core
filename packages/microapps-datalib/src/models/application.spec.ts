@@ -141,7 +141,7 @@ describe('application records', () => {
 
   it('only allows one application to claim an alias concurrently', async () => {
     const results = await Promise.allSettled(
-      ['one', 'two'].map((AppName) =>
+      ['one', 'two'].map(async (AppName) =>
         new Application({ AppName, DisplayName: AppName, ExtraAppNames: ['shared'] }).Save(
           dbManager,
         ),

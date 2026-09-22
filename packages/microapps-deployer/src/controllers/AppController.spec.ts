@@ -74,7 +74,7 @@ describe('AppController', () => {
 
 describe('application alias API', () => {
   beforeEach(() => overrideDBManager({ dbManager, dynamoClient }));
-  const create = (appName: string, extraAppNames?: string[]) =>
+  const create = async (appName: string, extraAppNames?: string[]) =>
     handler(
       {
         type: 'createApp',
