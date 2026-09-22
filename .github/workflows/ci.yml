@@ -46,8 +46,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
         with:
+          node-version: ${{ steps.node-version.outputs.version }}
           lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
 
   build:
@@ -74,7 +78,12 @@ jobs:
             echo "PR_SUFFIX=" >> $GITHUB_ENV
           fi
 
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       # We do this here so the `build-jsii` modules are installed too
       # and become part of the cache - if we don't then
@@ -127,7 +136,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Cache TypeScript Build Output
         id: cache-typescript-build
@@ -306,7 +320,12 @@ jobs:
           echo 'PREFIX=' >> $GITHUB_ENV
           echo 'PREFIX_U=' >> $GITHUB_ENV
 
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Resolve Packaged App Static Asset Paths
         shell: bash
@@ -896,7 +915,12 @@ jobs:
             echo 'PREFIX_U=' >> $GITHUB_ENV
           fi
 
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Resolve Packaged App Static Asset Paths
         shell: bash
@@ -1415,7 +1439,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Modify microapps-cdk tsconfig.json
         run: |
@@ -1451,7 +1480,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Compute Tarball Baseline Cache Key
         id: tarball_baseline_key

@@ -12,7 +12,7 @@
     },
     {
       "name": "@types/node",
-      "version": "^22",
+      "version": "^24",
       "type": "build"
     },
     {

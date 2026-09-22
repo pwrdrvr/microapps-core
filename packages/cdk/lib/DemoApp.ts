@@ -79,7 +79,7 @@ export class DemoApp extends Construct implements IDemoApp {
     });
     this._lambdaFunction = new lambdaNodejs.NodejsFunction(this, 'app-lambda', {
       entry: './packages/demo-app/src/index.ts',
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'handler',
       functionName: lambdaFunctionName,
       logGroup: demoAppLogGroup,

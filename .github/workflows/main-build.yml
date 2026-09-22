@@ -23,8 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
         with:
+          node-version: ${{ steps.node-version.outputs.version }}
           lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
 
   build:
@@ -43,7 +47,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
       - name: Build All TypeScript
         run: pnpm build
       - name: Run Lint
@@ -123,7 +132,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
       - name: Check for new commits
         id: git_remote
         run: echo latest_commit="$(git ls-remote origin -h ${{ github.ref }} | cut -f1)" >> $GITHUB_OUTPUT
@@ -173,14 +187,14 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-      - name: Checkout
-        uses: actions/checkout@v5
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
       - name: Download Publish Tool build artifacts
@@ -251,16 +265,16 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22.x
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
       - name: Checkout
         uses: actions/checkout@v5
         with:
           path: .repo
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .repo/.nvmrc
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
       - name: Download build artifacts
         uses: actions/download-artifact@v7
         with:
@@ -280,20 +294,20 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 11.x
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version-file: .repo/.nvmrc
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v7
         with:
@@ -313,19 +327,19 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version-file: .repo/.nvmrc
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v7
         with:
@@ -345,19 +359,19 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version-file: .repo/.nvmrc
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 3.x
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          path: .repo
       - name: Download build artifacts
         uses: actions/download-artifact@v7
         with:
