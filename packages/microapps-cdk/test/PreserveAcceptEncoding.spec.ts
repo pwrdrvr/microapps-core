@@ -1,5 +1,18 @@
 import { runInNewContext } from 'vm';
-import { preserveAcceptEncodingCode } from '../src/utils/PreserveAcceptEncoding';
+import { App, Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { MicroAppsCF } from '../src/MicroAppsCF';
+
+const stack = new Stack(new App(), 'viewer-function-test');
+new MicroAppsCF(stack, 'distribution', {
+  bucketAppsOriginApp: new HttpOrigin('app.example.com'),
+  bucketAppsOriginS3: new HttpOrigin('assets.example.com'),
+  precompressedAssets: true,
+});
+const preserveAcceptEncodingCode = Object.values(
+  Template.fromStack(stack).findResources('AWS::CloudFront::Function'),
+)[0].Properties.FunctionCode as string;
 
 it.each([
   ['gzip, br', 'br,gzip'],

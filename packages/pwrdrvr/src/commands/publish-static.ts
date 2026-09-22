@@ -7,13 +7,12 @@ import { IterableMapper } from '@shutterstock/p-map-iterable';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
-import { prepareAssets, AssetMetadata } from '../lib/AssetCompression';
 import { Config } from '../config/Config';
 import DeployClient, {
   DeployVersionArgs,
   IDeployVersionPreflightResult,
 } from '../lib/DeployClient';
-import { S3Uploader } from '../lib/S3Uploader';
+import { S3Uploader, prepareAssets, AssetMetadata } from '../lib/S3Uploader';
 import { S3TransferUtility } from '../lib/S3TransferUtility';
 
 interface IContext {

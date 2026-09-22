@@ -14,10 +14,9 @@ import DeployClient, {
   DeployVersionArgs,
   IDeployVersionPreflightResult,
 } from '../lib/DeployClient';
-import { S3Uploader } from '../lib/S3Uploader';
+import { S3Uploader, prepareAssets, AssetMetadata } from '../lib/S3Uploader';
 import { S3TransferUtility } from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
-import { prepareAssets, AssetMetadata } from '../lib/AssetCompression';
 import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
 import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
 const asyncSetTimeout = util.promisify(setTimeout);

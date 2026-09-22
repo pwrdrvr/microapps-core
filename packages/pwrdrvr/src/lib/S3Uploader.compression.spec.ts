@@ -2,7 +2,7 @@ import { mkdtemp, readFile, writeFile, rm, readdir } from 'fs/promises';
 import { tmpdir } from 'os';
 import path from 'path';
 import { brotliDecompressSync, gunzipSync } from 'zlib';
-import { prepareAssets } from './AssetCompression';
+import { prepareAssets } from './S3Uploader';
 
 let directory: string;
 beforeEach(async () => {

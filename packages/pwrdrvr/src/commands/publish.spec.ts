@@ -38,6 +38,7 @@ jest.mock('../lib/DeployClient', () => ({
 }));
 
 jest.mock('../lib/S3Uploader', () => ({
+  ...jest.requireActual('../lib/S3Uploader'),
   S3Uploader: {
     TempDir: './deploytool-temp',
     CopyToUploadDir: jest.fn(),
