@@ -4,6 +4,8 @@
  */
 
 module.exports = {
+  globalSetup: '<rootDir>/tests/dynamodb-local/global-setup.cjs',
+  globalTeardown: '<rootDir>/tests/dynamodb-local/global-teardown.cjs',
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -132,7 +134,7 @@ module.exports = {
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
-  // Set worker-specific Dynalite endpoints before tests import AWS clients.
+  // Isolate DynamoDB Local credentials by Jest worker
   setupFiles: ['./setupBeforeEnv.js'],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test

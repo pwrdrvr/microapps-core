@@ -302,3 +302,11 @@ Similarly, if `presign` is used, the `OriginRequestPolicy` must be set to `cfron
 - `x-amz-date`
 - `x-amz-security-token`
 - `x-amz-content-sha256`
+
+### Running tests
+
+`pnpm test` requires Java 21 or newer. The Jest setup downloads AWS DynamoDB Local
+into the ignored `.local/dynamodb-local` directory on first use and starts an
+in-memory server for transaction tests. Set `DYNAMODB_LOCAL_DIR` to an existing
+DynamoDB Local installation to avoid the download. Each Jest worker has its own
+database; no AWS account or Docker daemon is required.
