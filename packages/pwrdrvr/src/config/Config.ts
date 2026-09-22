@@ -1,4 +1,3 @@
-import { url, ipaddress } from 'convict-format-with-validator';
 import * as yaml from 'js-yaml';
 import * as convict from 'ts-convict';
 import { TSConvict } from 'ts-convict';
@@ -25,12 +24,6 @@ export interface IConfig {
   parser: {
     extension: ['yml', 'yaml'],
     parse: yaml.load,
-  },
-
-  //optional extra formats to use in validation
-  formats: {
-    url,
-    ipaddress,
   },
 })
 export class Config implements IConfig {
