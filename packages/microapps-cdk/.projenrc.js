@@ -8,6 +8,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
   cdkVersion: '2.248.0',
   cdkVersionPinning: false,
+  constructsVersion: '10.8.1',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -72,9 +73,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
     module: 'pwrdrvr.microapps.cdk',
   },
 });
-
-// Keep the build dependency current without raising the supported peer minimum.
-project.package.file.addOverride('devDependencies.constructs', '10.8.1');
 
 //
 // Types from the monorepo that are not used by CDK are causing build failures
