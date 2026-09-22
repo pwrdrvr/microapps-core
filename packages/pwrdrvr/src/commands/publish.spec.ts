@@ -227,6 +227,43 @@ describe('Publish commands', () => {
       ];
     }
 
+    it.each([1, 201])(
+      'uploads both compressed encodings and original metadata for %i assets',
+      async (count) => {
+        const commandArgs = args();
+        const files = Array.from({ length: count }, (_, index) =>
+          path.join(tempDir, 'static', `${index}.js`),
+        );
+        for (const file of files) fs.writeFileSync(file, 'console.log("compression");'.repeat(100));
+        (S3TransferUtility.GetFiles as jest.Mock).mockReturnValue(files);
+        (Upload as unknown as jest.Mock).mockImplementation(() => ({
+          done: async () => {
+            await Promise.resolve();
+            return {};
+          },
+        }));
+        await CommandClass.run([...commandArgs, '--brotli', '--gzip']);
+        const uploads = (Upload as unknown as jest.Mock).mock.calls.map(
+          ([options]) => options.params,
+        );
+        expect(uploads).toHaveLength(count * 3);
+        for (const encoding of ['br', 'gzip']) {
+          const variants = uploads.filter((params) => params.ContentEncoding === encoding);
+          expect(variants).toHaveLength(count);
+          for (const params of variants) {
+            expect(params.ContentType).toBe('application/javascript; charset=utf-8');
+            expect(params.CacheControl).toBe('max-age=86400, public');
+            expect(params.Metadata['microapps-sha256']).toMatch(/^[a-f0-9]{64}$/);
+          }
+        }
+        expect(
+          uploads
+            .filter((params) => !params.ContentEncoding)
+            .every((params) => params.Metadata['microapps-encodings'] === 'br,gzip'),
+        ).toBe(true);
+      },
+    );
+
     it('bounds upload concurrency and drains all results before deployment', async () => {
       let active = 0;
       let peak = 0;
