@@ -25,8 +25,8 @@ importers:
         specifier: 5.54.0
         version: 5.54.0(eslint@8.35.0)(typescript@4.9.5)
       aws-cdk:
-        specifier: ^2.1118.0
-        version: 2.1118.0
+        specifier: ^2.1142.0
+        version: 2.1142.0
       constructs:
         specifier: 10.8.1
         version: 10.8.1
@@ -2535,8 +2535,8 @@ packages:
       - yaml
       - mime-types
 
-  aws-cdk@2.1118.0:
-    resolution: {integrity: sha512-Tfd865GRewDTXIbTVtix/l+v8t3rZENvdHcQQZS2wXYVXfHzljULFXe9JKkgZUNDPB1zo9tSBUu8jjiHRm7nWg==}
+  aws-cdk@2.1142.0:
+    resolution: {integrity: sha512-gNOeii+avTJmOwfR8tVgraZ5A2EBC/529EXg7e+yBp8Zl608dAv5CtFRoJt8QoKiruiCwYr4HF6ClNAse/NkSg==}
     engines: {node: '>= 18.0.0'}
     hasBin: true
 
@@ -8571,7 +8571,7 @@ snapshots:
       '@aws-cdk/cloud-assembly-schema': 53.13.0
       constructs: 10.8.1
 
-  aws-cdk@2.1118.0: {}
+  aws-cdk@2.1142.0: {}
 
   aws-sdk-client-mock@2.1.0:
     dependencies:
