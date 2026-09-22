@@ -15,4 +15,7 @@ export interface ICreateApplicationRequest extends IRequestBase {
    * Display name of the application
    */
   readonly displayName: string;
+
+  /** Application-level aliases. Omit to preserve; supply [] to remove all aliases. */
+  readonly extraAppNames?: string[];
 }

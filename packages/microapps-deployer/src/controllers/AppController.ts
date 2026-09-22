@@ -1,4 +1,9 @@
-import { Application, DBManager } from '@pwrdrvr/microapps-datalib';
+import {
+  Application,
+  ApplicationAliasConflictError,
+  InvalidApplicationAliasError,
+  DBManager,
+} from '@pwrdrvr/microapps-datalib';
 import type { ICreateApplicationRequest, IDeployerResponse } from '@pwrdrvr/microapps-deployer-lib';
 
 function isNil(arg: string | undefined | null) {
@@ -20,19 +25,30 @@ export default class AppController {
 
     const response = await Application.Load({ dbManager, key: { AppName: app.appName } });
 
-    if (response !== undefined) {
-      // Indicate that record already existed
+    if (response !== undefined && app.extraAppNames === undefined) {
+      // Existing clients leave application aliases unchanged.
       return { statusCode: 200 };
     }
 
     // Save info in DynamoDB - Status Pending
-    const item = new Application({
-      AppName: app.appName,
-      DisplayName: app.displayName,
-    });
-    await item.Save(dbManager);
-
-    // Indicate that record was created
-    return { statusCode: 201 };
+    try {
+      const item =
+        response ??
+        new Application({
+          AppName: app.appName,
+          DisplayName: app.displayName,
+        });
+      if (app.extraAppNames !== undefined) item.ExtraAppNames = app.extraAppNames;
+      await item.Save(dbManager);
+      return { statusCode: response ? 200 : 201 };
+    } catch (error) {
+      if (error instanceof InvalidApplicationAliasError) {
+        return { statusCode: 400, errorMessage: error.message };
+      }
+      if (error instanceof ApplicationAliasConflictError) {
+        return { statusCode: 409, errorMessage: error.message };
+      }
+      throw error;
+    }
   }
 }
