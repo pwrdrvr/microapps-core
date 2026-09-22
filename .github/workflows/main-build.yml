@@ -15,6 +15,9 @@ on:
   #   branches:
   #     - main
 
+permissions:
+  contents: read
+
 jobs:
   install-deps:
     runs-on: ubuntu-latest

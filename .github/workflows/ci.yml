@@ -27,6 +27,9 @@ on:
       - '!**/README.md'
       - 'packages/**/README.md'
 
+permissions:
+  contents: read
+
 env:
   # This is used by the SharedProps to detect a PR build
   PR_NUMBER: ${{ github.event.pull_request.number }}
