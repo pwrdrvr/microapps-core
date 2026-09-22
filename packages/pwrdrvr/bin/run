@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
 require('../dist')
-  .run()
+  .run(process.argv.slice(2), { root: require('node:path').resolve(__dirname, '..') })
   .then(require('@oclif/core/flush'))
   .catch(require('@oclif/core/handle'));

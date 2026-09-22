@@ -9,13 +9,11 @@
     "microapps-publish": "./bin/run"
   },
   "engineStrict": true,
-  "engine": {
-    "node": ">= 22.0.0"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "files": [
+    "bin",
     "package.json",
     "LICENSE",
     "README.md"
@@ -34,5 +32,8 @@
     "pwrdrvr": "workspace:*"
   },
   "peerDependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": ">= 22.0.0"
+  }
 }
