@@ -10,6 +10,13 @@ updates:
     open-pull-requests-limit: 10
     groups:
       workspace-dependencies:
+        applies-to: version-updates
         patterns:
           - "*"
         group-by: "dependency-name"
+      # group-by applies only to version updates. Group esbuild security fixes
+      # across both directories separately, without bundling unrelated updates.
+      esbuild-security:
+        applies-to: security-updates
+        patterns:
+          - "esbuild"
