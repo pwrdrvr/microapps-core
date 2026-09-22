@@ -376,7 +376,7 @@ ${
     const edgeToOriginFuncProps: Omit<lambda.FunctionProps, 'handler' | 'code'> = {
       role: this._edgeToOriginRole,
       memorySize: 1769,
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       timeout: Duration.seconds(5),
       ...(assetNameRoot
         ? { functionName: `${assetNameRoot}-edge-to-origin${assetNameSuffix}` }

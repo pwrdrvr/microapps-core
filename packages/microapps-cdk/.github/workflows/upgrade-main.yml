@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.0.0
+          node-version: v24.21.0
           package-manager-cache: false
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
