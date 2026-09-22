@@ -1,7 +1,7 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { awscdk, javascript } = require('projen');
 const { readFileSync } = require('fs');
 const { resolve } = require('path');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { awscdk, javascript } = require('projen');
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'PwrDrvr LLC',
   authorAddress: 'harold@pwrdrvr.com',
