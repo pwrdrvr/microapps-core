@@ -48,7 +48,7 @@
     "constructs": "10.8.1",
     "esbuild": "^0.28.1",
     "eslint": "^9",
-    "eslint-import-resolver-typescript": "^2.7.1",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
     "jsii": "^5.9.36",
     "jsii-diff": "^1.118.0",
