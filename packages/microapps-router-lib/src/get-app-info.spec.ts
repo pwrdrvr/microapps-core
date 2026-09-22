@@ -61,7 +61,7 @@ describe('GetAppInfo', () => {
   it.each(testCases)('$caseName', async ({ caseName, appName, mockRules, expected }) => {
     getAppVersionCacheSpy.mockImplementation(() => {
       return {
-        ResolveAppName: jest.fn().mockResolvedValue(undefined),
+        ResolveAppName: jest.fn().mockResolvedValue(appName.toLowerCase()),
         // eslint-disable-next-line @typescript-eslint/require-await
         GetRules: async ({ key }: { key: { AppName: string } }) => {
           if (key.AppName === appName || key.AppName === '[root]') {
