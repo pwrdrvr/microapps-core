@@ -99,3 +99,12 @@ it('restores the public URL if a selected sidecar disappears before the S3 GET',
   expect(req.uri).toBe('/app/1.0.0/index.html');
   expect(select).not.toHaveBeenCalled();
 });
+
+it('honors identity refusal in the preserved header after CloudFront normalization', async () => {
+  const req = request();
+  req.headers['accept-encoding'] = [{ key: 'Accept-Encoding', value: 'br,gzip' }];
+  req.headers['x-microapps-accept-encoding'] = [
+    { key: 'X-MicroApps-Accept-Encoding', value: 'gzip, identity;q=0' },
+  ];
+  expect(await invoke(req)).toMatchObject({ status: '406' });
+});

@@ -3,6 +3,17 @@ import type { CloudFrontRequest } from 'aws-lambda';
 
 const clients = new Map<string, S3Client>();
 
+/** Read the viewer copy when CloudFront has normalized the standard header. */
+export function viewerAcceptEncoding(request: CloudFrontRequest): string {
+  return (
+    request.headers['x-microapps-accept-encoding'] ??
+    request.headers['accept-encoding'] ??
+    []
+  )
+    .map((header) => header.value)
+    .join(',');
+}
+
 /** Rank acceptable encodings, honoring explicit refusals and identity preference. */
 function encodingWeights(header: string): Map<string, number> {
   const weights = new Map<string, number>();
@@ -44,9 +55,7 @@ export async function selectCompressedAsset(
   if (!['GET', 'HEAD'].includes(request.method) || request.headers.range) return 'original';
   const origin = request.origin?.s3;
   if (!origin) return 'original';
-  const encodings = acceptedEncodings(
-    (request.headers['accept-encoding'] ?? []).map((header) => header.value).join(','),
-  );
+  const encodings = acceptedEncodings(viewerAcceptEncoding(request));
   if (!encodings.length || /\.microapps\.(br|gz)$/.test(request.uri)) return 'original';
 
   // S3 origins use virtual-hosted regional or global bucket endpoints.

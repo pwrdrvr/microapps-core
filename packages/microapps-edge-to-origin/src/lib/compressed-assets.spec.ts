@@ -125,3 +125,15 @@ it('selects a gzip-only publish for HEAD requests', async () => {
   expect(req.uri).toMatch(/\.microapps.gz$/);
   expect(send.mock.calls).toHaveLength(2);
 });
+
+it('uses original viewer preferences after CloudFront normalizes Accept-Encoding', async () => {
+  original();
+  variant('br');
+  variant('gzip');
+  const req = request('br,gzip');
+  req.headers['x-microapps-accept-encoding'] = [
+    { key: 'X-MicroApps-Accept-Encoding', value: 'br;q=0, gzip' },
+  ];
+  await selectCompressedAsset(req);
+  expect(req.uri).toMatch(/\.microapps.gz$/);
+});

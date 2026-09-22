@@ -7,6 +7,7 @@ import * as r53 from 'aws-cdk-lib/aws-route53';
 import * as r53targets from 'aws-cdk-lib/aws-route53-targets';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
+import { preserveAcceptEncodingCode } from './utils/PreserveAcceptEncoding';
 import { reverseDomain } from './utils/ReverseDomain';
 
 /**
@@ -326,19 +327,28 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // Add Behaviors
     //
+    const preserveEncoding = props.precompressedAssets
+      ? new cf.Function(distro, 'preserve-accept-encoding', {
+        code: cf.FunctionCode.fromInline(preserveAcceptEncodingCode),
+        runtime: cf.FunctionRuntime.JS_2_0,
+      })
+      : undefined;
+    const functionAssociations = preserveEncoding
+      ? [{ function: preserveEncoding, eventType: cf.FunctionEventType.VIEWER_REQUEST }]
+      : undefined;
     const compressedHeaders = props.precompressedAssets
-      ? new cf.ResponseHeadersPolicy(_scope, 'compressed-asset-headers', {
+      ? new cf.ResponseHeadersPolicy(distro, 'compressed-asset-headers', {
         customHeadersBehavior: {
           customHeaders: [{ header: 'Vary', value: 'Accept-Encoding', override: false }],
         },
       })
       : undefined;
     const assetCachePolicy = props.precompressedAssets
-      ? new cf.CachePolicy(_scope, 'compressed-asset-cache', {
-        // Preserve q-values, refusals and identity preferences in both the key and origin request.
-        headerBehavior: cf.CacheHeaderBehavior.allowList('Accept-Encoding'),
-        enableAcceptEncodingBrotli: false,
-        enableAcceptEncodingGzip: false,
+      ? new cf.CachePolicy(distro, 'compressed-asset-cache', {
+        // The viewer function preserves the raw preferences before normalization.
+        headerBehavior: cf.CacheHeaderBehavior.allowList('x-microapps-accept-encoding'),
+        enableAcceptEncodingBrotli: props.automaticCompression ?? true,
+        enableAcceptEncodingGzip: props.automaticCompression ?? true,
         minTtl: Duration.seconds(0),
         defaultTtl: Duration.days(1),
         maxTtl: Duration.days(365),
@@ -348,6 +358,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       cachePolicy: assetCachePolicy,
       responseHeadersPolicy: compressedHeaders,
+      functionAssociations,
       compress: props.automaticCompression ?? true,
       originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -355,6 +366,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     };
     const s3FallbackToAppOptions: cf.AddBehaviorOptions = {
       responseHeadersPolicy: compressedHeaders,
+      functionAssociations,
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,

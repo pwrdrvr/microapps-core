@@ -12,7 +12,11 @@ import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
 export { IConfigFile } from './config/config';
 import Log from './lib/log';
-import { acceptsIdentity, selectCompressedAsset } from './lib/compressed-assets';
+import {
+  acceptsIdentity,
+  selectCompressedAsset,
+  viewerAcceptEncoding,
+} from './lib/compressed-assets';
 
 const log = Log.Instance;
 const config = Config.instance;
@@ -82,9 +86,7 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       log.debug('request is for S3 origin', { request });
       if (config.precompressedAssets) {
         const selection = await selectCompressedAsset(request);
-        const acceptEncoding = (request.headers['accept-encoding'] ?? [])
-          .map((header) => header.value)
-          .join(',');
+        const acceptEncoding = viewerAcceptEncoding(request);
         if (
           selection === 'original' &&
           ['GET', 'HEAD'].includes(request.method) &&

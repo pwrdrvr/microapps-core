@@ -201,7 +201,7 @@ it('disables on-demand compression while varying asset cache entries by the full
       ParametersInCacheKeyAndForwardedToOrigin: Match.objectLike({
         EnableAcceptEncodingBrotli: false,
         EnableAcceptEncodingGzip: false,
-        HeadersConfig: { HeaderBehavior: 'whitelist', Headers: ['Accept-Encoding'] },
+        HeadersConfig: { HeaderBehavior: 'whitelist', Headers: ['x-microapps-accept-encoding'] },
       }),
     }),
   });
@@ -224,3 +224,47 @@ it('disables on-demand compression while varying asset cache entries by the full
     ).ResponseHeadersPolicyId,
   ).toBeDefined();
 });
+
+it.each([undefined, true, false])(
+  'supports migration with automaticCompression=%s in two sibling distributions',
+  (automaticCompression) => {
+    const app = new App();
+    const stack = new Stack(app, 'siblings');
+    for (const id of ['first', 'second']) {
+      new MicroAppsCF(stack, id, {
+        bucketAppsOriginApp: new cforigins.HttpOrigin('app.example.com'),
+        bucketAppsOriginS3: new cforigins.HttpOrigin('assets.example.com'),
+        precompressedAssets: true,
+        automaticCompression,
+      });
+    }
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::CloudFront::Distribution', 2);
+    template.resourceCountIs('AWS::CloudFront::ResponseHeadersPolicy', 2);
+    template.resourceCountIs('AWS::CloudFront::CachePolicy', 2);
+    template.resourceCountIs('AWS::CloudFront::Function', 2);
+    for (const policy of Object.values(template.findResources('AWS::CloudFront::CachePolicy'))) {
+      expect(
+        policy.Properties.CachePolicyConfig.ParametersInCacheKeyAndForwardedToOrigin,
+      ).toMatchObject({
+        EnableAcceptEncodingBrotli: automaticCompression ?? true,
+        EnableAcceptEncodingGzip: automaticCompression ?? true,
+        HeadersConfig: { Headers: ['x-microapps-accept-encoding'] },
+      });
+    }
+    for (const distribution of Object.values(
+      template.findResources('AWS::CloudFront::Distribution'),
+    )) {
+      const behaviors = distribution.Properties.DistributionConfig.CacheBehaviors;
+      for (const pattern of ['*/static/*.*', '*/*.*']) {
+        expect(
+          behaviors.find((behavior: { PathPattern: string }) => behavior.PathPattern === pattern),
+        ).toMatchObject({
+          Compress: automaticCompression ?? true,
+          FunctionAssociations: [{ EventType: 'viewer-request', FunctionARN: expect.anything() }],
+        });
+      }
+    }
+    expect(() => app.synth()).not.toThrow();
+  },
+);

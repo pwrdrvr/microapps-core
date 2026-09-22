@@ -283,7 +283,13 @@ required.
 
 The edge router respects `Accept-Encoding` preferences and refusals. Cacheable
 static routes vary on the complete header, and S3 responses include `Vary:
-Accept-Encoding`. On an origin request, the router performs one S3 HEAD for the
+Accept-Encoding`. A viewer-request CloudFront Function preserves the original
+preferences in an internal header before CloudFront normalizes `Accept-Encoding`.
+It overwrites any viewer-supplied internal header and limits automatic compression
+to the viewer's preferred acceptable encodings. This keeps automatic compression
+available for eligible cacheable originals during migration. The function runs on
+cache hits as well as misses and uses the viewer-request function association on
+the static behaviors. On an origin request, the router performs one S3 HEAD for the
 original and another for the chosen variant (and may probe the alternate variant
 if the first is missing). These add origin-request latency and S3 request charges;
 cache hits avoid the probes. Range requests use the original representation.
