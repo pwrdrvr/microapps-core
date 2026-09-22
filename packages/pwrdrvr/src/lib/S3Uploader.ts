@@ -58,7 +58,7 @@ export class S3Uploader {
 
       // Copy the files in the source dir to the root dir
       // Note: It would be faster to move the files, then move them back
-      // FIXME: Use p-map for controlled parallelism
+      // FIXME: Limit parallelism while copying local files
       await fs.copy(config.app.staticAssetsPath, tempUploadPath);
 
       // Do the upload

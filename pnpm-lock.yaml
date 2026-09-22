@@ -258,6 +258,9 @@ importers:
       '@pwrdrvr/microapps-deployer-lib':
         specifier: workspace:*
         version: link:../microapps-deployer-lib
+      '@shutterstock/p-map-iterable':
+        specifier: ^1.1.2
+        version: 1.1.2(aggregate-error@3.1.0)
       convict:
         specifier: ^6.1.0
         version: 6.2.4
@@ -273,9 +276,6 @@ importers:
       lambda-log:
         specifier: ^3.1.0
         version: 3.1.0
-      p-map:
-        specifier: ^4.0.0
-        version: 4.0.0
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.13
@@ -575,6 +575,9 @@ importers:
       '@oclif/plugin-version':
         specifier: ^2.4.0
         version: 2.4.0
+      '@shutterstock/p-map-iterable':
+        specifier: ^1.1.2
+        version: 1.1.2(aggregate-error@3.1.0)
       chalk:
         specifier: ^4.1.2
         version: 4.1.2
@@ -593,9 +596,6 @@ importers:
       mime-types:
         specifier: ^2.1.35
         version: 2.1.35
-      p-map:
-        specifier: ^4.0.0
-        version: 4.0.0
       reflect-metadata:
         specifier: ^0.1.14
         version: 0.1.14
@@ -1749,6 +1749,11 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@shutterstock/p-map-iterable@1.1.2':
+    resolution: {integrity: sha512-zNPPB2cro7fr+gPsNPoEir6pzYfJngkik7EnsSD5uMqwzGB8qtMmausS5XO10KM5c1Hfw/hpe1oXf/UoHNZFlg==}
+    peerDependencies:
+      aggregate-error: ^3.0.0
 
   '@sinclair/typebox@0.25.23':
     resolution: {integrity: sha512-VEB8ygeP42CFLWyAJhN5OklpxUliqdNEUcXb4xZ/CINqtYGTjL5ukluKdKzQ0iWdUxyQ7B0539PAUhHKrCNWSQ==}
@@ -7529,6 +7534,10 @@ snapshots:
       constructs: 10.5.1
 
   '@rtsao/scc@1.1.0': {}
+
+  '@shutterstock/p-map-iterable@1.1.2(aggregate-error@3.1.0)':
+    dependencies:
+      aggregate-error: 3.1.0
 
   '@sinclair/typebox@0.25.23': {}
 
