@@ -4,6 +4,15 @@ import os from 'os';
 import path from 'path';
 import { Config } from '../config/Config';
 
+jest.mock('@aws-sdk/lib-storage', () => ({
+  Upload: jest.fn(),
+}));
+
+jest.mock('fs-extra', () => ({
+  ...jest.requireActual('fs-extra'),
+  createReadStream: jest.fn(),
+}));
+
 jest.mock('@aws-sdk/client-sts', () => {
   const send = jest.fn();
 
@@ -46,6 +55,8 @@ jest.mock('../lib/S3TransferUtility', () => ({
   },
 }));
 
+import { Upload } from '@aws-sdk/lib-storage';
+import { S3TransferUtility } from '../lib/S3TransferUtility';
 import * as sts from '@aws-sdk/client-sts';
 import DeployClient from '../lib/DeployClient';
 import { S3Uploader } from '../lib/S3Uploader';
@@ -91,6 +102,7 @@ describe('Publish commands', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pwrdrvr-publish-'));
     process.chdir(tempDir);
     resetConfigSingleton();
+    (S3TransferUtility.GetFiles as jest.Mock).mockReturnValue([]);
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
     errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -105,6 +117,7 @@ describe('Publish commands', () => {
     process.exitCode = undefined;
     process.chdir(originalCwd);
     resetConfigSingleton();
+    (S3TransferUtility.GetFiles as jest.Mock).mockReturnValue([]);
     logSpy.mockRestore();
     infoSpy.mockRestore();
     errorSpy.mockRestore();
@@ -188,5 +201,65 @@ describe('Publish commands', () => {
       }),
     );
     expect(mockRemoveTempDirIfExists).toHaveBeenCalled();
+  });
+  describe.each([
+    ['publish', PublishCommand, ['--type', 'static']],
+    ['publish-static', PublishStaticCommand, []],
+  ] as const)('%s large uploads', (_name, CommandClass, extraArgs) => {
+    function args(): string[] {
+      const staticDir = path.join(tempDir, 'static');
+      fs.mkdirSync(staticDir);
+      (S3TransferUtility.GetFiles as jest.Mock).mockReturnValue(
+        Array.from({ length: 241 }, (_, i) => path.join(staticDir, `${i}.txt`)),
+      );
+      return [
+        '--app-name',
+        'release',
+        '--new-version',
+        '1.2.3',
+        '--deployer-lambda-name',
+        'microapps-deployer-dev',
+        '--static-assets-path',
+        staticDir,
+        '--default-file',
+        'index.html',
+        ...extraArgs,
+      ];
+    }
+
+    it('bounds upload concurrency and drains all results before deployment', async () => {
+      let active = 0;
+      let peak = 0;
+      let completed = 0;
+      (Upload as unknown as jest.Mock).mockImplementation(() => ({
+        done: async () => {
+          active++;
+          peak = Math.max(peak, active);
+          await new Promise<void>((resolve) => setImmediate(resolve));
+          active--;
+          completed++;
+        },
+      }));
+      mockDeployVersionLite.mockImplementationOnce(() => {
+        expect(completed).toBe(241);
+        expect(active).toBe(0);
+      });
+
+      await CommandClass.run(args());
+
+      expect(peak).toBe(40);
+      expect(Upload).toHaveBeenCalledTimes(241);
+      expect(mockDeployVersionLite).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates upload errors without deploying the incomplete version', async () => {
+      const failure = new Error('upload failed');
+      (Upload as unknown as jest.Mock).mockImplementation(() => ({
+        done: async () => Promise.reject(failure),
+      }));
+
+      await expect(CommandClass.run(args())).rejects.toThrow('upload failed');
+      expect(mockDeployVersionLite).not.toHaveBeenCalled();
+    });
   });
 });

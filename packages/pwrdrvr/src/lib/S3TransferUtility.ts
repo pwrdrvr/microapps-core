@@ -8,7 +8,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { IDeployVersionPreflightResponse } from './DeployClient';
 import { contentType } from 'mime-types';
-import pMap from 'p-map';
+import { IterableMapper } from '@shutterstock/p-map-iterable';
 
 export class S3TransferUtility {
   /**
@@ -43,8 +43,8 @@ export class S3TransferUtility {
     //   console.log(`  ${relFilePath}`);
     // }
 
-    // Use p-map to limit upload parallelism
-    await pMap(
+    // Bound concurrent uploads and unread completion results
+    const uploads = new IterableMapper(
       files,
       async (filePath) => {
         // Use 4 multi-part parallel uploads for items > 5 MB
@@ -60,19 +60,16 @@ export class S3TransferUtility {
           },
         });
         await upload.done();
+        return filePath;
       },
       {
         concurrency: 10,
+        maxUnread: 10,
       },
-      // await s3.send(
-      //   new S3.PutObjectCommand({
-      //     Key: path.relative(s3Path, filePath),
-      //     Bucket: bucketName,
-      //     Body: createReadStream(filePath),
-      //     ContentType: contentType(path.basename(filePath)) || 'application/octet-stream',
-      //     CacheControl: 'max-age=86400; public',
-      //   }),
     );
+    while (!(await uploads.next()).done) {
+      // Drain completions so uploading continues under backpressure.
+    }
   }
   // Recursive getFiles from
   // https://stackoverflow.com/a/45130990/831465
