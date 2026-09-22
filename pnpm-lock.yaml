@@ -40,8 +40,8 @@ importers:
         specifier: 8.35.0
         version: 8.35.0
       eslint-config-prettier:
-        specifier: 8.6.0
-        version: 8.6.0(eslint@8.35.0)
+        specifier: 10.1.8
+        version: 10.1.8(eslint@8.35.0)
       eslint-import-resolver-node:
         specifier: 0.3.7
         version: 0.3.7
@@ -53,7 +53,7 @@ importers:
         version: 2.27.5(@typescript-eslint/parser@5.54.0(eslint@8.35.0)(typescript@4.9.5))(eslint-import-resolver-typescript@3.5.3)(eslint@8.35.0)
       eslint-plugin-prettier:
         specifier: 4.2.1
-        version: 4.2.1(eslint-config-prettier@8.6.0(eslint@8.35.0))(eslint@8.35.0)(prettier@2.8.4)
+        version: 4.2.1(eslint-config-prettier@10.1.8(eslint@8.35.0))(eslint@8.35.0)(prettier@2.8.4)
       husky:
         specifier: 8.0.3
         version: 8.0.3
@@ -3149,8 +3149,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-config-prettier@8.6.0:
-    resolution: {integrity: sha512-bAF0eLpLVqP5oEVUFKpMA+NnRFICwn9X8B5jrR9FcqnYBuPbqWEjTEspPWMj5ye6czoSLDweCzSo3Ko7gGrZaA==}
+  eslint-config-prettier@10.1.8:
+    resolution: {integrity: sha512-82GZUjRS0p/jganf6q1rEO25VSoHH0hKPCTrgillPjdI/3bgBhAE1QzHrHTizjpRvy6pGAvKjDJtk2pF9NDq8w==}
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
@@ -9296,7 +9296,7 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-config-prettier@8.6.0(eslint@8.35.0):
+  eslint-config-prettier@10.1.8(eslint@8.35.0):
     dependencies:
       eslint: 8.35.0
 
@@ -9418,13 +9418,13 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.6.0(eslint@8.35.0))(eslint@8.35.0)(prettier@2.8.4):
+  eslint-plugin-prettier@4.2.1(eslint-config-prettier@10.1.8(eslint@8.35.0))(eslint@8.35.0)(prettier@2.8.4):
     dependencies:
       eslint: 8.35.0
       prettier: 2.8.4
       prettier-linter-helpers: 1.0.0
     optionalDependencies:
-      eslint-config-prettier: 8.6.0(eslint@8.35.0)
+      eslint-config-prettier: 10.1.8(eslint@8.35.0)
 
   eslint-scope@5.1.1:
     dependencies:
