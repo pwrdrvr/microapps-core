@@ -183,3 +183,44 @@ describe('MicroAppsCF', () => {
     expect(pathPatterns).not.toContain('*/_next/data/*');
   });
 });
+
+it('disables on-demand compression while varying asset cache entries by the full Accept-Encoding header', () => {
+  const app = new App();
+  const stack = new Stack(app, 'compression-stack');
+  const origin = new cforigins.HttpOrigin('example.com');
+  new MicroAppsCF(stack, 'compression', {
+    bucketAppsOriginApp: origin,
+    bucketAppsOriginS3: origin,
+    precompressedAssets: true,
+    automaticCompression: false,
+  });
+  const template = Template.fromStack(stack);
+  template.hasResourceProperties('AWS::CloudFront::CachePolicy', {
+    CachePolicyConfig: Match.objectLike({
+      MinTTL: 0,
+      ParametersInCacheKeyAndForwardedToOrigin: Match.objectLike({
+        EnableAcceptEncodingBrotli: false,
+        EnableAcceptEncodingGzip: false,
+        HeadersConfig: { HeaderBehavior: 'whitelist', Headers: ['Accept-Encoding'] },
+      }),
+    }),
+  });
+  template.hasResourceProperties('AWS::CloudFront::ResponseHeadersPolicy', {
+    ResponseHeadersPolicyConfig: Match.objectLike({
+      CustomHeadersConfig: {
+        Items: [{ Header: 'Vary', Value: 'Accept-Encoding', Override: false }],
+      },
+    }),
+  });
+  const distribution = Object.values(template.findResources('AWS::CloudFront::Distribution'))[0]
+    .Properties.DistributionConfig;
+  expect(distribution.DefaultCacheBehavior.Compress).toBe(false);
+  expect(
+    distribution.CacheBehaviors.every((behavior: { Compress: boolean }) => !behavior.Compress),
+  ).toBe(true);
+  expect(
+    distribution.CacheBehaviors.find(
+      (behavior: { PathPattern: string }) => behavior.PathPattern === '*/static/*.*',
+    ).ResponseHeadersPolicyId,
+  ).toBeDefined();
+});

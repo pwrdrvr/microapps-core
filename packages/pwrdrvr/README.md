@@ -239,3 +239,62 @@ EXAMPLE
   $ pwrdrvr delete -d microapps-deployer-dev -a release -n 0.0.13
   ✔ App/Version deleted: release/0.0.13 [1.2s]
 ```
+
+## Publish compressed static assets
+
+Both commands support independent `--brotli` and `--gzip` flags. Omit both to retain
+uncompressed publishing, or pass both for Brotli with gzip fallback:
+
+```sh
+pwrdrvr publish-static --brotli --gzip \
+  --app-name example --new-version 1.2.3 \
+  --deployer-lambda-name microapps-deployer-dev \
+  --static-assets-path ./out --default-file index.html
+```
+
+`pwrdrvr publish --brotli --gzip` applies the same preparation to its static assets.
+Compression uses streamed Brotli quality 9 and gzip level 9, with at most four
+files being compressed at once. Originals stay intact. Text, JavaScript, JSON,
+XML, SVG, and WebAssembly are eligible; empty files, images in already compressed
+formats, archives, unknown binary types, and variants larger than or equal to the
+original are skipped.
+
+Generated objects use reserved `.microapps.br` and `.microapps.gz` suffixes,
+retain the original `Content-Type` and cache control, and carry `Content-Encoding:
+br` or `gzip`. Do not supply source files with those reserved suffixes when using
+compression flags. The CLI does not modify the source directory.
+
+Enable serving in the CDK deployment before expecting the variants to be used:
+
+```ts
+new MicroApps(scope, 'apps', {
+  appEnv: 'prod',
+  precompressedAssets: true,
+  automaticCompression: true,
+});
+```
+
+Once the desired app versions have been republished with compressed assets, set
+`automaticCompression: false` to disable CloudFront on-demand compression. It
+remains enabled by default. Old app versions remain accessible as originals;
+publishing variants alone does not enable routing. Invalidate existing asset
+cache entries when changing the serving configuration if immediate rollout is
+required.
+
+The edge router respects `Accept-Encoding` preferences and refusals. Cacheable
+static routes vary on the complete header, and S3 responses include `Vary:
+Accept-Encoding`. On an origin request, the router performs one S3 HEAD for the
+original and another for the chosen variant (and may probe the alternate variant
+if the first is missing). These add origin-request latency and S3 request charges;
+cache hits avoid the probes. Range requests use the original representation.
+Missing assets still follow the normal S3-to-app fallback.
+
+Original metadata advertises available encodings. Matching SHA-256 metadata
+prevents an old variant from being selected after an overwrite. New versions are
+still preferred over `--overwrite`, since already cached content is not
+invalidated automatically.
+
+When composing the lower-level constructs, configure
+`MicroAppsEdgeToOrigin.precompressedAssetsBucket` with the asset bucket and
+`MicroAppsCF.precompressedAssets: true`, and attach the edge function to the
+CloudFront behaviors. The edge construct grants S3 HEAD access via `s3:GetObject`.

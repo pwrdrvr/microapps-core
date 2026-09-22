@@ -1,5 +1,5 @@
 import { posix as posixPath } from 'path';
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -23,6 +23,18 @@ export interface IMicroAppsCF {
  * Properties to initialize an instance of `MicroAppsCF`.
  */
 export interface MicroAppsCFProps {
+  /**
+   * Select published Brotli/gzip variants for S3 requests.
+   * @default false
+   */
+  readonly precompressedAssets?: boolean;
+
+  /**
+   * Enable CloudFront on-demand compression. Disable after deploying compressed assets.
+   * @default true
+   */
+  readonly automaticCompression?: boolean;
+
   /**
    * RemovalPolicy override for child resources
    *
@@ -177,6 +189,18 @@ export interface CreateAPIOriginPolicyOptions {
  */
 export interface AddRoutesOptions {
   /**
+   * Select published Brotli/gzip variants for S3 requests.
+   * @default false
+   */
+  readonly precompressedAssets?: boolean;
+
+  /**
+   * Enable CloudFront on-demand compression. Disable after deploying compressed assets.
+   * @default true
+   */
+  readonly automaticCompression?: boolean;
+
+  /**
    * Application origin
    *
    * Typically an S3 bucket with a `x-microapps-origin: app` custom header
@@ -302,19 +326,39 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // Add Behaviors
     //
+    const compressedHeaders = props.precompressedAssets
+      ? new cf.ResponseHeadersPolicy(_scope, 'compressed-asset-headers', {
+        customHeadersBehavior: {
+          customHeaders: [{ header: 'Vary', value: 'Accept-Encoding', override: false }],
+        },
+      })
+      : undefined;
+    const assetCachePolicy = props.precompressedAssets
+      ? new cf.CachePolicy(_scope, 'compressed-asset-cache', {
+        // Preserve q-values, refusals and identity preferences in both the key and origin request.
+        headerBehavior: cf.CacheHeaderBehavior.allowList('Accept-Encoding'),
+        enableAcceptEncodingBrotli: false,
+        enableAcceptEncodingGzip: false,
+        minTtl: Duration.seconds(0),
+        defaultTtl: Duration.days(1),
+        maxTtl: Duration.days(365),
+      })
+      : cf.CachePolicy.CACHING_OPTIMIZED;
     const s3BehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-      cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
-      compress: true,
+      cachePolicy: assetCachePolicy,
+      responseHeadersPolicy: compressedHeaders,
+      compress: props.automaticCompression ?? true,
       originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
     };
     const s3FallbackToAppOptions: cf.AddBehaviorOptions = {
+      responseHeadersPolicy: compressedHeaders,
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
+      compress: props.automaticCompression ?? true,
       originRequestPolicy: appOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
@@ -323,7 +367,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
+      compress: props.automaticCompression ?? true,
       originRequestPolicy: appOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
@@ -448,7 +492,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       defaultBehavior: {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-        compress: true,
+        compress: props.automaticCompression ?? true,
         originRequestPolicy: appOriginRequestPolicy,
         origin: appOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -470,6 +514,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       appOnlyOrigin: appOrigin,
       bucketOriginFallbackToApp,
       distro: this._cloudFrontDistro,
+      precompressedAssets: props.precompressedAssets,
+      automaticCompression: props.automaticCompression,
       appOriginRequestPolicy,
       rootPathPrefix,
       createAPIPathRoute,
