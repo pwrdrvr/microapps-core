@@ -73,6 +73,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
   },
 });
 
+// Keep the build dependency current without raising the supported peer minimum.
+project.package.file.addOverride('devDependencies.constructs', '10.8.1');
+
 //
 // Types from the monorepo that are not used by CDK are causing build failures
 // and `jsii` appears to not have a way to pass `skipLibCheck: true`
