@@ -157,6 +157,11 @@ jobs:
       # Possible speedup: may need to replace jest-dynalite and switch to each
       # test (or at least suite) creating a uniquely named table in a shared
       # local dynamodb instance.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Run Node Tests
         env:
           NODE_ENV: test
