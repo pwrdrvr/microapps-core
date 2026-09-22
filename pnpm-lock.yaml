@@ -94,8 +94,8 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
       yaml:
-        specifier: ^2.8.3
-        version: 2.8.3
+        specifier: ^2.9.1
+        version: 2.9.1
 
   packages/cdk:
     dependencies:
@@ -5710,8 +5710,8 @@ packages:
     resolution: {integrity: sha512-8aAvwVUSHpfEqTQ4w/KMlf3HcRdt50E5ODIQJBw1fQ5RL34xabzxtUlzTXVqc4rkZsPbvrXKWnABCD7kWSmocA==}
     engines: {node: '>= 14'}
 
-  yaml@2.8.3:
-    resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
     engines: {node: '>= 14.6'}
     hasBin: true
 
@@ -8830,7 +8830,7 @@ snapshots:
       jsdom: 25.0.1
       semver: 7.7.3
       w3c-xmlserializer: 5.0.0
-      yaml: 2.8.3
+      yaml: 2.9.1
       yargs: 17.7.2
     transitivePeerDependencies:
       - bufferutil
@@ -11264,7 +11264,7 @@ snapshots:
       semver: 7.7.3
       slash: 2.0.0
       tmp: 0.0.33
-      yaml: 2.8.3
+      yaml: 2.9.1
 
   path-exists@3.0.0: {}
 
@@ -12259,7 +12259,7 @@ snapshots:
 
   yaml@2.3.4: {}
 
-  yaml@2.8.3: {}
+  yaml@2.9.1: {}
 
   yargs-parser@20.2.9: {}
 
