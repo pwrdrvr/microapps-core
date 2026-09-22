@@ -15,7 +15,10 @@ export async function GetAppInfo(opts: {
 
   const appVersionCache = AppVersionCache.GetInstance({ dbManager });
 
-  const canonicalAppName = (await appVersionCache.ResolveAppName(appName)) ?? appName;
+  const resolvedAppName = await appVersionCache.ResolveAppName(appName);
+  // Preserve existing canonical URLs; only aliases replace the requested name.
+  const canonicalAppName =
+    resolvedAppName && resolvedAppName !== appName.toLowerCase() ? resolvedAppName : appName;
 
   // Check if we got a matching app name
   rules = await appVersionCache.GetRules({ key: { AppName: canonicalAppName } });
