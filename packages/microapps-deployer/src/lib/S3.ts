@@ -1,4 +1,4 @@
-import pMap from 'p-map';
+import { IterableMapper } from '@shutterstock/p-map-iterable';
 import * as s3 from '@aws-sdk/client-s3';
 import { IConfig } from '../config/Config';
 
@@ -26,7 +26,7 @@ export async function CopyFilesInList(
     return;
   }
 
-  await pMap(
+  const copies = new IterableMapper(
     list.Contents,
     async (obj) => {
       const sourceKeyRootless = obj.Key?.slice(sourcePrefix.length);
@@ -49,9 +49,13 @@ export async function CopyFilesInList(
           Key: obj.Key,
         }),
       );
+      return obj;
     },
-    { concurrency: 20 },
+    { concurrency: 20, maxUnread: 20 },
   );
+  while (!(await copies.next()).done) {
+    // Drain completions so copying continues under backpressure.
+  }
 }
 
 /**

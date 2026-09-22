@@ -3,8 +3,7 @@ import * as s3 from '@aws-sdk/client-s3';
 import * as sts from '@aws-sdk/client-sts';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Command, Flags } from '@oclif/core';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pMap = require('p-map');
+import { IterableMapper } from '@shutterstock/p-map-iterable';
 import * as path from 'path';
 import { pathExists, createReadStream } from 'fs-extra';
 import { Listr, ListrTask } from 'listr2';
@@ -286,21 +285,11 @@ export class PublishCommand extends Command {
               const fileCountMsgInterval = Math.floor(ctx.files.length / 10);
               let filesPublished = 0;
 
-              await pMap(
+              const uploads = new IterableMapper(
                 ctx.files,
                 async (filePath: string) => {
                   // Can't use tasks for each file
                   const relFilePath = path.relative(pathWithoutAppAndVer, filePath);
-
-                  if (
-                    ctx.files.length > 1000 &&
-                    (filesPublished % fileCountMsgInterval === 0 ||
-                      filesPublished === ctx.files.length)
-                  ) {
-                    task.output = `Uploaded ${filesPublished} of ${ctx.files.length} files`;
-                  } else if (ctx.files.length <= 1000) {
-                    task.output = `Uploading ${relFilePath}`;
-                  }
 
                   const upload = new Upload({
                     client: s3Client,
@@ -315,10 +304,24 @@ export class PublishCommand extends Command {
                     },
                   });
                   await upload.done();
-                  filesPublished++;
+                  return relFilePath;
                 },
-                { concurrency: 40 },
+                { concurrency: 40, maxUnread: 40 },
               );
+
+              // Consume completed uploads as they arrive without retaining all results.
+              for await (const relFilePath of uploads) {
+                filesPublished++;
+                if (
+                  ctx.files.length > 1000 &&
+                  (filesPublished % fileCountMsgInterval === 0 ||
+                    filesPublished === ctx.files.length)
+                ) {
+                  task.output = `Uploaded ${filesPublished} of ${ctx.files.length} files`;
+                } else if (ctx.files.length <= 1000) {
+                  task.output = `Uploaded ${relFilePath}`;
+                }
+              }
             } else {
               const tasks: ListrTask<IContext>[] = ctx.files.map((filePath) => ({
                 task: async (ctx: IContext, subtask) => {
