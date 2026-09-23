@@ -1,0 +1,3 @@
+interface:
+  display_name: "CDK Lockfile Refresh"
+  short_description: "Refresh and verify standalone CDK dependencies"
