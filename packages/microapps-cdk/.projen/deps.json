@@ -7,12 +7,12 @@
     },
     {
       "name": "@types/jest",
-      "version": "^26.0.24",
+      "version": "^30.0.0",
       "type": "build"
     },
     {
       "name": "@types/node",
-      "version": "^22",
+      "version": "^24",
       "type": "build"
     },
     {
@@ -90,7 +90,7 @@
     },
     {
       "name": "constructs",
-      "version": "^10.5.1",
+      "version": "^10.8.1",
       "type": "peer"
     }
   ],

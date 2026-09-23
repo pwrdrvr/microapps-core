@@ -1,3 +1,5 @@
+const { readFileSync } = require('fs');
+const { resolve } = require('path');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { awscdk, javascript } = require('projen');
 const project = new awscdk.AwsCdkConstructLibrary({
@@ -8,6 +10,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
   cdkVersion: '2.248.0',
   cdkVersionPinning: false,
+  constructsVersion: '10.8.1',
   copyrightOwner: 'PwrDrvr LLC',
   copyrightPeriod: '2020',
   defaultReleaseBranch: 'main',
@@ -18,7 +21,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
   packageManager: javascript.NodePackageManager.PNPM,
   pnpmVersion: '10',
   addPackageManagerToDevEngines: false,
-  minNodeVersion: '22.0.0',
+  minNodeVersion: '24.0.0',
+  workflowNodeVersion: readFileSync(resolve(__dirname, '../../.nvmrc'), 'utf8').trim(),
   jsiiVersion: '^5.9.36',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
@@ -49,7 +53,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   devDeps: [
     'esbuild',
     '@types/yargs@^16.0.0', // This is a dummy to prevent jsii from failing
-    '@types/jest@^26.0.24', // This is a dummy to prevent jsii from failing
+    '@types/jest@^30.0.0', // This is a dummy to prevent jsii from failing
     // 'patch-package@^6.4.7',
   ],
   peerDeps: [],
@@ -97,13 +101,13 @@ project.preCompileTask.exec(
 // );
 
 project.compileTask.exec(
-  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
+  'esbuild ../microapps-edge-to-origin/src/index.ts --bundle --minify --sourcemap --platform=node --target=node24 --external:aws-sdk --outfile=lib/microapps-edge-to-origin/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
+  'esbuild ../microapps-deployer/src/index.ts --bundle --minify --sourcemap --platform=node --target=node24 --external:aws-sdk --outfile=lib/microapps-deployer/index.js',
 );
 project.compileTask.exec(
-  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node16 --external:aws-sdk --outfile=lib/microapps-router/index.js',
+  'esbuild ../microapps-router/src/index.ts --bundle --minify --sourcemap --platform=node --target=node24 --external:aws-sdk --outfile=lib/microapps-router/index.js',
 );
 project.compileTask.exec('cp -R ../microapps-router/templates lib/microapps-router/');
 project.compileTask.exec('cp ../microapps-router/templates/* lib/microapps-edge-to-origin/');

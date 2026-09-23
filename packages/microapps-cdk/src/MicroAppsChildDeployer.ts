@@ -140,7 +140,7 @@ export class MicroAppsChildDeployer extends Construct implements IMicroAppsChild
       role: iamRoleDeployer,
       memorySize: 1769,
       logGroup: deployerLogGroup,
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       timeout: deployerTimeout,
       environment: {
         NODE_ENV: appEnv,

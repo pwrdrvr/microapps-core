@@ -9,13 +9,21 @@ on:
     types: [published]
   pull_request:
     types: [labeled, opened, synchronize]
+
+permissions:
+  contents: read
+
 jobs:
   install-deps:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
         with:
+          node-version: ${{ steps.node-version.outputs.version }}
           lookup-only: "true" # We only want to lookup from the cache - if a hit, this job does nothing
 
   version:
@@ -28,7 +36,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Get version from release tag or package.json
         id: get_version
@@ -82,7 +95,12 @@ jobs:
         run: |-
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
       - name: Build All TypeScript
         run: pnpm build
       - name: Run Lint
@@ -127,7 +145,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
       - name: Check for new commits
         id: git_remote
         run: |
@@ -185,7 +208,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
       - name: Download build artifacts
         uses: actions/download-artifact@v7
         with:
@@ -248,7 +276,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Read Node.js version
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
       - uses: pwrdrvr/configure-nodejs@v1
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
       - name: Download Publish Tool build artifacts
         uses: actions/download-artifact@v7
         with:
