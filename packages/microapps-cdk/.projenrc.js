@@ -19,7 +19,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.PNPM,
-  pnpmVersion: '10',
+  pnpmVersion: '10.29.3',
   addPackageManagerToDevEngines: false,
   minNodeVersion: '24.0.0',
   workflowNodeVersion: readFileSync(resolve(__dirname, '../../.nvmrc'), 'utf8').trim(),
