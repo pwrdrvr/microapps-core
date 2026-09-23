@@ -33,7 +33,7 @@ describe('loadAppFrame', () => {
 
     expect(() => {
       loadAppFrame({});
-    }).toThrowError('appFrame.html not found');
+    }).toThrow('appFrame.html not found');
   });
 
   it('should log the error if appFrame.html is not found', () => {
