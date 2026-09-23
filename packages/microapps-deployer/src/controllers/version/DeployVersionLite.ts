@@ -65,7 +65,9 @@ export async function DeployVersionLite(opts: {
     record.DefaultFile = request.defaultFile;
     record.Type = appType;
     record.StartupType = startupType;
-    request.lambdaARN && (record.LambdaARN = request.lambdaARN);
+    if (request.lambdaARN) {
+      record.LambdaARN = request.lambdaARN;
+    }
   }
 
   // Create the version record
