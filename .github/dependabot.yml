@@ -1,26 +1,61 @@
 version: 2
 
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: 'npm'
     directories:
-      - "/"
-      - "/packages/microapps-cdk"
+      - '/'
+      - '/packages/microapps-cdk'
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+      interval: 'weekly'
+    open-pull-requests-limit: 5
     # Node type majors move with .nvmrc and the runtime, not independently.
     ignore:
-      - dependency-name: "@types/node"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
-      workspace-dependencies:
+      # First matching group wins. Keep coupled tools together across both
+      # directories; group-by: dependency-name would split them back into PRs.
+      lint-and-typescript:
         applies-to: version-updates
         patterns:
-          - "*"
-        group-by: "dependency-name"
-      # group-by applies only to version updates. Group esbuild security fixes
-      # across both directories separately, without bundling unrelated updates.
+          - '*eslint*'
+          - '*prettier*'
+          - 'typescript'
+          - 'ts-node'
+          - 'lint-staged'
+          - 'husky'
+      testing:
+        applies-to: version-updates
+        patterns:
+          - '*jest*'
+          - 'sinon'
+          - '@types/sinon'
+          - 'aws-sdk-client-mock'
+          - 'mock-fs'
+          - '@types/mock-fs'
+      aws-sdk:
+        applies-to: version-updates
+        patterns:
+          - 'aws-sdk'
+          - '@aws-sdk/*'
+          - '@smithy/*'
+      cdk-and-jsii:
+        applies-to: version-updates
+        patterns:
+          - 'aws-cdk'
+          - 'aws-cdk-lib'
+          - '@aws-cdk/*'
+          - 'constructs'
+          - 'projen'
+          - 'jsii'
+          - 'jsii-*'
+          - '@jsii/*'
+      other-dependencies:
+        applies-to: version-updates
+        patterns:
+          - '*'
+      # Security updates are evaluated separately from version-update groups.
       esbuild-security:
         applies-to: security-updates
         patterns:
-          - "esbuild"
+          - 'esbuild'
