@@ -16,8 +16,8 @@ importers:
         specifier: 29.5.0
         version: 29.5.0
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
       '@typescript-eslint/eslint-plugin':
         specifier: 8.70.0
         version: 8.70.0(@typescript-eslint/parser@8.70.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
@@ -59,10 +59,10 @@ importers:
         version: 9.1.7
       jest:
         specifier: 29.5.0
-        version: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+        version: 29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       jest-dynalite:
         specifier: 3.6.1
-        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))
       lint-staged:
         specifier: 17.5.1
         version: 17.5.1
@@ -86,16 +86,16 @@ importers:
         version: 5.0.1
       ts-jest:
         specifier: 29.0.5
-        version: 29.0.5(@babel/core@7.20.12)(@jest/types@29.5.0)(babel-jest@29.5.0(@babel/core@7.20.12))(esbuild@0.28.1)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))(typescript@5.9.3)
+        version: 29.0.5(@babel/core@7.20.12)(@jest/types@29.5.0)(babel-jest@29.5.0(@babel/core@7.20.12))(esbuild@0.28.1)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))(typescript@5.9.3)
       ts-node:
         specifier: 10.9.2
-        version: 10.9.2(@types/node@24.13.5)(typescript@5.9.3)
+        version: 10.9.2(@types/node@24.13.6)(typescript@5.9.3)
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
       yaml:
-        specifier: ^2.8.3
-        version: 2.8.3
+        specifier: ^2.9.1
+        version: 2.9.1
 
   packages/cdk:
     dependencies:
@@ -119,8 +119,8 @@ importers:
         version: 0.5.21
     devDependencies:
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
       tslib:
         specifier: 2.5.0
         version: 2.5.0
@@ -138,8 +138,8 @@ importers:
         version: 2.5.0
     devDependencies:
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
 
   packages/microapps-cdk:
     devDependencies:
@@ -151,7 +151,7 @@ importers:
         version: 26.0.24
       '@types/node':
         specifier: ^24
-        version: 24.13.5
+        version: 24.13.6
       '@types/yargs':
         specifier: ^16.0.0
         version: 16.0.5
@@ -224,7 +224,7 @@ importers:
         version: 2.6.1
       jest-dynalite:
         specifier: 3.6.1
-        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))
       node-fetch:
         specifier: ^2.6.1
         version: 2.6.7
@@ -308,8 +308,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.1
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
       '@types/sinon':
         specifier: ^10.0.0
         version: 10.0.13
@@ -321,7 +321,7 @@ importers:
         version: 2.1.0
       jest-dynalite:
         specifier: 3.6.1
-        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))
       sinon:
         specifier: ^10.0.0
         version: 10.0.1
@@ -333,8 +333,8 @@ importers:
         version: 2.5.0
     devDependencies:
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
 
   packages/microapps-edge-to-origin:
     dependencies:
@@ -415,14 +415,14 @@ importers:
         specifier: ^2.2.0
         version: 2.2.1
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
       aws-sdk-client-mock:
         specifier: 2.1.0
         version: 2.1.0
       jest-dynalite:
         specifier: 3.6.1
-        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))
 
   packages/microapps-publish:
     dependencies:
@@ -488,14 +488,14 @@ importers:
         specifier: ^2.2.0
         version: 2.2.1
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
       '@types/source-map-support':
         specifier: 0.5.6
         version: 0.5.6
       jest-dynalite:
         specifier: 3.6.1
-        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))
 
   packages/microapps-router-lib:
     dependencies:
@@ -531,14 +531,14 @@ importers:
         specifier: 4.13.4
         version: 4.13.4
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
       '@types/source-map-support':
         specifier: 0.5.6
         version: 0.5.6
       jest-dynalite:
         specifier: 3.6.1
-        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))
+        version: 3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))
       mock-fs:
         specifier: 5.5.0
         version: 5.5.0
@@ -638,8 +638,8 @@ importers:
         specifier: 8.10.110
         version: 8.10.110
       '@types/node':
-        specifier: ^24.0.0
-        version: 24.13.5
+        specifier: ^24.13.6
+        version: 24.13.6
 
 packages:
 
@@ -710,7 +710,6 @@ packages:
   '@aws-sdk/abort-controller@3.374.0':
     resolution: {integrity: sha512-pO1pqFBdIF28ZvnJmg58Erj35RLzXsTrjvHghdc/xgtSvodFFCNrUsPg6AP3On8eiw9elpHoS4P8jMx1pHDXEw==}
     engines: {node: '>=14.0.0'}
-    deprecated: This package has moved to @smithy/abort-controller
 
   '@aws-sdk/checksums@3.1001.0':
     resolution: {integrity: sha512-6uTniZc87q+B5eXouGTl+7Tmc482rEeCcvxpsvREP8EfF0gvloRZ41UOA9sbSJlyy8TbqIBXb3kKfKarEArUQA==}
@@ -911,12 +910,10 @@ packages:
   '@aws-sdk/node-http-handler@3.374.0':
     resolution: {integrity: sha512-v1Z6m0wwkf65/tKuhwrtPRqVoOtNkDTRn2MBMtxCwEw+8V8Q+YRFqVgGN+J1n53ktE0G5OYVBux/NHiAjJHReQ==}
     engines: {node: '>=14.0.0'}
-    deprecated: This package has moved to @smithy/node-http-handler
 
   '@aws-sdk/protocol-http@3.374.0':
     resolution: {integrity: sha512-9WpRUbINdGroV3HiZZIBoJvL2ndoWk39OfwxWs2otxByppJZNN14bg/lvCx5e8ggHUti7IBk5rb0nqQZ4m05pg==}
     engines: {node: '>=14.0.0'}
-    deprecated: This package has moved to @smithy/protocol-http
 
   '@aws-sdk/region-config-resolver@3.972.10':
     resolution: {integrity: sha512-1dq9ToC6e070QvnVhhbAs3bb5r6cQ10gTVc6cyRV5uvQe7P138TV2uG2i6+Yok4bAkVAcx5AqkTEBUvWEtBlsQ==}
@@ -933,7 +930,6 @@ packages:
   '@aws-sdk/signature-v4@3.374.0':
     resolution: {integrity: sha512-2xLJvSdzcZZAg0lsDLUAuSQuihzK0dcxIK7WmfuJeF7DGKJFmp9czQmz5f3qiDz6IDQzvgK1M9vtJSVCslJbyQ==}
     engines: {node: '>=14.0.0'}
-    deprecated: This package has moved to @smithy/signature-v4
 
   '@aws-sdk/token-providers@3.1021.0':
     resolution: {integrity: sha512-TKY6h9spUk3OLs5v1oAgW9mAeBE3LAGNBwJokLy96wwmd4W2v/tYlXseProyed9ValDj2u1jK/4Rg1T+1NXyJA==}
@@ -1593,7 +1589,6 @@ packages:
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
-    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -1601,7 +1596,6 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
-    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
@@ -1815,9 +1809,6 @@ packages:
 
   '@sinonjs/text-encoding@0.7.1':
     resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
-    deprecated: |-
-      Deprecated: no longer maintained and no longer used by Sinon packages. See
-        https://github.com/sinonjs/nise/issues/243 for replacement details.
 
   '@smithy/abort-controller@1.1.0':
     resolution: {integrity: sha512-5imgGUlZL4dW4YWdMYAKLmal9ny/tlenM81QZY7xYyb76z9Z/QOg7oM5Ak9HQl8QfFTlGVWwcMXl+54jroRgEQ==}
@@ -2209,6 +2200,9 @@ packages:
   '@types/node@24.13.5':
     resolution: {integrity: sha512-TXyindR+lBr22aJIdMQzCFHPHR6cR4js838mRDCSz5hOKWZvZwsXSSiXDmjRj4iJmgl+sR9O+1mkoVBSMadNug==}
 
+  '@types/node@24.13.6':
+    resolution: {integrity: sha512-SGrw/h3KPFshy3OE6ZL53LMBG5vGQQ8/gIpiqz/kRZhPJ7HgwCEs8LBuNtWLa8dvGZVpSF7+Bf+c11HUrCb/yg==}
+
   '@types/normalize-package-data@2.4.1':
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
 
@@ -2424,7 +2418,6 @@ packages:
   '@xmldom/xmldom@0.9.9':
     resolution: {integrity: sha512-qycIHAucxy/LXAYIjmLmtQ8q9GPnMbnjG1KXhWm9o5sCr6pOYDATkMPiTNa6/v8eELyqOQ2FsEqeoFYmgv/gJg==}
     engines: {node: '>=14.6'}
-    deprecated: this version has critical issues, please update to the latest version
 
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
@@ -2436,12 +2429,10 @@ packages:
   abstract-leveldown@6.2.3:
     resolution: {integrity: sha512-BsLm5vFMRUrrLeCcRc+G0t2qOaTzpoJQLOubq2XM72eNpjF5UdU5o/5NvlNhx95XHcAvcl8OMXr4mlg/fRgUXQ==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   abstract-leveldown@6.3.0:
     resolution: {integrity: sha512-TU5nlYgta8YrBMNpc9FwQzRbiXsj49gsALsXadbGHt9CROPzX5fB0rWDR5mtdpOOKa5XqRFpbj1QroPAoPzVjQ==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2841,12 +2832,10 @@ packages:
   conventional-changelog-atom@3.0.0:
     resolution: {integrity: sha512-pnN5bWpH+iTUWU3FaYdw5lJmfWeqSyrUkG+wyHBI9tC1dLNnHkbAOg1SzTQ7zBqiFrfo55h40VsGXWMdopwc5g==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-codemirror@3.0.0:
     resolution: {integrity: sha512-wzchZt9HEaAZrenZAUUHMCFcuYzGoZ1wG/kTRMICxsnW5AXohYMRxnyecP9ob42Gvn5TilhC0q66AtTPRSNMfw==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-config-spec@2.1.0:
     resolution: {integrity: sha512-IpVePh16EbbB02V+UA+HQnnPIohgXvJRxHcS5+Uwk4AT5LjzCZJm5sp/yqs5C6KZJ1jMsV4paEV13BN1pvDuxQ==}
@@ -2858,32 +2847,26 @@ packages:
   conventional-changelog-core@5.0.2:
     resolution: {integrity: sha512-RhQOcDweXNWvlRwUDCpaqXzbZemKPKncCWZG50Alth72WITVd6nhVk9MJ6w1k9PFNBcZ3YwkdkChE+8+ZwtUug==}
     engines: {node: '>=14'}
-    deprecated: Deprecated and no longer maintained. Please use conventional-changelog instead.
 
   conventional-changelog-ember@3.0.0:
     resolution: {integrity: sha512-7PYthCoSxIS98vWhVcSphMYM322OxptpKAuHYdVspryI0ooLDehRXWeRWgN+zWSBXKl/pwdgAg8IpLNSM1/61A==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-eslint@4.0.0:
     resolution: {integrity: sha512-nEZ9byP89hIU0dMx37JXQkE1IpMmqKtsaR24X7aM3L6Yy/uAtbb+ogqthuNYJkeO1HyvK7JsX84z8649hvp43Q==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-express@3.0.0:
     resolution: {integrity: sha512-HqxihpUMfIuxvlPvC6HltA4ZktQEUan/v3XQ77+/zbu8No/fqK3rxSZaYeHYant7zRxQNIIli7S+qLS9tX9zQA==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-jquery@4.0.0:
     resolution: {integrity: sha512-TTIN5CyzRMf8PUwyy4IOLmLV2DFmPtasKN+x7EQKzwSX8086XYwo+NeaeA3VUT8bvKaIy5z/JoWUvi7huUOgaw==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-jshint@3.0.0:
     resolution: {integrity: sha512-bQof4byF4q+n+dwFRkJ/jGf9dCNUv4/kCDcjeCizBvfF81TeimPZBB6fT4HYbXgxxfxWXNl/i+J6T0nI4by6DA==}
     engines: {node: '>=14'}
-    deprecated: This preset is deprecated. Please use conventional-changelog-conventionalcommits or conventional-changelog-angular instead.
 
   conventional-changelog-preset-loader@3.0.0:
     resolution: {integrity: sha512-qy9XbdSLmVnwnvzEisjxdDiLA4OmV3o8db+Zdg4WiFw14fP3B6XNz98X0swPPpkTd/pc1K7+adKgEDM1JCUMiA==}
@@ -3021,7 +3004,6 @@ packages:
   deferred-leveldown@5.3.0:
     resolution: {integrity: sha512-a59VOT+oDy7vtAbLRCZwWgxu2BaCfd5Hk7wxJd48ei7I+nsg8Orlb9CLG0PMZienk9BSUKgeAqkO2+Lw+1+Ukw==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   define-data-property@1.1.4:
     resolution: {integrity: sha512-rBMvIzlpA8v6E+SJZoo++HAYqsLrkg7MSfIinMPFhmkorw7X+dOXVJQs+QT69zGkzMyfDnIMN2Wid1+NbL3T+A==}
@@ -3122,7 +3104,6 @@ packages:
   encoding-down@6.3.0:
     resolution: {integrity: sha512-QKrV0iKR6MZVJV08QY0wp1e7vF6QbhnbQhb07bwpEyuz4uZiZgPlEGdkCROuFkUwdxlFaiPIhjyarH1ee/3vhw==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   entities@3.0.1:
     resolution: {integrity: sha512-WiyBqoomrwMdFG1e0kqvASYfnlb0lp8M5o5Fw2OFq1hNZxxcNk8Ik0Xm7LxzBhuidnZB/UtBqVCgUz3kBOP51Q==}
@@ -3303,13 +3284,11 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -3548,7 +3527,6 @@ packages:
   git-raw-commits@3.0.0:
     resolution: {integrity: sha512-b5OHmZ3vAgGrDn/X0kS+9qCfNKWe4K/jFnhwzVWWg0/k5eLa3060tZShrRg8Dja5kPc+YjS0Gc6y7cRr44Lpjw==}
     engines: {node: '>=14'}
-    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-remote-origin-url@2.0.0:
@@ -3558,7 +3536,6 @@ packages:
   git-semver-tags@5.0.1:
     resolution: {integrity: sha512-hIvOeZwRbQ+7YEUmCkHqo8FOLQZCEn18yevLHADlFPZY02KJGsu5FZt9YW/lybfK2uhWFI7Qg/07LekJiTv7iA==}
     engines: {node: '>=14'}
-    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   gitconfiglocal@1.0.0:
@@ -3575,12 +3552,10 @@ packages:
   glob@10.2.5:
     resolution: {integrity: sha512-Gj+dFYPZ5hc5dazjXzB0iHg2jKWJZYMjITXYPBRQ/xc2Buw7H0BINknRTwURJ6IC6MEFpYbLvtgVb3qD+DwyuA==}
     engines: {node: '>=16 || 14 >=14.17'}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -3725,7 +3700,6 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
-    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -4243,17 +4217,14 @@ packages:
   level-codec@9.0.2:
     resolution: {integrity: sha512-UyIwNb1lJBChJnGfjmO0OR+ezh2iVu1Kas3nvBS/BzGnx79dv6g7unpKIDNPMhfdTEGoc7mC8uAu51XEtX+FHQ==}
     engines: {node: '>=6'}
-    deprecated: Superseded by level-transcoder (https://github.com/Level/community#faq)
 
   level-concat-iterator@2.0.1:
     resolution: {integrity: sha512-OTKKOqeav2QWcERMJR7IS9CUo1sHnke2C0gkSmcR7QuEtFNLLzHQAvnMw8ykvEcv0Qtkg0p7FOwP1v9e5Smdcw==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   level-errors@2.0.1:
     resolution: {integrity: sha512-UVprBJXite4gPS+3VznfgDSU8PTRuVX0NXwoWW50KLxd2yw4Y1t2JUR5In1itQnudZqRMT9DlAM3Q//9NCjCFw==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   level-iterator-stream@4.0.2:
     resolution: {integrity: sha512-ZSthfEqzGSOMWoUGhTXdX9jv26d32XJuHz/5YnuHZzH6wldfWMOVwI9TBtKcya4BKTyTt3XVA0A3cF3q5CY30Q==}
@@ -4274,7 +4245,6 @@ packages:
   levelup@4.4.0:
     resolution: {integrity: sha512-94++VFO3qN95cM/d6eBXvd894oJE0w3cInq9USsyQzzoJxmiYzPAocNcuGCPGGjoXqDVJcr3C1jzt1TSjyaiLQ==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   leven@3.1.0:
     resolution: {integrity: sha512-qsda+H8jTaUaN/x5vzW2rzc+8Rw4TAQ/4KjB46IwK5VH+IlVeeeje/EoZRpiXvIqjFgK84QffqPztGI3VBLG1A==}
@@ -4333,7 +4303,6 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
-    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.ismatch@4.4.0:
     resolution: {integrity: sha512-fPMfXjGQEV9Xsq/8MTSgUf255gawYRbjwMyDbcvDhXgV7enSZA0hynz6vMPnpAb5iONEzBHBPsT+0zes5Z301g==}
@@ -4400,7 +4369,6 @@ packages:
   memdown@5.1.0:
     resolution: {integrity: sha512-B3J+UizMRAlEArDjWHTMmadet+UKwHd3UjMgGBkZcKAxAYVPS9o0Yeiha4qvz7iGiL2Sb3igUft6p7nbFWctpw==}
     engines: {node: '>=6'}
-    deprecated: Superseded by memory-level (https://github.com/Level/community#faq)
 
   meow@8.1.2:
     resolution: {integrity: sha512-r85E3NdZ+mpYk1C6RjPFEMSE+s1iZMuHtsHAqY0DT3jZczl0diWUZ8g6oU7h0M9cD2EL+PzaYghhCLzR0ZNn5Q==}
@@ -4898,12 +4866,10 @@ packages:
 
   rimraf@2.7.1:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@5.0.1:
@@ -5025,11 +4991,9 @@ packages:
 
   sinon@10.0.1:
     resolution: {integrity: sha512-1rf86mvW4Mt7JitEIgmNaLXaWnrWd/UrVKZZlL+kbeOujXVf9fmC4kQEQ/YeHoiIA23PLNngYWK+dngIx/AumA==}
-    deprecated: 16.1.1
 
   sinon@14.0.2:
     resolution: {integrity: sha512-PDpV0ZI3ZCS3pEqx0vpNp6kzPhHrLx72wA0G+ZLaaJjLIYeE0n8INlgaohKuGy7hP0as5tbUd23QWu5U233t+w==}
-    deprecated: 16.1.1
 
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
@@ -5186,7 +5150,6 @@ packages:
   subleveldown@5.0.1:
     resolution: {integrity: sha512-cVqd/URpp7si1HWu5YqQ3vqQkjuolAwHypY1B4itPlS71/lsf6TQPZ2Y0ijT22EYVkvH5ove9JFJf4u7VGPuZw==}
     engines: {node: '>=6'}
-    deprecated: Superseded by abstract-level (https://github.com/Level/community#faq)
 
   supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
@@ -5464,7 +5427,6 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
-    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -7201,7 +7163,7 @@ snapshots:
       jest-util: 29.5.0
       slash: 3.0.0
 
-  '@jest/core@29.5.0(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))':
+  '@jest/core@29.5.0(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))':
     dependencies:
       '@jest/console': 29.5.0
       '@jest/reporters': 29.5.0
@@ -7215,7 +7177,7 @@ snapshots:
       exit: 0.1.2
       graceful-fs: 4.2.10
       jest-changed-files: 29.5.0
-      jest-config: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      jest-config: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       jest-haste-map: 29.5.0
       jest-message-util: 29.5.0
       jest-regex-util: 29.4.3
@@ -8066,6 +8028,10 @@ snapshots:
       form-data: 3.0.1
 
   '@types/node@24.13.5':
+    dependencies:
+      undici-types: 7.18.2
+
+  '@types/node@24.13.6':
     dependencies:
       undici-types: 7.18.2
 
@@ -10141,16 +10107,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jest-cli@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)):
+  jest-cli@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)):
     dependencies:
-      '@jest/core': 29.5.0(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      '@jest/core': 29.5.0(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       '@jest/test-result': 29.5.0
       '@jest/types': 29.5.0
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.10
       import-local: 3.1.0
-      jest-config: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      jest-config: 29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       jest-util: 29.5.0
       jest-validate: 29.5.0
       prompts: 2.4.2
@@ -10160,7 +10126,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)):
+  jest-config@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)):
     dependencies:
       '@babel/core': 7.20.12
       '@jest/test-sequencer': 29.5.0
@@ -10186,7 +10152,37 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 24.13.5
-      ts-node: 10.9.2(@types/node@24.13.5)(typescript@5.9.3)
+      ts-node: 10.9.2(@types/node@24.13.6)(typescript@5.9.3)
+    transitivePeerDependencies:
+      - supports-color
+
+  jest-config@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)):
+    dependencies:
+      '@babel/core': 7.20.12
+      '@jest/test-sequencer': 29.5.0
+      '@jest/types': 29.5.0
+      babel-jest: 29.5.0(@babel/core@7.20.12)
+      chalk: 4.1.2
+      ci-info: 3.9.0
+      deepmerge: 4.2.2
+      glob: 7.2.3
+      graceful-fs: 4.2.10
+      jest-circus: 29.5.0
+      jest-environment-node: 29.5.0
+      jest-get-type: 29.4.3
+      jest-regex-util: 29.4.3
+      jest-resolve: 29.5.0
+      jest-runner: 29.5.0
+      jest-util: 29.5.0
+      jest-validate: 29.5.0
+      micromatch: 4.0.8
+      parse-json: 5.2.0
+      pretty-format: 29.5.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 24.13.6
+      ts-node: 10.9.2(@types/node@24.13.6)(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
 
@@ -10208,11 +10204,11 @@ snapshots:
     dependencies:
       detect-newline: 3.1.0
 
-  jest-dynalite@3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))):
+  jest-dynalite@3.6.1(@aws-sdk/client-dynamodb@3.1024.0)(aws-sdk@2.1693.0)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))):
     dependencies:
       '@aws/dynamodb-auto-marshaller': 0.7.1(aws-sdk@2.1693.0)
       dynalite: 3.2.2
-      jest: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      jest: 29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       setimmediate: 1.0.5
     optionalDependencies:
       '@aws-sdk/client-dynamodb': 3.1024.0
@@ -10427,12 +10423,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)):
+  jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)):
     dependencies:
-      '@jest/core': 29.5.0(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      '@jest/core': 29.5.0(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       '@jest/types': 29.5.0
       import-local: 3.1.0
-      jest-cli: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      jest-cli: 29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
     transitivePeerDependencies:
       - '@types/node'
       - supports-color
@@ -11694,11 +11690,11 @@ snapshots:
       convict: 6.2.5
       reflect-metadata: 0.1.14
 
-  ts-jest@29.0.5(@babel/core@7.20.12)(@jest/types@29.5.0)(babel-jest@29.5.0(@babel/core@7.20.12))(esbuild@0.28.1)(jest@29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3)))(typescript@5.9.3):
+  ts-jest@29.0.5(@babel/core@7.20.12)(@jest/types@29.5.0)(babel-jest@29.5.0(@babel/core@7.20.12))(esbuild@0.28.1)(jest@29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3)))(typescript@5.9.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.5.0(@types/node@24.13.5)(ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3))
+      jest: 29.5.0(@types/node@24.13.6)(ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3))
       jest-util: 29.5.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -11712,14 +11708,14 @@ snapshots:
       babel-jest: 29.5.0(@babel/core@7.20.12)
       esbuild: 0.28.1
 
-  ts-node@10.9.2(@types/node@24.13.5)(typescript@5.9.3):
+  ts-node@10.9.2(@types/node@24.13.6)(typescript@5.9.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.13
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 24.13.5
+      '@types/node': 24.13.6
       acorn: 8.18.0
       acorn-walk: 8.3.5
       arg: 4.1.3
@@ -12036,8 +12032,7 @@ snapshots:
 
   yaml@2.8.3: {}
 
-  yaml@2.9.1:
-    optional: true
+  yaml@2.9.1: {}
 
   yargs-parser@20.2.9: {}
 
