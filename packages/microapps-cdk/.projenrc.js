@@ -53,7 +53,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   devDeps: [
     'esbuild',
     '@types/yargs@^16.0.0', // This is a dummy to prevent jsii from failing
-    '@types/jest@^26.0.24', // This is a dummy to prevent jsii from failing
+    '@types/jest@^30.0.0', // This is a dummy to prevent jsii from failing
     // 'patch-package@^6.4.7',
   ],
   peerDeps: [],
