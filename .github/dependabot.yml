@@ -12,6 +12,14 @@ updates:
     ignore:
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      # Compiler, lint config, and formatting migrations need manual coordination
+      # with jsii/Jest and projen's generated standalone package configuration.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '*eslint*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '*prettier*'
+        update-types: ['version-update:semver-major']
     groups:
       # First matching group wins. Keep coupled tools together across both
       # directories; group-by: dependency-name would split them back into PRs.
