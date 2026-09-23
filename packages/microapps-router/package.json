@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.1024.0",
+    "@aws-sdk/client-dynamodb": "^3.1136.0",
     "@pwrdrvr/microapps-datalib": "workspace:*",
     "@pwrdrvr/microapps-router-lib": "workspace:*",
     "@types/aws-lambda": "8.10.110",
@@ -33,7 +33,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "3.1024.0",
+    "@aws-sdk/client-dynamodb": "3.1136.0",
     "@types/convict": "^6.0.2",
     "@types/convict-format-with-validator": "^6.0.2",
     "@types/fs-extra": "^9.0.11",

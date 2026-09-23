@@ -8,9 +8,9 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@aws-crypto/sha256-browser": "4.0.0",
-    "@aws-sdk/client-dynamodb": "3.1024.0",
-    "@aws-sdk/client-secrets-manager": "3.1024.0",
-    "@aws-sdk/credential-provider-node": "3.972.29",
+    "@aws-sdk/client-dynamodb": "3.1136.0",
+    "@aws-sdk/client-secrets-manager": "3.1136.0",
+    "@aws-sdk/credential-provider-node": "3.972.83",
     "@aws-sdk/signature-v4": "3.374.0",
     "@aws-sdk/protocol-http": "3.374.0",
     "@aws-sdk/node-http-handler": "3.374.0",
@@ -22,13 +22,13 @@
     "@types/node": "^24.13.6",
     "aws-sdk-client-mock": "4.1.0",
     "jest-dynalite": "3.6.1",
-    "@aws-sdk/client-s3": "3.1132.0"
+    "@aws-sdk/client-s3": "3.1136.0"
   },
   "dependencies": {
     "@aws-crypto/sha256-browser": "^4.0.0",
-    "@aws-sdk/client-dynamodb": "^3.1024.0",
-    "@aws-sdk/client-secrets-manager": "^3.1024.0",
-    "@aws-sdk/credential-provider-node": "^3.972.29",
+    "@aws-sdk/client-dynamodb": "^3.1136.0",
+    "@aws-sdk/client-secrets-manager": "^3.1136.0",
+    "@aws-sdk/credential-provider-node": "^3.972.83",
     "@aws-sdk/signature-v4": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
     "@aws-sdk/node-http-handler": "^3.374.0",
@@ -45,6 +45,6 @@
     "tslib": "^2.1.0",
     "ts-convict": "^1.1.0",
     "get-stream": "^6.0.1",
-    "@aws-sdk/client-s3": "^3.1132.0"
+    "@aws-sdk/client-s3": "^3.1136.0"
   }
 }
