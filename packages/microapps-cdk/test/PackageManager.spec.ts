@@ -13,7 +13,7 @@ describe('microapps-cdk package manager configuration', () => {
     const projenrc = readRepoFile('packages', 'microapps-cdk', '.projenrc.js');
 
     expect(projenrc).toContain('packageManager: javascript.NodePackageManager.PNPM');
-    expect(projenrc).toContain("pnpmVersion: '10'");
+    expect(projenrc).toContain("pnpmVersion: '10.29.3'");
   });
 
   it('commits pnpm-based standalone build artifacts', () => {
@@ -39,11 +39,11 @@ describe('microapps-cdk package manager configuration', () => {
       'release.yml',
     );
 
-    expect(buildWorkflow).toContain('uses: pnpm/action-setup@v5');
+    expect(buildWorkflow).toContain('uses: pnpm/action-setup@v6.0.10');
     expect(buildWorkflow).toContain('run: pnpm i --no-frozen-lockfile');
     expect(buildWorkflow).not.toContain('yarn install');
 
-    expect(releaseWorkflow).toContain('uses: pnpm/action-setup@v5');
+    expect(releaseWorkflow).toContain('uses: pnpm/action-setup@v6.0.10');
     expect(releaseWorkflow).toContain('run: pnpm i --frozen-lockfile');
     expect(releaseWorkflow).not.toContain('yarn install');
   });

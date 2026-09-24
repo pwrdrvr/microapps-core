@@ -18,7 +18,7 @@
     "@pwrdrvr/microapps-app-release-cdk": "0.5.3",
     "@pwrdrvr/microapps-cdk": "workspace:*",
     "source-map-support": "0.5.21",
-    "aws-cdk-lib": "2.248.0",
+    "aws-cdk-lib": "2.270.0",
     "constructs": "10.8.1"
   },
   "devDependencies": {
