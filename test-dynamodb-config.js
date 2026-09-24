@@ -1,4 +1,4 @@
-// use export default for ts based configs
+// Shared DynamoDB table schema for the local test fixture.
 module.exports = {
   tables: [
     {

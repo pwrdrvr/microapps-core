@@ -8,7 +8,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorOrganization: true,
   description:
     'MicroApps framework, by PwrDrvr LLC, delivered as an AWS CDK construct that provides the DynamoDB, Router service, Deploy service, API Gateway, and CloudFront distribution.',
-  cdkVersion: '2.248.0',
+  cdkVersion: '2.270.0',
   cdkVersionPinning: false,
   constructsVersion: '10.8.1',
   copyrightOwner: 'PwrDrvr LLC',
@@ -19,11 +19,12 @@ const project = new awscdk.AwsCdkConstructLibrary({
   releaseToNpm: true,
   npmAccess: javascript.NpmAccess.PUBLIC,
   packageManager: javascript.NodePackageManager.PNPM,
-  pnpmVersion: '10',
+  pnpmVersion: '10.29.3',
   addPackageManagerToDevEngines: false,
   minNodeVersion: '24.0.0',
   workflowNodeVersion: readFileSync(resolve(__dirname, '../../.nvmrc'), 'utf8').trim(),
-  jsiiVersion: '^5.9.36',
+  jsiiVersion: '^6.0.14',
+  projenVersion: '0.103.25',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
   // running `npx projen` - It's just not worth the trouble to try to
@@ -54,6 +55,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'esbuild',
     '@types/yargs@^16.0.0', // This is a dummy to prevent jsii from failing
     '@types/jest@^30.0.0', // This is a dummy to prevent jsii from failing
+    'jsii-diff@^1.140.0',
+    'jsii-docgen@^10.12.6',
+    'jsii-pacmak@^1.140.0',
     // 'patch-package@^6.4.7',
   ],
   peerDeps: [],
@@ -76,6 +80,10 @@ const project = new awscdk.AwsCdkConstructLibrary({
     module: 'pwrdrvr.microapps.cdk',
   },
 });
+
+// JsiiProject derives rosetta's version from jsiiVersion. Keep its separate
+// minimum aligned with the tested v6 toolchain after those defaults are added.
+project.addDevDeps('jsii-rosetta@^6.0.16');
 
 //
 // Types from the monorepo that are not used by CDK are causing build failures

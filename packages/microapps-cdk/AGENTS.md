@@ -10,7 +10,6 @@ These instructions apply to `/Users/huntharo/.codex/worktrees/029a/microapps-cor
 - Treat [`.projenrc.js`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/.projenrc.js) as the source of truth for generated files.
 - Expect `projen` to own files like:
   - [`package.json`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/package.json)
-  - [`.npmrc`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/.npmrc)
   - [`.eslintrc.json`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/.eslintrc.json)
   - [`.github/workflows/build.yml`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/.github/workflows/build.yml)
   - [`.github/workflows/release.yml`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/.github/workflows/release.yml)
@@ -21,7 +20,7 @@ These instructions apply to `/Users/huntharo/.codex/worktrees/029a/microapps-cor
 - This package is configured for `pnpm`, not `yarn`.
 - The current `projen` source explicitly pins:
   - `packageManager: javascript.NodePackageManager.PNPM`
-  - `pnpmVersion: '10'`
+  - `pnpmVersion: '10.29.3'` (matching the repository root's pinned pnpm version)
 - There is a guard test for this in [`test/PackageManager.spec.ts`](/Users/huntharo/.codex/worktrees/029a/microapps-core/packages/microapps-cdk/test/PackageManager.spec.ts).
 
 ## Safe Projen Invocation

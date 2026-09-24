@@ -21,7 +21,6 @@
     "@types/lambda-log": "^2.2.0",
     "@types/node": "^24.13.6",
     "aws-sdk-client-mock": "4.1.0",
-    "jest-dynalite": "3.6.1",
     "@aws-sdk/client-s3": "3.1136.0"
   },
   "dependencies": {
@@ -35,7 +34,7 @@
     "@pwrdrvr/microapps-datalib": "workspace:*",
     "@pwrdrvr/microapps-router-lib": "workspace:*",
     "@types/aws-lambda": "8.10.110",
-    "convict": "^6.1.0",
+    "convict": "^6.2.5",
     "convict-format-with-validator": "^6.0.1",
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.3.2",
