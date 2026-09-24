@@ -38,20 +38,32 @@ function classifyScopeFromRawJson(params: { filesJson: string; existingLabelsJso
 }
 
 describe('preview-deploy-scope', () => {
-  it('adds only DEPLOY-CORE for workflow changes', () => {
+  it('does not recommend previews for workflow and configuration changes', () => {
     const result = classifyScope({
-      files: ['.github/workflows/ci.yml'],
+      files: ['.github/workflows/ci.yml', 'deploy.sh', 'tsconfig.json'],
     });
 
-    expect(result.recommendedLabels).toEqual(['DEPLOY-CORE']);
-    expect(result.labelsToAdd).toEqual(['DEPLOY-CORE']);
-    expect(result.matchedGroups).toEqual([
-      {
-        name: 'workflow-config',
-        labels: ['DEPLOY-CORE'],
-        files: ['.github/workflows/ci.yml'],
-      },
-    ]);
+    expect(result.recommendedLabels).toEqual([]);
+    expect(result.labelsToAdd).toEqual([]);
+    expect(result.hasDeployImpact).toBe(false);
+  });
+
+  it('does not recommend previews for dependency-only package changes', () => {
+    const files = [
+      'package.json',
+      'pnpm-lock.yaml',
+      'packages/microapps-cdk/.projen/deps.json',
+      'packages/microapps-cdk/.projenrc.js',
+      'packages/microapps-cdk/package.json',
+      'packages/microapps-cdk/pnpm-lock.yaml',
+      'packages/microapps-datalib/package.json',
+    ];
+    const result = classifyScope({ files });
+
+    expect(result.recommendedLabels).toEqual([]);
+    expect(result.labelsToAdd).toEqual([]);
+    expect(result.hasDeployImpact).toBe(false);
+    expect(result.unmatchedFiles).toEqual(files.sort());
   });
 
   it('adds all preview labels for packages/cdk changes', () => {
@@ -95,6 +107,30 @@ describe('preview-deploy-scope', () => {
     expect(result.labelsToAdd).toEqual(['DEPLOY-BASIC', 'DEPLOY-BASIC-PREFIX']);
   });
 
+  it('keeps manually added labels without recommending a preview for config changes', () => {
+    const result = classifyScope({
+      files: ['packages/microapps-cdk/.projenrc.js'],
+      existingLabels: ['DEPLOY-BASIC'],
+    });
+
+    expect(result.existingLabels).toEqual(['DEPLOY-BASIC']);
+    expect(result.recommendedLabels).toEqual([]);
+    expect(result.labelsToAdd).toEqual([]);
+  });
+
+  it('does not recommend previews for tests alone', () => {
+    const result = classifyScope({
+      files: [
+        'packages/microapps-cdk/test/MicroApps.spec.ts',
+        'packages/microapps-router/src/index.spec.ts',
+        'tests/integration/demo-app.spec.ts',
+      ],
+    });
+
+    expect(result.recommendedLabels).toEqual([]);
+    expect(result.labelsToAdd).toEqual([]);
+  });
+
   it('tracks unmatched files without broadening labels', () => {
     const result = classifyScope({
       files: ['.nvmrc', 'packages/microapps-router/src/index.ts'],
@@ -108,7 +144,7 @@ describe('preview-deploy-scope', () => {
   it('accepts one accidental extra JSON encoding layer', () => {
     const result = classifyScopeFromRawJson({
       filesJson: JSON.stringify(
-        JSON.stringify(['package.json', 'tests/integration/demo-app.spec.ts']),
+        JSON.stringify(['packages/microapps-router/src/index.ts', 'tests/integration/demo-app.spec.ts']),
       ),
       existingLabelsJson: JSON.stringify(JSON.stringify([])),
     });

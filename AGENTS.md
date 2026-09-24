@@ -50,6 +50,12 @@ The main pieces are:
 - Common types here include `feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `build`, `perf`, and `chore`.
 - Keep checkpoint commits reviewable: one main idea per commit whenever practical.
 
+## Preview Deployment Labels
+
+- Do not add `DEPLOY-CORE`, `DEPLOY-BASIC`, or `DEPLOY-BASIC-PREFIX` to a PR unless the user explicitly asks for a preview deployment or the changed code affects a specific feature that needs a full preview rollout.
+- Choose only the labels for affected preview environments. Dependency, lockfile, generated manifest, workflow, and other configuration-only changes do not warrant automatic preview labels.
+- CI also uses the preview scope classifier's recommended labels to start deploy jobs, so keep its recommendations aligned with this rule even when no PR labels are present.
+
 ## Common Commands
 
 ### Build
