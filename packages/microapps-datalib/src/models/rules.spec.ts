@@ -1,4 +1,4 @@
-import 'jest-dynalite/withDb';
+import '../../../../tests/dynamodb/withDb';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { DBManager } from '../manager';
 import { Rules } from './rules';

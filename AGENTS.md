@@ -39,7 +39,7 @@ The main pieces are:
 
 - Package manifests are the source of truth for whether one package may import another.
 - Root linting enforces `import/no-extraneous-dependencies`, including type-only imports, across normal workspace packages.
-- If a package-local test imports a helper like `jest-dynalite`, declare it in that package's `devDependencies`; do not assume root-only test dependencies are visible.
+- If a package-local test imports an external helper, declare it in that package's `devDependencies`; the shared DynamoDB fixture in `tests/dynamodb` is provided by the root test harness.
 - If a package is published, treat shipped `.d.ts` files as part of the public contract. Do not leave them pointing at private workspace packages.
 
 ## Commits
@@ -122,7 +122,7 @@ Prebuilt outputs of note:
 
 ## Testing Notes
 
-- Unit tests use Jest and `jest-dynalite`.
+- Unit tests use Jest and a shared Dynalite fixture in `tests/dynamodb`.
 - Integration tests use [`jest.int.config.js`](/Users/huntharo/.codex/worktrees/029a/microapps-core/jest.int.config.js).
 - Root linting excludes `packages/microapps-cdk` in [`.eslintignore`](/Users/huntharo/.codex/worktrees/029a/microapps-core/.eslintignore) because that package has its own projen-managed lint setup.
 

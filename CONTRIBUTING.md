@@ -47,7 +47,7 @@ The repo now enforces package boundaries in two layers:
 When adding a new import:
 
 - Add runtime and type-only package imports to the importing package's `dependencies` when shipped source or declarations rely on them.
-- Add test-only helpers such as `jest-dynalite` to the specific package's `devDependencies` instead of relying on the repo root.
+- Add external test-only helpers to the specific package's `devDependencies`. The shared DynamoDB fixture in `tests/dynamodb` is provided by the root test harness.
 - Treat `packages/microapps-cdk` as the exception path for package-manager behavior; if it ever needs special handling, keep that handling local to the package rather than reintroducing repo-wide hoisting.
 
 # Commit Messages

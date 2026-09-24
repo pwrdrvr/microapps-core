@@ -1,7 +1,7 @@
 // index.spec.ts
 /// <reference types="jest" />
 import 'reflect-metadata';
-import 'jest-dynalite/withDb';
+import '../../../tests/dynamodb/withDb';
 import { Config, IConfig } from './config/Config';
 jest.mock('./config/Config');
 Object.defineProperty(Config, 'instance', {

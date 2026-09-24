@@ -1,4 +1,4 @@
-import 'jest-dynalite/withDb';
+import '../../../../tests/dynamodb/withDb';
 import { DBManager, Application } from '@pwrdrvr/microapps-datalib';
 import type * as lambda from 'aws-lambda';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
