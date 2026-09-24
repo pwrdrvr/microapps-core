@@ -83,7 +83,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
 // JsiiProject derives rosetta's version from jsiiVersion. Keep its separate
 // minimum aligned with the tested v6 toolchain after those defaults are added.
-project.addDevDeps('jsii-rosetta@^6.0.15');
+project.addDevDeps('jsii-rosetta@^6.0.16');
 
 //
 // Types from the monorepo that are not used by CDK are causing build failures
