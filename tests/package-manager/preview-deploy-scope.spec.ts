@@ -131,6 +131,19 @@ describe('preview-deploy-scope', () => {
     expect(result.labelsToAdd).toEqual([]);
   });
 
+  it('recommends a core preview for published assets in test-named paths', () => {
+    const result = classifyScope({
+      files: [
+        'packages/static-app/src/test/example.html',
+        'packages/demo-app/static_files/tests/example.html',
+      ],
+    });
+
+    expect(result.recommendedLabels).toEqual(['DEPLOY-CORE']);
+    expect(result.labelsToAdd).toEqual(['DEPLOY-CORE']);
+    expect(result.hasDeployImpact).toBe(true);
+  });
+
   it('tracks unmatched files without broadening labels', () => {
     const result = classifyScope({
       files: ['.nvmrc', 'packages/microapps-router/src/index.ts'],

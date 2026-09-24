@@ -11,6 +11,14 @@ const DOC_PATH_PATTERNS = [
 ];
 
 function isTestOnlyPath(file) {
+  // These trees are published verbatim, including files in test-named directories.
+  if (
+    file.startsWith('packages/static-app/src/') ||
+    file.startsWith('packages/demo-app/static_files/')
+  ) {
+    return false;
+  }
+
   return /(?:^|\/)(?:test|tests|__tests__|__snapshots__)\//.test(file) ||
     /\.(?:spec|test)\.[cm]?[jt]sx?(?:\.snap)?$/.test(file);
 }
