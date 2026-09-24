@@ -265,8 +265,8 @@ importers:
         specifier: 8.10.110
         version: 8.10.110
       convict:
-        specifier: ^6.1.0
-        version: 6.2.4
+        specifier: ^6.2.5
+        version: 6.2.5
       convict-format-with-validator:
         specifier: ^6.0.1
         version: 6.2.0
@@ -287,7 +287,7 @@ importers:
         version: 0.5.21
       ts-convict:
         specifier: ^1.1.0
-        version: 1.1.0(convict@6.2.4)(reflect-metadata@0.1.13)
+        version: 1.1.0(convict@6.2.5)(reflect-metadata@0.1.13)
       tslib:
         specifier: 2.5.0
         version: 2.5.0
@@ -369,8 +369,8 @@ importers:
         specifier: 8.10.110
         version: 8.10.110
       convict:
-        specifier: ^6.1.0
-        version: 6.2.4
+        specifier: ^6.2.5
+        version: 6.2.5
       convict-format-with-validator:
         specifier: ^6.0.1
         version: 6.2.0
@@ -394,7 +394,7 @@ importers:
         version: 0.5.21
       ts-convict:
         specifier: ^1.1.0
-        version: 1.1.0(convict@6.2.4)(reflect-metadata@0.1.13)
+        version: 1.1.0(convict@6.2.5)(reflect-metadata@0.1.13)
       tslib:
         specifier: ^2.1.0
         version: 2.5.0
@@ -445,8 +445,8 @@ importers:
         specifier: 8.10.110
         version: 8.10.110
       convict:
-        specifier: ^6.1.0
-        version: 6.2.4
+        specifier: ^6.2.5
+        version: 6.2.5
       convict-format-with-validator:
         specifier: ^6.0.1
         version: 6.2.0
@@ -467,7 +467,7 @@ importers:
         version: 0.5.21
       ts-convict:
         specifier: ^1.1.0
-        version: 1.1.0(convict@6.2.4)(reflect-metadata@0.1.13)
+        version: 1.1.0(convict@6.2.5)(reflect-metadata@0.1.13)
       tslib:
         specifier: ^2.1.0
         version: 2.6.2
@@ -2556,10 +2556,6 @@ packages:
 
   convict-format-with-validator@6.2.0:
     resolution: {integrity: sha512-2LIL3yEZY27M13UHLIP4mGivusP9h2M+X4mYsRBLexwUp8+0sgVk2MgB2b2bnQwkn293lkbkxgdevzn0nZdyzQ==}
-    engines: {node: '>=6'}
-
-  convict@6.2.4:
-    resolution: {integrity: sha512-qN60BAwdMVdofckX7AlohVJ2x9UvjTNoKVXCL2LxFk1l7757EJqf1nySdMkPQer0bt8kQ5lQiyZ9/2NvrFBuwQ==}
     engines: {node: '>=6'}
 
   convict@6.2.5:
@@ -7060,11 +7056,6 @@ snapshots:
     dependencies:
       validator: 13.7.0
 
-  convict@6.2.4:
-    dependencies:
-      lodash.clonedeep: 4.5.0
-      yargs-parser: 20.2.9
-
   convict@6.2.5:
     dependencies:
       lodash.clonedeep: 4.5.0
@@ -9506,9 +9497,9 @@ snapshots:
     dependencies:
       typescript: 5.9.3
 
-  ts-convict@1.1.0(convict@6.2.4)(reflect-metadata@0.1.13):
+  ts-convict@1.1.0(convict@6.2.5)(reflect-metadata@0.1.13):
     dependencies:
-      convict: 6.2.4
+      convict: 6.2.5
       reflect-metadata: 0.1.13
 
   ts-convict@1.1.0(convict@6.2.5)(reflect-metadata@0.1.14):
