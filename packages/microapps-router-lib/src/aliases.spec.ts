@@ -1,4 +1,4 @@
-import '../../../tests/dynamodb-local/with-db.cjs';
+import '../../../tests/dynamodb/withDb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, Rules, Version } from '@pwrdrvr/microapps-datalib';
 import { GetRoute } from './get-route';
