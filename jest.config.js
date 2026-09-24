@@ -132,7 +132,7 @@ module.exports = {
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
-  // https://github.com/freshollie/jest-dynalite
+  // Set worker-specific Dynalite endpoints before tests import AWS clients.
   setupFiles: ['./setupBeforeEnv.js'],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test

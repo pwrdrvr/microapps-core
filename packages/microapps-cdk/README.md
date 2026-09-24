@@ -76,7 +76,7 @@ This repo now relies on two complementary guardrails for workspace boundaries:
 - `pnpm` uses its default isolated workspace layout at the repo root, so undeclared dependencies are much less likely to appear accidentally through a flattened install.
 - ESLint enforces `import/no-extraneous-dependencies`, including type-only imports, so invalid package-to-package imports fail with a file-level diagnostic during normal lint runs and in CI.
 
-In practice, if a package imports another workspace package, declare that dependency in the importing package's `package.json`. Test-only helpers such as `jest-dynalite` should also be declared in the specific package that uses them instead of relying on a root-only dev dependency.
+In practice, if a package imports another workspace package, declare that dependency in the importing package's `package.json`. External test-only helpers should also be declared by the package that uses them; the shared DynamoDB fixture in `tests/dynamodb` is provided by the root test harness.
 
 # Tutorial - Bootstrapping a Deploy
 

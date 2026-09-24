@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import 'reflect-metadata';
 import { createHash } from 'crypto';
-import 'jest-dynalite/withDb';
+import '../../../../../tests/dynamodb/withDb';
 import { Config, IConfig } from '../../config/Config';
 jest.mock('../../config/Config');
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };

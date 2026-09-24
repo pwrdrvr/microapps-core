@@ -43,6 +43,7 @@
     "test:integration": "jest --config ./jest.int.config.js"
   },
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "3.1136.0",
     "@types/jest": "30.0.0",
     "@types/node": "^24.13.6",
     "@typescript-eslint/eslint-plugin": "8.70.0",
@@ -50,6 +51,7 @@
     "aws-cdk": "^2.1142.0",
     "constructs": "10.8.1",
     "cross-env": "10.1.0",
+    "dynalite": "3.2.2",
     "esbuild": "0.28.1",
     "eslint": "8.57.1",
     "eslint-config-prettier": "10.1.8",
@@ -59,7 +61,6 @@
     "eslint-plugin-prettier": "4.2.5",
     "husky": "9.1.7",
     "jest": "30.5.2",
-    "jest-dynalite": "3.6.1",
     "lint-staged": "17.5.1",
     "pwrdrvr": "workspace:*",
     "prettier": "2.8.8",

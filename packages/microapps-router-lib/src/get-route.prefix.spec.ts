@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import 'reflect-metadata';
-import 'jest-dynalite/withDb';
+import '../../../tests/dynamodb/withDb';
 import * as dynamodb from '@aws-sdk/client-dynamodb';
 import { Application, DBManager, Version, Rules } from '@pwrdrvr/microapps-datalib';
 import { GetRoute } from './index';
