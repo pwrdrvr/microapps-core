@@ -2,21 +2,6 @@ import fs from 'fs';
 
 const LABEL_ORDER = ['DEPLOY-CORE', 'DEPLOY-BASIC', 'DEPLOY-BASIC-PREFIX'];
 
-const EXACT_CORE_PATHS = new Set([
-  'deploy.sh',
-  'package.json',
-  'pnpm-lock.yaml',
-  'tsconfig.json',
-  'tsconfig.packages.json',
-  'tsconfig.publish.json',
-  'cdk.json',
-  'jest.config.js',
-  'jest.int.config.js',
-  '.demo-app-replace.config.js',
-  '.nextjs-demo-replace.config.js',
-  '.release-replace.config.js',
-]);
-
 const DOC_PATH_PATTERNS = [
   /^README\.md$/i,
   /^CHANGELOG\.md$/i,
@@ -25,26 +10,29 @@ const DOC_PATH_PATTERNS = [
   /^packages\/[^/]+\/README\.md$/i,
 ];
 
+function isTestOnlyPath(file) {
+  // These trees are published verbatim, including files in test-named directories.
+  if (
+    file.startsWith('packages/static-app/src/') ||
+    file.startsWith('packages/demo-app/static_files/')
+  ) {
+    return false;
+  }
+
+  return /(?:^|\/)(?:test|tests|__tests__|__snapshots__)\//.test(file) ||
+    /\.(?:spec|test)\.[cm]?[jt]sx?(?:\.snap)?$/.test(file);
+}
+
 const GROUPS = [
-  {
-    name: 'workflow-config',
-    labels: ['DEPLOY-CORE'],
-    matches(file) {
-      return file.startsWith('.github/workflows/') || file.startsWith('.github/actions/');
-    },
-  },
-  {
-    name: 'deploy-scripts-and-config',
-    labels: ['DEPLOY-CORE'],
-    matches(file) {
-      return EXACT_CORE_PATHS.has(file);
-    },
-  },
   {
     name: 'preview-stack-definitions',
     labels: ['DEPLOY-CORE', 'DEPLOY-BASIC', 'DEPLOY-BASIC-PREFIX'],
     matches(file) {
-      return file.startsWith('packages/cdk/') || file.startsWith('packages/microapps-cdk/');
+      return (
+        file.startsWith('packages/cdk/bin/') ||
+        file.startsWith('packages/cdk/lib/') ||
+        file.startsWith('packages/microapps-cdk/src/')
+      );
     },
   },
   {
@@ -52,24 +40,20 @@ const GROUPS = [
     labels: ['DEPLOY-CORE'],
     matches(file) {
       return (
-        file.startsWith('packages/microapps-deployer/') ||
-        file.startsWith('packages/microapps-deployer-lib/') ||
-        file.startsWith('packages/microapps-router/') ||
-        file.startsWith('packages/microapps-router-lib/') ||
-        file.startsWith('packages/microapps-edge-to-origin/') ||
-        file.startsWith('packages/microapps-datalib/') ||
-        file.startsWith('packages/pwrdrvr/') ||
-        file.startsWith('packages/demo-app/') ||
-        file.startsWith('packages/static-app/') ||
-        file.startsWith('packages/microapps-publish/')
+        file.startsWith('packages/microapps-deployer/src/') ||
+        file.startsWith('packages/microapps-deployer-lib/src/') ||
+        file.startsWith('packages/microapps-router/src/') ||
+        file.startsWith('packages/microapps-router/templates/') ||
+        file.startsWith('packages/microapps-router-lib/src/') ||
+        file.startsWith('packages/microapps-edge-to-origin/src/') ||
+        file.startsWith('packages/microapps-datalib/src/') ||
+        file.startsWith('packages/pwrdrvr/src/') ||
+        file.startsWith('packages/pwrdrvr/bin/') ||
+        file.startsWith('packages/demo-app/src/') ||
+        file.startsWith('packages/demo-app/static_files/') ||
+        file.startsWith('packages/static-app/src/') ||
+        file.startsWith('packages/microapps-publish/bin/')
       );
-    },
-  },
-  {
-    name: 'preview-test-harness',
-    labels: ['DEPLOY-CORE'],
-    matches(file) {
-      return file.startsWith('tests/integration/');
     },
   },
 ];
@@ -142,7 +126,7 @@ function classifyScope({ files, existingLabels }) {
   const unmatchedFiles = [];
 
   for (const group of GROUPS) {
-    const matchedFiles = files.filter((file) => group.matches(file));
+    const matchedFiles = files.filter((file) => !isTestOnlyPath(file) && group.matches(file));
 
     if (matchedFiles.length === 0) {
       continue;
