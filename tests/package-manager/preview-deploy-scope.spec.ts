@@ -144,7 +144,10 @@ describe('preview-deploy-scope', () => {
   it('accepts one accidental extra JSON encoding layer', () => {
     const result = classifyScopeFromRawJson({
       filesJson: JSON.stringify(
-        JSON.stringify(['packages/microapps-router/src/index.ts', 'tests/integration/demo-app.spec.ts']),
+        JSON.stringify([
+          'packages/microapps-router/src/index.ts',
+          'tests/integration/demo-app.spec.ts',
+        ]),
       ),
       existingLabelsJson: JSON.stringify(JSON.stringify([])),
     });
