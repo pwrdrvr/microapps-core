@@ -60,7 +60,7 @@ importers:
         specifier: ^1.140.0
         version: 1.140.0(jsii-rosetta@6.0.16)
       jsii-rosetta:
-        specifier: ^6.0.15
+        specifier: ^6.0.16
         version: 6.0.16
       projen:
         specifier: 0.103.25

@@ -15,7 +15,9 @@
   "pnpm": {
     "overrides": {
       "constructs": "10.8.1",
-      "terser": "^5.14.2"
+      "terser": "^5.14.2",
+      "lodash": "4.18.1",
+      "validator": "13.15.22"
     }
   },
   "private": true,
@@ -38,7 +40,6 @@
     "test": "AWS_PROFILE= AWS_EMF_ENVIRONMENT=Local NODE_OPTIONS=--experimental-vm-modules jest",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix",
-    "postinstall": "patch-package",
     "test:integration": "jest --config ./jest.int.config.js"
   },
   "devDependencies": {
@@ -60,12 +61,11 @@
     "jest": "30.5.2",
     "jest-dynalite": "3.6.1",
     "lint-staged": "17.5.1",
-    "patch-package": "8.0.0",
     "pwrdrvr": "workspace:*",
     "prettier": "2.8.8",
     "projen": "0.103.25",
     "replace-in-file": "6.3.5",
-    "rimraf": "5.0.1",
+    "rimraf": "5.0.10",
     "ts-jest": "29.4.12",
     "ts-node": "10.9.2",
     "typescript": "~5.9.3",
