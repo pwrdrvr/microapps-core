@@ -110,14 +110,18 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
   try {
     const appVersionCache = AppVersionCache.GetInstance({ dbManager });
 
-    if (!!normalizedPathPrefix && !event.rawPath.startsWith(normalizedPathPrefix)) {
+    if (
+      normalizedPathPrefix &&
+      event.rawPath !== normalizedPathPrefix &&
+      !event.rawPath.startsWith(`${normalizedPathPrefix}/`)
+    ) {
       // The prefix is required if configured, if missing we cannot serve this app
       return { statusCode: 404, errorMessage: 'Request not routable' };
     }
 
     const pathAfterPrefix =
       normalizedPathPrefix && event.rawPath.startsWith(normalizedPathPrefix)
-        ? event.rawPath.slice(normalizedPathPrefix.length - 1)
+        ? event.rawPath.slice(normalizedPathPrefix.length)
         : event.rawPath;
 
     const pathAfterPrefixAndLocale = locales.reduce((path, locale) => {
@@ -135,6 +139,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
 
     // Handle ${prefix}/_next/data/${semver}[/${locale}]/${appname}/route
     let appName: string | undefined;
+    let requestedAppName = partsAfterPrefixAndLocale[1] ?? '';
     if (
       partsAfterPrefixAndLocale.length >= 4 &&
       partsAfterPrefixAndLocale[1] === '_next' &&
@@ -144,15 +149,15 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
       const localeIsPresent =
         partsAfterPrefixAndLocale.length >= 5 &&
         locales.some((locale) => partsAfterPrefixAndLocale[4] === locale);
-      const possibleAppNamePart = localeIsPresent
-        ? partsAfterPrefixAndLocale[5]
-        : partsAfterPrefixAndLocale[4];
+      const possibleAppNamePart =
+        (localeIsPresent ? partsAfterPrefixAndLocale[5] : partsAfterPrefixAndLocale[4]) ?? '';
 
       // if partsAfterPrefix[4] has .json suffix, strip it
       const possibleAppName = possibleAppNamePart.endsWith('.json')
         ? possibleAppNamePart.slice(0, possibleAppNamePart.length - 5)
         : possibleAppNamePart;
 
+      requestedAppName = possibleAppName;
       appName = await GetAppInfo({
         dbManager,
         appName: possibleAppName,
@@ -160,6 +165,7 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     }
 
     if (!appName) {
+      requestedAppName = partsAfterPrefixAndLocale[1] ?? '';
       appName = await GetAppInfo({
         dbManager,
         appName: partsAfterPrefixAndLocale.length >= 2 ? partsAfterPrefixAndLocale[1] : '[root]',
@@ -174,9 +180,11 @@ export async function GetRoute(event: IGetRouteEvent): Promise<IGetRouteResult> 
     const appNameOrRootTrailingSlash = isRootApp ? '' : `${appName}/`;
 
     // Strip the appName from the start of the path, if there was one
-    const pathAfterAppName = isRootApp
+    const isRootFallback =
+      isRootApp && (await appVersionCache.ResolveAppName(requestedAppName)) !== '[root]';
+    const pathAfterAppName = isRootFallback
       ? pathAfterPrefixAndLocale
-      : pathAfterPrefixAndLocale.slice(appName.length + 1);
+      : pathAfterPrefixAndLocale.slice(requestedAppName.length + 1);
     const partsAfterAppName = pathAfterAppName.split('/');
 
     // Pass any parts after the appName/Version to the route handler

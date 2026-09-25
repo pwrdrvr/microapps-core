@@ -302,3 +302,43 @@ Similarly, if `presign` is used, the `OriginRequestPolicy` must be set to `cfron
 - `x-amz-date`
 - `x-amz-security-token`
 - `x-amz-content-sha256`
+
+### Application route aliases
+
+An application can own additional top-level routes. For example, an `ecommerce`
+app can serve `/search` and `/product` while retaining its canonical asset and API
+paths under `/ecommerce`. Aliases share the application's versions and release
+rules. Direct requests keep their original URI, and the origin receives the
+canonical name in `X-MicroApps-AppName`.
+
+Set the complete alias list in `microapps.yml`:
+
+```yaml
+app:
+  name: ecommerce
+  extraAppNames: [search, product]
+```
+
+Both `pwrdrvr publish` and `pwrdrvr publish-static` also accept repeated
+`--extra-app-name search --extra-app-name product` flags. These replace the list;
+`--clear-extra-app-names` removes all aliases. Omission preserves existing aliases.
+The deployer's `createApp` request accepts the same optional `extraAppNames` array:
+missing preserves, `[]` clears. Existing applications retain their display name.
+
+Aliases are case-insensitive, normalized to lowercase, and limited to 49 per
+application. Each must start with a letter or digit and contain only letters,
+digits, hyphens, or underscores (up to 128 characters). An alias cannot be the
+canonical app name, another application, or an alias owned by another app.
+Updates are atomic; ownership/concurrent-update conflicts return HTTP status code
+409 in the deployer response. Invalid aliases return 400. Alias routing changes
+can take up to 60 seconds to propagate through router caches. Aliases are stored
+as pointers; application listings contain only canonical apps, with their
+`ExtraAppNames` list. Existing application records need no migration.
+
+### Running tests
+
+`pnpm test` requires Java 21 or newer. The Jest setup downloads AWS DynamoDB Local
+into the ignored `.local/dynamodb-local` directory on first use and starts an
+in-memory server for transaction tests. Set `DYNAMODB_LOCAL_DIR` to an existing
+DynamoDB Local installation to avoid the download. Each Jest worker has its own
+database; no AWS account or Docker daemon is required.

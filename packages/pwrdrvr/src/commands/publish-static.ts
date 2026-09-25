@@ -77,6 +77,14 @@ export class PublishCommand extends Command {
       exactlyOne: ['app-name', 'appName'],
       description: 'MicroApps app name (this becomes the path the app is rooted at)',
     }),
+    'extra-app-name': Flags.string({
+      multiple: true,
+      exclusive: ['clear-extra-app-names'],
+      description: 'Application-level route alias; repeat to replace the alias list',
+    }),
+    'clear-extra-app-names': Flags.boolean({
+      description: 'Remove all application-level aliases',
+    }),
     // Deprecated
     staticAssetsPath: Flags.string({
       multiple: false,
@@ -152,6 +160,9 @@ export class PublishCommand extends Command {
     config.deployer.lambdaName = deployerLambdaName;
     delete config.app.lambdaName;
     config.app.name = appName;
+    if (parsedFlags['clear-extra-app-names']) config.app.extraAppNames = [];
+    else if (parsedFlags['extra-app-name'])
+      config.app.extraAppNames = parsedFlags['extra-app-name'];
     config.app.semVer = semVer;
     config.app.staticAssetsPath = staticAssetsPath;
     config.app.defaultFile = defaultFile;

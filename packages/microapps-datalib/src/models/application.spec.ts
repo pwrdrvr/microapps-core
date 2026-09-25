@@ -33,6 +33,9 @@ describe('application records', () => {
 
     await application.Save(dbManager);
 
+    //
+    // Single item key
+    //
     {
       const { Item } = await dbManager.ddbDocClient.get({
         TableName: TEST_TABLE_NAME,
@@ -45,6 +48,9 @@ describe('application records', () => {
       expect(Item?.DisplayName).toBe('Dog');
     }
 
+    //
+    // List key
+    //
     {
       const { Item } = await dbManager.ddbDocClient.get({
         TableName: TEST_TABLE_NAME,
@@ -58,6 +64,108 @@ describe('application records', () => {
       expect(Item?.DisplayName).toBe('Dog');
     }
   });
+
+  it('stores normalized alias pointers without duplicating applications in the listing', async () => {
+    const app = new Application({
+      AppName: 'Cat',
+      DisplayName: 'Cat',
+      ExtraAppNames: ['Kitty', 'Kitten', 'KITTY'],
+    });
+    await app.Save(dbManager);
+    expect(app.ExtraAppNames).toEqual(['kitty', 'kitten']);
+    for (const alias of app.ExtraAppNames) {
+      const { Item } = await dbManager.ddbDocClient.get({
+        TableName: TEST_TABLE_NAME,
+        Key: { PK: `appname#${alias}`, SK: 'application' },
+      });
+      expect(Item).toMatchObject({
+        RecordType: 'applicationAlias',
+        AliasName: alias,
+        AppName: 'cat',
+      });
+      expect(await Application.ResolveAppName({ dbManager, appName: alias.toUpperCase() })).toBe(
+        'cat',
+      );
+      expect(await Application.Load({ dbManager, key: { AppName: alias } })).toBeUndefined();
+    }
+    expect(await Application.LoadAllApps(dbManager)).toHaveLength(1);
+    expect((await Application.Load({ dbManager, key: { AppName: 'cat' } })).ExtraAppNames).toEqual([
+      'kitty',
+      'kitten',
+    ]);
+  });
+
+  it('replaces and removes aliases while preserving the canonical app', async () => {
+    const app = new Application({ AppName: 'cat', DisplayName: 'Cat', ExtraAppNames: ['kitty'] });
+    await app.Save(dbManager);
+    app.ExtraAppNames = ['kitten'];
+    await app.Save(dbManager);
+    expect(await Application.ResolveAppName({ dbManager, appName: 'kitty' })).toBeUndefined();
+    expect(await Application.ResolveAppName({ dbManager, appName: 'kitten' })).toBe('cat');
+    app.ExtraAppNames = [];
+    await app.Save(dbManager);
+    expect(await Application.ResolveAppName({ dbManager, appName: 'kitten' })).toBeUndefined();
+    expect(await Application.ResolveAppName({ dbManager, appName: 'cat' })).toBe('cat');
+  });
+
+  it.each(['real app', 'alias'])(
+    'rejects collisions with another %s without partially changing aliases',
+    async (kind) => {
+      await new Application({
+        AppName: 'owner',
+        DisplayName: 'Owner',
+        ExtraAppNames: ['taken'],
+      }).Save(dbManager);
+      const app = new Application({ AppName: 'cat', DisplayName: 'Cat', ExtraAppNames: ['kitty'] });
+      await app.Save(dbManager);
+      app.ExtraAppNames = ['new-name', kind === 'real app' ? 'owner' : 'taken'];
+      await expect(app.Save(dbManager)).rejects.toThrow(/already owned/);
+      expect(await Application.ResolveAppName({ dbManager, appName: 'new-name' })).toBeUndefined();
+      expect(await Application.ResolveAppName({ dbManager, appName: 'kitty' })).toBe('cat');
+      expect(
+        (await Application.Load({ dbManager, key: { AppName: 'cat' } })).ExtraAppNames,
+      ).toEqual(['kitty']);
+    },
+  );
+
+  it('does not create a real app over an existing alias', async () => {
+    await new Application({
+      AppName: 'owner',
+      DisplayName: 'Owner',
+      ExtraAppNames: ['taken'],
+    }).Save(dbManager);
+    await expect(
+      new Application({ AppName: 'taken', DisplayName: 'Bad' }).Save(dbManager),
+    ).rejects.toThrow(/already an alias/);
+  });
+
+  it('only allows one application to claim an alias concurrently', async () => {
+    const results = await Promise.allSettled(
+      ['one', 'two'].map(async (AppName) =>
+        new Application({ AppName, DisplayName: AppName, ExtraAppNames: ['shared'] }).Save(
+          dbManager,
+        ),
+      ),
+    );
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    const apps = await Application.LoadAllApps(dbManager);
+    expect(apps).toHaveLength(1);
+    expect(await Application.ResolveAppName({ dbManager, appName: 'shared' })).toBe(
+      apps[0].AppName,
+    );
+  });
+
+  it.each(['', 'cat', '[root]', '_next', 'foo/bar', 'has space', 'foo.json'])(
+    'rejects invalid alias %s',
+    async (alias) => {
+      await expect(
+        new Application({ AppName: 'cat', DisplayName: 'Cat', ExtraAppNames: [alias] }).Save(
+          dbManager,
+        ),
+      ).rejects.toThrow(/top-level aliases/);
+      expect(await Application.LoadAllApps(dbManager)).toHaveLength(0);
+    },
+  );
 
   it('load function should load records', async () => {
     let application = new Application();

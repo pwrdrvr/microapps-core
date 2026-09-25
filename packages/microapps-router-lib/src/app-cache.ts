@@ -6,6 +6,7 @@ interface ICacheEntry<T> {
 }
 
 export class AppVersionCache {
+  private appNameCache = new Map<string, ICacheEntry<string | undefined>>();
   private negativeAppNameCache: Map<string, ICacheEntry<undefined>>;
   private appRulesCache: Map<string, ICacheEntry<Rules>>;
   private appVersionsCache: Map<string, Map<string, ICacheEntry<Version>>>;
@@ -75,7 +76,19 @@ export class AppVersionCache {
     this.appVersionsCache.set(AppName.toLowerCase(), versionsMap);
   }
 
+  /** Cache aliases separately; versions and rules stay keyed by their canonical app. */
+  public async ResolveAppName(appName: string): Promise<string | undefined> {
+    const key = appName.toLowerCase();
+    const cached = this.appNameCache.get(key);
+    if (cached && Date.now() - cached.timestamp < 60000) return cached.data;
+    const data = await Application.ResolveAppName({ dbManager: this.dbManager, appName: key });
+    this.appNameCache.set(key, { timestamp: Date.now(), data });
+    return data;
+  }
+
   public ClearCache(): void {
+    this.appNameCache.clear();
+    this.negativeAppNameCache.clear();
     this.appRulesCache.clear();
     this.appVersionsCache.clear();
   }

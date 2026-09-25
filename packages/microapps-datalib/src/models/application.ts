@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+import type { TransactWriteCommandInput } from '@aws-sdk/lib-dynamodb';
 import { plainToInstance } from 'class-transformer';
 import { DBManager } from '../manager';
 import { Rules } from './rules';
@@ -21,7 +23,12 @@ interface IApplicationRecord {
   SK: string;
   AppName: string;
   DisplayName: string;
+  ExtraAppNames?: string[];
+  Revision?: string;
 }
+
+export class ApplicationAliasConflictError extends Error {}
+export class InvalidApplicationAliasError extends Error {}
 
 export class Application implements IApplicationRecord {
   public static async UpdateDefaultRule(opts: {
@@ -69,7 +76,11 @@ export class Application implements IApplicationRecord {
       TableName: dbManager.tableName,
       Key: { PK: `appName#${key.AppName}`.toLowerCase(), SK: 'application' },
     });
-    const record = plainToInstance<Application, unknown>(Application, Item);
+    // Alias pointers are not standalone application records.
+    const record = plainToInstance<Application, unknown>(
+      Application,
+      Item?.AliasName ? undefined : Item,
+    );
     return record;
   }
 
@@ -93,9 +104,26 @@ export class Application implements IApplicationRecord {
     return records;
   }
 
+  /** Resolve a top-level route to its owning application without following alias chains. */
+  public static async ResolveAppName(opts: {
+    dbManager: DBManager;
+    appName: string;
+  }): Promise<string | undefined> {
+    const { dbManager } = opts;
+    const appName = opts.appName.toLowerCase();
+    const { Item } = await dbManager.ddbDocClient.get({
+      TableName: dbManager.tableName,
+      Key: { PK: `appname#${appName}`, SK: 'application' },
+    });
+    if (!Item) return undefined;
+    return Item.AppName;
+  }
+
   private _keyBy: SaveBy;
   private _appName: string | undefined;
   private _displayName: string | undefined;
+  private _extraAppNames: string[] | undefined;
+  public Revision?: string;
 
   public constructor(init?: Partial<IApplicationRecord>) {
     Object.assign(this, init);
@@ -108,31 +136,104 @@ export class Application implements IApplicationRecord {
       SK: this.SK,
       AppName: this.AppName,
       DisplayName: this.DisplayName,
+      ExtraAppNames: this.ExtraAppNames,
+      ...(this.Revision ? { Revision: this.Revision } : {}),
     };
   }
 
   public async Save(dbManager: DBManager): Promise<void> {
-    // TODO: Validate that all the fields needed are present
+    const aliases = this.ExtraAppNames;
+    if (
+      aliases.length > 49 ||
+      aliases.some((name) => !/^[a-z0-9][a-z0-9_-]{0,127}$/.test(name) || name === this.AppName)
+    ) {
+      throw new InvalidApplicationAliasError(
+        'Use at most 49 distinct top-level aliases (letters, digits, hyphens, underscores), excluding the app name',
+      );
+    }
 
-    // Save under specific AppName key
+    const key = { PK: `appname#${this.AppName}`, SK: 'application' };
+    const { Item: previous } = await dbManager.ddbDocClient.get({
+      TableName: dbManager.tableName,
+      Key: key,
+      ConsistentRead: true,
+    });
+    if (previous?.AliasName) {
+      throw new ApplicationAliasConflictError(`App name is already an alias: ${this.AppName}`);
+    }
+    const oldAliases: string[] = previous?.ExtraAppNames ?? [];
+    const revision = randomUUID();
     this._keyBy = SaveBy.AppName;
-    const taskByName = dbManager.ddbDocClient.put({
-      TableName: dbManager.tableName,
-      Item: this.DbStruct,
-    });
-
-    // Save under all Applications key
-    this._keyBy = SaveBy.Applications;
-    const taskByApplications = dbManager.ddbDocClient.put({
-      TableName: dbManager.tableName,
-      Item: this.DbStruct,
-    });
-
-    await Promise.all([taskByName, taskByApplications]);
-
-    // Await the tasks so they can throw / complete
-    await taskByName;
-    await taskByApplications;
+    const record = { ...this.DbStruct, Revision: revision };
+    const TransactItems: NonNullable<TransactWriteCommandInput['TransactItems']> = [
+      {
+        Put: {
+          TableName: dbManager.tableName,
+          Item: record,
+          ConditionExpression: previous
+            ? 'AppName = :owner AND attribute_not_exists(AliasName) AND ' +
+              (previous.Revision ? 'Revision = :revision' : 'attribute_not_exists(Revision)')
+            : 'attribute_not_exists(PK)',
+          ...(previous
+            ? {
+                ExpressionAttributeValues: {
+                  ':owner': this.AppName,
+                  ...(previous.Revision ? { ':revision': previous.Revision } : {}),
+                },
+              }
+            : {}),
+        },
+      },
+      {
+        Put: {
+          TableName: dbManager.tableName,
+          Item: { ...record, PK: 'applications', SK: key.PK },
+        },
+      },
+      ...aliases.map((alias) => ({
+        Put: {
+          TableName: dbManager.tableName,
+          Item: {
+            PK: `appname#${alias}`,
+            SK: 'application',
+            RecordType: 'applicationAlias',
+            AliasName: alias,
+            AppName: this.AppName,
+          },
+          ConditionExpression:
+            'attribute_not_exists(PK) OR (AppName = :owner AND AliasName = :alias)',
+          ExpressionAttributeValues: { ':owner': this.AppName, ':alias': alias },
+        },
+      })),
+      ...oldAliases
+        .filter((alias) => !aliases.includes(alias))
+        .map((alias) => ({
+          Delete: {
+            TableName: dbManager.tableName,
+            Key: { PK: `appname#${alias}`, SK: 'application' },
+            ConditionExpression: 'AppName = :owner AND AliasName = :alias',
+            ExpressionAttributeValues: { ':owner': this.AppName, ':alias': alias },
+          },
+        })),
+    ];
+    try {
+      await dbManager.ddbDocClient.transactWrite({ TransactItems });
+      this.Revision = revision;
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.name === 'TransactionCanceledException' &&
+        (error as Error & { CancellationReasons?: { Code?: string }[] }).CancellationReasons?.some(
+          (reason) =>
+            reason.Code === 'ConditionalCheckFailed' || reason.Code === 'TransactionConflict',
+        )
+      ) {
+        throw new ApplicationAliasConflictError(
+          'An app name or alias is already owned, or the application changed concurrently; reload and retry',
+        );
+      }
+      throw error;
+    }
   }
 
   public get PK(): string {
@@ -169,5 +270,15 @@ export class Application implements IApplicationRecord {
   }
   public set DisplayName(value: string) {
     this._displayName = value;
+  }
+
+  public get ExtraAppNames(): string[] {
+    return [...(this._extraAppNames ?? [])];
+  }
+  public set ExtraAppNames(value: string[]) {
+    if (!Array.isArray(value) || value.some((name) => typeof name !== 'string')) {
+      throw new InvalidApplicationAliasError('extraAppNames must be an array of strings');
+    }
+    this._extraAppNames = [...new Set(value.map((name) => name.toLowerCase()))];
   }
 }
