@@ -19,6 +19,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
 /**
@@ -47,6 +48,12 @@ export interface IMicroAppsEdgeToOrigin {
  * Properties to initialize an instance of `MicroAppsEdgeToOrigin`.
  */
 export interface MicroAppsEdgeToOriginProps {
+  /**
+   * Enable precompressed asset negotiation for this bucket and grant sidecar HEAD access.
+   * @default - disabled
+   */
+  readonly precompressedAssetsBucket?: s3.IBucket;
+
   /**
    * RemovalPolicy override for child resources
    *
@@ -159,6 +166,7 @@ export interface MicroAppsEdgeToOriginProps {
 }
 
 export interface GenerateEdgeToOriginConfigOptions {
+  readonly precompressedAssets?: boolean;
   readonly originRegion: string;
   readonly signingMode: 'sign' | 'presign' | '';
   readonly addXForwardedHostHeader: boolean;
@@ -291,6 +299,7 @@ export class MicroAppsEdgeToOrigin extends Construct implements IMicroAppsEdgeTo
 ${props.signingMode === '' ? '' : `signingMode: ${props.signingMode}`}
 addXForwardedHostHeader: ${props.addXForwardedHostHeader}
 replaceHostHeader: ${props.replaceHostHeader}
+precompressedAssets: ${props.precompressedAssets ?? false}
 ${props.tableName ? `tableName: '${props.tableName}'` : ''}
 ${props.rootPathPrefix ? `rootPathPrefix: '${props.rootPathPrefix}'` : ''}
 ${
@@ -344,6 +353,7 @@ ${
       signingMode: signingMode === 'none' ? '' : signingMode,
       rootPathPrefix,
       locales: props.allowedLocalePrefixes,
+      precompressedAssets: !!props.precompressedAssetsBucket,
       ...(tableRulesArn
         ? {
             tableName: tableRulesArn,
@@ -474,6 +484,19 @@ ${
         includeBody: true,
       },
     ];
+
+    if (props.precompressedAssetsBucket) {
+      // Keep this policy in the caller stack, avoiding an edge-role/bucket stack cycle.
+      new iam.Policy(this, 'compressed-assets-policy', {
+        roles: [this._edgeToOriginRole],
+        statements: [
+          new iam.PolicyStatement({
+            actions: ['s3:GetObject'],
+            resources: [props.precompressedAssetsBucket.arnForObjects('*')],
+          }),
+        ],
+      });
+    }
 
     // Grant access to the rules table
     if (tableRulesArn) {

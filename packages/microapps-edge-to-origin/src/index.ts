@@ -12,6 +12,11 @@ import { signRequest, presignRequest } from './sign-request';
 import { Config } from './config/config';
 export { IConfigFile } from './config/config';
 import Log from './lib/log';
+import {
+  acceptsIdentity,
+  selectCompressedAsset,
+  viewerAcceptEncoding,
+} from './lib/compressed-assets';
 
 const log = Log.Instance;
 const config = Config.instance;
@@ -79,6 +84,24 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       request.origin?.s3?.customHeaders['x-microapps-origin']?.[0]?.value === 's3'
     ) {
       log.debug('request is for S3 origin', { request });
+      if (config.precompressedAssets) {
+        const selection = await selectCompressedAsset(request);
+        const acceptEncoding = viewerAcceptEncoding(request);
+        if (
+          selection === 'original' &&
+          ['GET', 'HEAD'].includes(request.method) &&
+          !acceptsIdentity(acceptEncoding)
+        ) {
+          return {
+            status: '406',
+            statusDescription: 'Not Acceptable',
+            headers: {
+              vary: [{ key: 'Vary', value: 'Accept-Encoding' }],
+              'cache-control': [{ key: 'Cache-Control', value: 'no-store' }],
+            },
+          };
+        }
+      }
 
       if (
         request.headers['host']?.[0]?.value &&
@@ -95,6 +118,11 @@ export const handler: lambda.CloudFrontRequestHandler = async (
       }
 
       return request as unknown as lambda.CloudFrontResultResponse;
+    }
+
+    // A sidecar can disappear between HEAD and GET. Restore the public path on app fallback.
+    if (config.precompressedAssets) {
+      request.uri = request.uri.replace(/\.microapps\.(br|gz)$/, '');
     }
 
     // Add x-forwarded-host before signing

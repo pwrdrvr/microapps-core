@@ -339,3 +339,45 @@ describe('MicroApps', () => {
     });
   });
 });
+
+it('synthesizes precompressed assets across regions without a bucket/edge-role dependency cycle', () => {
+  const app = new App();
+  const stack = new Stack(app, 'compressed-stack', {
+    env: { account: '123456789012', region: 'us-west-2' },
+  });
+  const construct = new MicroApps(stack, 'compressed', {
+    appEnv: 'dev',
+    precompressedAssets: true,
+    automaticCompression: false,
+    tableNameForEdgeToOrigin: 'table',
+  });
+  expect(construct.edgeToOrigin).toBeDefined();
+  Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+    PolicyDocument: {
+      Statement: [
+        {
+          Action: 's3:GetObject',
+          Effect: 'Allow',
+          Resource: {
+            'Fn::Join': [
+              '',
+              [
+                {
+                  'Fn::GetAtt': [
+                    stack.getLogicalId(
+                      construct.s3.bucketApps.node.defaultChild as import('aws-cdk-lib').CfnElement,
+                    ),
+                    'Arn',
+                  ],
+                },
+                '/*',
+              ],
+            ],
+          },
+        },
+      ],
+      Version: '2012-10-17',
+    },
+  });
+  expect(() => app.synth()).not.toThrow();
+});
