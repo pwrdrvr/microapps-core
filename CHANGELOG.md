@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.2.0-beta.9 - 2026-09-25
+
+This beta updates the CLI, CDK construct, and shared packages since v1.2.0-beta.8. Install it explicitly or through the npm `beta` dist-tag.
+
+### Runtime requirements
+
+- Require Node.js 24 or newer and move the generated Lambda runtimes and bundles to Node.js 24. Upgrade the runtime before testing this beta. @huntharo (#443)
+
+### Fixes
+
+- Refresh the CLI's security-sensitive dependencies and fix command discovery when using the `microapps-publish` compatibility executable. Release checks now install the CLI tarballs as a fresh consumer and verify their commands and dependency audit. @huntharo (#435)
+- Update Convict, YAML parsing, AWS SDK clients, and CDK dependencies, and replace vulnerable transitive dependency resolutions in the workspace and standalone CDK package. @huntharo @dependabot[bot] (#437, #451, #453, #456, #457)
+
+### Performance
+
+- Process upload and staging results incrementally instead of collecting every result in memory. Large uploads report completed progress while retaining concurrency limits, error propagation, and copy-before-delete ordering. @huntharo (#436)
+
+### Internal
+
+- Refresh CDK tooling, constructs, esbuild, TypeScript, linting, and test dependencies; reconcile jsii 6 with the generated CDK configuration and lockfiles. @huntharo @dependabot[bot] (#425, #426, #429, #430, #432, #433, #440, #442, #445, #446, #449, #450, #455)
+- Replace the DynamoDB test harness with a shared local fixture using AWS SDK v3, removing the test dependency on AWS SDK v2. @huntharo (#459)
+- Consolidate CI Node setup and update artifact downloads, including the direct-to-main artifact action update. @huntharo (#420; cee4c7b)
+- Restrict workflow token permissions, avoid preview deployments for changes that do not affect deployable code, group related dependency updates, and exclude the pnpm store from generated-file mutation checks. @huntharo (#438, #448, #458, #461)
+
+### Docs
+
+- Document the standalone CDK lockfile refresh procedure. @huntharo (#454)
+
 ## v1.2.0-beta.8 - 2026-04-06
 
 ### Highlights
