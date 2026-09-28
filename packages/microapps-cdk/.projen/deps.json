@@ -37,6 +37,7 @@
     },
     {
       "name": "esbuild",
+      "version": "^0.28.2",
       "type": "build"
     },
     {
