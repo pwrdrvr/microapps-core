@@ -67,7 +67,7 @@
     "projen": "0.103.25",
     "replace-in-file": "6.3.5",
     "rimraf": "5.0.10",
-    "ts-jest": "29.4.12",
+    "ts-jest": "29.4.13",
     "ts-node": "10.9.2",
     "typescript": "~5.9.3",
     "yaml": "^2.9.1"
