@@ -1,6 +1,7 @@
 *.zip
 
 node_modules*/
+.pnpm-store/
 CDK-dotnet/
 
 # TypeScript output

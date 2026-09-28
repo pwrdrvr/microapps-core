@@ -643,7 +643,16 @@ jobs:
           echo Testing App HTML Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
-          curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
+          # Exercise the 0.7.0 API without changing a default version.
+          response=$(curl --silent --show-error --write-out '\n%{http_code}' \
+            -H"accept: application/json" -H"content-type: application/json" \
+            --data '{}' \
+            https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/default-version)
+          expected=$'{"error":"appName and semVer are required."}\n400'
+          if [ "$response" != "$expected" ]; then
+            printf 'Unexpected release API response:\n%s\n' "$response"
+            exit 1
+          fi
 
       - name: Change to Child Account
         uses: aws-actions/configure-aws-credentials@v6
@@ -1251,7 +1260,16 @@ jobs:
           echo Testing App HTML Loading
           curl -H"accept: text/html" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}?appver=${{ needs.build.outputs.releaseAppPackageVersion }}
           echo Testing App Method Invocation
-          curl -H"accept: application/json" --fail https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/refresh/${DEMO_APP_NAME}
+          # Exercise the 0.7.0 API without changing a default version.
+          response=$(curl --silent --show-error --write-out '\n%{http_code}' \
+            -H"accept: application/json" -H"content-type: application/json" \
+            --data '{}' \
+            https://${EDGE_DOMAIN}${PREFIX}/${RELEASE_APP_NAME}/${{ needs.build.outputs.releaseAppPackageVersion }}/api/default-version)
+          expected=$'{"error":"appName and semVer are required."}\n400'
+          if [ "$response" != "$expected" ]; then
+            printf 'Unexpected release API response:\n%s\n' "$response"
+            exit 1
+          fi
 
       #
       # Child Account Deploy
