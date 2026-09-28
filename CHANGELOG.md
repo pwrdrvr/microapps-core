@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.2.0-beta.10 - 2026-09-28
+
+This beta updates the release app used by the repository's private CDK stack and refreshes package tooling since v1.2.0-beta.9.
+
+### Highlights
+
+- Pin the repository's private CDK deployment stack to the published release app construct 0.7.0, so its next deployment can use the newer release app. @huntharo (#466)
+
+### Internal
+
+- Bring jsii and Projen dependency declarations and the standalone CDK lockfile into agreement, restoring a clean construct build and package. @huntharo (#467)
+- Refresh the AWS SDK clients and storage libraries used by the workspace. @dependabot[bot] (#464)
+- Update esbuild, ts-jest, and the lint and TypeScript toolchain. @dependabot[bot] (#427, #462, #463)
+
 ## v1.2.0-beta.9 - 2026-09-25
 
 This beta updates the CLI, CDK construct, and shared packages since v1.2.0-beta.8. Install it explicitly or through the npm `beta` dist-tag.
