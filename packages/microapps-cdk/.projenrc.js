@@ -52,7 +52,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   // devDeps: [],                       /* Build dependencies for this module. */
 
   devDeps: [
-    'esbuild',
+    'esbuild@^0.28.2',
     '@types/yargs@^16.0.0', // This is a dummy to prevent jsii from failing
     '@types/jest@^30.0.0', // This is a dummy to prevent jsii from failing
     'jsii-diff@^1.140.0',
