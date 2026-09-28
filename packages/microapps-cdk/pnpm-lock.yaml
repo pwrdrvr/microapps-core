@@ -48,7 +48,7 @@ importers:
         specifier: ^2.32.0
         version: 2.32.0(@typescript-eslint/parser@8.58.0(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@2.7.1)(eslint@9.39.4)
       jsii:
-        specifier: ^6.0.14
+        specifier: ^6.0.15
         version: 6.0.15
       jsii-diff:
         specifier: ^1.140.0
@@ -63,8 +63,8 @@ importers:
         specifier: ^6.0.16
         version: 6.0.16
       projen:
-        specifier: 0.103.25
-        version: 0.103.25(constructs@10.8.1)
+        specifier: 0.103.27
+        version: 0.103.27(constructs@10.8.1)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1497,8 +1497,8 @@ packages:
     resolution: {integrity: sha512-byhRAPguVKMQIj4kjJwJ5lAskVhfuiSdiYl/aLTWpgkGEmic2jYhJh1yE9ih8Ox44Xg9ccCT11/S6QrzSJuNrg==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
 
-  projen@0.103.25:
-    resolution: {integrity: sha512-JYSitllYzFnRcZgMoSL6rTtCry7iZKV+Wqztn1aSf24aqi+rYz0lh/ExiJ1mYXI54DQJe2JkzY8OXSkDxpIG3Q==}
+  projen@0.103.27:
+    resolution: {integrity: sha512-dtcvFZOIhQ+AYOeOhSDSReKCgcYbrAFsKZMM+JzlA9v0icegQAolZDHhdNTDaSYODfRSgVzE+U/B2jfdImSsNQ==}
     engines: {node: '>= 16.0.0'}
     hasBin: true
     peerDependencies:
@@ -3437,7 +3437,7 @@ snapshots:
       '@jest/schemas': 30.5.0
       ansi-styles: 5.2.0
 
-  projen@0.103.25(constructs@10.8.1):
+  projen@0.103.27(constructs@10.8.1):
     dependencies:
       constructs: 10.8.1
 

@@ -23,8 +23,8 @@ const project = new awscdk.AwsCdkConstructLibrary({
   addPackageManagerToDevEngines: false,
   minNodeVersion: '24.0.0',
   workflowNodeVersion: readFileSync(resolve(__dirname, '../../.nvmrc'), 'utf8').trim(),
-  jsiiVersion: '^6.0.14',
-  projenVersion: '0.103.25',
+  jsiiVersion: '^6.0.15',
+  projenVersion: '0.103.27',
   // .projenrc.ts causes failed `ts-node` runs from `npx projen` unless
   // the generated `tsconfig.json` (but .gitignore'd) file is deleted before
   // running `npx projen` - It's just not worth the trouble to try to

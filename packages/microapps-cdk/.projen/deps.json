@@ -73,12 +73,12 @@
     },
     {
       "name": "jsii",
-      "version": "^6.0.14",
+      "version": "^6.0.15",
       "type": "build"
     },
     {
       "name": "projen",
-      "version": "0.103.25",
+      "version": "0.103.27",
       "type": "build"
     },
     {

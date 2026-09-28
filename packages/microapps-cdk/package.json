@@ -51,12 +51,12 @@
     "eslint": "^9",
     "eslint-import-resolver-typescript": "^2.7.1",
     "eslint-plugin-import": "^2.32.0",
-    "jsii": "^6.0.14",
+    "jsii": "^6.0.15",
     "jsii-diff": "^1.140.0",
     "jsii-docgen": "^10.12.6",
     "jsii-pacmak": "^1.140.0",
     "jsii-rosetta": "^6.0.16",
-    "projen": "0.103.25",
+    "projen": "0.103.27",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
