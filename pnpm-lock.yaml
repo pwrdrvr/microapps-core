@@ -105,8 +105,8 @@ importers:
         specifier: 0.7.0
         version: 0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)
       '@pwrdrvr/microapps-app-release-cdk':
-        specifier: 0.5.3
-        version: 0.5.3(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)
+        specifier: 0.7.0
+        version: 0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)
       '@pwrdrvr/microapps-cdk':
         specifier: workspace:*
         version: link:../microapps-cdk
@@ -1665,10 +1665,11 @@ packages:
       aws-cdk-lib: ^2.24.1
       constructs: 10.8.1
 
-  '@pwrdrvr/microapps-app-release-cdk@0.5.3':
-    resolution: {integrity: sha512-mscP6oFQW4ZaAt6h839fWGdgnvdTOL8d4TDznSVJQWUtm+mAbdWNhtnsOwmYYa9Eth65dGXIgVqC9+iqIwUixw==}
+  '@pwrdrvr/microapps-app-release-cdk@0.7.0':
+    resolution: {integrity: sha512-0/XHF9YYMU4aa4I0EnGSCCWsbqkBjbB+zFB6D3u441ENx7Da9sxRASdGzU8TsQ6abwmyHdGsgKlH8/NHY823Iw==}
+    engines: {node: '>= 22.0.0'}
     peerDependencies:
-      aws-cdk-lib: ^2.24.0
+      aws-cdk-lib: ^2.269.0
       constructs: 10.8.1
 
   '@rtsao/scc@1.1.0':
@@ -5819,7 +5820,7 @@ snapshots:
       aws-cdk-lib: 2.270.0(constructs@10.8.1)
       constructs: 10.8.1
 
-  '@pwrdrvr/microapps-app-release-cdk@0.5.3(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)':
+  '@pwrdrvr/microapps-app-release-cdk@0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)':
     dependencies:
       aws-cdk-lib: 2.270.0(constructs@10.8.1)
       constructs: 10.8.1
