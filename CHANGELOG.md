@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.2.0 - 2026-09-28
+
+Stable 1.2.0 brings the changes developed across the 1.2 beta series. The final beta was verified on a private PwrDrvr deployment before this release.
+
+### Runtime requirement
+
+- Node.js 24 or newer is required for the CLI and CDK construct. Generated Lambda runtimes and bundles also target Node.js 24. @huntharo (#443)
+
+### Highlights
+
+- Move `pwrdrvr` to the current oclif runtime while retaining its existing commands. Both `pwrdrvr` and the `microapps-publish` compatibility executable now discover those commands correctly. @huntharo (#418, #435)
+- Process large uploads and staging operations incrementally, preserving concurrency limits and copy-before-delete ordering while reporting completed progress. @huntharo (#436)
+- Update the private deployment stack to use release app construct 0.7.0, and remove deprecated CloudFront origin and log APIs from the CDK construct. @huntharo (#419, #466)
+
+### Fixes
+
+- Restore versioned API routes in the CDK construct and the main packaging jobs used to check build artifacts. @huntharo (#393, #399)
+- Keep unpublished deployer types and libraries out of the published CLI's runtime dependencies, so the CLI and compatibility package install cleanly. @huntharo (517d83f, 2c1a2cf)
+- Refresh security-sensitive CLI dependencies and validate the published tarballs by installing and auditing them as a fresh consumer. Update Convict, YAML parsing, AWS SDK clients, CDK dependencies, and vulnerable transitive resolutions across the workspace. @huntharo @dependabot[bot] (#435, #437, #451, #453, #456, #457, #464)
+
+### Internal
+
+- Move the repository and CI to pnpm workspaces, enforce declared package import boundaries, and improve preview deployment scope classification. @huntharo (#391, #392, #396, #398, #458)
+- Refresh CDK, jsii, Projen, esbuild, TypeScript, lint, and test tooling, including synchronized standalone CDK lockfiles. @huntharo @dependabot[bot] (#417, #425, #426, #427, #429, #430, #432, #433, #440, #442, #445, #446, #449, #450, #455, #462, #463, #467)
+- Replace the DynamoDB test harness with a local fixture using AWS SDK v3, and update integration HTTP coverage. @huntharo (#413, #459)
+- Add beta-channel publishing, deterministic release planning, clearer CI permissions, and release packaging checks. @huntharo (#395, #400, #438, #448, #461)
+
 ## v1.2.0-beta.10 - 2026-09-28
 
 This beta updates the release app used by the repository's private CDK stack and refreshes package tooling since v1.2.0-beta.9.
