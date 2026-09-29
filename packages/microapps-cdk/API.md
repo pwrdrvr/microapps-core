@@ -1329,9 +1329,11 @@ const addRoutesOptions: AddRoutesOptions = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.appOriginRequestPolicy">appOriginRequestPolicy</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOriginRequestPolicy</code> | Origin Request policy for API Gateway Origin. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.bucketOriginFallbackToApp">bucketOriginFallbackToApp</a></code> | <code>aws-cdk-lib.aws_cloudfront_origins.OriginGroup</code> | Origin Group with Primary of S3 bucket with `x-microapps-origin: s3` custom header and Fallback of `appOnlyOrigin`. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.distro">distro</a></code> | <code>aws-cdk-lib.aws_cloudfront.Distribution</code> | CloudFront Distribution to add the Behaviors (Routes) to. |
+| <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.automaticCompression">automaticCompression</a></code> | <code>boolean</code> | Enable CloudFront on-demand compression. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createAPIPathRoute">createAPIPathRoute</a></code> | <code>boolean</code> | When true, routes that contain `/api/` get sent to the app origin even when other path segments contain periods. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createNextDataPathRoute">createNextDataPathRoute</a></code> | <code>boolean</code> | When true, routes that contain `/_next/data/` get sent to the app origin even when the request path ends in `.json`. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.edgeLambdas">edgeLambdas</a></code> | <code>aws-cdk-lib.aws_cloudfront.EdgeLambda[]</code> | Edge lambdas to associate with the API Gateway routes. |
+| <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.precompressedAssets">precompressedAssets</a></code> | <code>boolean</code> | Select published Brotli/gzip variants for S3 requests. |
 | <code><a href="#@pwrdrvr/microapps-cdk.AddRoutesOptions.property.rootPathPrefix">rootPathPrefix</a></code> | <code>string</code> | Path prefix on the root of the CloudFront distribution. |
 
 ---
@@ -1388,6 +1390,21 @@ CloudFront Distribution to add the Behaviors (Routes) to.
 
 ---
 
+##### `automaticCompression`<sup>Optional</sup> <a name="automaticCompression" id="@pwrdrvr/microapps-cdk.AddRoutesOptions.property.automaticCompression"></a>
+
+```typescript
+public readonly automaticCompression: boolean;
+```
+
+- *Type:* boolean
+- *Default:* true
+
+Enable CloudFront on-demand compression.
+
+Disable after deploying compressed assets.
+
+---
+
 ##### `createAPIPathRoute`<sup>Optional</sup> <a name="createAPIPathRoute" id="@pwrdrvr/microapps-cdk.AddRoutesOptions.property.createAPIPathRoute"></a>
 
 ```typescript
@@ -1421,6 +1438,19 @@ public readonly edgeLambdas: EdgeLambda[];
 - *Type:* aws-cdk-lib.aws_cloudfront.EdgeLambda[]
 
 Edge lambdas to associate with the API Gateway routes.
+
+---
+
+##### `precompressedAssets`<sup>Optional</sup> <a name="precompressedAssets" id="@pwrdrvr/microapps-cdk.AddRoutesOptions.property.precompressedAssets"></a>
+
+```typescript
+public readonly precompressedAssets: boolean;
+```
+
+- *Type:* boolean
+- *Default:* false
+
+Select published Brotli/gzip variants for S3 requests.
 
 ---
 
@@ -1536,6 +1566,7 @@ const generateEdgeToOriginConfigOptions: GenerateEdgeToOriginConfigOptions = { .
 | <code><a href="#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.replaceHostHeader">replaceHostHeader</a></code> | <code>boolean</code> | *No description.* |
 | <code><a href="#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.signingMode">signingMode</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.locales">locales</a></code> | <code>string[]</code> | *No description.* |
+| <code><a href="#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.precompressedAssets">precompressedAssets</a></code> | <code>boolean</code> | *No description.* |
 | <code><a href="#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.rootPathPrefix">rootPathPrefix</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.tableName">tableName</a></code> | <code>string</code> | *No description.* |
 
@@ -1591,6 +1622,16 @@ public readonly locales: string[];
 
 ---
 
+##### `precompressedAssets`<sup>Optional</sup> <a name="precompressedAssets" id="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.precompressedAssets"></a>
+
+```typescript
+public readonly precompressedAssets: boolean;
+```
+
+- *Type:* boolean
+
+---
+
 ##### `rootPathPrefix`<sup>Optional</sup> <a name="rootPathPrefix" id="@pwrdrvr/microapps-cdk.GenerateEdgeToOriginConfigOptions.property.rootPathPrefix"></a>
 
 ```typescript
@@ -1631,6 +1672,7 @@ const microAppsCFProps: MicroAppsCFProps = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketAppsOriginS3">bucketAppsOriginS3</a></code> | <code>aws-cdk-lib.aws_cloudfront.IOrigin</code> | S3 bucket origin for deployed applications Marked with `x-microapps-origin: s3`. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.assetNameRoot">assetNameRoot</a></code> | <code>string</code> | Optional asset name root. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.assetNameSuffix">assetNameSuffix</a></code> | <code>string</code> | Optional asset name suffix. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.automaticCompression">automaticCompression</a></code> | <code>boolean</code> | Enable CloudFront on-demand compression. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketLogs">bucketLogs</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | S3 bucket for CloudFront logs. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.certEdge">certEdge</a></code> | <code>aws-cdk-lib.aws_certificatemanager.ICertificate</code> | ACM Certificate that covers `domainNameEdge` name. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.createAPIPathRoute">createAPIPathRoute</a></code> | <code>boolean</code> | Create an extra Behavior (Route) for /api/ that allows API routes to have a period in them. |
@@ -1639,6 +1681,7 @@ const microAppsCFProps: MicroAppsCFProps = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.domainNameOrigin">domainNameOrigin</a></code> | <code>string</code> | API Gateway custom origin domain name. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.edgeLambdas">edgeLambdas</a></code> | <code>aws-cdk-lib.aws_cloudfront.EdgeLambda[]</code> | Configuration of the edge to origin lambda functions. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.originShieldRegion">originShieldRegion</a></code> | <code>string</code> | Optional Origin Shield Region. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.precompressedAssets">precompressedAssets</a></code> | <code>boolean</code> | Select published Brotli/gzip variants for S3 requests. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.r53Zone">r53Zone</a></code> | <code>aws-cdk-lib.aws_route53.IHostedZone</code> | Route53 zone in which to create optional `domainNameEdge` record. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.removalPolicy">removalPolicy</a></code> | <code>aws-cdk-lib.RemovalPolicy</code> | RemovalPolicy override for child resources. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.rootPathPrefix">rootPathPrefix</a></code> | <code>string</code> | Path prefix on the root of the CloudFront distribution. |
@@ -1708,6 +1751,21 @@ Optional asset name suffix.
 -dev-pr-12
 ```
 
+
+##### `automaticCompression`<sup>Optional</sup> <a name="automaticCompression" id="@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.automaticCompression"></a>
+
+```typescript
+public readonly automaticCompression: boolean;
+```
+
+- *Type:* boolean
+- *Default:* true
+
+Enable CloudFront on-demand compression.
+
+Disable after deploying compressed assets.
+
+---
 
 ##### `bucketLogs`<sup>Optional</sup> <a name="bucketLogs" id="@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.bucketLogs"></a>
 
@@ -1835,6 +1893,19 @@ Optional Origin Shield Region.
 
 This should be the region where the DynamoDB is located so the
 EdgeToOrigin calls have the lowest latency (~1 ms).
+
+---
+
+##### `precompressedAssets`<sup>Optional</sup> <a name="precompressedAssets" id="@pwrdrvr/microapps-cdk.MicroAppsCFProps.property.precompressedAssets"></a>
+
+```typescript
+public readonly precompressedAssets: boolean;
+```
+
+- *Type:* boolean
+- *Default:* false
+
+Select published Brotli/gzip variants for S3 requests.
 
 ---
 
@@ -2040,6 +2111,7 @@ const microAppsEdgeToOriginProps: MicroAppsEdgeToOriginProps = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.assetNameRoot">assetNameRoot</a></code> | <code>string</code> | Optional asset name root. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.assetNameSuffix">assetNameSuffix</a></code> | <code>string</code> | Optional asset name suffix. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.originRegion">originRegion</a></code> | <code>string</code> | Origin region that API Gateway will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.precompressedAssetsBucket">precompressedAssetsBucket</a></code> | <code>aws-cdk-lib.aws_s3.IBucket</code> | Enable precompressed asset negotiation for this bucket and grant sidecar HEAD access. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.removalPolicy">removalPolicy</a></code> | <code>aws-cdk-lib.RemovalPolicy</code> | RemovalPolicy override for child resources. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.replaceHostHeader">replaceHostHeader</a></code> | <code>boolean</code> | Replaces Host header (which will be the Edge domain name) with the Origin domain name when enabled. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.rootPathPrefix">rootPathPrefix</a></code> | <code>string</code> | Path prefix on the root of the API Gateway Stage. |
@@ -2153,6 +2225,19 @@ Origin region that API Gateway will be deployed to, used for the config.yml on t
 
 Note that Lambda FunctionURLs get the region from the Lambda ARN
 and do not need this to be configured.
+
+---
+
+##### `precompressedAssetsBucket`<sup>Optional</sup> <a name="precompressedAssetsBucket" id="@pwrdrvr/microapps-cdk.MicroAppsEdgeToOriginProps.property.precompressedAssetsBucket"></a>
+
+```typescript
+public readonly precompressedAssetsBucket: IBucket;
+```
+
+- *Type:* aws-cdk-lib.aws_s3.IBucket
+- *Default:* disabled
+
+Enable precompressed asset negotiation for this bucket and grant sidecar HEAD access.
 
 ---
 
@@ -2280,6 +2365,7 @@ const microAppsProps: MicroAppsProps = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.allowedLocalePrefixes">allowedLocalePrefixes</a></code> | <code>string[]</code> | List of allowed locale prefixes for pages. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.assetNameRoot">assetNameRoot</a></code> | <code>string</code> | Optional asset name root. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.assetNameSuffix">assetNameSuffix</a></code> | <code>string</code> | Optional asset name suffix. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.automaticCompression">automaticCompression</a></code> | <code>boolean</code> | Enable CloudFront on-demand compression. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.certEdge">certEdge</a></code> | <code>aws-cdk-lib.aws_certificatemanager.ICertificate</code> | Certificate in US-East-1 for the CloudFront distribution. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.certOrigin">certOrigin</a></code> | <code>aws-cdk-lib.aws_certificatemanager.ICertificate</code> | Certificate in deployed region for the API Gateway. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.createAPIGateway">createAPIGateway</a></code> | <code>boolean</code> | Create API Gateway for non-edge invocation. |
@@ -2291,6 +2377,7 @@ const microAppsProps: MicroAppsProps = { ... }
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.edgeToOriginRoleARNs">edgeToOriginRoleARNs</a></code> | <code>string[]</code> | Additional IAM Role ARNs that should be allowed to invoke apps in child accounts. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.originRegion">originRegion</a></code> | <code>string</code> | Origin region that API Gateway or Lambda function will be deployed to, used for the config.yml on the Edge function to sign requests for the correct region. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.originShieldRegion">originShieldRegion</a></code> | <code>string</code> | Optional Origin Shield Region. |
+| <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.precompressedAssets">precompressedAssets</a></code> | <code>boolean</code> | Select published Brotli/gzip variants for S3 requests. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.r53Zone">r53Zone</a></code> | <code>aws-cdk-lib.aws_route53.IHostedZone</code> | Route53 zone in which to create optional `domainNameEdge` record. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.removalPolicy">removalPolicy</a></code> | <code>aws-cdk-lib.RemovalPolicy</code> | RemovalPolicy override for child resources. |
 | <code><a href="#@pwrdrvr/microapps-cdk.MicroAppsProps.property.replaceHostHeader">replaceHostHeader</a></code> | <code>boolean</code> | Replaces Host header (which will be the Edge domain name) with the Origin domain name when enabled. |
@@ -2407,6 +2494,21 @@ Optional asset name suffix.
 -dev-pr-12
 ```
 
+
+##### `automaticCompression`<sup>Optional</sup> <a name="automaticCompression" id="@pwrdrvr/microapps-cdk.MicroAppsProps.property.automaticCompression"></a>
+
+```typescript
+public readonly automaticCompression: boolean;
+```
+
+- *Type:* boolean
+- *Default:* true
+
+Enable CloudFront on-demand compression.
+
+Disable after deploying compressed assets.
+
+---
 
 ##### `certEdge`<sup>Optional</sup> <a name="certEdge" id="@pwrdrvr/microapps-cdk.MicroAppsProps.property.certEdge"></a>
 
@@ -2571,6 +2673,19 @@ Optional Origin Shield Region.
 
 This should be the region where the DynamoDB is located so the
 EdgeToOrigin calls have the lowest latency (~1 ms).
+
+---
+
+##### `precompressedAssets`<sup>Optional</sup> <a name="precompressedAssets" id="@pwrdrvr/microapps-cdk.MicroAppsProps.property.precompressedAssets"></a>
+
+```typescript
+public readonly precompressedAssets: boolean;
+```
+
+- *Type:* boolean
+- *Default:* false
+
+Select published Brotli/gzip variants for S3 requests.
 
 ---
 

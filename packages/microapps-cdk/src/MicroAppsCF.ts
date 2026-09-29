@@ -1,5 +1,5 @@
 import { posix as posixPath } from 'path';
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cf from 'aws-cdk-lib/aws-cloudfront';
 import * as cforigins from 'aws-cdk-lib/aws-cloudfront-origins';
@@ -23,6 +23,18 @@ export interface IMicroAppsCF {
  * Properties to initialize an instance of `MicroAppsCF`.
  */
 export interface MicroAppsCFProps {
+  /**
+   * Select published Brotli/gzip variants for S3 requests.
+   * @default false
+   */
+  readonly precompressedAssets?: boolean;
+
+  /**
+   * Enable CloudFront on-demand compression. Disable after deploying compressed assets.
+   * @default true
+   */
+  readonly automaticCompression?: boolean;
+
   /**
    * RemovalPolicy override for child resources
    *
@@ -177,6 +189,18 @@ export interface CreateAPIOriginPolicyOptions {
  */
 export interface AddRoutesOptions {
   /**
+   * Select published Brotli/gzip variants for S3 requests.
+   * @default false
+   */
+  readonly precompressedAssets?: boolean;
+
+  /**
+   * Enable CloudFront on-demand compression. Disable after deploying compressed assets.
+   * @default true
+   */
+  readonly automaticCompression?: boolean;
+
+  /**
    * Application origin
    *
    * Typically an S3 bucket with a `x-microapps-origin: app` custom header
@@ -302,19 +326,50 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     //
     // Add Behaviors
     //
+    const preserveEncoding = props.precompressedAssets
+      ? new cf.Function(distro, 'preserve-accept-encoding', {
+        code: cf.FunctionCode.fromInline(preserveAcceptEncodingCode),
+        runtime: cf.FunctionRuntime.JS_2_0,
+      })
+      : undefined;
+    const functionAssociations = preserveEncoding
+      ? [{ function: preserveEncoding, eventType: cf.FunctionEventType.VIEWER_REQUEST }]
+      : undefined;
+    const compressedHeaders = props.precompressedAssets
+      ? new cf.ResponseHeadersPolicy(distro, 'compressed-asset-headers', {
+        customHeadersBehavior: {
+          customHeaders: [{ header: 'Vary', value: 'Accept-Encoding', override: false }],
+        },
+      })
+      : undefined;
+    const assetCachePolicy = props.precompressedAssets
+      ? new cf.CachePolicy(distro, 'compressed-asset-cache', {
+        // The viewer function preserves the raw preferences before normalization.
+        headerBehavior: cf.CacheHeaderBehavior.allowList('x-microapps-accept-encoding'),
+        enableAcceptEncodingBrotli: props.automaticCompression ?? true,
+        enableAcceptEncodingGzip: props.automaticCompression ?? true,
+        minTtl: Duration.seconds(0),
+        defaultTtl: Duration.days(1),
+        maxTtl: Duration.days(365),
+      })
+      : cf.CachePolicy.CACHING_OPTIMIZED;
     const s3BehaviorOptions: cf.AddBehaviorOptions = {
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-      cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED,
-      compress: true,
+      cachePolicy: assetCachePolicy,
+      responseHeadersPolicy: compressedHeaders,
+      functionAssociations,
+      compress: props.automaticCompression ?? true,
       originRequestPolicy: cf.OriginRequestPolicy.ALL_VIEWER,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
     };
     const s3FallbackToAppOptions: cf.AddBehaviorOptions = {
+      responseHeadersPolicy: compressedHeaders,
+      functionAssociations,
       allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
+      compress: props.automaticCompression ?? true,
       originRequestPolicy: appOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
@@ -323,7 +378,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       allowedMethods: cf.AllowedMethods.ALLOW_ALL,
       // TODO: Caching needs to be set by the app response
       cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-      compress: true,
+      compress: props.automaticCompression ?? true,
       originRequestPolicy: appOriginRequestPolicy,
       viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       edgeLambdas: props.edgeLambdas,
@@ -448,7 +503,7 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       defaultBehavior: {
         allowedMethods: cf.AllowedMethods.ALLOW_ALL,
         cachePolicy: cf.CachePolicy.CACHING_DISABLED,
-        compress: true,
+        compress: props.automaticCompression ?? true,
         originRequestPolicy: appOriginRequestPolicy,
         origin: appOrigin,
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -470,6 +525,8 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
       appOnlyOrigin: appOrigin,
       bucketOriginFallbackToApp,
       distro: this._cloudFrontDistro,
+      precompressedAssets: props.precompressedAssets,
+      automaticCompression: props.automaticCompression,
       appOriginRequestPolicy,
       rootPathPrefix,
       createAPIPathRoute,
@@ -494,3 +551,35 @@ export class MicroAppsCF extends Construct implements IMicroAppsCF {
     }
   }
 }
+
+/** Viewer-request code: preserve preferences before CloudFront normalizes Accept-Encoding. */
+const preserveAcceptEncodingCode = `function handler(event) {
+  var request = event.request;
+  var header = request.headers['accept-encoding'];
+  var raw = header ? (header.multiValue ? header.multiValue.map(function(h) { return h.value; }).join(',') : header.value) : '';
+  // Always overwrite viewer-supplied copies of this internal header.
+  request.headers['x-microapps-accept-encoding'] = { value: raw };
+  var weights = {};
+  raw.toLowerCase().split(',').forEach(function(part) {
+    var pieces = part.trim().split(';');
+    var name = pieces.shift().trim();
+    if (!name) return;
+    var weight = 1;
+    pieces.forEach(function(parameter) {
+      var pair = parameter.trim().split('=');
+      if (pair[0] === 'q') {
+        weight = /^(0(?:\\.\\d{0,3})?|1(?:\\.0{0,3})?)$/.test(pair[1] || '') ? Number(pair[1]) : 0;
+      }
+    });
+    weights[name] = weight;
+  });
+  function weight(name) {
+    return weights[name] !== undefined ? weights[name] : (weights['*'] || 0);
+  }
+  var best = Math.max(weight('br'), weight('gzip'), weights.identity || 0);
+  var accepted = ['br', 'gzip'].filter(function(name) { return weight(name) > 0 && weight(name) === best; });
+  // Automatic compression must not use an explicitly refused or less preferred encoding.
+  if (accepted.length) request.headers['accept-encoding'] = { value: accepted.join(',') };
+  else delete request.headers['accept-encoding'];
+  return request;
+}`;

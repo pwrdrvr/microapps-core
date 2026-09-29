@@ -7,6 +7,7 @@ import { FilesExist } from '../lib/files-exist';
  * Represents a Config
  */
 export interface IConfig {
+  readonly precompressedAssets?: boolean;
   readonly awsAccountID: string;
   readonly awsRegion: string;
 
@@ -85,6 +86,12 @@ export type IConfigFile = Partial<Omit<IConfig, 'awsAccountID' | 'awsRegion'>>;
   },
 })
 export class Config implements IConfig {
+  @convict.Property({
+    doc: 'Select precompressed S3 asset variants using Accept-Encoding',
+    default: false,
+  })
+  public precompressedAssets!: boolean;
+
   public static configFiles(): string[] {
     const possibleFiles = [
       './config.yaml',

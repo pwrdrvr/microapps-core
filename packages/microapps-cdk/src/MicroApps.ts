@@ -37,6 +37,18 @@ import { reverseDomain } from './utils/ReverseDomain';
  */
 export interface MicroAppsProps {
   /**
+   * Select published Brotli/gzip variants for S3 requests.
+   * @default false
+   */
+  readonly precompressedAssets?: boolean;
+
+  /**
+   * Enable CloudFront on-demand compression. Disable after deploying compressed assets.
+   * @default true
+   */
+  readonly automaticCompression?: boolean;
+
+  /**
    * RemovalPolicy override for child resources
    *
    * Note: if set to DESTROY the S3 buckes will have `autoDeleteObjects` set to `true`
@@ -437,8 +449,14 @@ export class MicroApps extends Construct implements IMicroApps {
     });
     const edgeLambdas: cf.EdgeLambda[] = [];
 
-    if (signingMode !== 'none' || replaceHostHeader || addXForwardedHostHeader) {
+    if (
+      props.precompressedAssets ||
+      signingMode !== 'none' ||
+      replaceHostHeader ||
+      addXForwardedHostHeader
+    ) {
       this._edgeToOrigin = new MicroAppsEdgeToOrigin(this, 'edgeToOrigin', {
+        precompressedAssetsBucket: props.precompressedAssets ? this._s3.bucketApps : undefined,
         assetNameRoot,
         assetNameSuffix,
         removalPolicy,
@@ -460,6 +478,8 @@ export class MicroApps extends Construct implements IMicroApps {
       edgeLambdas.push(...props.edgeLambdas);
     }
     this._cf = new MicroAppsCF(this, 'cft', {
+      precompressedAssets: props.precompressedAssets,
+      automaticCompression: props.automaticCompression,
       removalPolicy,
       assetNameRoot,
       assetNameSuffix,

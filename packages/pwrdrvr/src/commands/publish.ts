@@ -14,10 +14,9 @@ import DeployClient, {
   DeployVersionArgs,
   IDeployVersionPreflightResult,
 } from '../lib/DeployClient';
-import { S3Uploader } from '../lib/S3Uploader';
+import { S3Uploader, prepareAssets, AssetMetadata } from '../lib/S3Uploader';
 import { S3TransferUtility } from '../lib/S3TransferUtility';
 import { Upload } from '@aws-sdk/lib-storage';
-import { contentType } from 'mime-types';
 import { TaskWrapper } from 'listr2/dist/lib/task-wrapper';
 import { DefaultRenderer } from 'listr2/dist/renderer/default.renderer';
 const asyncSetTimeout = util.promisify(setTimeout);
@@ -29,6 +28,7 @@ const lambdaClient = new lambda.LambdaClient({
 interface IContext {
   preflightResult: IDeployVersionPreflightResult;
   files: string[];
+  assetMetadata: Map<string, AssetMetadata>;
 
   /**
    * The type of ARN passed in on the config or command line
@@ -64,6 +64,16 @@ export class PublishCommand extends Command {
   ];
 
   static flags = {
+    brotli: Flags.boolean({
+      default: false,
+      description:
+        'Publish Brotli variants of compressible static assets (requires precompressed asset routing)',
+    }),
+    gzip: Flags.boolean({
+      default: false,
+      description:
+        'Publish gzip variants of compressible static assets (requires precompressed asset routing)',
+    }),
     version: Flags.version({
       char: 'v',
     }),
@@ -386,12 +396,16 @@ export class PublishCommand extends Command {
         },
         {
           enabled: () => !!config.app.staticAssetsPath,
-          title: 'Enumerate Files to Upload to S3',
-          task: (ctx, task) => {
+          title: 'Prepare Static Assets for Upload',
+          task: async (ctx, task) => {
             const origTitle = task.title;
             task.title = RUNNING + origTitle;
 
-            ctx.files = S3TransferUtility.GetFiles(S3Uploader.TempDir);
+            ctx.assetMetadata = await prepareAssets(
+              S3TransferUtility.GetFiles(S3Uploader.TempDir),
+              { brotli: parsedFlags.brotli, gzip: parsedFlags.gzip },
+            );
+            ctx.files = [...ctx.assetMetadata.keys()];
 
             task.title = origTitle;
           },
@@ -444,8 +458,7 @@ export class PublishCommand extends Command {
                       Bucket: bucketName,
                       Key: path.relative(S3Uploader.TempDir, filePath),
                       Body: createReadStream(filePath),
-                      ContentType:
-                        contentType(path.basename(filePath)) || 'application/octet-stream',
+                      ...ctx.assetMetadata.get(filePath),
                       CacheControl,
                     },
                   });
@@ -483,8 +496,7 @@ export class PublishCommand extends Command {
                       Bucket: bucketName,
                       Key: path.relative(S3Uploader.TempDir, filePath),
                       Body: createReadStream(filePath),
-                      ContentType:
-                        contentType(path.basename(filePath)) || 'application/octet-stream',
+                      ...ctx.assetMetadata.get(filePath),
                       CacheControl,
                     },
                   });
