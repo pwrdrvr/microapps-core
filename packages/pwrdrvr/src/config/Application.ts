@@ -6,6 +6,7 @@ import * as convict from 'ts-convict';
  */
 export interface IApplicationConfig {
   name: string;
+  extraAppNames?: string[];
   semVer: string;
   defaultFile: string;
   staticAssetsPath: string;
@@ -40,6 +41,21 @@ export class ApplicationConfig implements IApplicationConfig {
   public set name(value: string) {
     this._name = value.toLowerCase();
   }
+
+  @convict.Property({
+    doc: 'Application-level route aliases; omit to preserve existing aliases, [] to clear',
+    format: Array,
+    default: null,
+    nullable: true,
+    env: 'APP_EXTRA_APP_NAMES',
+  })
+  public set extraAppNames(value: string[] | null | undefined) {
+    this._extraAppNames = value ?? undefined;
+  }
+  public get extraAppNames(): string[] | undefined {
+    return this._extraAppNames;
+  }
+  private _extraAppNames?: string[];
 
   @convict.Property({
     doc: 'SemVer this version is to be published as',

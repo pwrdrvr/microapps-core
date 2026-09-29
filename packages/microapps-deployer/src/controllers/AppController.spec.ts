@@ -71,3 +71,45 @@ describe('AppController', () => {
     expect(record.DisplayName).toBe('NewDisplayName');
   });
 });
+
+describe('application alias API', () => {
+  beforeEach(() => overrideDBManager({ dbManager, dynamoClient }));
+  const create = async (appName: string, extraAppNames?: string[]) =>
+    handler(
+      {
+        type: 'createApp',
+        appName,
+        displayName: appName,
+        ...(extraAppNames !== undefined ? { extraAppNames } : {}),
+      } as ICreateApplicationRequest,
+      { awsRequestId: 'aliases' } as lambda.Context,
+    );
+
+  it('creates, preserves, replaces, and clears aliases', async () => {
+    expect((await create('shop', ['Search'])).statusCode).toBe(201);
+    expect(await Application.ResolveAppName({ dbManager, appName: 'search' })).toBe('shop');
+    expect((await create('shop')).statusCode).toBe(200);
+    expect((await Application.Load({ dbManager, key: { AppName: 'shop' } })).ExtraAppNames).toEqual(
+      ['search'],
+    );
+    expect((await create('shop', ['product'])).statusCode).toBe(200);
+    expect(await Application.ResolveAppName({ dbManager, appName: 'search' })).toBeUndefined();
+    expect(await Application.ResolveAppName({ dbManager, appName: 'product' })).toBe('shop');
+    expect((await create('shop', [])).statusCode).toBe(200);
+    expect(await Application.ResolveAppName({ dbManager, appName: 'product' })).toBeUndefined();
+  });
+
+  it('returns conflict for an alias owner or a real application collision', async () => {
+    await create('shop', ['search']);
+    expect((await create('search')).statusCode).toBe(409);
+    expect((await create('other', ['search'])).statusCode).toBe(409);
+    expect((await create('other', ['shop'])).statusCode).toBe(409);
+    expect(await Application.Load({ dbManager, key: { AppName: 'other' } })).toBeUndefined();
+  });
+
+  it('returns bad request for invalid aliases', async () => {
+    expect((await create('shop', ['a/b'])).statusCode).toBe(400);
+    expect((await create('shop', 'search' as unknown as string[])).statusCode).toBe(400);
+    expect(await Application.Load({ dbManager, key: { AppName: 'shop' } })).toBeUndefined();
+  });
+});

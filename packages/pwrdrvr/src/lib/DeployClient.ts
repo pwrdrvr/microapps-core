@@ -14,6 +14,7 @@ export interface ICreateApplicationRequest {
   readonly type: 'createApp';
   readonly appName: string;
   readonly displayName: string;
+  readonly extraAppNames?: string[];
 }
 
 export interface IDeleteVersionRequest {
@@ -91,6 +92,9 @@ export default class DeployClient {
       type: 'createApp',
       appName: config.app.name,
       displayName: config.app.name,
+      ...(config.app.extraAppNames !== undefined
+        ? { extraAppNames: config.app.extraAppNames }
+        : {}),
     };
     const response = await this._client.send(
       new lambda.InvokeCommand({

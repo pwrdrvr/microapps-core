@@ -122,7 +122,7 @@ Prebuilt outputs of note:
 
 ## Testing Notes
 
-- Unit tests use Jest and a shared Dynalite fixture in `tests/dynamodb`.
+- Unit tests use Jest and a shared DynamoDB Local fixture in `tests/dynamodb`.
 - Integration tests use [`jest.int.config.js`](/Users/huntharo/.codex/worktrees/029a/microapps-core/jest.int.config.js).
 - Root linting excludes `packages/microapps-cdk` in [`.eslintignore`](/Users/huntharo/.codex/worktrees/029a/microapps-core/.eslintignore) because that package has its own projen-managed lint setup.
 

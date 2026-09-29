@@ -69,11 +69,14 @@ export async function RouteApp(opts: {
     //
     // This is a version, and it's in the path already, route the request to it
     // without creating iframe
+    const pathAfterVersion = possibleSemVerPathAfterAppVersionInfo
+      ? additionalParts.slice(possibleSemVerPathAfterAppVersionInfo.SemVer.length + 1)
+      : additionalParts;
     return {
       statusCode: 200,
       appName,
       semVer: possibleSemVerPathVersionInfo.SemVer,
-      isAPIPath: additionalParts.startsWith('api/'),
+      isAPIPath: pathAfterVersion.startsWith('api/'),
       ...(possibleSemVerPathVersionInfo?.URL ? { url: possibleSemVerPathVersionInfo?.URL } : {}),
       ...(possibleSemVerPathVersionInfo?.Type
         ? {
