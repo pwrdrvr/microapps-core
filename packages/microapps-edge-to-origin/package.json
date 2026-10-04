@@ -8,8 +8,8 @@
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@aws-crypto/sha256-browser": "4.0.0",
-    "@aws-sdk/client-dynamodb": "3.1139.0",
-    "@aws-sdk/client-secrets-manager": "3.1139.0",
+    "@aws-sdk/client-dynamodb": "3.1144.0",
+    "@aws-sdk/client-secrets-manager": "3.1144.0",
     "@aws-sdk/credential-provider-node": "3.972.84",
     "@aws-sdk/signature-v4": "3.374.0",
     "@aws-sdk/protocol-http": "3.374.0",
@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@aws-crypto/sha256-browser": "^4.0.0",
-    "@aws-sdk/client-dynamodb": "^3.1139.0",
-    "@aws-sdk/client-secrets-manager": "^3.1139.0",
+    "@aws-sdk/client-dynamodb": "^3.1144.0",
+    "@aws-sdk/client-secrets-manager": "^3.1144.0",
     "@aws-sdk/credential-provider-node": "^3.972.84",
     "@aws-sdk/signature-v4": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
