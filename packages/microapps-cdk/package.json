@@ -41,7 +41,7 @@
     "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^30.0.0",
     "@types/node": "^24",
-    "@types/yargs": "^16.0.0",
+    "@types/yargs": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "aws-cdk-lib": "2.270.0",
