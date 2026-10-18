@@ -22,10 +22,10 @@
   },
   "homepage": "https://github.com/pwrdrvr/microapps-core#readme",
   "dependencies": {
-    "tslib": "^2.1.0"
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "@types/node": "^24.13.6"
+    "@types/node": "^24.19.2"
   },
   "files": [
     "dist",

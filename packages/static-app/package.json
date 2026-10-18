@@ -21,8 +21,8 @@
     "source-map-support": "0.5.21"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.110",
-    "@types/node": "^24.13.6"
+    "@types/aws-lambda": "8.10.164",
+    "@types/node": "^24.19.2"
   },
   "files": [
     "src",
