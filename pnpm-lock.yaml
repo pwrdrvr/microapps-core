@@ -30,8 +30,8 @@ importers:
         specifier: 8.70.1
         version: 8.70.1(eslint@8.57.1)(typescript@5.9.3)
       aws-cdk:
-        specifier: ^2.1143.0
-        version: 2.1143.0
+        specifier: ^2.1145.0
+        version: 2.1145.0
       constructs:
         specifier: 10.8.1
         version: 10.8.1
@@ -75,8 +75,8 @@ importers:
         specifier: 2.8.8
         version: 2.8.8
       projen:
-        specifier: 0.103.27
-        version: 0.103.27(constructs@10.8.1)
+        specifier: 0.104.5
+        version: 0.104.5(constructs@10.8.1)
       pwrdrvr:
         specifier: workspace:*
         version: link:packages/pwrdrvr
@@ -103,16 +103,16 @@ importers:
     dependencies:
       '@pwrdrvr/microapps-app-nextjs-demo-cdk':
         specifier: 0.7.0
-        version: 0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)
+        version: 0.7.0(aws-cdk-lib@2.273.0(constructs@10.8.1))(constructs@10.8.1)
       '@pwrdrvr/microapps-app-release-cdk':
         specifier: 0.7.0
-        version: 0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)
+        version: 0.7.0(aws-cdk-lib@2.273.0(constructs@10.8.1))(constructs@10.8.1)
       '@pwrdrvr/microapps-cdk':
         specifier: workspace:*
         version: link:../microapps-cdk
       aws-cdk-lib:
-        specifier: 2.270.0
-        version: 2.270.0(constructs@10.8.1)
+        specifier: 2.273.0
+        version: 2.273.0(constructs@10.8.1)
       constructs:
         specifier: 10.8.1
         version: 10.8.1
@@ -164,8 +164,8 @@ importers:
         specifier: ^8
         version: 8.70.1(eslint@9.39.5)(typescript@5.9.3)
       aws-cdk-lib:
-        specifier: 2.270.0
-        version: 2.270.0(constructs@10.8.1)
+        specifier: 2.273.0
+        version: 2.273.0(constructs@10.8.1)
       commit-and-tag-version:
         specifier: ^13
         version: 13.2.1(conventional-commits-filter@6.0.1)(conventional-commits-parser@7.1.2)
@@ -185,23 +185,23 @@ importers:
         specifier: ^2.32.0
         version: 2.32.0(@typescript-eslint/parser@8.70.1(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@2.7.1)(eslint@9.39.5)
       jsii:
-        specifier: ^6.0.15
-        version: 6.0.15
+        specifier: ^6.0.18
+        version: 6.0.18
       jsii-diff:
-        specifier: ^1.140.0
-        version: 1.140.0
+        specifier: ^1.141.0
+        version: 1.141.0
       jsii-docgen:
-        specifier: ^10.12.6
-        version: 10.12.6(jsii-rosetta@6.0.16)
+        specifier: ^10.12.7
+        version: 10.12.7(jsii-rosetta@6.0.19)
       jsii-pacmak:
-        specifier: ^1.140.0
-        version: 1.140.0(jsii-rosetta@6.0.16)
+        specifier: ^1.141.0
+        version: 1.141.0(jsii-rosetta@6.0.19)
       jsii-rosetta:
-        specifier: ^6.0.16
-        version: 6.0.16
+        specifier: ^6.0.19
+        version: 6.0.19
       projen:
-        specifier: 0.103.27
-        version: 0.103.27(constructs@10.8.1)
+        specifier: 0.104.5
+        version: 0.104.5(constructs@10.8.1)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -629,8 +629,8 @@ packages:
   '@aws-cdk/asset-node-proxy-agent-v6@2.1.3':
     resolution: {integrity: sha512-98We1QWfin9vtuuQtNFhIIAEWb8CreyYTAP0Vn8HqSBoNiFJM9nZgifJeQawT9Wq0NX1HCNFlxCyTccIrK1PSA==}
 
-  '@aws-cdk/cloud-assembly-schema@54.24.0':
-    resolution: {integrity: sha512-9sH1pBpWuqZR/9rYAveNi62B/jDrc9BNOL83alD/wtIUSbRkg1aj6JX2r1cSugQwLBjCizQscQZgAb5wWnTTMg==}
+  '@aws-cdk/cloud-assembly-schema@54.26.0':
+    resolution: {integrity: sha512-zYI3XhQ/bpuSXuPaF77f7u2q6rZBPwdrPh8a0v+e/B3IxbRQAtQv0fmacQ8uYh9RPVuIVnExE6IsFJBSALH7BA==}
     engines: {node: '>= 18.0.0'}
     bundledDependencies:
       - jsonschema
@@ -1371,12 +1371,12 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@jsii/check-node@1.140.0':
-    resolution: {integrity: sha512-NTiY2Nd9ZtACPZjaU+k9+oiaD191Yw0FoiUR7bB+NoOtB5nMEhrLKn5O/PYmCIZGK0G1JaJs+PmLcyj68J6RKw==}
+  '@jsii/check-node@1.141.0':
+    resolution: {integrity: sha512-dGAUZmacdWhZtmPuTNOf9avAsh0IHwZ5m6mNzOrJ0aVTgDu3L9PWw4dq99emn6Xx0pYCrSs+W4xcbp71bH3MLQ==}
     engines: {node: '>= 14.17.0'}
 
-  '@jsii/spec@1.140.0':
-    resolution: {integrity: sha512-1rGS+iJtejQ3ybSJfV0if9PzZuSQmORbVF3MkqE0csatF//Rj8raCqptZLMX6rkdfZ8C2Jsw5hU4PrmuCzBk6A==}
+  '@jsii/spec@1.141.0':
+    resolution: {integrity: sha512-NL/2TJnpfs332uuEWUV8Rx2wrV/gLoxdw7pmv457BoUwpOL6ZqOYgM6W54Niqn4RCjdxGddVL2l4CJBRMW0NgQ==}
     engines: {node: '>= 14.17.0'}
 
   '@napi-rs/wasm-runtime@1.2.4':
@@ -2016,8 +2016,8 @@ packages:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
 
-  ansi-regex@6.3.0:
-    resolution: {integrity: sha512-WpDfL7NO6j7tH88IDBNVdUJxDh9nmCteAVW9dsep846XdwF4naCBK+/tGLX3KJgcpgMRXCFlTM2hKGoK9FsdrQ==}
+  ansi-regex@6.4.0:
+    resolution: {integrity: sha512-KzTVk2tCWAHtYrvvvaP8bJKJq2pVinhLcGEQdtLIYPbmNGNyYe8QwNaTUYQp2J7/vIsUKt5QCqAfUkYyG9DkOw==}
     engines: {node: '>=12'}
 
   ansi-styles@3.2.1:
@@ -2103,8 +2103,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  aws-cdk-lib@2.270.0:
-    resolution: {integrity: sha512-xoO9FEqcVTTK39N6n+LxvAAsS5WZSGX/p+uv3l2W+LXDEIWctq6VECdluuFwdXnbyf4v4eIxo2btrkUepnEy0Q==}
+  aws-cdk-lib@2.273.0:
+    resolution: {integrity: sha512-H7hBQHnKn0ZBbpnWRL1Hn0GunSQUsYaLqOk2xIqV0HWr3qbYMwTEZT0HbJBUSxeUdzp1nz0AE2LN3K6qvYr4Zg==}
     engines: {node: '>= 20.0.0'}
     peerDependencies:
       constructs: 10.8.1
@@ -2122,8 +2122,8 @@ packages:
       - yaml
       - mime-types
 
-  aws-cdk@2.1143.0:
-    resolution: {integrity: sha512-bTbgEmNuN6UMDAyhGFWOAnriafSu7j0cAjaFKRw1/WEs6RE5g062D2v2+YE8Dw6qw7RgNGQPH5Nv47TsK5kZSQ==}
+  aws-cdk@2.1145.0:
+    resolution: {integrity: sha512-kV3vJCQX5XvlyVvmRHH79Nn2kOmDicN1WSFGkSaZXsNaDdNj2Re25yehsp+L2ixv0VCm0/HLLmYSoehmVPDkJg==}
     engines: {node: '>= 18.0.0'}
     hasBin: true
 
@@ -2306,8 +2306,8 @@ packages:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
 
-  codemaker@1.140.0:
-    resolution: {integrity: sha512-/EPlxI+2i9ji7aZac2kLEUyjzfgHWBl8hDZ98T6BnED9mTLRInCNToA0vqgZPcTotiP6g6YNeZo7cBAc90Ok9A==}
+  codemaker@1.141.0:
+    resolution: {integrity: sha512-OpueAw6U+vDjYOOZ0RLexINaMaybJUus64+CoJa6u9d3oWaI43sSQFMAuJT2jT6zyGlFkeRlbk/vT2E5396fcg==}
     engines: {node: '>= 14.17.0'}
 
   collect-v8-coverage@1.0.3:
@@ -3385,36 +3385,36 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jsii-diff@1.140.0:
-    resolution: {integrity: sha512-nK6y3X08YDt7hrkgl45gn9uzQFioqeBLXwj/OZ1AyeejvvPQJvaNuIogRdrfjBuNuksjnQlW/RJk8ocgzaXCvA==}
+  jsii-diff@1.141.0:
+    resolution: {integrity: sha512-JJmXP5K4G0KOqA5kwymMDPJV9jdrsF2ZZnz7Xbv7IpXvTjz73p8VPV3GLi+yHPITgFG81FOFxB8P27H0KW2U7Q==}
     engines: {node: '>= 14.17.0'}
     hasBin: true
 
-  jsii-docgen@10.12.6:
-    resolution: {integrity: sha512-MShAZLUkLLO2B8UG4rm7nlLRaBY7ePdZVagl1I4d0r9qnResexL7cqJN4qEmxB7qsRZhpCY2tLhb3wlpZlH3cg==}
+  jsii-docgen@10.12.7:
+    resolution: {integrity: sha512-zLJMrH3nrnc5yDcnwfl1nQtfM8mRwQ2kS0MiM3UtNoSIOS68TNKNXsb/0gMT/uwJzayPhvv9yIINYcqwzicZQw==}
     hasBin: true
     peerDependencies:
       jsii-rosetta: ^1.85.0 || ~5.0.14 || ~5.1.2 || ~5.2.0 || ~5.3.0 || ~5.4.0 || ~5.5.0 || ~5.6.0 || ~5.7.0 || ~5.8.0 || ~5.9.1 || ~6.0.0
 
-  jsii-pacmak@1.140.0:
-    resolution: {integrity: sha512-BHv63POC099uGm08UM7L5UZUanN3rfESzWv54xpwhamiIJ+zlw0+6Sj790LP2skRkezTdTj8Qj6mhU5Kxfko7g==}
+  jsii-pacmak@1.141.0:
+    resolution: {integrity: sha512-Ky6g3RLeTwU4xP/KKXHjsHsILYd7QaOHzI/qNrySwoWhPQmRrRB6fPQYtqCHkC+kjMUGJKTopS7hT+XBqWFaQA==}
     engines: {node: '>= 14.17.0'}
     hasBin: true
     peerDependencies:
       jsii-rosetta: '>=5.9.0'
 
-  jsii-reflect@1.140.0:
-    resolution: {integrity: sha512-8bRD6WSQfWrB6/31sz92bi21HWaMVzvxZUgaJt/IiT3RqGKc57dO+idekn8WNpTBneE9vVhj24UDExHH8YfJAQ==}
+  jsii-reflect@1.141.0:
+    resolution: {integrity: sha512-M51GkGF3PX4iBFm2HLemzxgEdqEoEjvzLYQAvsO0yGY351F2ZlRm2afn9Sx6XcrNCH4IXddDBfxktt46kh5nNA==}
     engines: {node: '>= 14.17.0'}
     hasBin: true
 
-  jsii-rosetta@6.0.16:
-    resolution: {integrity: sha512-BK5R8A9mfXa3kZiDEbs8ywDXJSgaJ+hvkMn6ZU+r0c2NDGdNWZuzPHoMhF7VsfBEjxTtu/hhcjQ/vpIPBVchwA==}
+  jsii-rosetta@6.0.19:
+    resolution: {integrity: sha512-nvVqQtERHzHa3T6nrHrf7KVogCJMuyhSBdTgxn8qBr8yN7mXR0ZFzf30JLjBA8HA4mouV++R56S7O2CnSTvPIw==}
     engines: {node: '>= 20.16.0'}
     hasBin: true
 
-  jsii@6.0.15:
-    resolution: {integrity: sha512-yJBUy8szt8ncAiwIuCKVFXMb/maVg6ujAjRFeyMqOqDFq7tIruFNQLIiLHOVWvb+i6QSXakl5V8il6s4g8y82g==}
+  jsii@6.0.18:
+    resolution: {integrity: sha512-RCi/jMs+omXP62jfJUOBGkwxZDwqNUXIgicVz0OV7WjcWgg7nCa+qYMF4eaDPkuTdOa9xuqDN/KORkS8ssavrA==}
     engines: {node: '>= 20.16.0'}
     hasBin: true
 
@@ -3727,8 +3727,8 @@ packages:
     resolution: {integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==}
     engines: {node: '>=6'}
 
-  oo-ascii-tree@1.140.0:
-    resolution: {integrity: sha512-swJJN43RwwtZAtNQu03W8rqNtTUvq9T4eGU4KupRq7I9/R3exHobbF/OOm5sl6tGcumsQrNU97NBx7x+LEIPgA==}
+  oo-ascii-tree@1.141.0:
+    resolution: {integrity: sha512-D1xND2r5udiTGnj9k2S1obzT8mzRu5RrjI1doR8dH7rrjnB0DrwwbCFiOeG9waUsqcT8w9KlzpS0IRbrustJIw==}
     engines: {node: '>= 14.17.0'}
 
   optionator@0.9.4:
@@ -3859,8 +3859,8 @@ packages:
     resolution: {integrity: sha512-byhRAPguVKMQIj4kjJwJ5lAskVhfuiSdiYl/aLTWpgkGEmic2jYhJh1yE9ih8Ox44Xg9ccCT11/S6QrzSJuNrg==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
 
-  projen@0.103.27:
-    resolution: {integrity: sha512-dtcvFZOIhQ+AYOeOhSDSReKCgcYbrAFsKZMM+JzlA9v0icegQAolZDHhdNTDaSYODfRSgVzE+U/B2jfdImSsNQ==}
+  projen@0.104.5:
+    resolution: {integrity: sha512-t0Ja/zrLpbcJcuu2duNQZ65NxxQbgUOnrUGDztoRV7dEEU5MWn8/dXlxnYXyj50ftyNxl42zoPyrVw53q0DQZA==}
     engines: {node: '>= 16.0.0'}
     hasBin: true
     peerDependencies:
@@ -3902,8 +3902,8 @@ packages:
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
-  react-is@19.3.0:
-    resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
+  react-is@19.3.1:
+    resolution: {integrity: sha512-RRieF6IyxQBkcK6pP8xOHprLTPW6QjRkbGdImtqNme+/hYVwCZkLQLdlZGOhUqXwkS9IEynaGvPJtv6XB/cz0Q==}
 
   readable-stream@3.6.2:
     resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
@@ -4104,9 +4104,8 @@ packages:
   stream-browserify@3.0.0:
     resolution: {integrity: sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==}
 
-  stream-chain@4.2.5:
-    resolution: {integrity: sha512-Wtyq3bNE3ggLR0v2vftqvuhltym3WbZAkZpfIrkr5F/6vpeUmWmwTgXa16zD87gpahwJ/Qulq3zVfUlgIc0J2A==}
-    engines: {node: '>=22'}
+  stream-chain@4.2.6:
+    resolution: {integrity: sha512-1zeJ8CrtJfmiba26ui8jXkq/xLRFvhzkdH02D5QLO9Cnovgeb28IJxg88DdraWnjnkbOol/++uIAybJbJhk7ig==}
 
   stream-json@3.7.0:
     resolution: {integrity: sha512-rCSBdcBP/bPk6T8QFcxAj1MSzAuc5i49cYW6IE7sYObNEPccBJIUiL6fU9c9BWt40aJK0siVynLX7lWaW8alXw==}
@@ -4509,7 +4508,7 @@ snapshots:
 
   '@aws-cdk/asset-node-proxy-agent-v6@2.1.3': {}
 
-  '@aws-cdk/cloud-assembly-schema@54.24.0': {}
+  '@aws-cdk/cloud-assembly-schema@54.26.0': {}
 
   '@aws-crypto/crc32@3.0.0':
     dependencies:
@@ -5496,12 +5495,12 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@jsii/check-node@1.140.0':
+  '@jsii/check-node@1.141.0':
     dependencies:
       chalk: 4.1.2
       semver: 7.8.5
 
-  '@jsii/spec@1.140.0': {}
+  '@jsii/spec@1.141.0': {}
 
   '@napi-rs/wasm-runtime@1.2.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
@@ -5616,14 +5615,14 @@ snapshots:
 
   '@pkgr/core@0.3.6': {}
 
-  '@pwrdrvr/microapps-app-nextjs-demo-cdk@0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)':
+  '@pwrdrvr/microapps-app-nextjs-demo-cdk@0.7.0(aws-cdk-lib@2.273.0(constructs@10.8.1))(constructs@10.8.1)':
     dependencies:
-      aws-cdk-lib: 2.270.0(constructs@10.8.1)
+      aws-cdk-lib: 2.273.0(constructs@10.8.1)
       constructs: 10.8.1
 
-  '@pwrdrvr/microapps-app-release-cdk@0.7.0(aws-cdk-lib@2.270.0(constructs@10.8.1))(constructs@10.8.1)':
+  '@pwrdrvr/microapps-app-release-cdk@0.7.0(aws-cdk-lib@2.273.0(constructs@10.8.1))(constructs@10.8.1)':
     dependencies:
-      aws-cdk-lib: 2.270.0(constructs@10.8.1)
+      aws-cdk-lib: 2.273.0(constructs@10.8.1)
       constructs: 10.8.1
 
   '@rtsao/scc@1.1.0': {}
@@ -6224,7 +6223,7 @@ snapshots:
 
   ansi-regex@5.0.1: {}
 
-  ansi-regex@6.3.0: {}
+  ansi-regex@6.4.0: {}
 
   ansi-styles@3.2.1:
     dependencies:
@@ -6321,14 +6320,14 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
-  aws-cdk-lib@2.270.0(constructs@10.8.1):
+  aws-cdk-lib@2.273.0(constructs@10.8.1):
     dependencies:
       '@aws-cdk/asset-awscli-v1': 2.2.292
       '@aws-cdk/asset-node-proxy-agent-v6': 2.1.3
-      '@aws-cdk/cloud-assembly-schema': 54.24.0
+      '@aws-cdk/cloud-assembly-schema': 54.26.0
       constructs: 10.8.1
 
-  aws-cdk@2.1143.0: {}
+  aws-cdk@2.1145.0: {}
 
   aws-sdk-client-mock@4.1.0:
     dependencies:
@@ -6528,7 +6527,7 @@ snapshots:
 
   co@4.6.0: {}
 
-  codemaker@1.140.0:
+  codemaker@1.141.0:
     dependencies:
       camelcase: 6.3.0
       decamelize: 5.0.1
@@ -8017,63 +8016,63 @@ snapshots:
 
   jsesc@3.1.0: {}
 
-  jsii-diff@1.140.0:
+  jsii-diff@1.141.0:
     dependencies:
-      '@jsii/check-node': 1.140.0
-      '@jsii/spec': 1.140.0
+      '@jsii/check-node': 1.141.0
+      '@jsii/spec': 1.141.0
       fs-extra: 10.1.0
-      jsii-reflect: 1.140.0
+      jsii-reflect: 1.141.0
       log4js: 6.9.1
       yargs: 17.7.3
     transitivePeerDependencies:
       - supports-color
 
-  jsii-docgen@10.12.6(jsii-rosetta@6.0.16):
+  jsii-docgen@10.12.7(jsii-rosetta@6.0.19):
     dependencies:
-      '@jsii/spec': 1.140.0
+      '@jsii/spec': 1.141.0
       case: 1.6.3
       fast-glob: 3.3.3
       fs-extra: 10.1.0
-      jsii-reflect: 1.140.0
-      jsii-rosetta: 6.0.16
+      jsii-reflect: 1.141.0
+      jsii-rosetta: 6.0.19
       json-stream-stringify: 3.1.7
       semver: 7.8.5
       yargs: 16.2.2
 
-  jsii-pacmak@1.140.0(jsii-rosetta@6.0.16):
+  jsii-pacmak@1.141.0(jsii-rosetta@6.0.19):
     dependencies:
-      '@jsii/check-node': 1.140.0
-      '@jsii/spec': 1.140.0
+      '@jsii/check-node': 1.141.0
+      '@jsii/spec': 1.141.0
       clone: 2.1.2
-      codemaker: 1.140.0
+      codemaker: 1.141.0
       commonmark: 0.31.2
       escape-string-regexp: 4.0.0
       fs-extra: 10.1.0
-      jsii-reflect: 1.140.0
-      jsii-rosetta: 6.0.16
+      jsii-reflect: 1.141.0
+      jsii-rosetta: 6.0.19
       semver: 7.8.5
       spdx-license-list: 6.12.0
       xmlbuilder: 15.1.1
       yargs: 17.7.3
 
-  jsii-reflect@1.140.0:
+  jsii-reflect@1.141.0:
     dependencies:
-      '@jsii/check-node': 1.140.0
-      '@jsii/spec': 1.140.0
+      '@jsii/check-node': 1.141.0
+      '@jsii/spec': 1.141.0
       chalk: 4.1.2
       fs-extra: 10.1.0
-      oo-ascii-tree: 1.140.0
+      oo-ascii-tree: 1.141.0
       yargs: 17.7.3
 
-  jsii-rosetta@6.0.16:
+  jsii-rosetta@6.0.19:
     dependencies:
-      '@jsii/check-node': 1.140.0
-      '@jsii/spec': 1.140.0
+      '@jsii/check-node': 1.141.0
+      '@jsii/spec': 1.141.0
       '@xmldom/xmldom': 0.9.12
       chalk: 4.1.2
       commonmark: 0.31.2
       fast-glob: 3.3.3
-      jsii: 6.0.15
+      jsii: 6.0.18
       semver: 7.8.5
       semver-intersect: 1.5.0
       stream-json: 3.7.0
@@ -8083,10 +8082,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jsii@6.0.15:
+  jsii@6.0.18:
     dependencies:
-      '@jsii/check-node': 1.140.0
-      '@jsii/spec': 1.140.0
+      '@jsii/check-node': 1.141.0
+      '@jsii/spec': 1.141.0
       case: 1.6.3
       chalk: 4.1.2
       fast-deep-equal: 3.1.3
@@ -8405,7 +8404,7 @@ snapshots:
     dependencies:
       mimic-fn: 2.1.0
 
-  oo-ascii-tree@1.140.0: {}
+  oo-ascii-tree@1.141.0: {}
 
   optionator@0.9.4:
     dependencies:
@@ -8515,11 +8514,11 @@ snapshots:
   pretty-format@30.5.1:
     dependencies:
       '@jest/react-is-18': react-is@18.3.1
-      '@jest/react-is-19': react-is@19.3.0
+      '@jest/react-is-19': react-is@19.3.1
       '@jest/schemas': 30.5.0
       ansi-styles: 5.2.0
 
-  projen@0.103.27(constructs@10.8.1):
+  projen@0.104.5(constructs@10.8.1):
     dependencies:
       constructs: 10.8.1
 
@@ -8535,7 +8534,7 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-is@19.3.0: {}
+  react-is@19.3.1: {}
 
   readable-stream@3.6.2:
     dependencies:
@@ -8778,11 +8777,11 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  stream-chain@4.2.5: {}
+  stream-chain@4.2.6: {}
 
   stream-json@3.7.0:
     dependencies:
-      stream-chain: 4.2.5
+      stream-chain: 4.2.6
 
   streamroller@3.1.5:
     dependencies:
@@ -8845,7 +8844,7 @@ snapshots:
 
   strip-ansi@7.2.0:
     dependencies:
-      ansi-regex: 6.3.0
+      ansi-regex: 6.4.0
 
   strip-bom@3.0.0: {}
 
