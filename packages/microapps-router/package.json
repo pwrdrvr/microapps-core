@@ -21,25 +21,25 @@
     "@aws-sdk/client-dynamodb": "^3.1139.0",
     "@pwrdrvr/microapps-datalib": "workspace:*",
     "@pwrdrvr/microapps-router-lib": "workspace:*",
-    "@types/aws-lambda": "8.10.110",
+    "@types/aws-lambda": "8.10.164",
     "convict": "^6.2.5",
     "convict-format-with-validator": "^6.0.1",
-    "fs-extra": "^9.1.0",
-    "js-yaml": "^4.3.2",
+    "fs-extra": "^11.4.1",
+    "js-yaml": "^5.4.3",
     "lambda-log": "^3.1.0",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.2.2",
     "source-map-support": "0.5.21",
     "ts-convict": "^1.1.0",
-    "tslib": "^2.1.0"
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "3.1139.0",
-    "@types/convict": "^6.0.2",
-    "@types/convict-format-with-validator": "^6.0.2",
-    "@types/fs-extra": "^9.0.11",
-    "@types/js-yaml": "^4.0.1",
-    "@types/lambda-log": "^2.2.0",
-    "@types/node": "^24.13.6",
-    "@types/source-map-support": "0.5.6"
+    "@types/convict": "^6.1.6",
+    "@types/convict-format-with-validator": "^6.0.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/lambda-log": "^3.0.3",
+    "@types/node": "^24.19.2",
+    "@types/source-map-support": "0.5.10"
   }
 }
